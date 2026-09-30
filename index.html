@@ -1469,6 +1469,11 @@ body.wide .dwsrch:focus-within{border-color:var(--sub)}
 body.wideoff #top .appbar .dwsrch{display:flex;align-items:center;gap:8px;margin:0 0 0 auto;flex:0 1 300px;min-width:180px;height:40px;padding:0 14px;border-radius:20px;background:var(--wash,var(--paper));border:1px solid var(--line)}
 body.wideoff #top .appbar .dwsrch:focus-within{border-color:var(--sub)}
 body.wide .cbin,body.wideoff .cbin{display:none!important}
+/* スマホ：検索はアイコンだけの丸いボタン（押すと上に入力欄が出る）。入力中の言葉がある間は欄のまま */
+body:not(.wide):not(.wideoff):not(.searching) .cbar:has(#fsq:placeholder-shown){justify-content:flex-end}
+body:not(.wide):not(.wideoff):not(.searching) .cbin:has(#fsq:placeholder-shown){flex:0 0 58px!important;width:58px!important;height:58px!important;padding:0!important;border-radius:50%!important;justify-content:center;cursor:pointer}
+body:not(.wide):not(.wideoff):not(.searching) .cbin:has(#fsq:placeholder-shown) input,body:not(.wide):not(.wideoff):not(.searching) .cbin:has(#fsq:placeholder-shown) #fsqClose{display:none!important}
+body:not(.wide):not(.wideoff):not(.searching) .cbin:has(#fsq:placeholder-shown) svg{width:24px;height:24px;margin:0}
 body.wide .cbar,body.wideoff .cbar{left:auto!important;right:28px!important;max-width:none!important;justify-content:flex-end}
 body.wide .cbask,body.wideoff .cbask{width:auto!important;height:56px!important;padding:0 24px 0 18px!important;border-radius:28px!important;gap:8px!important;font-size:16px!important;font-weight:700!important;color:#fff!important}
 body.wide .cbask>span:not(.ic),body.wideoff .cbask>span:not(.ic){display:inline!important}
@@ -1559,7 +1564,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'cf84dba242', APP_URL = location.origin + location.pathname;
+const BUILD = 'b940286764', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
