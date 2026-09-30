@@ -1241,6 +1241,8 @@ html[data-theme=dark]{--gl:rgba(52,52,50,.88);--gl-b:rgba(255,255,255,.14);--gl-
 .appbar .abtn,.appbar h1:not(.st-busy):not(.st-ok):not(.st-upd){background:rgba(255,255,255,.52)!important;-webkit-backdrop-filter:saturate(200%) blur(40px)!important;backdrop-filter:saturate(200%) blur(40px)!important}
 html[data-theme=dark] .appbar .abtn,html[data-theme=dark] .appbar h1:not(.st-busy):not(.st-ok):not(.st-upd){background:rgba(46,46,44,.5)!important}
 .appbar .abtn{width:52px;height:52px;border-radius:50%}
+/* メニューのボタンはアプリのアイコン（丸く切り抜き） */
+.appbar .abtn .abapp{width:40px;height:40px;border-radius:50%;object-fit:cover;display:block;box-shadow:0 0 0 1px rgba(0,0,0,.08)}
 .appbar .abtn svg{width:24px;height:24px}
 .appbar h1,.brand.appbar h1{cursor:pointer!important;-webkit-user-select:none;user-select:none;flex:0 1 auto;max-width:calc(100% - 140px);height:52px;display:flex;align-items:center;padding:0 22px;border-radius:26px;font:600 16px/1 var(--sans)}
 .appbar .brandr{display:none} /* 名前はメニューのいちばん下に移した */
@@ -1295,7 +1297,7 @@ html.sa.tb header{padding-top:calc(var(--cap) + 4px - var(--tb))}
 
 <header id="top">
   <div class="brand appbar">
-    <button type="button" class="abtn" id="btnMenu" aria-label="メニューを開く"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button>
+    <button type="button" class="abtn" id="btnMenu" aria-label="メニューを開く"><img class="abapp" src="icon.jpg" alt="" aria-hidden="true"></button>
     <h1 id="abTitle">ホーム</h1>
     <div class="brandr"><div class="userbox" id="userbox"></div></div>
   </div>
@@ -1355,7 +1357,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '6f10ab509d', APP_URL = location.origin + location.pathname;
+const BUILD = '661df19be0', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2955,7 +2957,7 @@ function showPage(st, html, keepScroll, restoreSc){
   abSync();
 }
 /* 上のボタン：詳細ページを開いている間は ☰ を「←もどる」にし、ページ名を作品番号などにする */
-const IC_MENU = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>', IC_BACK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
+const IC_MENU = '<img class="abapp" src="icon.jpg" alt="" aria-hidden="true">', IC_BACK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
 function pcName(t, id){
   if (['w','ot'].includes(t)) { const w = workOf(id) || {}; return w['作品名'] || (isOtNo(id) ? (w['種別'] || 'その他') + '（名前なし）' : '無題'); }
   if (t==='ex') return (exById[id] || {})['名称'] || '展覧会';
