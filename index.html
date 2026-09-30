@@ -1450,6 +1450,21 @@ body .chips .chip.on::after{content:'';position:absolute;left:0;right:0;bottom:3
 body .subchips{gap:18px!important}
 body .subchips .chip{font-size:14px!important;padding:6px 0 9px!important}
 body .subchips .chip.on::after{height:2px}
+/* PC：検索欄はメニューの中へ。下には AIに質問 だけ（青のまま少し目立たせる） */
+.dwsrch{display:none}
+body.wide .dwsrch{display:flex;align-items:center;gap:8px;margin:2px 6px 14px;height:42px;padding:0 14px;border-radius:21px;background:var(--bg);border:1px solid var(--line)}
+body.wide .dwsrch:focus-within{border-color:var(--sub)}
+.dwsrch svg{width:18px;height:18px;flex:none;fill:none;stroke:var(--sub);stroke-width:2;stroke-linecap:round}
+.dwsrch input{flex:1;min-width:0;border:0;background:none;outline:none;font:400 15px/1.2 var(--sans);color:var(--ink);padding:0}
+body.wideoff #top .appbar .dwsrch{display:flex;align-items:center;gap:8px;margin:0 0 0 auto;flex:0 1 300px;min-width:180px;height:40px;padding:0 14px;border-radius:20px;background:var(--wash,var(--paper));border:1px solid var(--line)}
+body.wideoff #top .appbar .dwsrch:focus-within{border-color:var(--sub)}
+body.wide .cbin,body.wideoff .cbin{display:none!important}
+body.wide .cbar,body.wideoff .cbar{left:auto!important;right:28px!important;max-width:none!important;justify-content:flex-end}
+body.wide .cbask,body.wideoff .cbask{width:auto!important;height:56px!important;padding:0 24px 0 18px!important;border-radius:28px!important;gap:8px!important;font-size:16px!important;font-weight:700!important;color:#fff!important}
+body.wide .cbask>span:not(.ic),body.wideoff .cbask>span:not(.ic){display:inline!important}
+.cbask{box-shadow:0 10px 28px -8px rgba(80,90,235,.9),0 0 0 3px rgba(109,91,245,.16)!important;transition:transform .15s ease}
+.cbask:hover{transform:translateY(-1px)}
+body:not(.wide):not(.wideoff) .cbask{width:58px!important;height:58px!important}
 body .chips .cn{margin-left:3px;opacity:.55;font-size:12px;font-weight:500}
 #finder #count{display:none!important} /* 件数はタブの名前の後ろに出す */
 #finder .meta{justify-content:flex-end}
@@ -1507,9 +1522,9 @@ body .decs button:hover{color:var(--ink)!important}
 <div id="navAsk" class="hidden"></div>
 <div id="nav" class="cbar hidden">
   <div class="cbin"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input id="fsq" type="search" enterkeyhint="search" autocomplete="off" placeholder="作品を探す"><button type="button" id="fsqClose" class="hidden" aria-label="検索をやめる">✕</button></div>
-  <button type="button" id="fmAsk" class="cbask" aria-label="AIに質問"><span class="ic aispark"><svg viewBox="0 0 24 24" aria-hidden="true"><path style="fill:none;stroke:#fff;stroke-width:1.7;stroke-linejoin:round" d="M4.5 4.5h15a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-9l-4.5 3.6v-3.6H4.5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2z"/><path d="M12 6.8c.3 2.4 1.3 3.5 3.7 3.9-2.4.4-3.4 1.5-3.7 3.9-.3-2.4-1.3-3.5-3.7-3.9 2.4-.4 3.4-1.5 3.7-3.9z"/></svg></span><span>質問</span></button>
+  <button type="button" id="fmAsk" class="cbask" aria-label="AIに質問"><span class="ic aispark"><svg viewBox="0 0 24 24" aria-hidden="true"><path style="fill:none;stroke:#fff;stroke-width:1.7;stroke-linejoin:round" d="M4.5 4.5h15a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-9l-4.5 3.6v-3.6H4.5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2z"/><path d="M12 6.8c.3 2.4 1.3 3.5 3.7 3.9-2.4.4-3.4 1.5-3.7 3.9-.3-2.4-1.3-3.5-3.7-3.9 2.4-.4 3.4-1.5 3.7-3.9z"/></svg></span><span>AIに質問</span></button>
 </div>
-<div id="drawer" class="drawer hidden" aria-hidden="true"><button type="button" class="dwscrim" data-dwclose="1" aria-label="メニューを閉じる"></button><aside class="dwpanel" role="menu" aria-label="メニュー"><div class="dwhead"><img class="dwicon" src="icon.jpg" alt="" aria-hidden="true"><span class="dwtt">下村良之介<br>作品目録</span><button type="button" class="dwx" id="dwX" aria-label="メニューを閉じる"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="dwnav" id="dwNav"></div><div class="dwfoot" id="dwFoot"></div></aside></div>
+<div id="drawer" class="drawer hidden" aria-hidden="true"><button type="button" class="dwscrim" data-dwclose="1" aria-label="メニューを閉じる"></button><aside class="dwpanel" role="menu" aria-label="メニュー"><div class="dwhead"><img class="dwicon" src="icon.jpg" alt="" aria-hidden="true"><span class="dwtt">下村良之介<br>作品目録</span><button type="button" class="dwx" id="dwX" aria-label="メニューを閉じる"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="dwsrch" id="dwSrch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input id="dwq" type="search" placeholder="作品を探す" enterkeyhint="search" autocomplete="off" aria-label="探す"></div><div class="dwnav" id="dwNav"></div><div class="dwfoot" id="dwFoot"></div></aside></div>
 
 <div id="page" class="page hidden"></div>
 <div id="sheet" class="sheet hidden"><div class="box" id="sheetbox"></div></div>
@@ -1533,7 +1548,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd761d09f25', APP_URL = location.origin + location.pathname;
+const BUILD = '59dc242015', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1763,6 +1778,8 @@ function pinDrawer(){ const d = $('#drawer'); if (!d) return; const w = isWide()
   if (w) document.body.classList.remove('dwopen');
   if (w) { d.classList.remove('hidden'); d.classList.add('open'); d.setAttribute('aria-hidden', 'false'); }
   else if (!d.classList.contains('open') || d.dataset.was === 'pin') { d.classList.remove('open'); d.classList.add('hidden'); }
+  { const sr = document.getElementById('dwSrch'), ab = document.querySelector('#top .appbar'), nv = document.getElementById('dwNav'); // 検索欄：メニューを開いていればメニューの中、畳んだら上のバーの右端
+    if (sr && ab && nv) { if (isWide() && !!S.user && dwFold) { if (sr.parentNode !== ab) ab.appendChild(sr); } else if (sr.parentNode !== nv.parentNode) nv.parentNode.insertBefore(sr, nv); } }
   d.dataset.was = w ? 'pin' : ''; if (typeof markStuck === 'function') { markStuck(); setTimeout(markStuck, 260); } }
 addEventListener('resize', () => pinDrawer());
 function openDrawer(){ if (isWide()) { dwFold = !dwFold; try { localStorage.setItem('smr_dw', dwFold ? '0' : '1'); } catch(e){} pinDrawer(); setTimeout(() => { if (['album','ot'].includes(S.view)) render(); }, 240); return; }
@@ -1770,6 +1787,7 @@ function openDrawer(){ if (isWide()) { dwFold = !dwFold; try { localStorage.setI
 function closeDrawer(){ const d = $('#drawer'); if (d.classList.contains('hidden') || d.classList.contains('pin')) return; document.body.classList.remove('dwopen'); setTimeout(markStuck, 240); d.classList.remove('open'); d.setAttribute('aria-hidden', 'true'); setTimeout(() => d.classList.add('hidden'), 220); }
 function render(){
   document.body.classList.toggle('vhome', S.view === 'home'); document.body.dataset.view = S.view;
+  { const dq = document.getElementById('dwq'); if (dq && document.activeElement !== dq && typeof SQ !== 'undefined') { const s = SQ[S.view]; dq.value = s ? (S[s[0]] || '') : ''; dq.placeholder = ({ex:'展覧会を探す', pb:'画集・資料を探す', ot:'その他の作品を探す'})[S.view] || '作品を探す'; } }
   setTimeout(() => { try { stkTop(); } catch(e){} }, 0);
   const main = $('#main');
   document.body.classList.toggle('loggedout', !S.user && !S.publicView);
@@ -4287,6 +4305,12 @@ $('#askq').addEventListener('keydown', e => { if (e.key==='Enter' && !e.shiftKey
   document.addEventListener('pointermove', e => { if (!el) return; const dx = e.clientX - x0; if (!moved && Math.abs(dx) > 5) { moved = true; el.classList.add('dragging'); } if (moved) { el.scrollLeft = s0 - dx; e.preventDefault(); } });
   const end = () => { if (!el) return; const r = el; el = null; r.classList.remove('dragging'); if (moved) { const kill = ev => { ev.stopPropagation(); ev.preventDefault(); }; document.addEventListener('click', kill, {capture: true, once: true}); setTimeout(() => document.removeEventListener('click', kill, {capture: true}), 50); } };
   document.addEventListener('pointerup', end); document.addEventListener('pointercancel', end);
+})();
+/* ---------- PC：メニューの中の検索欄（下の検索欄と同じ働き） ---------- */
+(function(){ const dq = document.getElementById('dwq'); if (!dq) return;
+  dq.addEventListener('focus', () => { if (!SQ[S.view]) { closeAllPages(); S.view = S.wmode || 'album'; S.limit = 60; render(); window.scrollTo(0, 0); } });
+  dq.addEventListener('input', () => { if (!SQ[S.view]) return; const f = $('#fsq'); f.value = dq.value; f.dispatchEvent(new Event('input', {bubbles: true})); });
+  dq.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) dq.blur(); });
 })();
 /* ---------- 起動 ---------- */
 busy(true, '作品を読み込んでいます…');
