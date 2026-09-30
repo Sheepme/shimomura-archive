@@ -298,7 +298,7 @@ dl.info dd{position:relative;padding-right:44px}
 /* シート（入力フォーム） */
 .sheet{position:fixed;inset:0;z-index:95;background:rgba(0,0,0,.28);display:flex;align-items:flex-end;justify-content:center}
 .sheet{top:var(--vvt,0px);bottom:auto;height:var(--vvh,100%)}
-.sheet .box{background:var(--paper);width:100%;max-width:600px;max-height:min(92vh, calc(var(--vvh,100vh) - 12px));overflow-y:auto;overscroll-behavior:contain;padding:28px 22px calc(24px + env(safe-area-inset-bottom))}
+.sheet .box{background:var(--paper);width:100%;max-width:600px;max-height:min(92vh, calc(var(--vvh,100vh) - 12px - var(--tb)));overflow-y:auto;overscroll-behavior:contain;padding:28px 22px calc(24px + env(safe-area-inset-bottom))}
 @media(min-width:700px){.sheet{align-items:center}.sheet .box{padding:40px}}
 .box h3{font-size:27px;margin-bottom:6px}
 .box .hint{color:var(--sub);font-size:16px;margin:0 0 20px}
@@ -409,7 +409,8 @@ dl.info dd .fill{border:0;background:none;padding:0;color:var(--warn);font-size:
 html{--tb:0px}html.tb{--tb:calc(40px + env(safe-area-inset-top))}
 body{padding-top:var(--tb);transition:padding-top .25s ease}
 header{top:var(--tb)}
-.page,.viewer,.sheet,.quiz,.brief,.docview,.tour{top:var(--tb);transition:top .25s ease}
+.page,.viewer,.quiz,.brief,.docview,.tour{top:var(--tb);transition:top .25s ease}
+.sheet{top:calc(var(--vvt,0px) + var(--tb));height:calc(var(--vvh,100%) - var(--tb))} /* キーボードが出ても入力欄が見える位置を保つ */
 .toast{top:calc(var(--tb) + env(safe-area-inset-top) + 14px)}
 .loading,.updbar,.tmsg{position:fixed;top:0;left:0;right:0;height:var(--tb);box-sizing:border-box;z-index:9999;display:flex;align-items:center;justify-content:center;gap:10px;padding:env(safe-area-inset-top) 16px 0;margin:0;border:0;border-radius:0;color:#fff;font-size:15px;font-weight:600;letter-spacing:.05em;overflow:hidden;animation:tbin .25s ease-out}
 .loading{background:#e8871e;z-index:10000}
@@ -1201,7 +1202,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '0bfd644a8d', APP_URL = location.origin + location.pathname;
+const BUILD = 'fe78c0edfa', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
