@@ -1175,7 +1175,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '98976e856b', APP_URL = location.origin + location.pathname;
+const BUILD = 'be3aca35a9', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1603,7 +1603,7 @@ async function sheetCand(no){
     ${list.length ? `<div class="search"><input id="cq" type="search" placeholder="番号で探す（例：241216-174）"></div><div class="candgrid">${list.map(p => `<button type="button" class="candp" data-cid="${esc(p.id)}" data-name="${esc(p.name)}">${thImg(p.id, 400)}<small>${esc(p.name)}</small></button>`).join('')}</div>` : '<p class="muted">候補の写真はありません。</p>'}
     ${F('どこを写した？', pick('ck', ['表','裏','落款・サイン','部分','展示のようす'], '表'))}
     ${F('見せる範囲', pick('chide2', COPY_SHOW, COPY_SHOW[0]))}
-    <p class="hint">ギャラリーが撮影した写真なので、著作物として登録します（写真に「© 思文閣」と表示し、AIには送りません。思文閣の管理番号も一緒に残します）。</p>
+    <p class="hint">ギャラリーが撮影した写真なので、著作物として登録します（写真に「© ギャラリー名」と表示し、AIには送りません。ファイル名の管理番号も一緒に残します）。</p>
     <div class="btns"><button type="button" data-close>やめる</button><button type="button" class="primary" id="cGo" disabled>選んだ写真を登録</button></div>`);
   hydrate($('#sheetbox'));
   const upd = () => { $('#cGo').disabled = !sel.size; $('#cGo').textContent = sel.size ? sel.size + '枚を登録' : '選んだ写真を登録'; };
@@ -1611,7 +1611,7 @@ async function sheetCand(no){
   if ($('#cq')) $('#cq').oninput = e => { const q = e.target.value.trim(); document.querySelectorAll('.candp').forEach(b => b.style.display = !q || b.dataset.name.includes(q) ? '' : 'none'); };
   $('#cGo').onclick = () => { if (!sel.size) return;
     const folder = (list.find(p => sel.has(p.id)) || {}).folder || '';
-    const who = /思文閣/.test(folder) ? '思文閣' : 'ギャラリー';
+    const who = String(folder).replace(/(委託中)?(作品)?(の)?(画像|写真)$/, '').trim() || 'ギャラリー'; // 「思文閣委託中作品画像」→「思文閣」
     save('linkPhotos', [no, [...sel], val('ck'), copyMemo(who, '', val('chide2') === COPY_SHOW[1], '{name}')], sel.size + '枚の写真を登録しました'); };
 }
 const docsOf = st => (S.docs||[]).filter(d => d['状態']===st);
