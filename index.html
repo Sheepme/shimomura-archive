@@ -1176,7 +1176,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '1e0e5fb459', APP_URL = location.origin + location.pathname;
+const BUILD = '622ce7e961', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1194,7 +1194,10 @@ function call(fn, ...args){
 }
 function busy(on, text){ $('#loading').textContent = text || '読み込み中…'; $('#loading').classList.toggle('hidden', !on); }
 function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.remove('hidden'); clearTimeout(toast._t); toast._t=setTimeout(()=>el.classList.add('hidden'),2600); }
-function setData(d){ if (S.upd) S.upd.t = 0; Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], memoChecker:d.memoChecker||'直美', user:d.user, ai:d.ai, publicView:d.publicView}); if (S.token && !d.user) setToken(''); index(); renderUser();  if (d.user) setTimeout(prefetchThumbs, 0); }
+const OTRE = /^[YHZ]\d{3,}$/;
+function setData(d){ if (S.upd) S.upd.t = 0;
+  const allW = d.works || []; d = Object.assign({}, d, {works: allW.filter(w => !OTRE.test(w['作品番号'])), others: allW.filter(w => OTRE.test(w['作品番号']))});
+  Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], memoChecker:d.memoChecker||'直美', user:d.user, ai:d.ai, publicView:d.publicView}); if (S.token && !d.user) setToken(''); index(); renderUser();  if (d.user) setTimeout(prefetchThumbs, 0); }
 const canRole = () => !!(S.user && ['編集','管理'].includes(S.user.role));
 const canEdit = () => canRole();
 try { S.edit = localStorage.getItem('smr_edit') === '1'; } catch(e){ S.edit = false; }
@@ -1224,12 +1227,12 @@ function addByContext(){
 const isLoginErr = e => /LOGIN_REQUIRED/.test(String(e && (e.message || e)));
 /* iPhoneは通信を途中で切ることがある（Google側では保存が終わっていることが多い）。最新の状態を読み直して確かめる */
 async function saveRecover(fn){
-  const before = new Set((S.others||[]).map(x => x['番号']));
+  const before = new Set((S.others||[]).map(x => x['作品番号']));
   busy(true, '保存できたか確かめています…');
   try {
     const d = await call('getData'); setData(d); closeSheet(); render();
     if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
-    if (fn === 'newOther') { d.newId = (S.others||[]).map(x => x['番号']).find(n => !before.has(n)); if (d.newId) { busy(false); toast('登録しました'); return d; } }
+    if (fn === 'newOther') { d.newId = (S.others||[]).map(x => x['作品番号']).find(n => !before.has(n)); if (d.newId) { busy(false); toast('登録しました'); return d; } }
     busy(false); alert('通信が途中で切れました。最新の状態に読み直したので、保存されているか画面で確かめてください。');
   } catch(x){ busy(false); alert('通信が切れました。電波の良い所で、画面を読み直して保存されているか確かめてください。'); }
 }
@@ -1266,7 +1269,7 @@ function index(){
   photoBy = {}; eventBy = {}; exById = {}; pbById = {}; worksByEx = {}; worksByPb = {};
   (S.exhibits||[]).forEach(x => exById[x['展覧会ID']] = x);
   (S.pubs||[]).forEach(x => pbById[x['資料ID']] = x);
-  otById = {}; (S.others||[]).forEach(x => otById[x['番号']] = x);
+  otById = {}; (S.others||[]).forEach(x => otById[x['作品番号']] = x);
   S.events.forEach(e => { if (e['展覧会ID']) (worksByEx[e['展覧会ID']] = worksByEx[e['展覧会ID']] || []).push(e['作品番号']); if (e['資料ID']) (worksByPb[e['資料ID']] = worksByPb[e['資料ID']] || []).push(e['作品番号']); });
   S.photos.forEach(p => (photoBy[p['作品番号']] = photoBy[p['作品番号']] || []).push(p));
   Object.values(photoBy).forEach(a => { const m = a.findIndex(p => p['メイン']); if (m > 0) a.unshift(a.splice(m, 1)[0]); });
@@ -1466,7 +1469,7 @@ function goTodo(k){
   closeAllPages();
   if (k==='doc') { S.view = 'doc'; render(); window.scrollTo(0, 0); return; }
   if (k==='link') { S.view = 'ex'; S.xnl = true; S.pnl = true; S.xt = 'すべて'; S.xmain = false; S.xq = ''; }
-  else if (k==='ot') { S.view = 'ot'; }
+  else if (k==='ot' || k==='otloc') { S.view = 'ot'; }
   else { S.view = S.wmode || 'album'; S.filter = k==='flag' ? 'flag' : k==='photo' ? 'nophoto' : 'unconf'; S.q = ''; if ($('#q')) $('#q').value = ''; S.mus = ''; }
   S.limit = 60; render(); window.scrollTo(0, 0);
   if (k==='ot' && canEdit()) sheetOtNew();
@@ -1739,7 +1742,7 @@ async function readDocsFlow(ids){
 /* ③ 確かめて登録 */
 const guessKind = (type, place) => { const mus = /美術館|博物館|記念館|資料館|大学|ミュージアム|museum/i.test(place||'');
   return type==='返却' ? '自宅' : type==='貸出' ? '貸出中' : type==='委託' ? '委託中' : ['寄贈','寄託'].includes(type) ? (mus ? '美術館' : 'その他') : ['販売','譲渡'].includes(type) ? (mus ? '美術館' : '個人蔵') : (mus ? '美術館' : 'その他'); };
-const wLabel = no => { const w = workOf(no); return w ? (w._ot ? no : 'No.' + no) + '　' + (w['作品名']||'無題') : ''; };
+const wLabel = no => { const w = workOf(no); return w ? (isOtNo(no) ? no : 'No.' + no) + '　' + (w['作品名'] || (isOtNo(no) ? (w['種別'] || 'その他') + '（名前なし）' : '無題')) : ''; };
 const noOf = v => { const t = String(v||'').normalize('NFKC'), o = t.match(/(?:^|[^A-Za-z])([YHZ])\s*-?\s*(\d{1,3})(?!\d)/i);
   if (o) { const id = o[1].toUpperCase() + ('00' + o[2]).slice(-3); if (otById[id]) return id; }
   const m = t.match(/(?:No\.?\s*)?(\d{1,4})/i); if (!m) return ''; const n = m[1], p = ('000' + n).slice(-3); return workOf(n) ? n : workOf(p) ? p : ''; };
@@ -1799,7 +1802,7 @@ function docForm(d, r){
     <p class="hint" style="margin-top:-8px">チェックが付いた作品に登録します</p>
     <div id="dws">${items.map(row).join('')}</div>
     <button type="button" class="act" id="dwAdd" style="width:100%;margin:4px 0 18px">＋ 作品を追加</button>
-    <datalist id="dlWorks">${S.works.concat((S.others||[]).map(x => otWork(x['番号']))).map(w => `<option value="${esc(wLabel(w['作品番号']))}">`).join('')}</datalist>
+    <datalist id="dlWorks">${S.works.concat(S.others||[]).map(w => `<option value="${esc(wLabel(w['作品番号']))}">`).join('')}</datalist>
     <div id="dlocBox">${F('⑤ 作品のいまの場所も変える？', pick('dlc', ['変える','変えない'], ''))}
       <div id="dlkBox">${F('新しい場所', pick('dlk', LOC_KINDS, ''))}</div></div>
     <details class="dmore"><summary>くわしい内容・担当者（開く）</summary>
@@ -2429,7 +2432,8 @@ function dashHTML(){
     null,
     ['exinfo', '展覧会の会場・日付', X.filter(x => String(x['会場']||'').trim() && String(x['開始日']||'').trim()).length, X.length],
     ['link', '展覧会・画集のひも付け', X.filter(x => (worksByEx[x['展覧会ID']]||[]).length).length + P.filter(p => (worksByPb[p['資料ID']]||[]).length).length, X.length + P.length],
-    ['doc', '書類の登録', D.filter(d => ['登録済み','登録しない'].includes(d['状態'])).length, D.length]
+    ['doc', '書類の登録', D.filter(d => ['登録済み','登録しない'].includes(d['状態'])).length, D.length],
+    ...((S.others||[]).length ? [['otloc', 'その他の作品の保管場所', (S.others||[]).filter(hasLoc).length, S.others.length]] : [])
   ];
   const main = rows.slice(0, 4), tot = main.reduce((a, r) => a + r[2] / r[3], 0) / main.length;
   const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
@@ -2615,12 +2619,12 @@ const tourSeen = () => { try { return localStorage.getItem('smr_tour') === '1'; 
 /* ---------- 作品ページ ---------- */
 function workOf(no){ return S.works.find(w => w['作品番号']===no) || otWork(no); }
 /* その他の作品（Y001・H001・Z001）も、ひも付けや表示では作品と同じように扱う */
-function otWork(no){ const x = otById[no]; return x ? {'作品番号': no, '作品名': x['作品名'] || (x['種類'] || 'その他') + '（名前なし）', '制作年': x['制作年'], _ot: 1} : undefined; }
+function otWork(no){ return otById[no]; }
 const isOtNo = no => !!otById[no];
 /* 作品を探す入力欄の候補（小文字・番号だけ・名前の一部でも出る） */
 function workHits(v){
   const q = String(v||'').normalize('NFKC').trim().toLowerCase().replace(/^no\.?\s*/, ''); if (!q) return [];
-  const all = S.works.concat((S.others||[]).map(x => otWork(x['番号'])));
+  const all = S.works.concat(S.others||[]);
   const dm = q.match(/^([a-z]?)\s*-?\s*0*(\d+)$/), out = [];
   all.forEach(w => { const no = String(w['作品番号']), lo = no.toLowerCase(), nm = String(w['作品名']||'').toLowerCase();
     let sc = 0;
@@ -2638,8 +2642,8 @@ document.addEventListener('input', e => { const el = e.target; if (!el.matches |
   box.onclick = ev => { const b = ev.target.closest('[data-wno]'); if (!b) return; el.value = wLabel(b.dataset.wno); box.innerHTML = ''; el.dispatchEvent(new Event('change', {bubbles: true})); el.blur(); };
 });
 function openWork(no, keepScroll, restoreSc){
-  if (isOtNo(no) && !S.works.some(w => w['作品番号']===no)) return openOt(no, keepScroll, restoreSc);
   const w = workOf(no); if (!w) return;
+  const ot = isOtNo(no), NO = ot ? no : 'No. ' + no; // その他の作品（Y001など）は本作と同じページで、クイズ・インタビューなしで表示
   const pg = $('#page');
   const ph = photoBy[no] || [];
   const evAll = (eventBy[no]||[]).slice().sort((a,b)=> dateKey(a['日付'])-dateKey(b['日付']) || (a['種類']==='制作'?-1:0));
@@ -2648,14 +2652,15 @@ function openWork(no, keepScroll, restoreSc){
   const qv = k => k==='サイズ' ? sizeOf(w) : (w[k]||'');
   const dd = (k, v, f) => `<dt>${k}</dt><dd class="${v?'':'empty'}">${v ? escU(v) + (QK[k] && qzDone(no, k, qv(k)) ? '<span class="qzck" title="クイズで確認済み">✓</span>' : '') : (QK[k] && qzUnknown(no, k) ? '<span class="nv qzu">不明</span>' : '<span class="nv">未入力</span>')}${canEdit() ? `<button class="pen" data-fill="${f||''}" aria-label="${k}を${v?'直す':'入力する'}">${PEN}</button>` : ''}</dd>`;
   const html = `
-    <div class="pagehead"><button class="back" id="back">← もどる</button><span class="no">No. ${esc(no)}</span></div>
+    <div class="pagehead"><button class="back" id="back">← もどる</button><span class="no">${esc(NO)}</span></div>
     <div class="pagebody"><div class="media">
       ${ph.length ? `<div class="gallery ${ph.length>1?'many':''}">${ph.map((p,i)=>`<a href="#" data-view="${i}">${thImg(p['ファイルID'],1200)}${wm(p)}<span class="kind">${esc(p['種類'])}${/^【仮】/.test(p['メモ']||'') ? '・仮の写真' : ''}</span></a>`).join('')}</div>`
                   : `<div class="nophoto">まだ写真がありません${canEdit()?'<br><button class="act main" style="margin-top:12px" data-act="photo">写真を追加</button>':''}</div>`}
       ${ph.length>1?`<div class="dots">${ph.map((p,i)=>`<span class="${i?'':'on'}" data-dot="${i}"></span>`).join('')}</div>`:''}
       ${creditHTML(ph)}
       </div><div class="textcol">
-      <h2 class="title">${w['作品名']?esc(w['作品名']):'<span class="untitled" style="font-size:24px">無題</span>'}</h2>
+      ${ot ? `<div class="eyebrow">${esc(w['種別']||'その他')}</div>` : ''}
+      <h2 class="title">${w['作品名']?esc(w['作品名']):`<span class="untitled" style="font-size:24px">${ot ? '名前なし' : '無題'}</span>`}</h2>
       ${w['作品名メモ']?`<div class="subtitle">${esc(w['作品名メモ'])}</div>`:''}
       <div class="tombstone">${esc([w['制作年']||'制作年不明', w['画材'], (w['幅cm']||w['高さcm'])?`${w['幅cm']||'?'} × ${w['高さcm']||'?'} cm`:''].filter(Boolean).join('　|　'))}</div>
       <div class="loc"><span class="lk">いまの場所</span><span style="display:flex;align-items:center"><b>${esc(w['所在']||w['所在区分']||'不明')}</b>${canEdit()?`<button class="pen" data-act="move" aria-label="場所を変える"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.6"/></svg></button>`:''}</span></div>
@@ -2665,13 +2670,13 @@ function openWork(no, keepScroll, restoreSc){
       <dl class="info">
         ${dd('作品名', w['作品名'], 'w1')}
         ${dd('サイズ', (w['幅cm']||w['高さcm'])?`幅 ${w['幅cm']||'?'} × 高さ ${w['高さcm']||'?'} cm`:'', 'w3')}
-        ${dd('制作年', w['制作年'], 'w5')}${dd('画材', w['画材'], 'w6')}${dd('種別', w['種別'], 'w7')}${dd('シリーズ', w['シリーズ'], 'w8')}
+        ${dd('制作年', w['制作年'], 'w5')}${dd('画材', w['画材'], 'w6')}${dd(ot ? '種類' : '種別', w['種別'], 'w7')}${dd('シリーズ', w['シリーズ'], 'w8')}
         ${dd('状態', w['状態メモ'], 'w9')}${dd('メモ', w['補足'], 'w10')}
         ${dd('所蔵者・連絡先', w['所蔵者・連絡先'], 'w11')}${dd('管理メモ', w['管理メモ'], 'w12')}
       </dl>
-      <h3 class="sec">エピソード・記憶</h3>
-      ${epi.length ? `<div class="epis">${epi.map(e => `<blockquote class="epi">${escU(e['内容'])}<cite>${esc(String(e['根拠・出典']||'').replace(/^聞き取り（(.*)）$/, '$1さんの話') || '')}${e['登録日時'] ? '　' + esc(String(e['登録日時']).slice(0,10)) : ''}${canEdit()?` <button class="golink" data-evedit="${esc(e['出来事ID'])}">直す</button>`:''}</cite></blockquote>`).join('')}</div>` : '<p style="color:var(--sub)">まだありません</p>'}
-      <button class="act ivbtn" data-ivwork="${esc(no)}">🎙 この作品についてインタビュー</button>
+      ${ot && !epi.length ? '' : `<h3 class="sec">エピソード・記憶</h3>`}
+      ${ot && !epi.length ? '' : epi.length ? `<div class="epis">${epi.map(e => `<blockquote class="epi">${escU(e['内容'])}<cite>${esc(String(e['根拠・出典']||'').replace(/^聞き取り（(.*)）$/, '$1さんの話') || '')}${e['登録日時'] ? '　' + esc(String(e['登録日時']).slice(0,10)) : ''}${canEdit()?` <button class="golink" data-evedit="${esc(e['出来事ID'])}">直す</button>`:''}</cite></blockquote>`).join('')}</div>` : '<p style="color:var(--sub)">まだありません</p>'}
+      ${ot ? '' : `<button class="act ivbtn" data-ivwork="${esc(no)}">🎙 この作品についてインタビュー</button>`}
       <h3 class="sec">来歴</h3>
       ${canEdit() ? evDupHTML(ev) : ''}
       ${ev.length ? `<ul class="tl">${ev.map(e=>{ const ds=String(e['日付']||''); const y=(ds.match(/\d{4}/)||[''])[0]; const rest=ds.replace(y,'').replace(/^年/,'').trim();
@@ -2690,7 +2695,7 @@ function openWork(no, keepScroll, restoreSc){
         <button class="act main" data-act="event">できごとを追加</button>
         <button class="act" data-act="photo">写真を追加</button>
         <button class="act" data-act="doc">書類を撮る</button>
-        <button class="act main" data-qzwork="${esc(no)}">🎤 クイズモード</button>
+        ${ot ? '' : `<button class="act main" data-qzwork="${esc(no)}">🎤 クイズモード</button>`}
         <button class="act" data-act="flag">${w['要確認']?'要確認を外す':'要確認にする'}</button>
         <button class="act" data-linkw="${esc(no)}">＋ 展覧会・画集にひも付け</button>
         <button class="act" data-mmadd="1">📝 お母さんへの確認メモを書く</button>
@@ -2769,7 +2774,7 @@ function linkedGrid(kind, id){
   const add = '';
   if (!list.length) return add + '<p class="muted">まだ作品のひも付けがありません</p>';
   return add + '<div class="grid">' + list.map(e => { const no = e['作品番号'], w = workOf(no) || {};
-    return `<div class="tilewrap"><button class="tile" data-no="${esc(no)}"><div class="ph">${thumbHTML(no,400)}</div><div class="cap"><div class="no">${w._ot ? '' : 'No. '}${esc(no)}</div><div class="tt">${w['作品名']?esc(w['作品名']):'<span class="untitled">無題</span>'}</div><div class="yr">${esc(kind==='pb' && e['内容'] ? e['内容'] : (w['制作年']||''))}</div></div></button>${canEdit() ? `<button class="unl" data-unlink="${kind}|${esc(e['出来事ID'])}" aria-label="ひも付けを外す">×</button>` : ''}</div>`; }).join('') + '</div>';
+    return `<div class="tilewrap"><button class="tile" data-no="${esc(no)}"><div class="ph">${thumbHTML(no,400)}</div><div class="cap"><div class="no">${isOtNo(no) ? '' : 'No. '}${esc(no)}</div><div class="tt">${w['作品名']?esc(w['作品名']):'<span class="untitled">無題</span>'}</div><div class="yr">${esc(kind==='pb' && e['内容'] ? e['内容'] : (w['制作年']||''))}</div></div></button>${canEdit() ? `<button class="unl" data-unlink="${kind}|${esc(e['出来事ID'])}" aria-label="ひも付けを外す">×</button>` : ''}</div>`; }).join('') + '</div>';
 }
 function sheetLink(kind, id){
   const isEx = kind==='ex', field = isEx ? '展覧会ID' : '資料ID', x = isEx ? exById[id] : pbById[id]; if (!x) return;
@@ -2782,9 +2787,9 @@ function sheetLink(kind, id){
   const label = () => { $('#ok').textContent = sel.size ? `ひも付ける（${sel.size}点）` : 'ひも付ける'; };
   const draw = () => {
     const q = ($('#lq').value||'').trim().toLowerCase();
-    const list = S.works.concat((S.others||[]).map(x => Object.assign(otWork(x['番号']), {'シリーズ': x['種類']}))).filter(w => !linked.has(w['作品番号']) && (!q || [w['作品番号'], w['作品名'], w['作品名メモ'], w['制作年'], w['シリーズ']].join(' ').toLowerCase().includes(q))).slice(0, 80);
-    const nl = w => (w._ot ? '' : 'No.') + esc(w['作品番号']);
-    $('#lres').innerHTML = list.map(w => `<button type="button" class="pr ${sel.has(w['作品番号'])?'on':''}" data-pno="${esc(w['作品番号'])}"><span class="th">${(photoBy[w['作品番号']]||[]).length ? thumbHTML(w['作品番号'],200) : nl(w)}</span><span class="tx"><b>${nl(w)}</b>　${esc(w['作品名']||'無題')}<small>${esc(w['制作年']||'')}</small></span><span class="ck">✓</span></button>`).join('') || '<p class="muted">見つかりません</p>';
+    const list = S.works.concat(S.others||[]).filter(w => !linked.has(w['作品番号']) && (!q || [w['作品番号'], w['作品名'], w['作品名メモ'], w['制作年'], w['シリーズ'], isOtNo(w['作品番号']) ? w['種別'] : ''].join(' ').toLowerCase().includes(q))).slice(0, 80);
+    const nl = w => (isOtNo(w['作品番号']) ? '' : 'No.') + esc(w['作品番号']);
+    $('#lres').innerHTML = list.map(w => `<button type="button" class="pr ${sel.has(w['作品番号'])?'on':''}" data-pno="${esc(w['作品番号'])}"><span class="th">${(photoBy[w['作品番号']]||[]).length ? thumbHTML(w['作品番号'],200) : nl(w)}</span><span class="tx"><b>${nl(w)}</b>　${esc(w['作品名']||(isOtNo(w['作品番号']) ? w['種別'] + '（名前なし）' : '無題'))}<small>${esc(w['制作年']||'')}</small></span><span class="ck">✓</span></button>`).join('') || '<p class="muted">見つかりません</p>';
     hydrate($('#lres'));
   };
   $('#lq').oninput = draw;
@@ -2903,7 +2908,7 @@ function worksGrid(nos){
   nos = [...new Set(nos||[])];
   if (!nos.length) return '<p class="muted">まだ作品のひも付けがありません</p>';
   return '<div class="grid">' + nos.map(no => { const w = workOf(no) || {};
-    return `<button class="tile" data-no="${esc(no)}"><div class="ph">${thumbHTML(no,400)}</div><div class="cap"><div class="no">${w._ot ? '' : 'No. '}${esc(no)}</div><div class="tt">${w['作品名']?esc(w['作品名']):'<span class="untitled">無題</span>'}</div><div class="yr">${esc(w['制作年']||'')}</div></div></button>`; }).join('') + '</div>';
+    return `<button class="tile" data-no="${esc(no)}"><div class="ph">${thumbHTML(no,400)}</div><div class="cap"><div class="no">${isOtNo(no) ? '' : 'No. '}${esc(no)}</div><div class="tt">${w['作品名']?esc(w['作品名']):'<span class="untitled">無題</span>'}</div><div class="yr">${esc(w['制作年']||'')}</div></div></button>`; }).join('') + '</div>';
 }
 /* URLを、お母さんにも分かる言葉に置き換える */
 function urlLabel(raw){
@@ -3223,13 +3228,13 @@ function sheetEvent(no){
 }
 function sheetEdit(no, focusId){
   const w = workOf(no);
-  openSheet(`<h3>情報を直す</h3><p class="hint">No.${esc(no)}　分からないところは空のままで大丈夫です</p>
+  openSheet(`<h3>情報を直す</h3><p class="hint">${isOtNo(no) ? '' : 'No.'}${esc(no)}　分からないところは空のままで大丈夫です</p>
     ${F('作品名', inp('w1', w['作品名']))}
     ${F('別名・仮題など', inp('w2', w['作品名メモ']))}
     <div class="two">${F('幅（cm）', inp('w3', w['幅cm'], '', 'text'))}${F('高さ（cm）', inp('w4', w['高さcm'], '', 'text'))}</div>
     ${F('制作年', inp('w5', w['制作年'], '例：1961年 / 1960年代'))}
     ${F('画材', inp('w6', w['画材'], '例：顔料/紙/紙粘土'))}
-    ${F('種別', pick('w7', KINDS, w['種別']))}
+    ${isOtNo(no) ? F('種類（変えると番号も付け直します）', pick('w7', OT_T, w['種別'])) : F('種別', pick('w7', KINDS, w['種別']))}
     ${F('シリーズ', inp('w8', w['シリーズ'], '例：青鷺の森、闘鶏'))}
     ${F('状態（傷・シミなど）', `<textarea id="w9">${esc(w['状態メモ'])}</textarea>`)}
     ${F('メモ', `<textarea id="w10">${esc(w['補足'])}</textarea>`)}
@@ -3240,7 +3245,7 @@ function sheetEdit(no, focusId){
   $('#ok').onclick = () => {
     const patch = {'作品名':val('w1'),'作品名メモ':val('w2'),'幅cm':val('w3'),'高さcm':val('w4'),'制作年':val('w5'),'画材':val('w6'),'種別':val('w7'),'シリーズ':val('w8'),'状態メモ':val('w9'),'補足':val('w10'),'所蔵者・連絡先':val('w11'),'管理メモ':val('w12')};
     const label = {'作品名メモ':'別名・仮題','幅cm':'幅（cm）','高さcm':'高さ（cm）','状態メモ':'状態','補足':'メモ','所蔵者・連絡先':'所蔵者・連絡先','管理メモ':'管理メモ'};
-    confirmSave('No.'+no+' の情報を直す', Object.keys(patch).map(k => [label[k]||k, w[k]||'', patch[k]]), 'updateWork', [no, patch]);
+    confirmSave((isOtNo(no) ? '' : 'No.')+no+' の情報を直す', Object.keys(patch).map(k => [(isOtNo(no) && k==='種別' ? '種類' : label[k]||k), w[k]||'', patch[k]]), 'updateWork', [no, patch]).then(d => { if (d && d.newId) { closeAllPages(); openWork(d.newId); toast('番号が ' + d.newId + ' になりました'); } });
   };
 }
 function sheetEventEdit(id){
@@ -3274,9 +3279,9 @@ const OTF = [['種類','種類','pick',OT_T],['作品名','作品名','text','�
 const RK = {
   ex: {F:EXF, nm:'展覧会', get:id => exById[id], up:'updateExhibit', nw:'newExhibit', open:id => openEx(id)},
   pb: {F:PBF, nm:'画集・資料', get:id => pbById[id], up:'updatePub', nw:'newPub', open:id => openPb(id)},
-  ot: {F:OTF, nm:'その他の作品', get:id => otById[id], up:'updateOther', nw:'', open:id => openOt(id)}
+  ot: {F:OTF, nm:'その他の作品', get:id => otById[id], up:'updateWork', nw:'', open:id => openOt(id)}
 };
-const otName = x => x['作品名'] ? esc(x['作品名']) : '<span class="untitled">名前なし</span>';
+const otName = x => x['作品名'] ? esc(x['作品名']) : '<span class="untitled">名前なし</span>'; // x は作品と同じ形
 function renderOtList(){
   S.otk = S.otk || 'すべて'; S.oq = S.oq || '';
   $('#chronobar').innerHTML = `<div class="search"><input id="oq" type="search" placeholder="番号・名前・年・場所で探す" value="${esc(S.oq)}" enterkeyhint="search"></div>
@@ -3286,10 +3291,10 @@ function renderOtList(){
 }
 function drawOtList(){
   const q = S.oq.trim().toLowerCase();
-  const list = S.others.filter(x => (S.otk==='すべて' || x['種類']===S.otk) && (!q || [x['作品名'], x['制作年'], x['技法・素材'], x['保管場所'], x['メモ'], x['番号']].join(' ').toLowerCase().includes(q)));
+  const list = S.others.filter(x => (S.otk==='すべて' || (x['種別']||'その他')===S.otk) && (!q || [x['作品名'], x['作品名メモ'], x['制作年'], x['画材'], x['所在'], x['所在区分'], x['補足'], x['作品番号']].join(' ').toLowerCase().includes(q)));
   let html = `<div class="chead"><h2>その他の作品</h2><p class="csub">${S.otk!=='すべて' && OT_NOTE[S.otk] ? esc(OT_NOTE[S.otk]) + '　' : ''}${list.length}件${list.length!==S.others.length ? '（全' + S.others.length + '件）' : ''}</p></div>`;
-  html += '<div class="grid">' + list.map(x => `<button class="tile" data-ot="${esc(x['番号'])}"><div class="ph">${thumbHTML(x['番号'], 400)}</div>
-      <div class="cap"><div class="no">${esc([x['番号'], x['種類'], x['制作年']].filter(Boolean).join('・'))}</div><div class="tt">${otName(x)}</div></div></button>`).join('')
+  html += '<div class="grid">' + list.map(x => `<button class="tile" data-ot="${esc(x['作品番号'])}"><div class="ph">${thumbHTML(x['作品番号'], 400)}</div>
+      <div class="cap"><div class="no">${esc([x['作品番号'], x['種別'], x['制作年']].filter(Boolean).join('・'))}</div><div class="tt">${otName(x)}</div></div></button>`).join('')
     + (canEdit() ? '<button class="tile addtile" data-addk="ot"><div class="ph"><span class="plus">＋</span></div><div class="cap"><div class="tt">追加する</div></div></button>' : '') + '</div>';
   if (!list.length && !canEdit()) html += `<p class="muted" style="text-align:center;padding:40px 0">${S.others.length ? '見つかりませんでした' : 'まだ登録がありません'}</p>`;
   $('#main').innerHTML = html; hydrate($('#main'));
@@ -3302,35 +3307,24 @@ function sheetOtNew(){
     ${F('種類', pick('ok1', OT_T, OT_T.includes(S.otk) ? S.otk : ''))}
     <p class="hint" style="margin-top:-6px">やけもの＝陶芸　版画＝エッチング・木版画・年賀状　その他＝グッズ・落書きなど</p>
     ${F('作品名（わかれば）', inp('ok2', '', '分からなければ空のまま'))}
+    ${F('保管場所（必ず選ぶ）', pick('ok3', LOC_KINDS.filter(k => !['廃棄','統合済み'].includes(k)), ''))}
+    ${F('場所のくわしい名前（わかれば）', inp('ok4', '', '例：家 A の棚 / 思文閣'))}
     ${BTNS('登録する')}`);
   let data = null; bindPhoto(d => data = d);
+  const otF = () => ({'種類':val('ok1'), '作品名':val('ok2'), '所在区分': val('ok3') === '貸出中' ? 'その他' : val('ok3'), '所在': val('ok4') || (val('ok3') === '自宅' ? '自宅' : val('ok3'))});
+  const otChk = () => !val('ok1') ? '種類を選んでください' : !val('ok3') ? '保管場所を選んでください（分からなければ「不明」）' : '';
   $('#ok').onclick = async () => {
-    if (!val('ok1')) return alert('種類を選んでください');
-    const d = await save('newOther', [{'種類':val('ok1'), '作品名':val('ok2')}, data, PMIME], '登録しました');
-    if (d && d.newId) openOt(d.newId);
+    if (otChk()) return alert(otChk());
+    const d = await save('newOther', [otF(), data, PMIME], '登録しました');
+    if (d && d.newId) openWork(d.newId);
   };
   $('#otCand').onclick = async () => { // 届いた写真から選ぶ：先に作品を登録してから候補を開く
-    if (!val('ok1')) return alert('先に種類を選んでください');
-    const d = await save('newOther', [{'種類':val('ok1'), '作品名':val('ok2')}, data, PMIME], '登録しました');
-    if (d && d.newId) { openOt(d.newId); setTimeout(() => sheetCand(d.newId), 300); }
+    if (otChk()) return alert('先に' + otChk());
+    const d = await save('newOther', [otF(), data, PMIME], '登録しました');
+    if (d && d.newId) { openWork(d.newId); setTimeout(() => sheetCand(d.newId), 300); }
   };
 }
-function openOt(id, keepScroll, restoreSc){
-  const x = otById[id]; if (!x) return;
-  const ph = photoBy[id] || [];
-  const html = `<div class="pagehead"><button class="back" id="back">← もどる</button><span class="no">${esc(id)}</span></div>
-    <div class="pagebody one"><div class="eyebrow">${esc(x['種類']||'その他')}</div>
-    <h2 class="title">${otName(x)}</h2>
-    <div class="tombstone">${esc([x['制作年'], x['サイズ'], x['技法・素材']].filter(Boolean).join('　|　'))}</div>
-    ${ph.length ? `<div class="gallery ${ph.length>1?'many':''}" style="margin-top:14px">${ph.map((p,i)=>`<a href="#" data-view="${i}">${thImg(p['ファイルID'],1200)}${wm(p)}<span class="kind">${esc(p['種類'])}${/^【仮】/.test(p['メモ']||'') ? '・仮の写真' : ''}</span></a>`).join('')}</div>`
-      : '<div class="nophoto" style="margin-top:14px">まだ写真がありません</div>'}
-    ${creditHTML(ph)}
-    <h3 class="sec">作品の情報</h3>
-    ${canEdit() ? recInfo('ot', id, x) : `<dl class="info">${OTF.map(d => d[0]==='作品名' ? '' : dd2(d[0], escU(x[d[1]]||''))).join('')}</dl>`}
-    ${(eventBy[id]||[]).length ? `<h3 class="sec">来歴</h3><dl class="info">${(eventBy[id]||[]).slice().sort((a,b) => dateKey(a['日付'])-dateKey(b['日付'])).map(e => `<dt>${esc(e['日付']||'日付不明')}</dt><dd>${esc([e['種類'], e['相手先・場所'], e['内容']].filter(Boolean).join('　'))}</dd>`).join('')}</dl>` : ''}
-    ${canEdit() ? '<h3 class="sec">記録を更新する</h3><div class="actions bottomacts one"><button class="act main" data-act="photo">写真を追加（カメラ・写真）</button>' + delBtn('ot', id, 'この作品') + '</div>' : ''}</div>`;
-  showPage({t:'ot', id}, html, keepScroll, restoreSc);
-}
+function openOt(id, keepScroll, restoreSc){ return openWork(id, keepScroll, restoreSc); } // その他の作品も本作と同じページ
 /* ---------- 統合（同じ作品の2つの番号を1つにまとめる） ---------- */
 const MF = ['作品名','作品名メモ','幅cm','高さcm','制作年','画材','種別','シリーズ','所在区分','所在','自宅エリア','状態メモ','補足','所蔵者・連絡先','管理メモ'];
 const MFN = {'作品名メモ':'作品名の補足','幅cm':'幅（cm）','高さcm':'高さ（cm）','所在区分':'場所の区分','所在':'いまの場所','状態メモ':'状態','補足':'メモ'};
@@ -3975,7 +3969,7 @@ function sheetMemo(id){
     ${F('確認してほしいこと', `<textarea id="mmText" placeholder="例：この屏風は京都市美術館にありますか？">${esc(m ? m['内容'] : '')}</textarea>`)}
     <div class="field"><label>関係する作品（いくつでも）</label><div id="mmWs">${(nos.length ? nos : ['']).map(row).join('')}</div>
       <button type="button" class="act" id="mmWAdd" style="width:100%">＋ 作品を追加</button></div>
-    <datalist id="dlWorksM">${S.works.concat((S.others||[]).map(x => otWork(x['番号']))).map(w => `<option value="${esc(wLabel(w['作品番号']))}">`).join('')}</datalist>
+    <datalist id="dlWorksM">${S.works.concat(S.others||[]).map(w => `<option value="${esc(wLabel(w['作品番号']))}">`).join('')}</datalist>
     <div class="btns">${m ? `<button type="button" class="danger" id="mmDel">削除</button>` : ''}<button type="button" data-close>やめる</button><button type="button" class="primary" id="ok">保存</button></div>`);
   $('#mmWAdd').onclick = () => { const t = document.createElement('div'); t.innerHTML = row(''); $('#mmWs').appendChild(t.firstElementChild); $('#mmWs').lastElementChild.querySelector('input').focus(); };
   $('#mmWs').addEventListener('click', e => { if (e.target.closest('[data-mmrm]')) { const r = e.target.closest('.mmwrow'); if ($('#mmWs').children.length > 1) r.remove(); else r.querySelector('input').value = ''; } });
@@ -4012,7 +4006,7 @@ function prefetchThumbs(){
     try { if (navigator.connection && navigator.connection.saveData) return; } catch(e){}
     await new Promise(r => setTimeout(r, 2500)); // 画面の表示が落ち着いてから始める
     const have = await thKeys(); if (!have) return;
-    const main = [...new Set([].concat(S.works.map(w => w['作品番号']), (S.others||[]).map(x => x['番号']))
+    const main = [...new Set([].concat(S.works.map(w => w['作品番号']), (S.others||[]).map(x => x['作品番号']))
       .map(no => (photoBy[no]||[])[0]).filter(p => p && p['ファイルID']).map(p => p['ファイルID']))];
     for (const w of [400, 200]) {                     // 一覧（中）→ 小さい写真の順
       const need = main.filter(id => !have.has(w + '_' + id) && !TH[w + '_' + id]);
