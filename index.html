@@ -11,18 +11,37 @@
 /* GitHub Pages版：google.script.run の代わりに fetch でGoogleの呼び出し口へ送る */
 (function(){
   var API = "https://script.google.com/macros/s/AKfycbz2w0lUll7wmfJdesc1yTkk3i7NQJgXSTAL9Obwy3BodOvLbpFpK3rGVt53b_hJRWO7Uw/exec";
+  /* 通信量を減らす：最後に受け取ったデータを行ごとに覚えておき、変わった行だけ受け取る */
+  var C = null, NOH = ['startLogin','login','logout','appBuild','getThumbs','getDocThumbs','getOriginal','getLog','getArchive','getAIHistory','tts','checkMemo','askAI','interviewTurn','detectRotation'];
+  function rh(s){ var a = 0, b = 0x811c9dc5; for (var i = 0; i < s.length; i++){ var c = s.charCodeAt(i); a = (Math.imul(a, 31) + c) | 0; b = Math.imul(b ^ c, 16777619); } return (a >>> 0).toString(36) + '.' + (b >>> 0).toString(36); }
+  function isData(d){ return !!d && typeof d === 'object' && Array.isArray(d.works) && Array.isArray(d.events); }
+  function remember(d){ var n = { s: {}, h: {} }; Object.keys(d).forEach(function(k){ if (Array.isArray(d[k])) { n.s[k] = d[k].map(function(r){ return JSON.stringify(r); }); n.h[k] = n.s[k].map(rh); } }); C = n; }
+  function unpack(d){
+    if (!d || !d.__pk) return d;
+    var o = {}; Object.keys(d).forEach(function(k){ if (k === '__pk') return; var v = d[k], old = C && C.s[k];
+      if (v === 0 && old) o[k] = old.map(function(x){ return JSON.parse(x); });
+      else if (Array.isArray(v) && old) { var r = []; v.forEach(function(x){ if (Array.isArray(x)) { for (var i = 0; i < x[1]; i++) r.push(JSON.parse(old[x[0] + i])); } else r.push(x); }); o[k] = r; }
+      else o[k] = v; });
+    return o;
+  }
+  function take(v){ // 受け取ったデータを元の形に戻し、覚え直す（画面が中身を書きかえる前に）
+    if (v && v.__pk) v = unpack(v); if (isData(v)) { remember(v); return v; }
+    if (v && typeof v === 'object' && v.data) { if (v.data.__pk) v.data = unpack(v.data); if (isData(v.data)) remember(v.data); }
+    return v;
+  }
   function send(fn, args){
     if (fn === 'appBuild') return fetch('version.json?t=' + Date.now(), {cache:'no-store'}).then(function(r){return r.json()}).then(function(j){return j.build});
     var t0 = Date.now(), tries = 0;
     function once(){
       tries++;
-      return fetch(API, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({fn: fn, args: args}), redirect:'follow', cache:'no-store'})
+      var body = { fn: fn, args: args }; if (C && NOH.indexOf(fn) < 0) { body.h = {}; Object.keys(C.h).forEach(function(k){ body.h[k] = C.h[k].join(','); }); }
+      return fetch(API, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(body), redirect:'follow', cache:'no-store'})
         .then(function(r){ if (!r.ok) throw new Error('通信に失敗しました（' + r.status + '）'); return r.json(); }, function(e){
           // 通信が切れたとき：何度やっても同じ結果になる操作だけ、自動でやり直す
           if (SAFE.indexOf(fn) >= 0 && tries < 3) return new Promise(function(ok){ setTimeout(ok, 1500 * tries); }).then(once);
           throw new Error('通信が切れました（' + fn + '・' + Math.round((Date.now() - t0) / 1000) + '秒）\n電波の良い所で、もう一度ためしてください。');
         })
-        .then(function(j){ if (j && j.__retry) return j; if (!j || !j.ok) throw new Error(j && j.e || '通信に失敗しました'); return j.v; });
+        .then(function(j){ if (!j || !j.ok) throw new Error(j && j.e || '通信に失敗しました'); return take(j.v); });
     }
     return once();
   }
@@ -1135,7 +1154,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '8f4a619efe', APP_URL = location.origin + location.pathname;
+const BUILD = 'ccf56fa82c', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
