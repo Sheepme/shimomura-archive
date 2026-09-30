@@ -1530,7 +1530,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '34f1de2e16', APP_URL = location.origin + location.pathname;
+const BUILD = 'be71cca108', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4547,7 +4547,7 @@ function prefetchThumbs(){
 }
 
 /* ---------- PC：作品リストを表で見る（横にスクロール、写真と題名は固定） ---------- */
-const wideList = () => !tblMobile(); // PCは表、スマホはカード型リスト
+const wideList = () => true; // スマホもPCと同じ表（項目名の行をタブの下に固定）
 const tblMobile = () => { try { return !matchMedia('(min-width:900px)').matches; } catch(e){ return true; } };
 const WCOLS = [
   ['yr','制作年', w => w['制作年'], w => +((String(w['制作年']).match(/\d{4}/)||[])[0]||9999)],
