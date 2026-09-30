@@ -1222,14 +1222,17 @@ html.sa .dwpanel{padding-top:calc(var(--cap) + 8px)}
 .tile .ph{border-radius:12px;overflow:hidden}
 html.sa header{padding-top:calc(var(--cap) + 4px)}
 /* ===== 上の部分：Claudeのように、ボタンを1つずつガラス風に浮かせて常に表示（中身はその下をスクロール） ===== */
-header,header.tuck{position:relative;z-index:auto!important;top:auto!important;transform:none!important;background:transparent!important;border:0!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;padding:calc(var(--tb) + var(--cap) + 68px) 10px 0!important;transition:none}
-html.tb header{padding-top:calc(var(--cap) + 68px)!important}
-.appbar,.brand.appbar{position:fixed;top:calc(var(--tb) + var(--cap) + 6px);left:10px;right:10px;z-index:35;display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:0;max-width:none;margin:0;padding:0;pointer-events:none;transition:top .25s ease,left .22s ease,translate .22s ease}
+header,header.tuck{position:relative;z-index:auto!important;top:auto!important;transform:none!important;background:transparent!important;border:0!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;padding:calc(var(--tb) + var(--cap) + var(--edge,0px) + 68px) 10px 0!important;transition:none}
+html.tb header{padding-top:calc(var(--cap) + var(--edge,0px) + 68px)!important}
+/* iPhoneのホーム画面アプリ（iOS 26以降）は、画面の上端から約38ptに自動でぼかしをかける（アプリ側では止められない）。
+   上のボタンをその帯より下に置いて、ボタンがにじんで見えないようにする */
+html.sa{--edge:34px}
+.appbar,.brand.appbar{position:fixed;top:calc(var(--tb) + var(--cap) + var(--edge,0px) + 6px);left:10px;right:10px;z-index:35;display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:0;max-width:none;margin:0;padding:0;pointer-events:none;transition:top .25s ease,left .22s ease,translate .22s ease}
 .appbar>*{pointer-events:auto}
 /* 詳細ページ・入力画面でも上のボタンは出したまま（写真の拡大・書類・クイズなど全画面のときだけ隠す） */
 .appbar,.brand.appbar{z-index:96}
 body.pgopen .page .pagehead{display:none}
-.page{padding-top:calc(var(--tb) + var(--cap) + 68px)}
+.page{padding-top:calc(var(--tb) + var(--cap) + var(--edge,0px) + 68px)}
 body:has(#viewer:not(.hidden)) .appbar,body:has(.docview) .appbar,body.kbopen:has(#sheet:not(.hidden)) .appbar{opacity:0;pointer-events:none}
 .appbar{transition:top .25s ease,left .22s ease,translate .22s ease,opacity .15s}
 .sheet .box{max-height:min(92vh, calc(var(--vvh,100vh) - 12px - var(--tb) - 70px))}
@@ -1402,7 +1405,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '4ec34cecca', APP_URL = location.origin + location.pathname;
+const BUILD = '2b4ffb16e5', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
