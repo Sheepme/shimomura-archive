@@ -1265,7 +1265,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '4620202504', APP_URL = location.origin + location.pathname;
+const BUILD = '22898574a2', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3843,7 +3843,8 @@ function setCols(d){
   document.addEventListener('gesturechange', e => { if (!zoomOk(e)) e.preventDefault(); });
   document.addEventListener('touchmove', e => { if (e.touches.length > 1 && !zoomOk(e) && !onAlbum()) e.preventDefault(); }, {passive:false});
   let acc = 0, wt;
-  addEventListener('wheel', e => { if (!e.ctrlKey || !onAlbum()) return; e.preventDefault(); acc += e.deltaY; clearTimeout(wt); wt = setTimeout(() => acc = 0, 250);
+  /* パソコン：トラックパッドのピンチ（Ctrl＋ホイール）でも画面全体は拡大しない。アルバムでは列の数を変える */
+  addEventListener('wheel', e => { if (!e.ctrlKey) return; if (!onAlbum()) { if (!zoomOk(e)) e.preventDefault(); return; } e.preventDefault(); acc += e.deltaY; clearTimeout(wt); wt = setTimeout(() => acc = 0, 250);
     if (acc > 60) { acc = 0; setCols(1); } else if (acc < -60) { acc = 0; setCols(-1); } }, {passive:false});
 })();
 let rzT; addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(() => { if (S.view==='list' && S.tblM !== tblMobile() && $('#page').classList.contains('hidden')) render(); const N = masN(); if (['album','ot'].includes(S.view) && S.masN && N!==S.masN && $('#page').classList.contains('hidden')) render(); }, 200); });
