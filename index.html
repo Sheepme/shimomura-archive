@@ -1175,7 +1175,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'bcfae58501', APP_URL = location.origin + location.pathname;
+const BUILD = '98976e856b', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2990,7 +2990,7 @@ let V = {list:[], i:0};
 function openViewer(i){ V.list = photoBy[S.cur]||[]; V.i = i; showV(); if ($('#viewer').classList.contains('hidden')) hpush('v'); $('#viewer').classList.remove('hidden'); }
 function closeViewer(fromHist){ const open = !$('#viewer').classList.contains('hidden'); $('#viewer').classList.add('hidden'); if (open && !fromHist) hback(); }
 /* 美術館などから転載した画像の注意書き（写真のメモが「転載元：館名｜URL」のとき） */
-const creditHTML = ph => [...new Set((ph||[]).map(p => String(p['メモ']||'')).filter(m => /^転載元：/.test(m)).map(m => m.slice(4).split('｜').slice(0, 2).join('｜')))].map(m => { // 同じ転載元は1つにまとめる
+const creditHTML = ph => [...new Set((ph||[]).map(p => String(p['メモ']||'')).filter(m => /^転載元：/.test(m)).map(m => { const [mu, u] = m.slice(4).split('｜'); return (mu||'').trim() + '｜' + (u||'').trim(); }))].map(m => { // 同じ転載元は1つにまとめる
   const [mu, u] = m.split('｜');
   return `<p class="credit">＊この画像は${esc(mu)}から転載したものです。家族用の資料としての利用に限定します。転載したり誰かに渡す場合は、撮影元に確認を取ってください。${u ? `（<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u)}</a>）` : ''}</p>`; }).join('');
 function showV(){ const p = V.list[V.i]; if (!p) return;
