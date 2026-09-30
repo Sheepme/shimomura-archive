@@ -1259,7 +1259,7 @@ html[data-theme=dark] .appbar .abtn,html[data-theme=dark] .appbar h1:not(.st-bus
 /* 画面上部のアプリ側のぼかしはなし（iPhoneが自動でかけるぼかしだけ。Claudeのアプリと同じ見え方） */
 body::before{display:none!important}
 body.loggedout::before{display:none}
-#sbSample{position:fixed;top:0;left:0;right:0;height:1px;background-color:var(--bg);z-index:10002;pointer-events:none}
+
 /* 年表・展覧会の「年」：ガラスのボタン＋画面いっぱいの線を、上のボタンのすぐ下にいっしょに固定。止まっている間は線より上をぼかす */
 html,body{overflow-x:clip}
 .cy{grid-template-columns:1fr!important;gap:10px!important;padding-top:10px!important;margin-top:18px!important;border-top:0!important}
@@ -1343,7 +1343,6 @@ html.sa.tb header{padding-top:calc(var(--cap) + 4px - var(--tb))}
 </head>
 <body>
 
-<div id="sbSample" aria-hidden="true"></div><!-- iPhoneはいちばん上の要素の背景色で上端の色を決めるので、画面の地の色を置いておく -->
 <header id="top">
   <div class="brand appbar">
     <button type="button" class="abtn" id="btnMenu" aria-label="メニューを開く"><img class="abapp" src="icon.jpg" alt="" aria-hidden="true"></button>
@@ -1406,7 +1405,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '21052cbf81', APP_URL = location.origin + location.pathname;
+const BUILD = '834df496e4', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
