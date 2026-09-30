@@ -1135,7 +1135,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '08759feef6', APP_URL = location.origin + location.pathname;
+const BUILD = '8f4a619efe', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3521,7 +3521,7 @@ renderUser();
 async function refreshData(){
   busy(true, '最新の情報を読み込んでいます…');
   try { const d = await call('getData'); setData(d); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); toast('最新の情報にしました'); }
-  catch(e){ if (isLoginErr(e)) { setToken(''); S.user = null; render(); } else alert('読み込めませんでした。電波のよいところでもう一度お試しください。'); }
+  catch(e){ if (isLoginErr(e)) { setToken(''); S.user = null; render(); } else alert('読み込めませんでした。\n' + (e.message||e)); }
   finally { busy(false); }
 }
 (() => {
