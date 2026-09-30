@@ -1141,14 +1141,72 @@ html.sa.tb .pagehead{padding-top:calc(var(--cap) + 12px - var(--tb))}
 html.sa.tb .viewer{padding-top:calc(60px + var(--cap) - var(--tb))}
 html.sa.tb .vclose{top:calc(12px + var(--cap) - var(--tb))}
 html.sa.tb .quiz{border-top-width:calc(var(--cap) - var(--tb))}
+/* ===================== Claude風のデザイン（上：メニュー・ページ名・名前／下：検索と質問） ===================== */
+:root{--bg:#faf9f5;--paper:#ffffff;--ink:#141413;--sub:#5e5d59;--faint:#8f8d86;--line:#e8e6dc;--wash:#f0eee6;--wash2:#e8e6dc;--inv:#ffffff;
+  --glass:rgba(250,249,245,.88);--glass-p:rgba(255,255,255,.8);--acc:#c96442;--acc2:#d97757;
+  --disp:"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP",serif;--nav:88px}
+html[data-theme=dark]{--bg:#262624;--paper:#30302e;--ink:#faf9f5;--sub:#c2c0b6;--faint:#8f8d86;--line:#3d3d3a;--wash:#30302e;--wash2:#3d3d3a;--inv:#262624;
+  --glass:rgba(38,38,36,.88);--glass-p:rgba(48,48,46,.82)}
+body{background:var(--bg)}
+header{background:var(--glass);-webkit-backdrop-filter:saturate(160%) blur(16px);backdrop-filter:saturate(160%) blur(16px);border-bottom:1px solid var(--line);padding:8px 10px 0}
+.appbar{display:flex;align-items:center;gap:4px;min-height:48px;max-width:1200px;margin:0 auto;padding-bottom:6px}
+.appbar h1,.brand.appbar h1{flex:1;min-width:0;text-align:center;font:600 17px/1.2 var(--sans);letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:default}
+.abtn{width:44px;height:44px;border:0;border-radius:12px;background:transparent;color:var(--ink);display:flex;align-items:center;justify-content:center;padding:0;flex:none}
+.abtn svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round}
+.abtn:active{background:var(--hov)}
+.appbar .brandr{flex:none;width:44px;display:flex;justify-content:center}
+.avatar{width:34px;height:34px;border-radius:50%;border:0;background:var(--ink);color:var(--bg);font:600 15px/1 var(--sans);display:inline-flex;align-items:center;justify-content:center;padding:0;flex:none}
+.avatar.sm{width:32px;height:32px;font-size:14px}
+#finder .search,#chronobar .search{display:none}
+#finder .chips,#chronobar .chips{padding-top:4px}
+#finder:empty,#chronobar:empty{display:none}
+/* 下の検索と質問 */
+.cbar{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:50;display:flex;align-items:center;gap:8px;max-width:720px;margin:0 auto}
+.cbin{flex:1;min-width:0;display:flex;align-items:center;gap:8px;height:52px;padding:0 8px 0 16px;border-radius:26px;background:var(--paper);border:1px solid var(--line);box-shadow:0 6px 24px -8px rgba(0,0,0,.18)}
+.cbin>svg{width:20px;height:20px;fill:none;stroke:var(--faint);stroke-width:1.9;stroke-linecap:round;flex:none}
+.cbin input{flex:1;min-width:0;border:0;background:transparent;font-size:16px;outline:none;color:var(--ink);padding:0;height:100%;-webkit-appearance:none;appearance:none}
+.cbin input::-webkit-search-cancel-button{display:none}
+.cbin input::placeholder{color:var(--faint)}
+#fsqClose{width:32px;height:32px;border-radius:50%;border:0;background:var(--wash2);color:var(--sub);font-size:13px;flex:none;padding:0}
+.cbask{flex:none;height:52px;padding:0 18px 0 14px;border-radius:26px;border:0;background:var(--acc);color:#fff;display:flex;align-items:center;gap:6px;font-size:15px;font-weight:600;box-shadow:0 8px 20px -8px rgba(201,100,66,.7)}
+.cbask .ic{display:flex}.cbask .ic svg{width:22px;height:22px;fill:#fff}
+.cbask.on{background:var(--ink);color:var(--bg)}
+body.briefing .cbar,body.loggedout .cbar{display:none}
+.page::after{content:'';display:block;height:calc(84px + env(safe-area-inset-bottom))}
+/* メニュー（左から） */
+.drawer{position:fixed;inset:0;z-index:120}
+.dwscrim{position:absolute;inset:0;border:0;padding:0;background:rgba(20,20,19,.32);opacity:0;transition:opacity .2s ease}
+.dwpanel{position:absolute;top:0;bottom:0;left:0;width:min(300px,82vw);background:var(--bg);border-right:1px solid var(--line);transform:translateX(-102%);transition:transform .22s ease;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 16px) 10px calc(env(safe-area-inset-bottom) + 12px);box-shadow:8px 0 30px -12px rgba(0,0,0,.25)}
+html.sa .dwpanel{padding-top:calc(var(--cap) + 8px)}
+.drawer.open .dwscrim{opacity:1}.drawer.open .dwpanel{transform:none}
+.dwhead{font:600 21px/1.4 var(--disp);padding:6px 12px 18px;color:var(--ink);letter-spacing:.02em}
+.dwnav{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.dwnav button{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;padding:10px 12px;border:0;border-radius:12px;background:transparent;color:var(--ink);font-size:16px;text-align:left}
+.dwnav .pic{display:flex;color:var(--sub)}
+.dwnav .pic svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}
+.dwnav button.on{background:var(--wash2);font-weight:600}.dwnav button.on .pic{color:var(--ink)}
+.dwnav button:active{background:var(--hov)}
+.dwfoot{border-top:1px solid var(--line);padding-top:8px}
+.dwme{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;padding:8px 10px;border-radius:12px;text-align:left;color:var(--ink);font-size:15px}
+.dwme small{display:block;color:var(--sub);font-size:12px;font-weight:400}
+/* 文字の雰囲気：見出しは明朝、やわらかい角丸 */
+.hello,.pagebody .title,h2.title,.chead h2,.sheet h3,.hsec{font-family:var(--disp);font-weight:600;letter-spacing:.02em}
+.hello{font-size:27px;line-height:1.35}
+.chip{border-radius:999px}
+.sheet .box{border-radius:20px 20px 0 0}
+.tile .ph{border-radius:12px;overflow:hidden}
+html.sa header{padding-top:calc(var(--cap) + 4px)}
+html.sa.tb header{padding-top:calc(var(--cap) + 4px - var(--tb))}
+
 </style>
 </head>
 <body>
 
 <header id="top">
-  <div class="brand">
-    <h1>下村良之介<br class="sp"> 作品目録</h1>
-    <div class="brandr"><div class="userbox" id="userbox"></div><button class="themebtn" id="btnTheme" aria-label="明るい表示と暗い表示を切り替え"><svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></svg><svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button></div>
+  <div class="brand appbar">
+    <button type="button" class="abtn" id="btnMenu" aria-label="メニューを開く"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button>
+    <h1 id="abTitle">ホーム</h1>
+    <div class="brandr"><div class="userbox" id="userbox"></div></div>
   </div>
   <div id="finder">
     <div class="search"><input id="q" type="search" placeholder="作品名・番号・年・美術館名で探す" enterkeyhint="search"></div>
@@ -1171,15 +1229,18 @@ html.sa.tb .quiz{border-top-width:calc(var(--cap) - var(--tb))}
 
 <div id="fmPop" class="fmpop hidden" role="menu">
 </div>
-<div id="fmSearch" class="fmsearch hidden"><input id="fsq" type="search" enterkeyhint="search" autocomplete="off"><button id="fsqClose" aria-label="検索を閉じる">✕</button></div>
-<nav id="nav" class="fmenu">
+<div id="fmSearch" class="hidden"></div>
+<nav id="nav0" class="fmenu" style="display:none!important">
   <button id="fmHome"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.2 12 4.5l8 6.7V20h-5.2v-5.6H9.2V20H4z"/></svg></span><span>ホーム</span></button>
   <button id="fmPage"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg></span><span class="fmlbl"><svg class="updn" viewBox="0 0 10 14" aria-hidden="true"><path d="M1.5 5.5 5 2l3.5 3.5M1.5 8.5 5 12l3.5-3.5"/></svg><span id="fmPageLbl">作品</span></span></button>
   <div id="fmInline" class="fminl"></div>
 </nav>
-<nav id="navAsk" class="fmenu fmask">
-  <button id="fmAsk" aria-label="AIに質問"><span class="ic aispark"><svg viewBox="0 0 24 24" aria-hidden="true"><path style="fill:none;stroke:#fff;stroke-width:1.7;stroke-linejoin:round" d="M4.5 4.5h15a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-9l-4.5 3.6v-3.6H4.5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2z"/><path d="M12 6.8c.3 2.4 1.3 3.5 3.7 3.9-2.4.4-3.4 1.5-3.7 3.9-.3-2.4-1.3-3.5-3.7-3.9 2.4-.4 3.4-1.5 3.7-3.9z"/></svg></span><span>質問</span></button>
-</nav>
+<div id="navAsk" class="hidden"></div>
+<div id="nav" class="cbar hidden">
+  <div class="cbin"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input id="fsq" type="search" enterkeyhint="search" autocomplete="off" placeholder="作品を探す"><button type="button" id="fsqClose" class="hidden" aria-label="検索をやめる">✕</button></div>
+  <button type="button" id="fmAsk" class="cbask" aria-label="AIに質問"><span class="ic aispark"><svg viewBox="0 0 24 24" aria-hidden="true"><path style="fill:none;stroke:#fff;stroke-width:1.7;stroke-linejoin:round" d="M4.5 4.5h15a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-9l-4.5 3.6v-3.6H4.5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2z"/><path d="M12 6.8c.3 2.4 1.3 3.5 3.7 3.9-2.4.4-3.4 1.5-3.7 3.9-.3-2.4-1.3-3.5-3.7-3.9 2.4-.4 3.4-1.5 3.7-3.9z"/></svg></span><span>質問</span></button>
+</div>
+<div id="drawer" class="drawer hidden" aria-hidden="true"><button type="button" class="dwscrim" data-dwclose="1" aria-label="メニューを閉じる"></button><aside class="dwpanel" role="menu" aria-label="メニュー"><div class="dwhead">下村良之介<br>作品目録</div><div class="dwnav" id="dwNav"></div><div class="dwfoot" id="dwFoot"></div></aside></div>
 
 <div id="page" class="page hidden"></div>
 <div id="sheet" class="sheet hidden"><div class="box" id="sheetbox"></div></div>
@@ -1203,7 +1264,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '8c81886cc1', APP_URL = location.origin + location.pathname;
+const BUILD = '06e87c1424', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1242,7 +1303,8 @@ function setToken(t){ S.token = t; try { t ? localStorage.setItem('smr_token', t
 try { S.token = localStorage.getItem('smr_token') || ''; } catch(e){ S.token = ''; }
 function renderUser(){
   const on = canEdit();
-  $('#userbox').innerHTML = S.user ? `<button class="loginbtn" id="btnMe">${esc(S.user.name||'ログイン中')}</button>` : '';
+  $('#userbox').innerHTML = S.user ? `<button class="avatar" id="btnMe" aria-label="${esc(S.user.name||'')}さんのメニュー">${esc(String(S.user.name||'？').trim().charAt(0))}</button>` : '';
+  const f = $('#dwFoot'); if (f) f.innerHTML = S.user ? `<button type="button" class="dwme" id="btnMe2"><span class="avatar sm">${esc(String(S.user.name||'？').trim().charAt(0))}</span><span><b>${esc(S.user.name||'')}</b><small>${esc(S.user.role||'')}</small></span></button>` : '';
   document.body.classList.remove('editing'); document.body.classList.toggle('canedit', on);
 }
 function addByContext(){
@@ -1380,7 +1442,15 @@ function navOn(){ const nv = S.view;
   const l = $('#fmPageLbl'); if (l) l.textContent = PAGE_NM[nv] || '作品';
   const pic = $('#fmPage .ic'); if (pic && typeof IC !== 'undefined') { const k = {album:'works', list:'list', ex:'ex', pb:'pb', ot:'ot', chrono:'chrono', doc:'doc'}[nv] || 'works'; if (pic.dataset.k !== k && IC[k]) { pic.innerHTML = ico(k); pic.dataset.k = k; } }
   $('#fmPage').classList.toggle('on', nv!=='ai' && nv!=='home'); $('#fmAsk').classList.toggle('on', !!S.aiOpen); $('#fmHome').classList.toggle('on', nv==='home');
-  $('#nav').classList.toggle('hidden', !S.user); $('#navAsk').classList.toggle('hidden', !S.user); }
+  $('#nav').classList.toggle('hidden', !S.user); $('#navAsk').classList.toggle('hidden', !S.user);
+  const TT = {home:'ホーム', album:'作品アルバム', list:'作品リスト', ot:'その他の作品', ex:'展覧会', pb:'画集・資料', chrono:'年表', doc:'書類', ai:'作品目録AI'};
+  $('#abTitle').textContent = TT[nv] || '作品目録';
+  document.querySelectorAll('#dwNav button').forEach(b => b.classList.toggle('on', b.dataset.v===nv));
+  let sq = null; try { sq = SQ[nv]; } catch(e){}
+  const fi = $('#fsq'); if (fi && document.activeElement !== fi) { fi.placeholder = sq ? sq[1] : '作品を探す'; fi.value = sq ? (S[sq[0]] || '') : ''; $('#fsqClose').classList.toggle('hidden', !fi.value); } }
+/* ---------- メニュー（左から出る） ---------- */
+function openDrawer(){ const d = $('#drawer'); d.classList.remove('hidden'); d.setAttribute('aria-hidden', 'false'); requestAnimationFrame(() => d.classList.add('open')); }
+function closeDrawer(){ const d = $('#drawer'); if (d.classList.contains('hidden')) return; d.classList.remove('open'); d.setAttribute('aria-hidden', 'true'); setTimeout(() => d.classList.add('hidden'), 220); }
 function render(){
   const main = $('#main');
   document.body.classList.toggle('loggedout', !S.user && !S.publicView);
@@ -1492,7 +1562,10 @@ function renderHome(){
 }
 (function(){ const L = [['album','作品アルバム','works'],['list','作品リスト','list'],['ex','展覧会','ex'],['pb','画集','pb'],['ot','その他','ot'],['chrono','年表','chrono'],['doc','書類','doc']];
   document.getElementById('fmInline').innerHTML = L.map(([v, t, k]) => `<button data-v="${v}"${v==='doc'?' class="edonly"':''}><span class="ic">${ico(k)}</span><span>${t}</span></button>`).join('');
-  document.getElementById('fmPop').innerHTML = L.map(([v, t, k]) => `<button data-v="${v}"${v==='doc'?' class="edonly"':''}><span class="pic">${ico(k)}</span><span>${v==='ot' ? 'その他の作品' : t}</span></button>`).join(''); })();
+  document.getElementById('fmPop').innerHTML = L.map(([v, t, k]) => `<button data-v="${v}"${v==='doc'?' class="edonly"':''}><span class="pic">${ico(k)}</span><span>${v==='ot' ? 'その他の作品' : t}</span></button>`).join('');
+  const HOMEIC = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.2 12 4.5l8 6.7V20h-5.2v-5.6H9.2V20H4z"/></svg>';
+  document.getElementById('dwNav').innerHTML = `<button type="button" data-v="home"><span class="pic">${HOMEIC}</span><span>ホーム</span></button>`
+    + L.map(([v, t, k]) => `<button type="button" data-v="${v}"${v==='doc'?' class="edonly"':''}><span class="pic">${ico(k)}</span><span>${v==='ot' ? 'その他の作品' : v==='pb' ? '画集・資料' : t}</span></button>`).join(''); })();
 function goHome(){ hidePop(); closeAllPages(); S.view = 'home'; render(); window.scrollTo(0, 0); }
 function goTodo(k){
   closeAllPages();
@@ -3567,6 +3640,7 @@ function openLogin(why){
 function openMe(){
   openSheet(`<h3>${esc(S.user.name||'')}</h3><p class="hint">権限：${esc(S.user.role)}</p>
     <p style="font-size:16px;color:var(--sub)">このスマホ・パソコンでは、ログアウトするまでログインしたままになります。共用のパソコンでは使い終わったらログアウトしてください。</p>
+    <button type="button" class="act" id="btnTheme" style="width:100%;margin-top:6px">${document.documentElement.getAttribute('data-theme')==='dark' ? '☀️ 明るい表示にする' : '🌙 暗い表示にする'}</button>
     <button type="button" class="act" id="meUpd" style="width:100%;margin-top:6px">最新版に更新</button>
     <button type="button" class="act" id="meLog" style="width:100%;margin-top:6px">変更記録を見る</button>
     ${canEdit() && S.ai ? '<button type="button" class="act" id="meRot" style="width:100%;margin-top:6px">写真の向きをAIでそろえる</button>' : ''}
@@ -3644,13 +3718,22 @@ let fsqT; $('#fsq').addEventListener('input', e => { clearTimeout(fsqT); fsqT = 
   else if (S.view==='ex') drawExList(); else if (S.view==='pb') drawPbList(); else if (S.view==='ot') drawOtList();
 }, 250); });
 $('#fsq').addEventListener('keydown', e => { if (e.key==='Enter' && !e.isComposing) e.target.blur(); });
+/* 下の検索欄：押したら、そのページで探す（探せないページなら作品アルバムに移る） */
+$('#fsq').addEventListener('focus', () => { closeDrawer(); if (S.aiOpen) closeAI(); const pgOpen = !$('#page').classList.contains('hidden'); if (pgOpen) closeAllPages();
+  if (!SQ[S.view]) { S.view = S.wmode || 'album'; S.limit = 60; render(); window.scrollTo(0, 0); } else if (pgOpen) render();
+  const s = SQ[S.view]; $('#fsq').placeholder = s[1]; });
+$('#fsq').addEventListener('input', e => $('#fsqClose').classList.toggle('hidden', !e.target.value));
 
 /* ---------- イベント ---------- */
 document.addEventListener('click', e => {
   if (!$('#fmPop').classList.contains('hidden') && !e.target.closest('#fmPop, #fmPage')) hidePop();
   const t = e.target.closest('button, [data-close]'); if (!t) return;
   if (t.id==='fmPage'){ $('#fmPop').classList.toggle('hidden'); $('#fmSearch').classList.add('hidden'); return; }
-  if (t.id==='fsqClose'){ $('#fmSearch').classList.add('hidden'); return; }
+  if (t.id==='btnMenu'){ openDrawer(); return; }
+  if (t.dataset.dwclose){ closeDrawer(); return; }
+  if (t.id==='btnMe2'){ closeDrawer(); openMe(); return; }
+  if (t.closest('#dwNav')){ closeDrawer(); closeAllPages(); if (S.aiOpen) closeAI(); }
+  if (t.id==='fsqClose'){ const fi = $('#fsq'); fi.value = ''; fi.dispatchEvent(new Event('input')); t.classList.add('hidden'); fi.blur(); return; }
   if (t.id==='fmAsk'){ hidePop(); $('#fmSearch').classList.add('hidden'); if (!S.user) return openLogin('質問するにはログインしてください'); return S.aiOpen ? closeAI() : openAI();; }
   if (t.closest('#fmPop, #fmInline')){ hidePop(); closeAllPages(); $('#fmSearch').classList.add('hidden'); }
   if (t.id==='modeBtn' || t.id==='modeSw'){ toggleMode(); return; }
@@ -3684,7 +3767,7 @@ document.addEventListener('click', e => {
   if (t.id==='btnAdd'){ addByContext(); return; }
   if (t.dataset.v){ if (t.dataset.v==='new') return canEdit() ? sheetNew() : (S.user ? alert('登録には「編集」の権限が必要です') : openLogin('新しく登録するにはログインしてください'));
     if (t.dataset.v==='ai') return S.user ? openAI() : openLogin('質問するにはログインしてください'); S.view=t.dataset.v; S.limit=60; render(); window.scrollTo(0,0); return; }
-  if (t.id==='btnTheme'){ const d = document.documentElement, n = d.getAttribute('data-theme')==='dark' ? 'light' : 'dark'; d.setAttribute('data-theme', n); try { localStorage.setItem('smr_theme', n); } catch(e){} toast(n==='dark' ? '暗い表示にしました' : '明るい表示にしました'); return; }
+  if (t.id==='btnTheme'){ const d = document.documentElement, n = d.getAttribute('data-theme')==='dark' ? 'light' : 'dark'; d.setAttribute('data-theme', n); try { localStorage.setItem('smr_theme', n); } catch(e){} if (t.closest('#sheetbox')) t.textContent = n==='dark' ? '☀️ 明るい表示にする' : '🌙 暗い表示にする'; toast(n==='dark' ? '暗い表示にしました' : '明るい表示にしました'); return; }
   if (t.dataset.f){ S.filter=t.dataset.f; S.mus=''; S.limit=60; render(); return; }
   if (t.dataset.mus !== undefined){ S.mus=t.dataset.mus; S.limit=60; render(); return; }
   if (t.id==='more'){ S.limit+=60; render(); return; }
