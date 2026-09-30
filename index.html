@@ -1388,6 +1388,10 @@ html.sa.tb header{padding-top:calc(var(--cap) + 4px - var(--tb))}
 #top .appbar h1 .crumb:not(.cur):hover{text-decoration:underline;text-underline-offset:4px}
 #top .appbar h1 .absep{flex:none;color:var(--faint);font-weight:400;margin:0 2px}
 #top .appbar h1 .crumb:not(.cur){flex:0 3 auto}
+#top .appbar h1 .hmic{display:none}
+#top .appbar h1 .hmic svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;display:block}
+@media(max-width:599px){ #top .appbar h1 .chome[data-home] .hmtx{display:none} #top .appbar h1 .chome[data-home] .hmic{display:flex;align-items:center} #top .appbar h1 .chome[data-home]{flex:none;overflow:visible} }
+#top .appbar .abmenu svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
 .abham{flex:none;margin-left:auto;width:42px;height:42px;display:flex;align-items:center;justify-content:center;border:0;border-radius:50%;background:none;color:var(--ink);cursor:pointer;pointer-events:auto}
 .abham:hover{background:var(--hov)}
 .abham svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
@@ -1419,7 +1423,7 @@ body .decs button:hover{color:var(--ink)!important}
 
 <header id="top">
   <div class="brand appbar">
-    <button type="button" class="abtn" id="btnMenu" aria-label="メニューを開く"><img class="abapp" src="icon.jpg" alt="" aria-hidden="true"></button>
+    <button type="button" class="abtn abmenu" id="btnMenu" aria-label="メニューを開く"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
     <h1 id="abTitle">ホーム</h1>
     <div class="brandr"><div class="userbox" id="userbox"></div></div>
   </div>
@@ -1479,7 +1483,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'ba6690389d', APP_URL = location.origin + location.pathname;
+const BUILD = '7d6d81af80', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1518,13 +1522,14 @@ function abRender0(){ const h = $('#abTitle'); if (!h) return;
   if (st) { h.textContent = tx; return; }
   // ふだんは「下村良之介作品目録 › ページ名 › 作品名」を同じ大きさの文字で横に並べる（押すとそこへ戻る）
   const pgOpen = document.body.classList.contains('pgopen'), SEP = '<span class="absep">›</span>';
-  // アイコン › ひとつ前 › いまのページ（例：アイコン › 作品アルバム › 作品名）
+  // 題名（スマホでは奥のページに進むとホームのアイコンに変わる） › ひとつ前 › いまのページ
+  const ROOT = '<span class="crumb chome" data-home="1" aria-label="ホーム"><span class="hmtx">下村良之介作品目録</span><span class="hmic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.2 12 4.5l8 6.7V20h-5.2v-5.6H9.2V20H4z"/></svg></span></span>';
   if (pgOpen && S.pcur) {
     const cr = [{nm: VIEW_NM[S.view] || 'ホーム'}].concat((S.stack || []).map(x => ({nm: pcName(x.t, x.id)})));
-    const k = cr.length - 1;
-    h.innerHTML = SEP + `<span class="crumb" data-ci="${k}">${esc(cr[k].nm)}</span>` + SEP + `<span class="crumb cur">${esc(pcName(S.pcur.t, S.pcur.id))}</span>`;
+    const k = cr.length - 1, prev = (S.view === 'home' && k === 0) ? '' : SEP + `<span class="crumb" data-ci="${k}">${esc(cr[k].nm)}</span>`;
+    h.innerHTML = ROOT + prev + SEP + `<span class="crumb cur">${esc(pcName(S.pcur.t, S.pcur.id))}</span>`;
     return; }
-  h.innerHTML = S.view === 'home' ? '<span class="crumb chome cur">下村良之介作品目録</span>' : SEP + `<span class="crumb cur">${esc(tx)}</span>`; }
+  h.innerHTML = S.view === 'home' ? '<span class="crumb chome cur">下村良之介作品目録</span>' : ROOT + SEP + `<span class="crumb cur">${esc(tx)}</span>`; }
 /* お知らせ（保存しました など）も、読み込み中と同じ上の帯で出す（緑） */
 function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.remove('hidden'); tbSync(); clearTimeout(toast._t); toast._t=setTimeout(()=>{ el.classList.add('hidden'); tbSync(); },2600); }
 const OTRE = /^[YHZ]\d{3,}$/;
@@ -3105,7 +3110,7 @@ function showPage(st, html, keepScroll, restoreSc){
   abSync();
 }
 /* 上のボタン：詳細ページを開いている間は ☰ を「←もどる」にし、ページ名を作品番号などにする */
-const IC_MENU = '<img class="abapp" src="icon.jpg" alt="" aria-hidden="true">', IC_BACK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
+const IC_MENU = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>', IC_BACK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
 function pcName(t, id){
   if (['w','ot'].includes(t)) { const w = workOf(id) || {}; return w['作品名'] || (isOtNo(id) ? (w['種別'] || 'その他') + '（名前なし）' : '無題'); }
   if (t==='ex') return (exById[id] || {})['名称'] || '展覧会';
