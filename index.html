@@ -1450,6 +1450,10 @@ body .chips .chip.on::after{content:'';position:absolute;left:0;right:0;bottom:3
 body .subchips{gap:18px!important}
 body .subchips .chip{font-size:14px!important;padding:6px 0 9px!important}
 body .subchips .chip.on::after{height:2px}
+body .chips .cn{margin-left:5px;opacity:.55;font-size:12px;font-weight:500}
+/* 作品リスト（PCの表）：項目名の行は左右いっぱい、いちばん下のタブのすぐ下に固定 */
+#wthd{top:calc(var(--rowtop,0px) + var(--rowh,0px))!important;transition:top .25s ease!important}
+#wthd,#wtwrap{margin-left:calc(-1 * var(--gx))!important;margin-right:calc(-1 * var(--gx))!important;padding-left:var(--gx);padding-right:var(--gx)}
 @media(pointer:fine){ body .chips,body .decs{cursor:grab} body .chips.dragging,body .decs.dragging{cursor:grabbing;user-select:none} body .chips.dragging .chip{pointer-events:none} }
 body .decs{gap:18px!important}
 body .decs button{background:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding:6px 0!important;color:var(--sub)!important;font:500 14px/1.2 var(--sans)!important}
@@ -1526,7 +1530,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'ded4668131', APP_URL = location.origin + location.pathname;
+const BUILD = '34f1de2e16', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1780,7 +1784,8 @@ function render(){
   if (S.view==='pb') return renderPbList();
   if (S.view==='ot') return renderOtList();
   document.querySelectorAll('#wseg button').forEach(b => b.classList.toggle('on', b.dataset.wm===S.view));
-  $('#chips').innerHTML = FILTERS.map(([k,l]) => `<button class="chip ${S.filter===k?'on':''}" data-f="${k}">${l}</button>`).join('');
+  const fcnt = k => { const b = [S.filter, S.mus, S.q]; S.filter = k; S.mus = ''; S.q = ''; const n = filtered().length; [S.filter, S.mus, S.q] = b; return n; }; // タブの横に件数（すべて 647・自宅 151…）
+  $('#chips').innerHTML = FILTERS.map(([k,l]) => `<button class="chip ${S.filter===k?'on':''}" data-f="${k}">${l}<span class="cn">${fcnt(k)}</span></button>`).join('');
   if (S.filter==='美術館') {
     const cnt = {}; S.works.forEach(w => { if (w['所在区分']==='美術館') { const m = w['所在']||'（館名なし）'; cnt[m] = (cnt[m]||0) + 1; } });
     const ms = Object.keys(cnt).sort((a,b) => cnt[b]-cnt[a] || a.localeCompare(b,'ja'));
