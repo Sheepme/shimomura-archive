@@ -1177,7 +1177,8 @@ header{background:var(--glass);-webkit-backdrop-filter:saturate(160%) blur(16px)
 .cbask.on{background:var(--ink);color:var(--bg)}
 body.briefing .cbar,body.loggedout .cbar{display:none}
 /* キーボードが出ている間は、下の検索欄をキーボードのすぐ上に置く */
-body.kbopen .cbar{top:calc(var(--vvt,0px) + var(--vvh,100%) - 62px);bottom:auto;transition:none}
+body.prekb .cbar{top:30vh;bottom:auto;transition:none}
+body.kbopen .cbar{top:calc(var(--vvt,0px) + var(--vvh,100%) - 66px);bottom:auto;transition:none}
 body.slock{position:fixed;left:0;right:0;width:100%;overflow:hidden}
 /* 検索の入力中は「質問」ボタンを消して、検索欄を横いっぱいに */
 body.searching .cbask{display:none}
@@ -1342,7 +1343,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '3986ff7599', APP_URL = location.origin + location.pathname;
+const BUILD = '15ebeddaec', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3856,7 +3857,9 @@ $('#fsq').addEventListener('keydown', e => { if (e.key==='Enter' && !e.isComposi
 $('#fsq').addEventListener('focus', () => { closeDrawer(); if (S.aiOpen) closeAI(); const pgOpen = !$('#page').classList.contains('hidden'); if (pgOpen) closeAllPages();
   if (!SQ[S.view]) { S.view = S.wmode || 'album'; S.limit = 60; render(); window.scrollTo(0, 0); } else if (pgOpen) render();
   const s = SQ[S.view]; $('#fsq').placeholder = s[1]; $('#top').classList.remove('tuck'); scrollLock(true); document.body.classList.add('searching'); });
-$('#fsq').addEventListener('blur', () => { scrollLock(false); document.body.classList.remove('searching'); });
+$('#fsq').addEventListener('blur', () => { scrollLock(false); document.body.classList.remove('searching', 'prekb'); });
+/* iPhoneは「キーボードで隠れる位置の入力欄」を押すと画面ごとずらす。押した瞬間に検索欄をキーボードより上へ動かしておき、ずれを起こさせない */
+$('#fsq').addEventListener('touchstart', () => { if (document.activeElement !== $('#fsq')) { scrollLock(true); document.body.classList.add('prekb'); } }, {passive:true});
 /* 上のページ名を押すと、いちばん上までスクロール */
 $('#abTitle').addEventListener('click', e => { const c = e.target.closest('.crumb[data-ci]');
   if (c && !c.classList.contains('cur')) { const k = +c.dataset.ci; if (k === 0) { closeAllPages(); return; } let n = (S.stack || []).length - (k - 1); while (n-- > 0 && S.stack.length) closeWork(); return; }
