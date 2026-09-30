@@ -1239,6 +1239,11 @@ html[data-theme=dark]{--gl:rgba(52,52,50,.88);--gl-b:rgba(255,255,255,.14);--gl-
 .appbar h1,.brand.appbar h1{max-width:calc(100% - 64px)!important;padding:0 20px 0 16px!important;gap:10px;font-weight:500!important;font-size:15.5px!important;min-width:0}
 .appbar h1 .abic{display:flex;flex:none}.appbar h1 .abic svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}
 .appbar h1 .abtx{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.appbar h1 .crumb{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 1 auto;color:var(--sub)}
+.appbar h1 .crumb:not(.cur){flex-shrink:4;max-width:42%;cursor:pointer;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
+.appbar h1 .crumb.cur{color:var(--ink);font-weight:600;flex-shrink:1}
+.appbar h1 .crumb.dots{flex:none}
+.appbar h1 .absep{flex:none;color:var(--faint);margin:0 -4px}
 .appbar .avatar{width:52px;height:52px;font-size:17px}
 body.dwopen .appbar{translate:var(--dww) 0}
 /* 上の帯は使わず、ページ名のボタンの色と文字でお知らせする */
@@ -1337,7 +1342,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'c4eebbf3c3', APP_URL = location.origin + location.pathname;
+const BUILD = '3986ff7599', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1373,6 +1378,12 @@ function abRender(){ const h = $('#abTitle'); if (!h) return;
   const pgOpen = document.body.classList.contains('pgopen'), pt = S.pcur && S.pcur.t;
   const k = pgOpen ? ({w:'works', ot:'ot', ex:'ex', pb:'pb'})[pt] || 'works' : ({album:'works', list:'list', ex:'ex', pb:'pb', ot:'ot', chrono:'chrono', doc:'doc', ai:'ai'})[S.view];
   const icon = k && typeof IC !== 'undefined' && IC[k] ? `<span class="abic">${ico(k)}</span>` : (S.view==='home' && !pgOpen ? '<span class="abic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.2 12 4.5l8 6.7V20h-5.2v-5.6H9.2V20H4z"/></svg></span>' : '');
+  if (pgOpen && S.pcur) { // パンくず：一覧 › 前のページ › いまのページ（押すとそこへ戻る）
+    const cr = [VIEW_NM[S.view] || 'ホーム'].concat((S.stack || []).map(x => pcName(x.t, x.id)), [pcName(S.pcur.t, S.pcur.id)]);
+    const last = cr.length - 1, maxN = innerWidth < 700 ? 2 : 4; // スマホは「ひとつ前 › いま」、広い画面は4つまで
+    const mid = cr.length <= maxN ? cr.map((_, i) => i) : (maxN === 2 ? [last - 1, last] : [0, -1, last - 1, last]);
+    h.innerHTML = icon + mid.map((i, n) => (n ? '<span class="absep">›</span>' : '') + (i < 0 ? '<span class="crumb dots">…</span>' : `<span class="crumb ${i===last?'cur':''}" data-ci="${i}">${esc(cr[i])}</span>`)).join('');
+    return; }
   h.innerHTML = icon + `<span class="abtx">${esc(tx)}</span>`; }
 /* お知らせ（保存しました など）も、読み込み中と同じ上の帯で出す（緑） */
 function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.remove('hidden'); tbSync(); clearTimeout(toast._t); toast._t=setTimeout(()=>{ el.classList.add('hidden'); tbSync(); },2600); }
@@ -2928,6 +2939,12 @@ function showPage(st, html, keepScroll, restoreSc){
 }
 /* 上のボタン：詳細ページを開いている間は ☰ を「←もどる」にし、ページ名を作品番号などにする */
 const IC_MENU = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>', IC_BACK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
+function pcName(t, id){
+  if (['w','ot'].includes(t)) { const w = workOf(id) || {}; return w['作品名'] || (isOtNo(id) ? (w['種別'] || 'その他') + '（名前なし）' : '無題'); }
+  if (t==='ex') return (exById[id] || {})['名称'] || '展覧会';
+  if (t==='pb') return (pbById[id] || {})['タイトル'] || '画集・資料';
+  return ''; }
+const VIEW_NM = {home:'ホーム', album:'作品アルバム', list:'作品リスト', ot:'その他の作品', ex:'展覧会', pb:'画集・資料', chrono:'年表', doc:'書類', ai:'作品目録AI'};
 function abSync(){ const pg = $('#page'), open = !pg.classList.contains('hidden'), b = $('#btnMenu');
   document.body.classList.toggle('pgopen', open);
   if (b && b.dataset.st !== (open ? 'b' : 'm')) { b.innerHTML = open ? IC_BACK : IC_MENU; b.dataset.st = open ? 'b' : 'm'; b.setAttribute('aria-label', open ? 'もどる' : 'メニューを開く'); }
@@ -3841,7 +3858,9 @@ $('#fsq').addEventListener('focus', () => { closeDrawer(); if (S.aiOpen) closeAI
   const s = SQ[S.view]; $('#fsq').placeholder = s[1]; $('#top').classList.remove('tuck'); scrollLock(true); document.body.classList.add('searching'); });
 $('#fsq').addEventListener('blur', () => { scrollLock(false); document.body.classList.remove('searching'); });
 /* 上のページ名を押すと、いちばん上までスクロール */
-$('#abTitle').addEventListener('click', () => { const up = $('#updBar'); if (up && $('#abTitle').classList.contains('st-upd')) { up.click(); abRender(); return; } const pg = $('#page');
+$('#abTitle').addEventListener('click', e => { const c = e.target.closest('.crumb[data-ci]');
+  if (c && !c.classList.contains('cur')) { const k = +c.dataset.ci; if (k === 0) { closeAllPages(); return; } let n = (S.stack || []).length - (k - 1); while (n-- > 0 && S.stack.length) closeWork(); return; }
+  const up = $('#updBar'); if (up && $('#abTitle').classList.contains('st-upd')) { up.click(); abRender(); return; } const pg = $('#page');
   if (!pg.classList.contains('hidden')) pg.scrollTo({top:0, behavior:'smooth'}); else window.scrollTo({top:0, behavior:'smooth'}); });
 /* 検索の入力中は画面を動かさない（iPhoneがキーボードに合わせて勝手にスクロールするのを止める） */
 let lockY = 0;
