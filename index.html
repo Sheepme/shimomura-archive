@@ -1169,10 +1169,16 @@ header{background:var(--glass);-webkit-backdrop-filter:saturate(160%) blur(16px)
 .cbin input::-webkit-search-cancel-button{display:none}
 .cbin input::placeholder{color:var(--sub);opacity:1}
 .cbin>svg{stroke:var(--sub)!important}
-.cbin{height:56px!important;border-radius:28px!important}.cbask{height:56px;border-radius:28px}
+.cbin{height:56px!important;border-radius:28px!important}
+/* 質問ボタン：AIらしい青のグラデーションで、アイコンだけの丸 */
+.cbask{width:56px;height:56px;padding:0!important;border-radius:50%;justify-content:center;background:linear-gradient(135deg,#6d5bf5,#2a8fd4)!important;box-shadow:0 8px 22px -8px rgba(80,90,230,.7)!important}
+.cbask>span:not(.ic){display:none}
+.cbask .ic svg{width:26px;height:26px}
 .appbar .abtn svg{stroke-width:2.1}
 #fsqClose{width:32px;height:32px;border-radius:50%;border:0;background:var(--wash2);color:var(--sub);font-size:13px;flex:none;padding:0}
 .cbask{flex:none;height:52px;padding:0 18px 0 14px;border-radius:26px;border:0;background:var(--acc);color:#fff;display:flex;align-items:center;gap:6px;font-size:15px;font-weight:600;box-shadow:0 8px 20px -8px rgba(201,100,66,.7)}
+.cbask{background:linear-gradient(135deg,#6d5bf5,#2aa7c4)!important;box-shadow:0 8px 22px -8px rgba(80,70,220,.6)!important} /* 質問（AI）はAIらしい青 */
+.cbask.on{background:linear-gradient(135deg,#5646d8,#1f8aa3)!important}
 .cbask .ic{display:flex}.cbask .ic svg{width:22px;height:22px;fill:#fff}
 .cbask.on{background:var(--ink);color:var(--bg)}
 body.briefing .cbar,body.loggedout .cbar{display:none}
@@ -1349,7 +1355,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd9a15e7d39', APP_URL = location.origin + location.pathname;
+const BUILD = '6f10ab509d', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
