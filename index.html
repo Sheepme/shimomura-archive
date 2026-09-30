@@ -1231,6 +1231,9 @@ body.kbopen .sheet .box{max-height:calc(var(--vvh,100vh) - 12px)}
 html[data-theme=dark]{--gl:rgba(52,52,50,.88);--gl-b:rgba(255,255,255,.14);--gl-s:0 10px 30px -8px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.08)}
 .glass,.appbar .abtn,.appbar h1,.appbar .avatar,.cbin,.cbask{-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px)}
 .glass,.appbar .abtn,.appbar h1,.appbar .avatar,.cbin{background:var(--gl)!important;border:1px solid var(--gl-b)!important;box-shadow:var(--gl-s)!important;color:var(--ink)}
+/* 上のボタンは、より透けて・より強くぼかす */
+.appbar .abtn,.appbar h1:not(.st-busy):not(.st-ok):not(.st-upd){background:rgba(255,255,255,.52)!important;-webkit-backdrop-filter:saturate(200%) blur(40px)!important;backdrop-filter:saturate(200%) blur(40px)!important}
+html[data-theme=dark] .appbar .abtn,html[data-theme=dark] .appbar h1:not(.st-busy):not(.st-ok):not(.st-upd){background:rgba(46,46,44,.5)!important}
 .appbar .abtn{width:52px;height:52px;border-radius:50%}
 .appbar .abtn svg{width:24px;height:24px}
 .appbar h1,.brand.appbar h1{cursor:pointer!important;-webkit-user-select:none;user-select:none;flex:0 1 auto;max-width:calc(100% - 140px);height:52px;display:flex;align-items:center;padding:0 22px;border-radius:26px;font:600 16px/1 var(--sans)}
@@ -1343,7 +1346,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '15ebeddaec', APP_URL = location.origin + location.pathname;
+const BUILD = '98774ef958', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
