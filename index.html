@@ -1175,7 +1175,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'be3aca35a9', APP_URL = location.origin + location.pathname;
+const BUILD = '47d9df726e', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3259,6 +3259,7 @@ function sheetOtNew(){
   if (!canEdit()) return;
   openSheet(`<h3>その他の作品を追加</h3><p class="hint">写真を撮って、種類を選ぶだけで登録できます。くわしい情報はあとから入れられます</p>
     ${photoInputs()}
+    <button type="button" class="act candbtn" id="otCand">🖼 思文閣などから届いた写真から選ぶ</button>
     ${F('種類', pick('ok1', OT_T, OT_T.includes(S.otk) ? S.otk : ''))}
     <p class="hint" style="margin-top:-6px">やけもの＝陶芸　版画＝エッチング・木版画・年賀状　その他＝グッズ・落書きなど</p>
     ${F('作品名（わかれば）', inp('ok2', '', '分からなければ空のまま'))}
@@ -3268,6 +3269,11 @@ function sheetOtNew(){
     if (!val('ok1')) return alert('種類を選んでください');
     const d = await save('newOther', [{'種類':val('ok1'), '作品名':val('ok2')}, data, PMIME], '登録しました');
     if (d && d.newId) openOt(d.newId);
+  };
+  $('#otCand').onclick = async () => { // 届いた写真から選ぶ：先に作品を登録してから候補を開く
+    if (!val('ok1')) return alert('先に種類を選んでください');
+    const d = await save('newOther', [{'種類':val('ok1'), '作品名':val('ok2')}, data, PMIME], '登録しました');
+    if (d && d.newId) { openOt(d.newId); setTimeout(() => sheetCand(d.newId), 300); }
   };
 }
 function openOt(id, keepScroll, restoreSc){
