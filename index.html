@@ -1379,8 +1379,8 @@ html.sa.tb header{padding-top:calc(var(--cap) + 4px - var(--tb))}
 body main#main{padding-left:var(--gx)!important;padding-right:var(--gx)!important}
 .page .pagebody,.page .pagebody.one{padding-left:var(--gx)!important;padding-right:var(--gx)!important}
 /* 作品リスト：タブのすぐ下から始め、区切り線は画面の左右いっぱい */
-body[data-view=list] main#main{padding-top:0!important}
-body[data-view=list] .mcl .row{margin:0 calc(-1 * var(--gx));padding-left:var(--gx);padding-right:var(--gx);width:auto;box-sizing:border-box}
+body[data-pv=list] main#main{padding-top:0!important}
+body[data-pv=list] .mcl .row{margin:0 calc(-1 * var(--gx));padding-left:var(--gx);padding-right:var(--gx);width:auto;box-sizing:border-box}
 /* ===== 年：カプセルをやめて「年の列」と「項目の列」に分ける ===== */
 :root{--ycol:62px}
 @media(min-width:700px){ :root{--ycol:120px} }
@@ -1490,7 +1490,7 @@ body.wide .cbask>span:not(.ic),body.wideoff .cbask>span:not(.ic){display:inline!
 body:not(.wide):not(.wideoff) .cbask{width:58px!important;height:58px!important}
 body .chips .cn{margin-left:3px;opacity:.55;font-size:12px;font-weight:500}
 #finder #count{display:none!important}
-body[data-view=list] #finder .meta{display:none!important} /* 作品リストは表の見出しで並べ替えるので、並び順の欄は出さない */ /* 件数はタブの名前の後ろに出す */
+body[data-pv=list] #finder .meta{display:none!important} /* 作品リストは表の見出しで並べ替えるので、並び順の欄は出さない */ /* 件数はタブの名前の後ろに出す */
 #finder .meta{justify-content:flex-end}
 #finder .meta .mright{margin-left:auto!important;justify-content:flex-end!important}
 /* 作品リスト（PCの表）：項目名の行は左右いっぱい、いちばん下のタブのすぐ下に固定 */
@@ -1572,7 +1572,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'eaeb5e9f88', APP_URL = location.origin + location.pathname;
+const BUILD = 'c3b8e1a509', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1817,7 +1817,7 @@ function openDrawer(){ if (isWide()) { dwFold = !dwFold; try { localStorage.setI
   const d = $('#drawer'); document.body.classList.add('dwopen'); d.classList.remove('hidden'); d.setAttribute('aria-hidden', 'false'); requestAnimationFrame(() => d.classList.add('open')); setTimeout(markStuck, 240); }
 function closeDrawer(){ const d = $('#drawer'); if (d.classList.contains('hidden') || d.classList.contains('pin')) return; document.body.classList.remove('dwopen'); setTimeout(markStuck, 240); d.classList.remove('open'); d.setAttribute('aria-hidden', 'true'); setTimeout(() => d.classList.add('hidden'), 220); }
 function render(){
-  document.body.classList.toggle('vhome', S.view === 'home'); document.body.dataset.view = S.view;
+  document.body.classList.toggle('vhome', S.view === 'home'); document.body.dataset.pv = S.view; // （data-view は写真を開くボタンの印なので使わない）
   { const dq = document.getElementById('dwq'); if (dq && document.activeElement !== dq && typeof SQ !== 'undefined') { const s = SQ[S.view]; dq.value = s ? (S[s[0]] || '') : ''; dq.placeholder = ({ex:'展覧会を探す', pb:'画集・資料を探す', ot:'その他の作品を探す'})[S.view] || '作品を探す'; } }
   setTimeout(() => { try { stkTop(); } catch(e){} }, 0);
   const main = $('#main');
