@@ -1233,7 +1233,12 @@ html[data-theme=dark]{--gl:rgba(52,52,50,.88);--gl-b:rgba(255,255,255,.14);--gl-
 .appbar .abtn{width:52px;height:52px;border-radius:50%}
 .appbar .abtn svg{width:24px;height:24px}
 .appbar h1,.brand.appbar h1{cursor:pointer!important;-webkit-user-select:none;user-select:none;flex:0 1 auto;max-width:calc(100% - 140px);height:52px;display:flex;align-items:center;padding:0 22px;border-radius:26px;font:600 16px/1 var(--sans)}
-.appbar .brandr{width:52px;visibility:hidden;pointer-events:none} /* 名前はメニューのいちばん下に移した（ここは左右のバランス用） */
+.appbar .brandr{display:none} /* 名前はメニューのいちばん下に移した */
+/* タイトルは ☰ のすぐ右に左寄せ（Claudeのアプリと同じ並び） */
+.appbar,.brand.appbar{justify-content:flex-start!important;gap:10px!important}
+.appbar h1,.brand.appbar h1{max-width:calc(100% - 64px)!important;padding:0 20px 0 16px!important;gap:10px;font-weight:500!important;font-size:15.5px!important;min-width:0}
+.appbar h1 .abic{display:flex;flex:none}.appbar h1 .abic svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}
+.appbar h1 .abtx{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .appbar .avatar{width:52px;height:52px;font-size:17px}
 body.dwopen .appbar{translate:var(--dww) 0}
 /* 上の帯は使わず、ページ名のボタンの色と文字でお知らせする */
@@ -1332,7 +1337,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'fde9d61dfe', APP_URL = location.origin + location.pathname;
+const BUILD = 'c4eebbf3c3', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1362,7 +1367,13 @@ function abRender(){ const h = $('#abTitle'); if (!h) return;
   if (ld && !ld.classList.contains('hidden')) { st = 'busy'; tx = ld.textContent.trim() || '読み込み中…'; }
   else if (ts && !ts.classList.contains('hidden')) { st = 'ok'; tx = ts.textContent.trim(); }
   else if (up) { st = 'upd'; tx = up.classList.contains('go') ? '更新しています…' : '押して新しい版に更新'; }
-  h.className = st ? 'st-' + st : ''; h.textContent = tx; }
+  h.className = st ? 'st-' + st : '';
+  if (st) { h.textContent = tx; return; }
+  // ふだんは、ページのアイコン＋名前（Claudeのアプリと同じ形）
+  const pgOpen = document.body.classList.contains('pgopen'), pt = S.pcur && S.pcur.t;
+  const k = pgOpen ? ({w:'works', ot:'ot', ex:'ex', pb:'pb'})[pt] || 'works' : ({album:'works', list:'list', ex:'ex', pb:'pb', ot:'ot', chrono:'chrono', doc:'doc', ai:'ai'})[S.view];
+  const icon = k && typeof IC !== 'undefined' && IC[k] ? `<span class="abic">${ico(k)}</span>` : (S.view==='home' && !pgOpen ? '<span class="abic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.2 12 4.5l8 6.7V20h-5.2v-5.6H9.2V20H4z"/></svg></span>' : '');
+  h.innerHTML = icon + `<span class="abtx">${esc(tx)}</span>`; }
 /* お知らせ（保存しました など）も、読み込み中と同じ上の帯で出す（緑） */
 function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.remove('hidden'); tbSync(); clearTimeout(toast._t); toast._t=setTimeout(()=>{ el.classList.add('hidden'); tbSync(); },2600); }
 const OTRE = /^[YHZ]\d{3,}$/;
