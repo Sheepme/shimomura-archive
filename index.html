@@ -1256,7 +1256,10 @@ html[data-theme=dark] .appbar .abtn,html[data-theme=dark] .appbar h1:not(.st-bus
 .zoomb button{background:transparent!important;color:var(--ink)!important;font-weight:500}
 .zoomb button+button{border-left:1px solid var(--line)!important}
 /* 画面のいちばん上（時計の下〜上のボタンのあたり）は、どのページでも地の色でうっすらぼかす（上端が暗いグラデーションにならないように） */
-body::before{content:'';position:fixed;left:0;right:0;top:0;height:calc(var(--tb) + var(--cap) + 64px);z-index:34;pointer-events:none;background:color-mix(in srgb,var(--bg) 55%,transparent);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 18px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 18px),transparent)}
+/* 画面上部のぼかしは、この1枚だけにそろえる（上のボタンの下まで。年のボタンが止まっている間は年の線まで伸ばす） */
+body::before{content:'';position:fixed;left:0;right:0;top:0;height:calc(var(--stk,70px) - 6px);z-index:5;pointer-events:none;background:color-mix(in srgb,var(--bg) 60%,transparent);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 16px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 16px),transparent)}
+body.ystuck::before{height:calc(var(--stk,70px) + 23px);-webkit-mask-image:none;mask-image:none}
+body.pgopen::before{z-index:41;height:calc(var(--stk,70px) - 6px);-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 16px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 16px),transparent)}
 body.loggedout::before{display:none}
 #sbSample{position:fixed;top:0;left:0;right:0;height:1px;background-color:var(--bg);z-index:10002;pointer-events:none}
 /* 年表・展覧会の「年」：ガラスのボタン＋画面いっぱいの線を、上のボタンのすぐ下にいっしょに固定。止まっている間は線より上をぼかす */
@@ -1267,7 +1270,7 @@ html,body{overflow-x:clip}
 .cyh{position:sticky!important;top:var(--stk,0px)!important;z-index:6;display:flex!important;flex-direction:row!important;align-items:center!important;height:46px;margin:0!important;padding:0!important;background:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important;border:0!important;width:auto}
 .cyh::after{content:'';position:absolute;left:-100vw;right:-100vw;top:50%;height:1.5px;margin-top:-.75px;background:color-mix(in srgb,var(--ink) 28%,transparent);z-index:0;pointer-events:none}
 .cyh::before{content:'';display:none;position:absolute;left:-100vw;right:-100vw;bottom:50%;height:calc(var(--stk,0px) + 40px);background:color-mix(in srgb,var(--bg) 55%,transparent);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);z-index:0;pointer-events:none}
-.cyh.stuck::before{display:block}
+.cyh.stuck::before{display:none}
 .cyp{position:relative;z-index:1;display:inline-flex;align-items:center;gap:10px;height:46px;padding:0 18px;margin-left:-6px;border-radius:23px;white-space:nowrap;-webkit-backdrop-filter:saturate(200%) blur(40px);backdrop-filter:saturate(200%) blur(40px);box-shadow:var(--gl-s);color:#faf9f5;background:rgba(30,30,28,.8);border:1px solid rgba(255,255,255,.12)}
 .cyp .cyy{font-size:20px!important;line-height:1!important;font-weight:600;color:inherit}
 .cyp .cage{position:static!important;font-size:13px!important;letter-spacing:.04em;color:rgba(250,249,245,.65)!important}
@@ -1405,7 +1408,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '2b4ffb16e5', APP_URL = location.origin + location.pathname;
+const BUILD = '7807ddbf3d', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4433,10 +4436,11 @@ document.addEventListener('click', e => {
 function wtSync(){ const w = $('#wtwrap'), h = $('#wthd'); if (!w || !h) return;
   w.onscroll = () => { h.scrollLeft = w.scrollLeft; }; h.scrollLeft = w.scrollLeft; wtTop(); }
 /* 年のボタンが上で止まっているときだけ、線より上をぼかす */
-function markStuck(){ const hs = document.querySelectorAll('#main .cyh'); if (!hs.length) return;
+function markStuck(){ const hs = document.querySelectorAll('#main .cyh'); if (!hs.length) { document.body.classList.remove('ystuck'); return; }
   const t = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stk')) || 0;
-  hs.forEach(h => { const r = h.getBoundingClientRect(); h.classList.toggle('stuck', Math.abs(r.top - t) < 2 && window.scrollY > 10); }); }
-function stkTop(){ const ab = document.querySelector('#top .appbar'); const b = ab ? Math.max(0, ab.getBoundingClientRect().bottom + 6) : 0; document.documentElement.style.setProperty('--stk', b + 'px'); document.documentElement.style.setProperty('--stkx', '0px'); }
+  let any = false; hs.forEach(h => { const r = h.getBoundingClientRect(), on = Math.abs(r.top - t) < 2 && window.scrollY > 10; h.classList.toggle('stuck', on); if (on) any = true; });
+  document.body.classList.toggle('ystuck', any); }
+function stkTop(){ const ab = document.querySelector('#top .appbar'); const b = ab ? Math.max(0, ab.getBoundingClientRect().bottom + 6) : 0; document.documentElement.style.setProperty('--stk', b + 'px'); document.documentElement.style.setProperty('--stkx', '0px');  markStuck(); }
 window.addEventListener('resize', () => stkTop());
 function wtTop(){ const h = $('#wthd'); if (!h) return; const ab = document.querySelector('#top .appbar'); h.style.top = (ab ? Math.max(0, ab.getBoundingClientRect().bottom + 6) : 0) + 'px'; h.style.paddingTop = '0px'; }
 addEventListener('scroll', () => { if ($('#wthd')) requestAnimationFrame(wtTop); }, {passive:true});
