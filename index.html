@@ -1357,7 +1357,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '661df19be0', APP_URL = location.origin + location.pathname;
+const BUILD = 'b865181500', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3875,9 +3875,14 @@ $('#fsq').addEventListener('keydown', e => { if (e.key==='Enter' && !e.isComposi
 $('#fsq').addEventListener('focus', () => { closeDrawer(); if (S.aiOpen) closeAI(); const pgOpen = !$('#page').classList.contains('hidden'); if (pgOpen) closeAllPages();
   if (!SQ[S.view]) { S.view = S.wmode || 'album'; S.limit = 60; render(); window.scrollTo(0, 0); } else if (pgOpen) render();
   const s = SQ[S.view]; $('#fsq').placeholder = s[1]; $('#top').classList.remove('tuck'); scrollLock(true); document.body.classList.add('searching'); });
-$('#fsq').addEventListener('blur', () => { scrollLock(false); document.body.classList.remove('searching', 'prekb'); });
+$('#fsq').addEventListener('blur', () => { srchReset(); setTimeout(() => { if (document.activeElement !== $('#fsq')) srchReset(); }, 300); });
 /* iPhoneは「キーボードで隠れる位置の入力欄」を押すと画面ごとずらす。押した瞬間に検索欄をキーボードより上へ動かしておき、ずれを起こさせない */
-$('#fsq').addEventListener('touchstart', () => { if (document.activeElement !== $('#fsq')) { scrollLock(true); document.body.classList.add('prekb'); } }, {passive:true});
+$('#fsq').addEventListener('touchstart', () => { if (document.activeElement !== $('#fsq')) { scrollLock(true); document.body.classList.add('prekb');
+  // 押しただけで入力にならなかった（スクロールなど）ときは、すぐ元に戻す
+  clearTimeout(srchReset._t); srchReset._t = setTimeout(() => { if (document.activeElement !== $('#fsq')) srchReset(); }, 700); } }, {passive:true});
+$('#fsq').addEventListener('touchmove', () => { if (document.activeElement !== $('#fsq')) srchReset(); }, {passive:true});
+function srchReset(){ scrollLock(false); document.body.classList.remove('searching', 'prekb', 'kbopen'); }
+document.addEventListener('visibilitychange', () => { if (document.hidden && document.activeElement !== $('#fsq')) srchReset(); });
 /* 上のページ名を押すと、いちばん上までスクロール */
 $('#abTitle').addEventListener('click', e => { const c = e.target.closest('.crumb[data-ci]');
   if (c && !c.classList.contains('cur')) { const k = +c.dataset.ci; if (k === 0) { closeAllPages(); return; } let n = (S.stack || []).length - (k - 1); while (n-- > 0 && S.stack.length) closeWork(); return; }
