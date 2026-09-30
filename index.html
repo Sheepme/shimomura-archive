@@ -1130,11 +1130,15 @@ html.sa .quiz{border-top:var(--cap) solid var(--bg)}
 html.sa .toast{top:calc(14px + var(--cap))}
 @media(max-width:700px){ html.sa .aip{top:calc(8px + var(--cap))} }
 /* ホーム画面アプリで上の帯（読み込み中など）が出ているとき：帯が上の白い部分も覆い、その分だけ全体を下げる */
-html.sa.tb{--tb:28px}
-html.sa .loading,html.sa .updbar,html.sa .tmsg{top:var(--cap);padding-top:0}
+html.sa.tb{--tb:calc(var(--cap) + 24px)} /* 帯は上の余白ごと塗る（白が残らないように）。文字は下の24pxに出す */
+html.sa .loading,html.sa .updbar,html.sa .tmsg{top:0;padding-top:var(--cap)}
 html.sa body{padding-top:var(--tb)}
-html.sa.tb header{top:var(--tb)}
+html.sa.tb header{top:var(--tb);padding-top:14px}
 html.sa .page,html.sa .viewer,html.sa .quiz{top:var(--tb)}
+html.sa.tb .pagehead{padding-top:12px}
+html.sa.tb .viewer{padding-top:60px}
+html.sa.tb .vclose{top:12px}
+html.sa.tb .quiz{border-top:0}
 </style>
 </head>
 <body>
@@ -1197,7 +1201,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '6266908cf7', APP_URL = location.origin + location.pathname;
+const BUILD = '674eb7cc46', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
