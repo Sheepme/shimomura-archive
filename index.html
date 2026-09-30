@@ -1175,7 +1175,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '47d9df726e', APP_URL = location.origin + location.pathname;
+const BUILD = 'f2b9843eb6', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1221,10 +1221,21 @@ function addByContext(){
   openSheet(`<h3>何を追加しますか？</h3><div class="actions one"><button class="act main" data-addk="w">作品</button><button class="act main" data-addk="ex">展覧会</button><button class="act main" data-addk="pb">画集・資料</button><button class="act main" data-addk="ot">その他の作品</button></div><div class="btns"><button type="button" data-close>やめる</button></div>`);
 }
 const isLoginErr = e => /LOGIN_REQUIRED/.test(String(e && (e.message || e)));
+/* iPhoneは通信を途中で切ることがある（Google側では保存が終わっていることが多い）。最新の状態を読み直して確かめる */
+async function saveRecover(fn){
+  const before = new Set((S.others||[]).map(x => x['番号']));
+  busy(true, '保存できたか確かめています…');
+  try {
+    const d = await call('getData'); setData(d); closeSheet(); render();
+    if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+    if (fn === 'newOther') { d.newId = (S.others||[]).map(x => x['番号']).find(n => !before.has(n)); if (d.newId) { busy(false); toast('登録しました'); return d; } }
+    busy(false); alert('通信が途中で切れました。最新の状態に読み直したので、保存されているか画面で確かめてください。');
+  } catch(x){ busy(false); alert('通信が切れました。電波の良い所で、画面を読み直して保存されているか確かめてください。'); }
+}
 async function save(fn, args, msg){
   busy(true,'保存しています…');
   try { const d = await call(fn, ...args); setData(d); toast(msg||'保存しました'); closeSheet(); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); return d; }
-  catch(e){ if (isLoginErr(e)) { setToken(''); S.user=null; renderUser(); alert('ログインの有効期限が切れました。もう一度ログインしてください。'); openLogin(); } else alert('保存できませんでした。\n' + (e.message||e)); }
+  catch(e){ if (/通信が切れました|load failed|failed to fetch/i.test(String(e && e.message || e))) { busy(false); return await saveRecover(fn); } if (isLoginErr(e)) { setToken(''); S.user=null; renderUser(); alert('ログインの有効期限が切れました。もう一度ログインしてください。'); openLogin(); } else alert('保存できませんでした。\n' + (e.message||e)); }
   finally { busy(false); }
 }
 
