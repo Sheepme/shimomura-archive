@@ -1175,6 +1175,8 @@ header{background:var(--glass);-webkit-backdrop-filter:saturate(160%) blur(16px)
 body.briefing .cbar,body.loggedout .cbar{display:none}
 /* キーボードが出ている間は、下の検索欄をキーボードのすぐ上に置く */
 body.kbopen .cbar{top:calc(var(--vvt,0px) + var(--vvh,100%) - 62px);bottom:auto;transition:none}
+body.slock{position:fixed;left:0;right:0;width:100%;overflow:hidden}
+body.kbopen .appbar{top:calc(var(--vvt,0px) + var(--tb) + var(--cap) + 6px);transition:none}
 .page::after{content:'';display:block;height:calc(84px + env(safe-area-inset-bottom))}
 /* メニュー（左から） */
 :root{--dww:min(300px,80vw)}
@@ -1313,7 +1315,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd16062e62e', APP_URL = location.origin + location.pathname;
+const BUILD = 'a60721be52', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3790,7 +3792,13 @@ $('#fsq').addEventListener('keydown', e => { if (e.key==='Enter' && !e.isComposi
 /* 下の検索欄：押したら、そのページで探す（探せないページなら作品アルバムに移る） */
 $('#fsq').addEventListener('focus', () => { closeDrawer(); if (S.aiOpen) closeAI(); const pgOpen = !$('#page').classList.contains('hidden'); if (pgOpen) closeAllPages();
   if (!SQ[S.view]) { S.view = S.wmode || 'album'; S.limit = 60; render(); window.scrollTo(0, 0); } else if (pgOpen) render();
-  const s = SQ[S.view]; $('#fsq').placeholder = s[1]; $('#top').classList.remove('tuck'); });
+  const s = SQ[S.view]; $('#fsq').placeholder = s[1]; $('#top').classList.remove('tuck'); scrollLock(true); });
+$('#fsq').addEventListener('blur', () => scrollLock(false));
+/* 検索の入力中は画面を動かさない（iPhoneがキーボードに合わせて勝手にスクロールするのを止める） */
+let lockY = 0;
+function scrollLock(on){ const b = document.body;
+  if (on) { if (b.classList.contains('slock')) return; lockY = window.scrollY; b.style.top = -lockY + 'px'; b.classList.add('slock'); }
+  else { if (!b.classList.contains('slock')) return; b.classList.remove('slock'); b.style.top = ''; window.scrollTo(0, lockY); } }
 $('#fsq').addEventListener('input', e => $('#fsqClose').classList.toggle('hidden', !e.target.value));
 
 /* ---------- イベント ---------- */
