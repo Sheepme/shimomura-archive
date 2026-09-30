@@ -1204,6 +1204,20 @@ html.sa .dwpanel{padding-top:calc(var(--cap) + 8px)}
 .sheet .box{border-radius:20px 20px 0 0}
 .tile .ph{border-radius:12px;overflow:hidden}
 html.sa header{padding-top:calc(var(--cap) + 4px)}
+/* ===== 上の部分：Claudeのように、ボタンを1つずつガラス風に浮かせて常に表示（中身はその下をスクロール） ===== */
+header,header.tuck{position:relative;top:auto!important;transform:none!important;background:transparent!important;border:0!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;padding:calc(var(--tb) + var(--cap) + 64px) 10px 0!important;transition:none}
+html.tb header{padding-top:calc(var(--cap) + 64px)!important}
+.appbar,.brand.appbar{position:fixed;top:calc(var(--tb) + var(--cap) + 8px);left:10px;right:10px;z-index:35;display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:0;max-width:none;margin:0;padding:0;pointer-events:none;transition:top .25s ease,left .22s ease,translate .22s ease}
+.appbar>*{pointer-events:auto}
+.glass,.appbar .abtn,.appbar h1,.appbar .avatar{background:var(--glass-p);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border:1px solid var(--glass-b,rgba(255,255,255,.55));box-shadow:0 4px 18px -6px rgba(0,0,0,.22)}
+.appbar .abtn{width:46px;height:46px;border-radius:50%}
+.appbar h1,.brand.appbar h1{flex:0 1 auto;max-width:calc(100% - 128px);height:46px;display:flex;align-items:center;padding:0 20px;border-radius:23px;font:600 16px/1 var(--sans);color:var(--ink)}
+.appbar .brandr{width:auto}
+.appbar .avatar{width:46px;height:46px;font-size:17px;background:var(--glass-p);color:var(--ink)}
+html[data-theme=dark] .appbar .abtn,html[data-theme=dark] .appbar h1,html[data-theme=dark] .appbar .avatar{border-color:rgba(255,255,255,.1)}
+body.dwopen .appbar{translate:var(--dww) 0}
+@media(min-width:1000px){ body.wide .appbar{left:calc(264px + 10px)} }
+
 /* パソコン（広い画面）：左にメニューを常に表示し、中身はその右に */
 @media(min-width:1000px){
   body.wide{padding-left:264px}
@@ -1286,7 +1300,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '3cb40a0177', APP_URL = location.origin + location.pathname;
+const BUILD = '328e1d28da', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4238,9 +4252,9 @@ document.addEventListener('click', e => {
 /* 表の見出しを画面の上に固定し、横スクロールを本体と合わせる */
 function wtSync(){ const w = $('#wtwrap'), h = $('#wthd'); if (!w || !h) return;
   w.onscroll = () => { h.scrollLeft = w.scrollLeft; }; h.scrollLeft = w.scrollLeft; wtTop(); }
-function stkTop(){ const hd = $('#top'), cap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cap')) || 0; const shown = hd && !hd.classList.contains('tuck') && getComputedStyle(hd).position==='sticky'; document.documentElement.style.setProperty('--stk', (shown ? hd.offsetHeight + (parseFloat(getComputedStyle(hd).top) || 0) : 0) + 'px'); document.documentElement.style.setProperty('--stkx', '0px'); }
+function stkTop(){ const ab = document.querySelector('#top .appbar'); const b = ab ? Math.max(0, ab.getBoundingClientRect().bottom + 6) : 0; document.documentElement.style.setProperty('--stk', b + 'px'); document.documentElement.style.setProperty('--stkx', '0px'); }
 window.addEventListener('resize', () => stkTop());
-function wtTop(){ const h = $('#wthd'); if (!h) return; const hd = document.querySelector('header'), cap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cap')) || 0; const shown = hd && !hd.classList.contains('tuck') && getComputedStyle(hd).position==='sticky'; h.style.top = (shown ? hd.offsetHeight + (parseFloat(getComputedStyle(hd).top) || 0) : 0) + 'px'; h.style.paddingTop = (shown ? 0 : cap) + 'px'; }
+function wtTop(){ const h = $('#wthd'); if (!h) return; const ab = document.querySelector('#top .appbar'); h.style.top = (ab ? Math.max(0, ab.getBoundingClientRect().bottom + 6) : 0) + 'px'; h.style.paddingTop = '0px'; }
 addEventListener('scroll', () => { if ($('#wthd')) requestAnimationFrame(wtTop); }, {passive:true});
 
 /* ---------- AIチャット（画面の上に吹き出しで開く） ---------- */
