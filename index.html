@@ -1401,7 +1401,14 @@ body.dwopen #btnMenu:has(.abapp){display:flex!important}
 #yfix{z-index:34}
 html.sa{--edge:0px!important}
 header,header.tuck{padding-top:calc(var(--tb,0px) + var(--cap,0px) + 58px)!important}
-body.hdstick:not(.pgopen):not(.searching) header#top{position:sticky!important;top:var(--hdtop,0px)!important;z-index:33!important;background:var(--bg)!important}
+/* いちばん下のカテゴリタブだけ上に残し、ほかは流れる。下にスクロールで上のバーも隠れ、上にスクロールで出る */
+#top:not(.hidden){display:contents!important}
+#finder:not(.hidden),#chronobar:not(.hidden){display:contents!important}
+#hdsp{height:calc(var(--tb,0px) + var(--cap,0px) + 58px)}
+#finder>*,#chronobar>*{margin-left:10px!important;margin-right:10px!important}
+.chips.stk{position:sticky!important;top:var(--rowtop,0px);z-index:33;background:var(--bg);margin-left:0!important;margin-right:0!important;padding-left:12px!important;padding-right:12px!important;transition:top .25s ease}
+#top .appbar{transition:transform .25s ease,top .25s ease,left .22s ease,translate .22s ease!important}
+body:not(.pgopen):not(.searching):not(.dwopen) #top.tuck .appbar{transform:translateY(calc(-100% - 2px))}
 html[data-theme=dark]{--bg:#1c1c1b}
 /* サブメニュー（すべて・自宅・美術館…など）は Pinterest と同じ：文字だけ、選んでいるものは太字＋下線 */
 body .chips{gap:22px!important;padding:4px 2px 2px!important}
@@ -1424,6 +1431,7 @@ body .decs button:hover{color:var(--ink)!important}
 <body>
 
 <header id="top">
+  <div id="hdsp" aria-hidden="true"></div>
   <div class="brand appbar">
     <button type="button" class="abtn abmenu" id="btnMenu" aria-label="メニューを開く"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
     <h1 id="abTitle">ホーム</h1>
@@ -1485,7 +1493,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'c760e8ea95', APP_URL = location.origin + location.pathname;
+const BUILD = 'd7131ef256', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4568,11 +4576,15 @@ function markStuck0(){ const hs = [...document.querySelectorAll('#main .cyh')]; 
   else { fx.style.top = t + 'px'; inner.style.setProperty('padding-left', Math.max(0, src.getBoundingClientRect().left) + 'px', 'important'); }
   src.style.visibility = 'hidden'; fx.classList.remove('hidden'); }
 function hdStick(){ const hd = document.getElementById('top'), ab = hd && hd.querySelector('.appbar'); if (!hd || !ab) return;
-  const c = [...hd.querySelectorAll('#finder:not(.hidden) .chips:not(.hidden), #chronobar:not(.hidden) .chips')].find(x => x.offsetParent);
-  document.body.classList.toggle('hdstick', !!c && !hd.classList.contains('hidden'));
-  if (!c) return; const o = c.getBoundingClientRect().top - hd.getBoundingClientRect().top;
-  document.documentElement.style.setProperty('--hdtop', (ab.getBoundingClientRect().bottom - o) + 'px'); }
-function stkTop(){ try { hdStick(); } catch(e){} const hd0 = document.getElementById('top'), hb = document.body.classList.contains('hdstick') && hd0 ? hd0.getBoundingClientRect().bottom : 0; const ab = document.querySelector('#top .appbar'); const b = Math.max(hb, ab ? Math.max(0, ab.getBoundingClientRect().bottom + 6) : 0); document.documentElement.style.setProperty('--stk', b + 'px'); document.documentElement.style.setProperty('--stkx', '0px');  markStuck(); }
+  const rows = [...hd.querySelectorAll('#finder:not(.hidden) .chips:not(.hidden), #chronobar:not(.hidden) .chips')].filter(x => x.offsetParent);
+  const last = rows[rows.length - 1];
+  hd.querySelectorAll('.chips.stk').forEach(x => { if (x !== last) x.classList.remove('stk'); }); if (last) last.classList.add('stk');
+  const tuck = hd.classList.contains('tuck') && !document.body.classList.contains('pgopen'), cs = getComputedStyle(document.documentElement);
+  const safe = (parseFloat(cs.getPropertyValue('--tb')) || 0) + (parseFloat(cs.getPropertyValue('--cap')) || 0);
+  const abb = ab.offsetTop + ab.offsetHeight, top = tuck ? safe : abb;
+  document.documentElement.style.setProperty('--rowtop', top + 'px');
+  return last ? top + last.offsetHeight : top; }
+function stkTop(){ let hb = 0; try { hb = hdStick() || 0; } catch(e){} const ab = document.querySelector('#top .appbar'); const b = hb ? hb + 6 : (ab ? Math.max(0, ab.getBoundingClientRect().bottom + 6) : 0); document.documentElement.style.setProperty('--stk', b + 'px'); document.documentElement.style.setProperty('--stkx', '0px');  markStuck(); }
 window.addEventListener('resize', () => stkTop());
 function wtTop(){ const h = $('#wthd'); if (!h) return; const ab = document.querySelector('#top .appbar'); h.style.top = (ab ? Math.max(0, ab.getBoundingClientRect().bottom + 6) : 0) + 'px'; h.style.paddingTop = '0px'; }
 addEventListener('scroll', () => { if ($('#wthd')) requestAnimationFrame(wtTop); }, {passive:true});
