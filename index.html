@@ -741,6 +741,14 @@ html[data-theme=dark] .qzstar{color:#f2c464}
 .qzmedia img{width:100%;height:100%;object-fit:contain}
 .ivsc .qzmedia{flex:none;height:30vh;height:30dvh;min-height:140px;margin:6px 0 2px}.ivsc .qzmedia img{max-height:100%}
 .ivsc .qztitle{margin:6px 0 10px}
+/* 絵の確認：どの画面でも1画面に収める（写真が残りの高さに合わせて縮む） */
+.ivsc.m-confirm{display:flex;flex-direction:column;overflow:hidden;padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+.ivsc.m-confirm .ivmain{flex:none;margin:2px 0 8px}.ivsc.m-confirm .ivqt{font-size:clamp(19px,5.4vw,26px);line-height:1.4}
+.ivsc.m-confirm .qzmedia{flex:1 1 0;height:auto;min-height:70px;margin:0}
+.ivsc.m-confirm .qztitle{margin:6px 0 8px}.ivsc.m-confirm .qztitle b{font-size:22px}
+.ivsc.m-confirm .ivopts{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:0}
+.ivsc.m-confirm .ivopts .qzwide{padding:12px 8px;font-size:17px}.ivsc.m-confirm .ivopts .yes{grid-column:1/-1;font-size:19px;padding:14px}
+.ivsc.m-confirm .ivhear{flex:none;font-size:14px;margin:8px 0 4px}.ivsc.m-confirm .srlive{flex:none;min-height:0;font-size:18px;padding:8px 12px;margin:0}
 .updbar{position:fixed;left:10px;right:10px;top:calc(env(safe-area-inset-top) + 8px);z-index:9999;display:flex;align-items:center;gap:10px;padding:14px 16px;border:0;border-radius:16px;background:#e0533d;color:#fff;font-size:15.5px;text-align:left;box-shadow:0 6px 20px rgba(0,0,0,.25);animation:updin .35s ease-out}.updbar span{font-size:22px}.updbar b{line-height:1.4}
 @keyframes updin{from{transform:translateY(-120%)}to{transform:none}}
 .micgate{text-align:center;padding:6px 4px 4px}.micgate .mgic{width:76px;height:76px;margin:4px auto 10px;border-radius:50%;background:linear-gradient(145deg,#d9ecff,#b9dcff);display:grid;place-items:center;font-size:40px}.micgate h3{margin:0 0 6px}.micgate p{margin:4px 0 10px;line-height:1.6}.micgate .qzwide{width:100%;margin-top:8px}.micgate .qzlink{margin-top:8px}
@@ -1113,7 +1121,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '74e705762c', APP_URL = location.origin + location.pathname;
+const BUILD = '8e4b583fc9', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1997,7 +2005,7 @@ function ivDraw(){
       <div class="ivbar">${mic}<div class="ivsub"><button class="qzlink" data-iv="unk" ${IV.busy ? 'disabled' : ''}>分からない</button>${modeBtn}<button class="qzlink" data-iv="fin">この絵は終わり ›</button></div></div>
       ${ivWorkCard(no)}`;
   }
-  el.innerHTML = `<div class="qzbox ivbox">${top}<div class="ivsc">${body}</div></div>`; hydrate(el);
+  el.innerHTML = `<div class="qzbox ivbox">${top}<div class="ivsc m-${IV.mode}">${body}</div></div>`; hydrate(el);
   const lq = $('#ivLq'); if (lq) { lq.oninput = () => { IV.lq = lq.value; const p = lq.selectionStart; ivDraw(); const n = $('#ivLq'); n.focus(); try { n.setSelectionRange(p, p); } catch(e){} }; }
 }
 function ivTurn(answer){
