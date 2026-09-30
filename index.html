@@ -406,19 +406,19 @@ dl.info dd .fill{border:0;background:none;padding:0;color:var(--warn);font-size:
 
 .toast{position:fixed;left:50%;bottom:calc(var(--nav) + 24px);transform:translateX(-50%);background:var(--ink);color:var(--inv);padding:12px 22px;z-index:80;font-size:16px;letter-spacing:.06em}
 /* 読み込み中・保存中・新しい版のお知らせは、画面の一番上の帯で出す。帯が出ている間は画面全体が一段下がる（隠さない） */
-html{--tb:0px}html.tb{--tb:calc(28px + env(safe-area-inset-top))}
+html{--tb:0px}html.tb{--tb:calc(40px + env(safe-area-inset-top))}
 body{padding-top:var(--tb);transition:padding-top .25s ease}
 header{top:var(--tb)}
 .page,.viewer,.quiz,.brief,.docview,.tour{top:var(--tb);transition:top .25s ease}
 .sheet{top:calc(var(--vvt,0px) + var(--tb));height:calc(var(--vvh,100%) - var(--tb))} /* キーボードが出ても入力欄が見える位置を保つ */
 .toast{top:calc(var(--tb) + env(safe-area-inset-top) + 14px)}
-.loading,.updbar,.tmsg{position:fixed;top:0;left:0;right:0;height:var(--tb);box-sizing:border-box;z-index:9999;display:flex;align-items:center;justify-content:center;gap:10px;padding:env(safe-area-inset-top) 16px 0;margin:0;border:0;border-radius:0;color:#fff;font-size:13px;font-weight:600;letter-spacing:.04em;overflow:hidden;animation:tbin .25s ease-out}
+.loading,.updbar,.tmsg{position:fixed;top:0;left:0;right:0;height:var(--tb);box-sizing:border-box;z-index:9999;display:flex;align-items:center;justify-content:center;gap:10px;padding:env(safe-area-inset-top) 16px 0;margin:0;border:0;border-radius:0;color:#fff;font-size:15px;font-weight:600;letter-spacing:.05em;overflow:hidden;animation:tbin .25s ease-out}
 .loading{background:rgba(232,135,30,.72);z-index:10000}
 .loading,.updbar,.tmsg{-webkit-backdrop-filter:saturate(170%) blur(14px);backdrop-filter:saturate(170%) blur(14px);text-shadow:0 1px 2px rgba(0,0,0,.18)}
-.tmsg{background:rgba(61,138,92,.72);z-index:10001}.tmsg::before{content:'✓';font-size:13px;font-weight:700}
+.tmsg{background:rgba(61,138,92,.72);z-index:10001}.tmsg::before{content:'✓';font-size:16px;font-weight:700}
 .loading::before{content:'';position:fixed;inset:0;z-index:-1;background:transparent}
-.loading::after,.updbar.go::after{content:'';position:absolute;left:0;bottom:0;height:2px;width:40%;background:rgba(255,255,255,.85);border-radius:3px;animation:tbrun 1.1s ease-in-out infinite}
-.ldsp{width:12px;height:12px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:ldspin .8s linear infinite;flex:none}
+.loading::after,.updbar.go::after{content:'';position:absolute;left:0;bottom:0;height:3px;width:40%;background:rgba(255,255,255,.85);border-radius:3px;animation:tbrun 1.1s ease-in-out infinite}
+.ldsp{width:15px;height:15px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:ldspin .8s linear infinite;flex:none}
 @keyframes ldspin{to{transform:rotate(360deg)}}
 @keyframes tbrun{from{transform:translateX(-100%)}to{transform:translateX(260%)}}
 @keyframes tbin{from{transform:translateY(-100%)}to{transform:none}}
@@ -816,7 +816,7 @@ html[data-theme=dark] .qzstar{color:#f2c464}
 .ivsc.m-confirm .ivopts{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:0}
 .ivsc.m-confirm .ivopts .qzwide{padding:12px 8px;font-size:17px}.ivsc.m-confirm .ivopts .yes{grid-column:1/-1;font-size:19px;padding:14px}
 .ivsc.m-confirm .ivhear{flex:none;font-size:14px;margin:8px 0 4px}.ivsc.m-confirm .srlive{flex:none;min-height:0;font-size:18px;padding:8px 12px;margin:0}
-.updbar{background:rgba(224,83,61,.76);text-align:left;cursor:pointer}.updbar span{font-size:14px}.updbar b{line-height:1.2;font-size:13px}
+.updbar{background:rgba(224,83,61,.76);text-align:left;cursor:pointer}.updbar span{font-size:18px}.updbar b{line-height:1.3;font-size:14.5px}
 .micgate{text-align:center;padding:6px 4px 4px}.micgate .mgic{width:76px;height:76px;margin:4px auto 10px;border-radius:50%;background:linear-gradient(145deg,#d9ecff,#b9dcff);display:grid;place-items:center;font-size:40px}.micgate h3{margin:0 0 6px}.micgate p{margin:4px 0 10px;line-height:1.6}.micgate .qzwide{width:100%;margin-top:8px}.micgate .qzlink{margin-top:8px}
 .qznoph{display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px;text-align:center}.qznoph b{font-size:34px;line-height:1.3}.qznoph small{font-size:14px;color:var(--faint)}
 .qztitle{flex:none;text-align:center;line-height:1.25}.qztitle b{display:block;font-size:30px;font-weight:800;letter-spacing:.02em}.qztitle span{font-size:14px;color:var(--sub)}
@@ -1131,11 +1131,16 @@ html.sa .quiz{border-top:var(--cap) solid var(--bg)}
 html.sa .toast{top:calc(14px + var(--cap))}
 @media(max-width:700px){ html.sa .aip{top:calc(8px + var(--cap))} }
 /* ホーム画面アプリで上の帯（読み込み中など）が出ているとき：帯が上の白い部分も覆い、その分だけ全体を下げる */
-html.sa.tb{--tb:28px}
-html.sa .loading,html.sa .updbar,html.sa .tmsg{top:var(--cap);padding-top:0}
+/* ホーム画面アプリ：帯は上の余白（--cap）の位置にそのまま重ねる。帯が出ている間はその余白を詰めるので、白いすき間も画面のずれも出ない */
+html.sa.tb{--tb:40px}
+html.sa .loading,html.sa .updbar,html.sa .tmsg{top:0;padding-top:0}
 html.sa body{padding-top:var(--tb)}
-html.sa.tb header{top:var(--tb)}
+html.sa.tb header{top:var(--tb);padding-top:calc(var(--cap) + 14px - var(--tb))}
 html.sa .page,html.sa .viewer,html.sa .quiz{top:var(--tb)}
+html.sa.tb .pagehead{padding-top:calc(var(--cap) + 12px - var(--tb))}
+html.sa.tb .viewer{padding-top:calc(60px + var(--cap) - var(--tb))}
+html.sa.tb .vclose{top:calc(12px + var(--cap) - var(--tb))}
+html.sa.tb .quiz{border-top-width:calc(var(--cap) - var(--tb))}
 </style>
 </head>
 <body>
@@ -1198,7 +1203,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '5fa1920a03', APP_URL = location.origin + location.pathname;
+const BUILD = '8c81886cc1', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
