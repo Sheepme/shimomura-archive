@@ -1451,6 +1451,15 @@ body .chips .chip.on::after{content:'';position:absolute;left:0;right:0;bottom:3
 body .subchips{gap:18px!important}
 body .subchips .chip{font-size:14px!important;padding:6px 0 9px!important}
 body .subchips .chip.on::after{height:2px}
+/* PC：AIに質問は右の列（400px）。上のバー・中身・作品のページはその左に */
+:root{--aiw:0px}
+body.aicol{--aiw:400px}
+body.aicol{padding-right:var(--aiw)!important}
+body.aicol #top .appbar,body.aicol #top .brand.appbar{right:var(--aiw)!important}
+body.aicol .page{right:var(--aiw)!important}
+body.aicol #aip.aip{top:0!important;bottom:0!important;right:0!important;left:auto!important;width:var(--aiw)!important;height:auto!important;border-radius:0!important;border:0!important;border-left:1px solid var(--line)!important;box-shadow:none!important;animation:none!important;z-index:45}
+body.aicol #aip.aip::after{display:none!important}
+body.aicol .cbar{display:none!important}
 /* PC：検索欄はメニューの中へ。下には AIに質問 だけ（青のまま少し目立たせる） */
 .dwsrch{display:none}
 body.wide .dwsrch{display:flex;align-items:center;gap:8px;margin:2px 6px 14px;height:42px;padding:0 14px;border-radius:21px;background:var(--bg);border:1px solid var(--line)}
@@ -1549,7 +1558,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '3ab3a68c6f', APP_URL = location.origin + location.pathname;
+const BUILD = '4a3b319357', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4136,7 +4145,7 @@ document.addEventListener('click', e => {
   if (t.id==='dwX'){ if (isWide()) openDrawer(); else closeDrawer(); return; }
   if (t.dataset.dwclose){ closeDrawer(); return; }
   if (t.id==='btnMe2'){ closeDrawer(); openMe(); return; }
-  if (t.closest('#dwNav')){ closeDrawer(); closeAllPages(); if (S.aiOpen) closeAI(); }
+  if (t.closest('#dwNav')){ closeDrawer(); closeAllPages(); if (S.aiOpen && !aiCol()) closeAI(); }
   if (t.id==='fsqClose'){ const fi = $('#fsq'); fi.value = ''; fi.dispatchEvent(new Event('input')); t.classList.add('hidden'); fi.blur(); return; }
   if (t.id==='fmAsk'){ hidePop(); $('#fmSearch').classList.add('hidden'); if (!S.user) return openLogin('質問するにはログインしてください'); return S.aiOpen ? closeAI() : openAI();; }
   if (t.closest('#fmPop, #fmInline')){ hidePop(); closeAllPages(); $('#fmSearch').classList.add('hidden'); }
@@ -4184,7 +4193,7 @@ document.addEventListener('click', e => {
   if (t.dataset.cf){ S.cf=t.dataset.cf; render(); return; }
   if (t.dataset.cmain){ S.cmain=!S.cmain; render(); return; }
   if (t.dataset.dec){ jumpDec(t.dataset.dec); return; }
-  if (t.dataset.no){ if (t.closest('#sheetbox')) closeSheet(); if (t.closest('#aip')) closeAI(); openWork(t.dataset.no); return; }
+  if (t.dataset.no){ if (t.closest('#sheetbox')) closeSheet(); if (t.closest('#aip') && !aiCol()) closeAI(); openWork(t.dataset.no); return; } // PCはチャットを右に残したまま、左に作品を開く
   if (t.id==='back'){ closeWork(); return; }
   if (t.dataset.fill !== undefined && S.cur){ sheetEdit(S.cur, t.dataset.fill); return; }
   if (t.dataset.evedit){ sheetEventEdit(t.dataset.evedit); return; }
@@ -4674,14 +4683,18 @@ const newConv = () => new Date().toISOString().replace(/\D/g, '').slice(0, 14) +
 function openAI(){
   if (!S.user) return openLogin('質問するにはログインしてください');
   const p = $('#aip'); if (!p.contains($('#askbar'))) p.appendChild($('#askbar'));
-  $('#askbar').classList.remove('hidden'); p.classList.remove('hidden'); S.aiOpen = true; navOn(); document.body.classList.add('aiopen');
+  $('#askbar').classList.remove('hidden'); p.classList.remove('hidden'); S.aiOpen = true; navOn(); document.body.classList.add('aiopen'); aiColSync();
   renderAI();
   if (!S.aiLoaded) { S.aiLoaded = true; call('getAIHistory').then(h => { if (S.chat.length || !h || !h.items || !h.items.length) { if (!S.conv) S.conv = newConv(); return; }
       S.conv = h.conv || newConv(); S.chat = [].concat(...h.items.map(r => [{role:'user', text:r.q, t:String(r.t||'').slice(11,16)}, {role:'ai', text:r.a, t:String(r.t||'').slice(11,16)}])); if (S.aiOpen) renderAI(); })
     .catch(() => { if (!S.conv) S.conv = newConv(); }); }
   if (matchMedia('(pointer:fine)').matches) setTimeout(() => $('#askq').focus(), 50);
 }
-function closeAI(){ stopMic(); $('#aip').classList.add('hidden'); S.aiOpen = false; document.body.classList.remove('aiopen'); navOn(); }
+function closeAI(){ stopMic(); $('#aip').classList.add('hidden'); S.aiOpen = false; document.body.classList.remove('aiopen', 'aicol'); navOn(); setTimeout(() => { try { stkTop(); } catch(e){} }, 0); }
+/* PC：AIのチャットは右の列に出す（中身は左に詰める） */
+const aiCol = () => !!S.aiOpen && innerWidth >= 1000;
+function aiColSync(){ document.body.classList.toggle('aicol', aiCol()); try { stkTop(); } catch(e){} }
+addEventListener('resize', () => { if (S.aiOpen) aiColSync(); });
 document.addEventListener('keydown', e => { if (e.key==='Escape' && S.aiOpen && $('#sheet').classList.contains('hidden')) closeAI(); });
 
 /* ---------- スマホ：カード型の作品リスト（表の情報を3〜4行にまとめる） ---------- */
