@@ -1525,7 +1525,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '650c6e0949', APP_URL = location.origin + location.pathname;
+const BUILD = '151c3e4f21', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1573,6 +1573,10 @@ function abRender0(){ const h = $('#abTitle'); if (!h) return;
     const k = cr.length - 1, ik = ics[k], icn = ik && typeof IC !== 'undefined' && IC[ik] ? ico(ik) : '';
     const prev = (S.view === 'home' && k === 0) ? '' : SEP + `<span class="crumb cprev" data-ci="${k}" aria-label="${esc(cr[k].nm)}"><span class="hmtx">${esc(cr[k].nm)}</span>${icn ? `<span class="hmic">${icn}</span>` : ''}</span>`;
     h.innerHTML = ROOT + prev + SEP + `<span class="crumb cur">${esc(pcName(S.pcur.t, S.pcur.id))}</span>`;
+    return; }
+  if ((S.view === 'album' || S.view === 'list') && S.filter === '美術館') { // 作品アルバム › 美術館（タブは「すべての館・○○美術館…」）
+    const ik = S.view === 'album' ? 'works' : 'list', icn = typeof IC !== 'undefined' && IC[ik] ? ico(ik) : '';
+    h.innerHTML = ROOT + SEP + `<span class="crumb cprev" data-flt="all" aria-label="${esc(tx)}"><span class="hmtx">${esc(tx)}</span>${icn ? `<span class="hmic">${icn}</span>` : ''}</span>` + SEP + '<span class="crumb cur">美術館</span>';
     return; }
   h.innerHTML = S.view === 'home' ? '<span class="crumb chome cur">下村良之介作品目録</span>' : ROOT + SEP + `<span class="crumb cur">${esc(tx)}</span>`; }
 /* お知らせ（保存しました など）も、読み込み中と同じ上の帯で出す（緑） */
@@ -1781,8 +1785,9 @@ function render(){
     const ms = Object.keys(cnt).sort((a,b) => cnt[b]-cnt[a] || a.localeCompare(b,'ja'));
     if (S.mus && !cnt[S.mus]) S.mus = '';
     $('#subchips').innerHTML = `<button class="chip ${!S.mus?'on':''}" data-mus="">すべての館</button>` + ms.map(m => `<button class="chip ${S.mus===m?'on':''}" data-mus="${esc(m)}">${esc(m)}<span class="cn">${cnt[m]}</span></button>`).join('');
-    $('#subchips').classList.remove('hidden');
-  } else { S.mus = ''; $('#subchips').classList.add('hidden'); }
+    $('#subchips').classList.remove('hidden'); $('#chips').classList.add('hidden'); // 「美術館」は上のバーの階層になり、タブは館の一覧に切り替わる
+  } else { S.mus = ''; $('#subchips').classList.add('hidden'); $('#chips').classList.remove('hidden'); }
+  abRender();
   const list = filtered();
   $('#zoomb').classList.toggle('hidden', S.view!=='album');
   $('#count').innerHTML = list.length===S.works.length ? `全 <b>${list.length}</b> 件` : `${S.works.length}件中 <b>${list.length}</b> 件`;
@@ -4082,7 +4087,7 @@ $('.cbin').addEventListener('click', e => { if (!matchMedia('(pointer:coarse)').
 function srchReset(){ scrollLock(false); document.body.classList.remove('searching', 'kbopen'); }
 document.addEventListener('visibilitychange', () => { if (document.hidden && document.activeElement !== $('#fsq')) srchReset(); });
 /* 上のページ名を押すと、いちばん上までスクロール */
-$('#abTitle').addEventListener('click', e => { if (e.target.closest('.crumb[data-home]')) { goHome(); return; } const c = e.target.closest('.crumb[data-ci]');
+$('#abTitle').addEventListener('click', e => { if (e.target.closest('.crumb[data-home]')) { goHome(); return; } if (e.target.closest('.crumb[data-flt]')) { S.filter = 'all'; S.mus = ''; S.limit = 60; render(); window.scrollTo(0, 0); return; } const c = e.target.closest('.crumb[data-ci]');
   if (c && !c.classList.contains('cur')) { const k = +c.dataset.ci; if (k === 0) { closeAllPages(); return; } let n = (S.stack || []).length - (k - 1); while (n-- > 0 && S.stack.length) closeWork(); return; }
   const up = $('#updBar'); if (up && $('#abTitle').classList.contains('st-upd')) { up.click(); abRender(); return; } const pg = $('#page');
   if (!pg.classList.contains('hidden')) pg.scrollTo({top:0, behavior:'smooth'}); else window.scrollTo({top:0, behavior:'smooth'}); });
