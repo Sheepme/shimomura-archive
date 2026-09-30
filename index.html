@@ -1394,6 +1394,9 @@ html.sa.tb header{padding-top:calc(var(--cap) + 4px - var(--tb))}
 @media(min-width:1000px){ body.wide #top .appbar,body.wide #top .brand.appbar{left:264px!important} }
 @media(max-width:599px){ #top .appbar h1 .chome[data-home] .hmtx,#top .appbar h1 .cprev:has(.hmic) .hmtx{display:none} #top .appbar h1 .chome[data-home] .hmic,#top .appbar h1 .cprev .hmic{display:flex;align-items:center} #top .appbar h1 .chome[data-home],#top .appbar h1 .cprev:has(.hmic){flex:none;overflow:visible} }
 #top .appbar .abmenu svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+/* メニューを開いている間は、≡ と題名（メニューに出ているので）を隠す */
+body.wide #top .appbar #btnMenu,body.dwopen #top .appbar #btnMenu{display:none!important}
+body.wide #top .appbar h1 .chome,body.wide #top .appbar h1 .chome+.absep,body.dwopen #top .appbar h1 .chome,body.dwopen #top .appbar h1 .chome+.absep{display:none!important}
 .abham{flex:none;margin-left:auto;width:42px;height:42px;display:flex;align-items:center;justify-content:center;border:0;border-radius:50%;background:none;color:var(--ink);cursor:pointer;pointer-events:auto}
 .abham:hover{background:var(--hov)}
 .abham svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
@@ -1493,7 +1496,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd7131ef256', APP_URL = location.origin + location.pathname;
+const BUILD = '357cb47492', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
