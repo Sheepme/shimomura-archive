@@ -1175,7 +1175,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'f2b9843eb6', APP_URL = location.origin + location.pathname;
+const BUILD = '3242dfe3e4', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3251,7 +3251,7 @@ const RK = {
 const otName = x => x['作品名'] ? esc(x['作品名']) : '<span class="untitled">名前なし</span>';
 function renderOtList(){
   S.otk = S.otk || 'すべて'; S.oq = S.oq || '';
-  $('#chronobar').innerHTML = `<div class="search"><input id="oq" type="search" placeholder="名前・年・場所で探す" value="${esc(S.oq)}" enterkeyhint="search"></div>
+  $('#chronobar').innerHTML = `<div class="search"><input id="oq" type="search" placeholder="番号・名前・年・場所で探す" value="${esc(S.oq)}" enterkeyhint="search"></div>
     <div class="chips">${['すべて', ...OT_T].map(k => `<button class="chip ${S.otk===k?'on':''}" data-otk="${esc(k)}">${esc(k)}</button>`).join('')}</div>`;
   $('#oq').oninput = e => { S.oq = e.target.value; drawOtList(); };
   drawOtList();
@@ -3261,7 +3261,7 @@ function drawOtList(){
   const list = S.others.filter(x => (S.otk==='すべて' || x['種類']===S.otk) && (!q || [x['作品名'], x['制作年'], x['技法・素材'], x['保管場所'], x['メモ'], x['番号']].join(' ').toLowerCase().includes(q)));
   let html = `<div class="chead"><h2>その他の作品</h2><p class="csub">${S.otk!=='すべて' && OT_NOTE[S.otk] ? esc(OT_NOTE[S.otk]) + '　' : ''}${list.length}件${list.length!==S.others.length ? '（全' + S.others.length + '件）' : ''}</p></div>`;
   html += '<div class="grid">' + list.map(x => `<button class="tile" data-ot="${esc(x['番号'])}"><div class="ph">${thumbHTML(x['番号'], 400)}</div>
-      <div class="cap"><div class="no">${esc([x['種類'], x['制作年']].filter(Boolean).join('・'))}</div><div class="tt">${otName(x)}</div></div></button>`).join('')
+      <div class="cap"><div class="no">${esc([x['番号'], x['種類'], x['制作年']].filter(Boolean).join('・'))}</div><div class="tt">${otName(x)}</div></div></button>`).join('')
     + (canEdit() ? '<button class="tile addtile" data-addk="ot"><div class="ph"><span class="plus">＋</span></div><div class="cap"><div class="tt">追加する</div></div></button>' : '') + '</div>';
   if (!list.length && !canEdit()) html += `<p class="muted" style="text-align:center;padding:40px 0">${S.others.length ? '見つかりませんでした' : 'まだ登録がありません'}</p>`;
   $('#main').innerHTML = html; hydrate($('#main'));
