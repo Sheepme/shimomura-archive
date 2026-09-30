@@ -1469,6 +1469,11 @@ body.wide .dwsrch:focus-within{border-color:var(--sub)}
 body.wideoff #top .appbar .dwsrch{display:flex;align-items:center;gap:8px;margin:0 0 0 auto;flex:0 1 300px;min-width:180px;height:40px;padding:0 14px;border-radius:20px;background:var(--wash,var(--paper));border:1px solid var(--line)}
 body.wideoff #top .appbar .dwsrch:focus-within{border-color:var(--sub)}
 body.wide .cbin,body.wideoff .cbin{display:none!important}
+body.wide .cbar,body.wideoff .cbar{display:none!important}
+#top .appbar #fmAsk{margin-left:auto;flex:none;height:40px!important;width:auto!important;padding:0 18px 0 14px!important;border-radius:20px!important;gap:7px!important;font-size:14.5px!important;font-weight:700!important;color:#fff!important;box-shadow:0 6px 16px -6px rgba(80,90,235,.8),0 0 0 3px rgba(109,91,245,.14)!important}
+#top .appbar #fmAsk>span:not(.ic){display:inline!important}
+#top .appbar #fmAsk .ic svg{width:20px;height:20px}
+#top .appbar .dwsrch+#fmAsk{margin-left:10px}
 /* スマホ：検索はアイコンだけの丸いボタン（押すと上に入力欄が出る）。入力中の言葉がある間は欄のまま */
 body:not(.wide):not(.wideoff):not(.searching) .cbar:has(#fsq:placeholder-shown){justify-content:flex-end}
 body:not(.wide):not(.wideoff):not(.searching) .cbin:has(#fsq:placeholder-shown){flex:0 0 58px!important;width:58px!important;height:58px!important;padding:0!important;border-radius:50%!important;justify-content:center;cursor:pointer}
@@ -1564,7 +1569,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'b940286764', APP_URL = location.origin + location.pathname;
+const BUILD = 'aafbeec1fc', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1796,7 +1801,9 @@ function pinDrawer(){ const d = $('#drawer'); if (!d) return; const w = isWide()
   if (w) { d.classList.remove('hidden'); d.classList.add('open'); d.setAttribute('aria-hidden', 'false'); }
   else if (!d.classList.contains('open') || d.dataset.was === 'pin') { d.classList.remove('open'); d.classList.add('hidden'); }
   { const sr = document.getElementById('dwSrch'), ab = document.querySelector('#top .appbar'), nv = document.getElementById('dwNav'); // 検索欄：メニューを開いていればメニューの中、畳んだら上のバーの右端
-    if (sr && ab && nv) { if (isWide() && !!S.user && dwFold) { if (sr.parentNode !== ab) ab.appendChild(sr); } else if (sr.parentNode !== nv.parentNode) nv.parentNode.insertBefore(sr, nv); } }
+    const ak = document.getElementById('fmAsk'), nb = document.getElementById('nav'); // PC：AIに質問 は上のバーの右端
+    if (ak && ab && nb) { if (isWide() && !!S.user) { if (ak.parentNode !== ab) ab.appendChild(ak); } else if (ak.parentNode !== nb) nb.appendChild(ak); }
+    if (sr && ab && nv) { if (isWide() && !!S.user && dwFold) { if (sr.parentNode !== ab) ab.insertBefore(sr, ak && ak.parentNode === ab ? ak : null); } else if (sr.parentNode !== nv.parentNode) nv.parentNode.insertBefore(sr, nv); } }
   d.dataset.was = w ? 'pin' : ''; if (typeof markStuck === 'function') { markStuck(); setTimeout(markStuck, 260); } }
 addEventListener('resize', () => pinDrawer());
 function openDrawer(){ if (isWide()) { dwFold = !dwFold; try { localStorage.setItem('smr_dw', dwFold ? '0' : '1'); } catch(e){} pinDrawer(); setTimeout(() => { if (['album','ot'].includes(S.view)) render(); }, 240); return; }
