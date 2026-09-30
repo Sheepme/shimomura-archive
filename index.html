@@ -1360,6 +1360,18 @@ html.tb{--tb:0px!important}
 .dwx:hover{background:color-mix(in srgb,var(--ink) 8%,transparent);color:var(--ink)}
 .dwx svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
 body.wide #btnMenu:has(.abapp),body.dwopen #btnMenu:has(.abapp){display:none}
+/* ヘッダーを1つのカプセルに：背景は #abCap の1枚だけ。中のボタンは透明にして並べる */
+#abCap{position:absolute;z-index:-1;pointer-events:none;border-radius:999px;box-sizing:border-box;border:1.5px solid rgba(255,255,255,.75);background:rgba(30,30,28,.58);-webkit-backdrop-filter:saturate(200%) blur(40px);backdrop-filter:saturate(200%) blur(40px);transition:width .2s ease}
+html[data-theme=dark] #abCap{background:rgba(250,249,245,.62)}
+.appbar,.brand.appbar{gap:0!important}
+.appbar .abtn{width:44px!important;height:44px!important;margin-left:4px;border-color:transparent!important;background:transparent!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.appbar .abtn:not(:has(.abapp)):hover{background:var(--hov)!important}
+.appbar h1:not(.st-busy):not(.st-ok):not(.st-upd){background:transparent!important;border-color:transparent!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.appbar h1.st-busy,.appbar h1.st-ok,.appbar h1.st-upd{border-color:transparent!important}
+#yfix.side .cyp{background:transparent!important;border-color:transparent!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;padding-left:16px}
+html[data-theme=dark] .appbar .abtn,html[data-theme=dark] .appbar h1:not(.st-busy):not(.st-ok):not(.st-upd),html[data-theme=dark] #yfix.side .cyp{background:transparent!important;border-color:transparent!important}
+.appbar h1,.brand.appbar h1{padding-left:12px!important}
+#yfix.side .cyp::before{content:'';position:absolute;left:0;top:30%;bottom:30%;width:1px;background:currentColor;opacity:.3}
 html.sa.tb header{padding-top:calc(var(--cap) + 4px - var(--tb))}
 
 </style>
@@ -1428,7 +1440,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'b153f14628', APP_URL = location.origin + location.pathname;
+const BUILD = '5cb6528380', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1456,7 +1468,8 @@ function syncThemeColor(){ let m = document.querySelector('meta[name="theme-colo
 setTimeout(syncThemeColor, 0); new MutationObserver(syncThemeColor).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
 /* お知らせ（読み込み中・保存しました・新しい版）は、上のページ名のところに色を変えて出す */
 function setTitle(t){ const h = $('#abTitle'); if (!h) return; h.dataset.t = t; abRender(); }
-function abRender(){ const h = $('#abTitle'); if (!h) return;
+function abRender(){ abRender0(); if (typeof capFit === 'function') capFit(); }
+function abRender0(){ const h = $('#abTitle'); if (!h) return;
   const ld = $('#loading'), ts = $('#toast'), up = $('#updBar');
   let st = '', tx = h.dataset.t || '';
   if (ld && !ld.classList.contains('hidden')) { st = 'busy'; tx = ld.textContent.trim() || '読み込み中…'; }
@@ -4485,7 +4498,17 @@ function wtSync(){ const w = $('#wtwrap'), h = $('#wthd'); if (!w || !h) return;
 /* 年のボタンが上で止まっているときだけ、線より上をぼかす */
 /* 年のボタン：上のボタンのすぐ下の決まった位置に「いまの年」を出しておく（スクロールで動かさない）。
    次の年のボタンが下から来て重なったら消え、次の年がその位置に来たら入れ替わる */
-function markStuck(){ const hs = [...document.querySelectorAll('#main .cyh')]; let fx = document.getElementById('yfix');
+function markStuck(){ markStuck0(); capFit(); }
+/* ヘッダーの「アイコン・ページ名・年」をひとつのカプセルにまとめる（後ろに1枚の背景を敷く） */
+function capFit(){ const ab = document.querySelector('#top .appbar'), h = ab && ab.querySelector('h1'); if (!h) return;
+  let c = document.getElementById('abCap'); if (!c) { c = document.createElement('div'); c.id = 'abCap'; ab.insertBefore(c, ab.firstChild);
+    if (window.ResizeObserver) { const ro = new ResizeObserver(() => capFit()); ro.observe(h); const m = document.getElementById('btnMenu'); if (m) ro.observe(m); } }
+  const hr = h.getBoundingClientRect(), ar = ab.getBoundingClientRect(); if (!hr.width) { c.style.display = 'none'; return; }
+  const m = document.getElementById('btnMenu'), mr = m && getComputedStyle(m).display !== 'none' ? m.getBoundingClientRect() : null;
+  const fx = document.getElementById('yfix'), y = fx && !fx.classList.contains('hidden') && getComputedStyle(fx).display !== 'none' ? fx.querySelector('.cyp') : null, yr = y ? y.getBoundingClientRect() : null;
+  const l = mr && mr.width ? mr.left - 4 : hr.left, r = yr && yr.width ? yr.right : hr.right;
+  c.style.display = ''; c.style.left = (l - ar.left) + 'px'; c.style.top = (hr.top - ar.top) + 'px'; c.style.width = (r - l) + 'px'; c.style.height = hr.height + 'px'; }
+function markStuck0(){ const hs = [...document.querySelectorAll('#main .cyh')]; let fx = document.getElementById('yfix');
   if (!hs.length || S.view === 'home') { if (fx) fx.classList.add('hidden'); return; }
   if (!fx) { fx = document.createElement('div'); fx.id = 'yfix'; fx.className = 'hidden'; fx.innerHTML = '<div class="cyh"></div>'; document.body.appendChild(fx); }
   const t = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stk')) || 0, H = 46;
@@ -4496,7 +4519,7 @@ function markStuck(){ const hs = [...document.querySelectorAll('#main .cyh')]; l
   if (inner.dataset.i !== String(cur)) { inner.innerHTML = src.innerHTML; inner.dataset.i = cur; }
   const wide = true, tb = document.querySelector('#top .appbar h1');
   fx.classList.toggle('side', wide);
-  if (wide && tb) { const r = tb.getBoundingClientRect(); fx.style.top = r.top + 'px'; fx.style.setProperty('--abh', r.height + 'px'); inner.style.setProperty('padding-left', (r.right + 10) + 'px', 'important'); } // パソコン：ページ名の右に並べる
+  if (wide && tb) { const r = tb.getBoundingClientRect(); fx.style.top = r.top + 'px'; fx.style.setProperty('--abh', r.height + 'px'); inner.style.setProperty('padding-left', r.right + 'px', 'important'); } // パソコン：ページ名の右に並べる
   else { fx.style.top = t + 'px'; inner.style.setProperty('padding-left', Math.max(0, src.getBoundingClientRect().left) + 'px', 'important'); }
   src.style.visibility = 'hidden'; fx.classList.remove('hidden'); }
 function stkTop(){ const ab = document.querySelector('#top .appbar'); const b = ab ? Math.max(0, ab.getBoundingClientRect().bottom + 6) : 0; document.documentElement.style.setProperty('--stk', b + 'px'); document.documentElement.style.setProperty('--stkx', '0px');  markStuck(); }
