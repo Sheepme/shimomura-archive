@@ -1478,7 +1478,7 @@ body.wide .cbar,body.wideoff .cbar{display:none!important}
 #top .appbar #fmAsk .ic svg{width:20px;height:20px}
 #top .appbar .dwsrch+#fmAsk{margin-left:10px}
 /* スマホ：検索はアイコンだけの丸いボタン（押すと上に入力欄が出る）。入力中の言葉がある間は欄のまま */
-body:not(.wide):not(.wideoff):not(.searching) .cbar:has(#fsq:placeholder-shown){justify-content:flex-end}
+body:not(.wide):not(.wideoff):not(.searching) .cbar:has(#fsq:placeholder-shown){justify-content:space-between} /* 検索は左端、AIに質問は右端 */
 body:not(.wide):not(.wideoff):not(.searching) .cbin:has(#fsq:placeholder-shown){flex:0 0 58px!important;width:58px!important;height:58px!important;padding:0!important;border-radius:50%!important;justify-content:center;cursor:pointer}
 body:not(.wide):not(.wideoff):not(.searching) .cbin:has(#fsq:placeholder-shown) input,body:not(.wide):not(.wideoff):not(.searching) .cbin:has(#fsq:placeholder-shown) #fsqClose{display:none!important}
 body:not(.wide):not(.wideoff):not(.searching) .cbin:has(#fsq:placeholder-shown) svg{width:24px;height:24px;margin:0}
@@ -1572,7 +1572,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '4bde280b2f', APP_URL = location.origin + location.pathname;
+const BUILD = '5346ed8952', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
