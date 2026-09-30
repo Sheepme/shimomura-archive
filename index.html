@@ -15,7 +15,9 @@
   var C = null, NOH = ['startLogin','login','logout','appBuild','getThumbs','getDocThumbs','getOriginal','getLog','getArchive','getAIHistory','tts','checkMemo','askAI','interviewTurn','detectRotation'];
   function rh(s){ var a = 0, b = 0x811c9dc5; for (var i = 0; i < s.length; i++){ var c = s.charCodeAt(i); a = (Math.imul(a, 31) + c) | 0; b = Math.imul(b ^ c, 16777619); } return (a >>> 0).toString(36) + '.' + (b >>> 0).toString(36); }
   function isData(d){ return !!d && typeof d === 'object' && Array.isArray(d.works) && Array.isArray(d.events); }
-  function remember(d){ var n = { s: {}, h: {} }; Object.keys(d).forEach(function(k){ if (Array.isArray(d[k])) { n.s[k] = d[k].map(function(r){ return JSON.stringify(r); }); n.h[k] = n.s[k].map(rh); } }); C = n; saveC(); }
+  function remember(d){ var n = { s: {}, h: {}, o: {} }; Object.keys(d).forEach(function(k){ if (Array.isArray(d[k])) { n.s[k] = d[k].map(function(r){ return JSON.stringify(r); }); n.h[k] = n.s[k].map(rh); } else n.o[k] = d[k]; }); C = n; saveC(); }
+  // 起動時にすぐ表示するための控え（最新ではないかもしれない）
+  window.__smrCached = function(){ return ready.then(function(){ if (!C || !C.o || !C.o.user) return null; var d = {}; Object.keys(C.o).forEach(function(k){ d[k] = C.o[k]; }); Object.keys(C.s).forEach(function(k){ d[k] = C.s[k].map(function(x){ return JSON.parse(x); }); }); return d; }); };
   /* 控えを端末に保存して、次に開いたときも差分だけで済ませる（ログアウト・別の人のログインで消す） */
   var DBP = null, saveT = null;
   function db(){ return DBP || (DBP = new Promise(function(ok){ try { var r = indexedDB.open('smr_cache', 1); r.onupgradeneeded = function(){ r.result.createObjectStore('kv'); }; r.onsuccess = function(){ ok(r.result); }; r.onerror = function(){ ok(null); }; } catch(e){ ok(null); } })); }
@@ -1168,7 +1170,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '16715cecf9', APP_URL = location.origin + location.pathname;
+const BUILD = 'd22366d4ed', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3647,10 +3649,15 @@ async function refreshData(){
   addEventListener('touchcancel', () => { y0 = null; reset(); });
 })();
 
-call('getData').then(d => { setData(d); render(); })
-  .catch(e => { if (isLoginErr(e)) { setToken(''); S.user = null; renderUser(); showLoginWall(); $('#finder').classList.add('hidden'); }
-    else $('#main').innerHTML = '<div class="flagbox">読み込めませんでした。時間をおいてもう一度開いてください。<br>' + esc(e.message||e) + '</div>'; })
-  .finally(() => busy(false));
+/* 起動：端末に控えがあれば、まずそれをすぐ表示し、裏で最新に更新する（待ち時間をなくす） */
+(async () => {
+  let shown = false;
+  try { const c = S.token && window.__smrCached ? await window.__smrCached() : null; if (c) { setData(c); render(); busy(false); shown = true; } } catch(e){}
+  call('getData').then(d => { setData(d); render(); if (shown && S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); })
+    .catch(e => { if (isLoginErr(e)) { setToken(''); S.user = null; renderUser(); showLoginWall(); $('#finder').classList.add('hidden'); }
+      else if (!shown) $('#main').innerHTML = '<div class="flagbox">読み込めませんでした。時間をおいてもう一度開いてください。<br>' + esc(e.message||e) + '</div>'; })
+    .finally(() => busy(false));
+})();
 
 /* ---------- やることリスト：「展覧会の情報を入れる」と「？」の説明 ---------- */
 (function(){
