@@ -1394,6 +1394,11 @@ html.sa.tb header{padding-top:calc(var(--cap) + 4px - var(--tb))}
 @media(min-width:1000px){ body.wide #top .appbar,body.wide #top .brand.appbar{left:264px!important} }
 @media(max-width:599px){ #top .appbar h1 .chome[data-home] .hmtx,#top .appbar h1 .cprev:has(.hmic) .hmtx{display:none} #top .appbar h1 .chome[data-home] .hmic,#top .appbar h1 .cprev .hmic{display:flex;align-items:center} #top .appbar h1 .chome[data-home],#top .appbar h1 .cprev:has(.hmic){flex:none;overflow:visible} }
 #top .appbar .abmenu svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+/* 文字はすべてゴシックにそろえる */
+:root,html[data-theme]{--disp:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI",Meiryo,sans-serif}
+/* ホームでメニューを開いている間は、上のバーごと隠す */
+body.vhome:not(.pgopen).wide #top .appbar,body.vhome:not(.pgopen).dwopen #top .appbar{display:none!important}
+body.vhome:not(.pgopen).wide #hdsp{height:calc(var(--tb,0px) + var(--cap,0px) + 8px)}
 /* メニューを開いている間は、≡ と題名（メニューに出ているので）を隠す */
 body.wide #top .appbar #btnMenu,body.dwopen #top .appbar #btnMenu{display:none!important}
 body.wide #top .appbar h1 .chome,body.wide #top .appbar h1 .chome+.absep,body.dwopen #top .appbar h1 .chome,body.dwopen #top .appbar h1 .chome+.absep{display:none!important}
@@ -1496,7 +1501,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '357cb47492', APP_URL = location.origin + location.pathname;
+const BUILD = '6dda0dc87b', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1728,6 +1733,7 @@ function openDrawer(){ if (isWide()) { dwFold = !dwFold; try { localStorage.setI
   const d = $('#drawer'); document.body.classList.add('dwopen'); d.classList.remove('hidden'); d.setAttribute('aria-hidden', 'false'); requestAnimationFrame(() => d.classList.add('open')); setTimeout(markStuck, 240); }
 function closeDrawer(){ const d = $('#drawer'); if (d.classList.contains('hidden') || d.classList.contains('pin')) return; document.body.classList.remove('dwopen'); setTimeout(markStuck, 240); d.classList.remove('open'); d.setAttribute('aria-hidden', 'true'); setTimeout(() => d.classList.add('hidden'), 220); }
 function render(){
+  document.body.classList.toggle('vhome', S.view === 'home');
   setTimeout(() => { try { stkTop(); } catch(e){} }, 0);
   const main = $('#main');
   document.body.classList.toggle('loggedout', !S.user && !S.publicView);
