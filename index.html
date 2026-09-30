@@ -1183,8 +1183,11 @@ header{background:var(--glass);-webkit-backdrop-filter:saturate(160%) blur(16px)
 .cbask.on{background:var(--ink);color:var(--bg)}
 body.briefing .cbar,body.loggedout .cbar{display:none}
 /* キーボードが出ている間は、下の検索欄をキーボードのすぐ上に置く */
-body.prekb .cbar{top:30vh;bottom:auto;transition:none}
-body.kbopen .cbar{top:calc(var(--vvt,0px) + var(--vvh,100%) - 66px);bottom:auto;transition:none}
+@media (pointer:coarse){
+  body:not(.searching) #fsq{pointer-events:none}
+  body.searching .cbar{top:calc(var(--vvt,0px) + var(--tb) + var(--cap) + 6px);bottom:auto;left:12px;right:12px;transition:none}
+  body.searching .appbar{opacity:0;pointer-events:none}
+}
 body.slock{position:fixed;left:0;right:0;width:100%;overflow:hidden}
 /* 検索の入力中は「質問」ボタンを消して、検索欄を横いっぱいに */
 body.searching .cbask{display:none}
@@ -1364,7 +1367,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '4daf3d45b5', APP_URL = location.origin + location.pathname;
+const BUILD = '0212021942', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3883,12 +3886,11 @@ $('#fsq').addEventListener('focus', () => { closeDrawer(); if (S.aiOpen) closeAI
   if (!SQ[S.view]) { S.view = S.wmode || 'album'; S.limit = 60; render(); window.scrollTo(0, 0); } else if (pgOpen) render();
   const s = SQ[S.view]; $('#fsq').placeholder = s[1]; $('#top').classList.remove('tuck'); scrollLock(true); document.body.classList.add('searching'); });
 $('#fsq').addEventListener('blur', () => { srchReset(); setTimeout(() => { if (document.activeElement !== $('#fsq')) srchReset(); }, 300); });
-/* iPhoneは「キーボードで隠れる位置の入力欄」を押すと画面ごとずらす。押した瞬間に検索欄をキーボードより上へ動かしておき、ずれを起こさせない */
-$('#fsq').addEventListener('touchstart', () => { if (document.activeElement !== $('#fsq')) { scrollLock(true); document.body.classList.add('prekb');
-  // 押しただけで入力にならなかった（スクロールなど）ときは、すぐ元に戻す
-  clearTimeout(srchReset._t); srchReset._t = setTimeout(() => { if (document.activeElement !== $('#fsq')) srchReset(); }, 700); } }, {passive:true});
-$('#fsq').addEventListener('touchmove', () => { if (document.activeElement !== $('#fsq')) srchReset(); }, {passive:true});
-function srchReset(){ scrollLock(false); document.body.classList.remove('searching', 'prekb', 'kbopen'); }
+/* スマホ：検索欄を押したら、検索欄を画面の上へ移してから入力を始める（キーボードで画面がずれない・Claudeの検索と同じ形） */
+$('.cbin').addEventListener('click', e => { if (!matchMedia('(pointer:coarse)').matches) return; const fi = $('#fsq');
+  if (document.activeElement === fi || e.target.id === 'fsqClose') return;
+  document.body.classList.add('searching'); fi.focus(); });
+function srchReset(){ scrollLock(false); document.body.classList.remove('searching', 'kbopen'); }
 document.addEventListener('visibilitychange', () => { if (document.hidden && document.activeElement !== $('#fsq')) srchReset(); });
 /* 上のページ名を押すと、いちばん上までスクロール */
 $('#abTitle').addEventListener('click', e => { const c = e.target.closest('.crumb[data-ci]');
