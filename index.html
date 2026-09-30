@@ -216,6 +216,7 @@ dl.info dd{position:relative;padding-right:44px}
 }
 .viewer{position:fixed;inset:0;z-index:95;background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 12px 110px}
 .viewer img{max-width:100%;max-height:100%;object-fit:contain;touch-action:pinch-zoom}
+html,body{touch-action:pan-x pan-y}.viewer,.viewer *,.docview,.docview *{touch-action:auto}
 .vclose{position:absolute;top:12px;left:16px;z-index:3;border:1px solid var(--line);background:var(--paper);padding:8px 16px;font-size:16px;border-radius:999px}
 .vbar{position:absolute;bottom:52px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:24px;font-size:16px;color:var(--sub)}
 .vbar button{border:1px solid var(--line);background:var(--paper);padding:8px 18px;font-size:17px;border-radius:999px}
@@ -1264,7 +1265,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '06e87c1424', APP_URL = location.origin + location.pathname;
+const BUILD = '4620202504', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3836,7 +3837,11 @@ function setCols(d){
     if (r > 1.35) { d0 = dist(e.touches); setCols(-1); } else if (r < 0.74) { d0 = dist(e.touches); setCols(1); }
   }, {passive:false});
   document.addEventListener('touchend', e => { if (e.touches.length < 2) d0 = 0; }, {passive:true});
-  document.addEventListener('gesturestart', e => { if (onAlbum()) e.preventDefault(); });
+  /* 画面全体の拡大・縮小（ピンチ）は止める。写真・書類を大きく見る画面の中だけは指で拡大できる */
+  const zoomOk = e => !!(e.target && e.target.closest && e.target.closest('.viewer, .docview'));
+  document.addEventListener('gesturestart', e => { if (!zoomOk(e)) e.preventDefault(); });
+  document.addEventListener('gesturechange', e => { if (!zoomOk(e)) e.preventDefault(); });
+  document.addEventListener('touchmove', e => { if (e.touches.length > 1 && !zoomOk(e) && !onAlbum()) e.preventDefault(); }, {passive:false});
   let acc = 0, wt;
   addEventListener('wheel', e => { if (!e.ctrlKey || !onAlbum()) return; e.preventDefault(); acc += e.deltaY; clearTimeout(wt); wt = setTimeout(() => acc = 0, 250);
     if (acc > 60) { acc = 0; setCols(1); } else if (acc < -60) { acc = 0; setCols(-1); } }, {passive:false});
