@@ -952,6 +952,8 @@ body.briefing nav.fmenu{display:none}
 .dwchk input{position:absolute;opacity:0;pointer-events:none}
 .dwchk .mgck{flex:none;width:24px;height:24px;border-radius:7px;border:1.5px solid var(--line);color:transparent;display:flex;align-items:center;justify-content:center;font-weight:800}
 .dwchk:has(input:checked){border-color:#c0392b}.dwchk:has(input:checked) .mgck{background:#c0392b;border-color:#c0392b;color:#fff}
+#vcopy{position:absolute;top:190px;right:14px;z-index:2;border:1px solid var(--line);background:var(--paper);padding:8px 14px;font-size:14px;border-radius:999px;color:var(--warn)}
+.phhid{display:flex;align-items:center;justify-content:center;text-align:center;width:100%;height:100%;min-height:80px;background:var(--wash);color:var(--sub);font-size:12px;line-height:1.5}
 #vmain{position:absolute;top:146px;right:14px;z-index:2;border:1px solid var(--line);background:var(--paper);padding:8px 14px;font-size:14px;border-radius:999px;color:#b07a10}
 #vmain:disabled{opacity:1;background:#f2b33d;color:#fff;border-color:#f2b33d}
 
@@ -1153,7 +1155,7 @@ html.sa .toast{top:calc(14px + var(--cap))}
 <div id="page" class="page hidden"></div>
 <div id="sheet" class="sheet hidden"><div class="box" id="sheetbox"></div></div>
 <div id="confirm" class="sheet hidden" style="z-index:100"><div class="box" id="confirmbox"></div></div>
-<div id="viewer" class="viewer hidden"><button class="vclose" id="vclose">✕ 閉じる</button><button id="vrep" class="hidden">この写真を差し替える</button><button id="vdel" class="hidden">削除</button><button id="vmain" class="hidden">★ メイン画像にする</button><div id="vrot" class="vrot hidden"><button type="button" data-rot="-90">↺ 左に回す</button><button type="button" data-rot="90">↻ 右に回す</button></div><img id="vimg" alt=""><span id="vwm" class="wm vwm"></span><div class="vbar"><button id="vprev">‹ 前</button><span id="vcount"></span><p id="vcredit" class="credit"></p><button id="vnext">次 ›</button></div><button id="vorig" type="button">高画質で見る</button></div>
+<div id="viewer" class="viewer hidden"><button class="vclose" id="vclose">✕ 閉じる</button><button id="vrep" class="hidden">この写真を差し替える</button><button id="vdel" class="hidden">削除</button><button id="vmain" class="hidden">★ メイン画像にする</button><button id="vcopy" class="hidden">© 著作物の設定</button><div id="vrot" class="vrot hidden"><button type="button" data-rot="-90">↺ 左に回す</button><button type="button" data-rot="90">↻ 右に回す</button></div><img id="vimg" alt=""><span id="vwm" class="wm vwm"></span><div class="vbar"><button id="vprev">‹ 前</button><span id="vcount"></span><p id="vcredit" class="credit"></p><button id="vnext">次 ›</button></div><button id="vorig" type="button">高画質で見る</button></div>
 <div id="loading" class="loading hidden">読み込み中…</div>
 <div id="toast" class="toast hidden"></div>
 
@@ -1172,7 +1174,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '66697ca6be', APP_URL = location.origin + location.pathname;
+const BUILD = '7d8fc97941', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1293,7 +1295,9 @@ function filtered(){
 }
 /* ---------- 写真（サーバー経由で読み込む） ---------- */
 const TH = {}; let thQueue = new Map(), thTimer = null;
-const thImg = (id, w, cls) => TH[w+'_'+id] ? `<img src="${TH[w+'_'+id]}" alt="" class="${cls||''}">` : `<img data-tid="${esc(id)}" data-w="${w}" alt="" class="${cls||''}">`;
+const HIDPH = id => !canEdit() && S.photos && (S.photos.find(p => p['ファイルID']===id) || {})['メモ'] && /^転載元：.*｜非表示$/.test(S.photos.find(p => p['ファイルID']===id)['メモ']);
+const thImg = (id, w, cls) => HIDPH(id) ? '<div class="phhid">© 著作物のため<br>非表示</div>' : thImg0(id, w, cls);
+const thImg0 = (id, w, cls) => TH[w+'_'+id] ? `<img src="${TH[w+'_'+id]}" alt="" class="${cls||''}">` : `<img data-tid="${esc(id)}" data-w="${w}" alt="" class="${cls||''}">`;
 const io = ('IntersectionObserver' in window) ? new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting){ io.unobserve(en.target); queueThumb(en.target); } }), {rootMargin:'400px'}) : null;
 function hydrate(root){ (root||document).querySelectorAll('img[data-tid]:not([src])').forEach(el => io ? io.observe(el) : queueThumb(el)); }
 function queueThumb(el){
@@ -1569,6 +1573,21 @@ async function evMergeRun(pairs, pick){
   busy(false); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
   toast(ok + '点の作品でまとめました');
   if (skipped.length) alert('次の作品は、ほかにも食い違いがあったので、まだまとめていません。\n作品ページから1つずつまとめてください。\n' + skipped.map(n => 'No.' + n).join('、'));
+}
+/* ---- 美術館などが撮影した画像（著作物）：メモ「転載元：館名｜URL｜非表示」 ----
+   ・写真に「© 館名」を常に表示　・AI（写真の向きの判定など）に送らない　・「非表示」なら閲覧だけの人には出さない */
+function copyOf(p){ const m = /^転載元：(.*)$/.exec(String((p||{})['メモ']||'')); if (!m) return null; const [mu, u, h] = m[1].split('｜'); return { mu: mu||'', u: u||'', hide: h === '非表示' }; }
+function copyMemo(mu, u, hide){ mu = String(mu||'').replace(/｜/g, ' ').trim(); u = String(u||'').replace(/｜/g, '').trim(); return '転載元：' + mu + (u || hide ? '｜' + u : '') + (hide ? '｜非表示' : ''); }
+const COPY_SHOW = ['家族みんなに見せる', '編集できる人だけ'];
+const copyFields = c => `${F('撮影した美術館・所蔵先の名前（必須）', inp('cmu', c ? c.mu : ''))}${F('出典のページ（あれば）', inp('curl', c ? c.u : ''))}${F('見せる範囲', pick('chide', COPY_SHOW, c && c.hide ? COPY_SHOW[1] : COPY_SHOW[0]))}
+  <p class="hint">写真に「© 名前」が常に表示され、AIには送りません。「編集できる人だけ」にすると、閲覧だけの家族には写真の代わりに「著作物のため非表示」と出ます。</p>`;
+function sheetCopy(p){
+  const c = copyOf(p);
+  openSheet(`<h3>著作物の設定</h3><p class="hint">美術館などが撮影した画像は、著作物として扱います。</p>${copyFields(c)}
+    <div class="btns">${c ? '<button type="button" id="cOff">著作物の設定を外す</button>' : '<button type="button" data-close>やめる</button>'}<button type="button" class="primary" id="cOk">保存</button></div>`);
+  $('#cOk').onclick = () => { const mu = val('cmu'); if (!mu) return alert('美術館・所蔵先の名前を入れてください');
+    save('replacePhoto', [p['写真ID'], '', '', '', copyMemo(mu, val('curl'), val('chide') === COPY_SHOW[1])], '著作物として設定しました'); };
+  if ($('#cOff')) $('#cOff').onclick = () => { if (!confirm('著作物の設定を外しますか？')) return; save('replacePhoto', [p['写真ID'], '', '', '', ''], '著作物の設定を外しました'); };
 }
 const docsOf = st => (S.docs||[]).filter(d => d['状態']===st);
 const docPages = d => String(d['ファイルID']||'').split(',').filter(Boolean);
@@ -2955,6 +2974,7 @@ function showV(){ const p = V.list[V.i]; if (!p) return;
   $('#vcount').textContent = (V.i+1) + ' / ' + V.list.length + '　' + (p['種類']||'') + (/^【仮】/.test(p['メモ']||'') ? '・仮' : '');
   $('#vcredit').innerHTML = creditHTML([p]); $('#vwm').innerHTML = wm(p).replace(/<\/?span[^>]*>/g, '');
   const isW = S.cur && workOf(S.cur), isMain = V.i===0; $('#vmain').classList.toggle('hidden', !canEdit() || !isW || V.list.length < 2 || !p['写真ID']); $('#vmain').textContent = isMain ? '★ メイン画像' : '☆ メイン画像にする'; $('#vmain').disabled = isMain;
+  $('#vcopy').classList.toggle('hidden', !canEdit() || !p['写真ID']); $('#vcopy').textContent = copyOf(p) ? '© 著作物（' + copyOf(p).mu + '）' : '© 著作物の設定';
   $('#vrep').classList.toggle('hidden', !canEdit()); $('#vdel').classList.toggle('hidden', !canEdit() || !p['写真ID']); $('#vrot').classList.toggle('hidden', !canEdit());
   $('#vorig').textContent = TH['3200_' + p['ファイルID']] ? '高画質で表示中' : '高画質で見る';
   $('#vorig').onclick = () => { const id = p['ファイルID'], k2 = '3200_' + id; if (TH[k2]) { $('#vimg').src = TH[k2]; return; }
@@ -2968,6 +2988,7 @@ $('#vmain').onclick = () => { const p = V.list[V.i], no = S.cur; if (!p || !canE
   V.list = photoBy[no] || []; V.i = 0; showV(); if (S.pcur && S.pcur.t==='w') openWork(no, true); render(); toast('メイン画像にしました');
   call('setMainPhoto', p['写真ID']).catch(e => { alert('保存できませんでした。\n' + (e.message||e)); refreshData().catch(() => {}); }); };
 $('#vdel').onclick = () => { const p = V.list[V.i]; if (!p) return; closeViewer(); setTimeout(() => sheetDelete('p', p['写真ID'], 'この写真'), 300); };
+$('#vcopy').onclick = () => { const p = V.list[V.i]; if (!p) return; closeViewer(); setTimeout(() => sheetCopy(p), 350); };
 $('#vrep').onclick = () => { const p = V.list[V.i], no = S.cur; closeViewer(); setTimeout(() => sheetPhoto(no, p['写真ID']), 350); };
 $('#vrot').onclick = e => { const b = e.target.closest('[data-rot]'); if (b) rotatePhoto(+b.dataset.rot); };
 const loadImg = src => new Promise((ok, ng) => { const im = new Image(); im.onload = () => ok(im); im.onerror = ng; im.src = src; });
@@ -3318,14 +3339,19 @@ function sheetPhoto(no, replaceId){
   openSheet(`<h3>${old ? '写真を差し替える' : '写真を追加'}</h3><p class="hint">No.${esc(no)}　${old ? '新しい写真を撮るか選んでください。元の写真もドライブに残ります' : 'カメラで撮るか、写真の中から選んでください'}</p>
     ${photoInputs(!old)}
     ${F('どこを写した？', pick('pk', ['表','裏','落款・サイン','部分','展示のようす'], old ? old['種類'] : '表'))}
-    ${F('あとで、きれいな写真に差し替える？', pick('ptmp', ['はい（仮の写真）','いいえ'], 'いいえ'))}
-    ${F('メモ（あれば）', inp('pm', old ? String(old['メモ']||'').replace(/^【仮】/, '') : ''))}
+    ${F('だれが撮った写真？', pick('pwho', ['家族が撮った','美術館など（著作物）'], old && copyOf(old) ? '美術館など（著作物）' : '家族が撮った'))}
+    <div id="pcopy" style="${old && copyOf(old) ? '' : 'display:none'}">${copyFields(old && copyOf(old))}</div>
+    <div id="pfam" style="${old && copyOf(old) ? 'display:none' : ''}">${F('あとで、きれいな写真に差し替える？', pick('ptmp', ['はい（仮の写真）','いいえ'], 'いいえ'))}
+    ${F('メモ（あれば）', inp('pm', old && !copyOf(old) ? String(old['メモ']||'').replace(/^【仮】/, '') : ''))}</div>
     ${BTNS('写真を保存')}`);
   let data = null, list = [];
   bindPhoto((d, cam, l) => { data = d; list = l || []; if (cam) setPick('ptmp', 'はい（仮の写真）'); });
+  $('#pwho').addEventListener('click', () => setTimeout(() => { const cp = val('pwho') !== '家族が撮った'; $('#pcopy').style.display = cp ? '' : 'none'; $('#pfam').style.display = cp ? 'none' : ''; }, 0));
   $('#ok').onclick = async () => {
     if (!data) return alert('写真を撮るか選んでください');
-    const memo = (val('ptmp').indexOf('はい')===0 ? '【仮】' : '') + val('pm');
+    const isCopy = val('pwho') !== '家族が撮った';
+    if (isCopy && !val('cmu')) return alert('撮影した美術館・所蔵先の名前を入れてください');
+    const memo = isCopy ? copyMemo(val('cmu'), val('curl'), val('chide') === COPY_SHOW[1]) : (val('ptmp').indexOf('はい')===0 ? '【仮】' : '') + val('pm');
     if (!old && list.length > 1) return savePhotos(no, list, val('pk'), memo);
     if (old) save('replacePhoto', [old['写真ID'], data, PMIME, val('pk'), memo], '写真を差し替えました');
     else save('addPhoto', [no, data, PMIME, val('pk'), memo], '写真を保存しました');
