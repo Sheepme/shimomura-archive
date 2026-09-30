@@ -1167,7 +1167,10 @@ header{background:var(--glass);-webkit-backdrop-filter:saturate(160%) blur(16px)
 .cbin>svg{width:20px;height:20px;fill:none;stroke:var(--faint);stroke-width:1.9;stroke-linecap:round;flex:none}
 .cbin input{flex:1;min-width:0;border:0;background:transparent;font-size:16px;outline:none;color:var(--ink);padding:0;height:100%;-webkit-appearance:none;appearance:none}
 .cbin input::-webkit-search-cancel-button{display:none}
-.cbin input::placeholder{color:var(--faint)}
+.cbin input::placeholder{color:var(--sub);opacity:1}
+.cbin>svg{stroke:var(--sub)!important}
+.cbin{height:56px!important;border-radius:28px!important}.cbask{height:56px;border-radius:28px}
+.appbar .abtn svg{stroke-width:2.1}
 #fsqClose{width:32px;height:32px;border-radius:50%;border:0;background:var(--wash2);color:var(--sub);font-size:13px;flex:none;padding:0}
 .cbask{flex:none;height:52px;padding:0 18px 0 14px;border-radius:26px;border:0;background:var(--acc);color:#fff;display:flex;align-items:center;gap:6px;font-size:15px;font-weight:600;box-shadow:0 8px 20px -8px rgba(201,100,66,.7)}
 .cbask .ic{display:flex}.cbask .ic svg{width:22px;height:22px;fill:#fff}
@@ -1223,8 +1226,8 @@ body:has(#viewer:not(.hidden)) .appbar,body:has(.docview) .appbar,body.kbopen:ha
 body.kbopen .sheet .box{max-height:calc(var(--vvh,100vh) - 12px)}
 @media(max-width:700px){ .aip,html.sa .aip{top:calc(var(--tb) + var(--cap) + 68px)} }
 /* Claudeのアプリと同じ：半透明のガラス（後ろがぼける）＋うっすら光る縁 */
-:root{--gl:rgba(255,255,255,.62);--gl-b:rgba(255,255,255,.7);--gl-s:0 10px 30px -10px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.6)}
-html[data-theme=dark]{--gl:rgba(58,58,56,.5);--gl-b:rgba(255,255,255,.1);--gl-s:0 10px 30px -10px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.07)}
+:root{--gl:rgba(255,255,255,.86);--gl-b:rgba(20,20,19,.08);--gl-s:0 8px 28px -8px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.8)}
+html[data-theme=dark]{--gl:rgba(52,52,50,.88);--gl-b:rgba(255,255,255,.14);--gl-s:0 10px 30px -8px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.08)}
 .glass,.appbar .abtn,.appbar h1,.appbar .avatar,.cbin,.cbask{-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px)}
 .glass,.appbar .abtn,.appbar h1,.appbar .avatar,.cbin{background:var(--gl)!important;border:1px solid var(--gl-b)!important;box-shadow:var(--gl-s)!important;color:var(--ink)}
 .appbar .abtn{width:52px;height:52px;border-radius:50%}
@@ -1317,7 +1320,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'e5980596c2', APP_URL = location.origin + location.pathname;
+const BUILD = '444d4bc813', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
