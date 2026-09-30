@@ -1217,7 +1217,7 @@ html[data-theme=dark]{--gl:rgba(58,58,56,.5);--gl-b:rgba(255,255,255,.1);--gl-s:
 .appbar .abtn{width:52px;height:52px;border-radius:50%}
 .appbar .abtn svg{width:24px;height:24px}
 .appbar h1,.brand.appbar h1{flex:0 1 auto;max-width:calc(100% - 140px);height:52px;display:flex;align-items:center;padding:0 22px;border-radius:26px;font:600 16px/1 var(--sans)}
-.appbar .brandr{width:auto}
+.appbar .brandr{width:52px;visibility:hidden;pointer-events:none} /* 名前はメニューのいちばん下に移した（ここは左右のバランス用） */
 .appbar .avatar{width:52px;height:52px;font-size:17px}
 body.dwopen .appbar{translate:var(--dww) 0}
 @media(min-width:1000px){ body.wide .appbar{left:calc(264px + 10px)} }
@@ -1304,7 +1304,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd2593f206d', APP_URL = location.origin + location.pathname;
+const BUILD = '67b368f53b', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
