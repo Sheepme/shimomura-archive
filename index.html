@@ -1412,6 +1412,7 @@ html body #main section.cy .cage{font-size:12px!important;color:var(--sub)!impor
 #top .appbar h1 .crumb:not(.cur):hover{text-decoration:underline;text-underline-offset:4px}
 #top .appbar h1 .absep{flex:none;color:var(--faint);font-weight:400;margin:0 2px}
 #top .appbar h1 .crumb:not(.cur){flex:0 3 auto}
+#top .appbar h1 .abcn{flex:none;margin-left:2px;font-size:13px;font-weight:500;color:var(--sub);align-self:center}
 #top .appbar h1 .hmic{display:none}
 #top .appbar h1 .hmic svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;display:block}
 #top .appbar h1 .cprev .hmic svg{stroke-width:1.7}
@@ -1548,7 +1549,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '59dc242015', APP_URL = location.origin + location.pathname;
+const BUILD = '3ab3a68c6f', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1597,11 +1598,12 @@ function abRender0(){ const h = $('#abTitle'); if (!h) return;
     const prev = (S.view === 'home' && k === 0) ? '' : SEP + `<span class="crumb cprev" data-ci="${k}" aria-label="${esc(cr[k].nm)}"><span class="hmtx">${esc(cr[k].nm)}</span>${icn ? `<span class="hmic">${icn}</span>` : ''}</span>`;
     h.innerHTML = ROOT + prev + SEP + `<span class="crumb cur">${esc(pcName(S.pcur.t, S.pcur.id))}</span>`;
     return; }
+  const vcn = () => { const n = ({album: (S.works||[]).length, list: (S.works||[]).length, ex: (S.exhibits||[]).length, pb: (S.pubs||[]).length, ot: (S.others||[]).length, doc: (S.docs||[]).length})[S.view]; return n === undefined ? '' : `<span class="abcn">${n}</span>`; }; // 題名の後ろに件数
   if ((S.view === 'album' || S.view === 'list') && S.filter === '美術館') { // 作品アルバム › 美術館（タブは「すべての館・○○美術館…」）
     const ik = S.view === 'album' ? 'works' : 'list', icn = typeof IC !== 'undefined' && IC[ik] ? ico(ik) : '';
-    h.innerHTML = ROOT + SEP + `<span class="crumb cprev" data-flt="all" aria-label="${esc(tx)}"><span class="hmtx">${esc(tx)}</span>${icn ? `<span class="hmic">${icn}</span>` : ''}</span>` + SEP + '<span class="crumb cur">美術館</span>';
+    h.innerHTML = ROOT + SEP + `<span class="crumb cprev" data-flt="all" aria-label="${esc(tx)}"><span class="hmtx">${esc(tx)}</span>${icn ? `<span class="hmic">${icn}</span>` : ''}</span>` + SEP + `<span class="crumb cur">美術館</span><span class="abcn">${(S.works||[]).filter(w => w['所在区分']==='美術館').length}</span>`;
     return; }
-  h.innerHTML = S.view === 'home' ? '<span class="crumb chome cur">下村良之介作品目録</span>' : ROOT + SEP + `<span class="crumb cur">${esc(tx)}</span>`; }
+  h.innerHTML = S.view === 'home' ? '<span class="crumb chome cur">下村良之介作品目録</span>' : ROOT + SEP + `<span class="crumb cur">${esc(tx)}</span>` + vcn(); }
 /* お知らせ（保存しました など）も、読み込み中と同じ上の帯で出す（緑） */
 function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.remove('hidden'); tbSync(); clearTimeout(toast._t); toast._t=setTimeout(()=>{ el.classList.add('hidden'); tbSync(); },2600); }
 const OTRE = /^[YHZ]\d{3,}$/;
