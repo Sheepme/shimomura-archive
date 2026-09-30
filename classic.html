@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<title>下村良之介 作品目録</title>
+<title>（旧UI）下村良之介 作品目録</title>
 <meta name="robots" content="noindex, nofollow, noarchive, noimageindex, noai, noimageai">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1373,60 +1373,11 @@ html[data-theme=dark] .appbar .abtn,html[data-theme=dark] .appbar h1:not(.st-bus
 .appbar h1,.brand.appbar h1{padding-left:12px!important}
 #yfix.side .cyp::before{content:'';position:absolute;left:0;top:30%;bottom:30%;width:1px;background:currentColor;opacity:.3}
 html.sa.tb header{padding-top:calc(var(--cap) + 4px - var(--tb))}
-/* ===== Pinterest風のUI（2026-10） ===== */
-body.pinui .appbar{display:none!important}
-body.pinui.pgopen .appbar{display:flex!important}
-body.pinui #nav .cbask{display:none!important}
-body.pinui:not(.searching):not(.hasq) #nav{display:none!important}
-body.pinui #drawer{display:none!important}
-.pintop{position:fixed;left:0;right:0;top:0;z-index:90;background:var(--bg);padding:calc(var(--tb,0px) + var(--cap,0px) + 10px) 0 0}
-.ptrow{display:flex;align-items:center;gap:10px;padding:0 16px 0 14px;height:48px}
-.ptbrand{display:flex;align-items:center;gap:10px;min-width:0;flex:1;padding:0;border:0;background:none;color:var(--ink);cursor:pointer;text-align:left}
-.ptbrand img{width:36px;height:36px;border-radius:50%;object-fit:cover;flex:none}
-.ptbrand span{font:700 21px/1.1 var(--sans);letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ptgear{flex:none;width:44px;height:44px;margin-right:-8px;display:flex;align-items:center;justify-content:center;border:0;border-radius:50%;background:none;color:var(--ink);cursor:pointer}
-.ptgear:hover{background:var(--hov)}
-.ptgear svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round}
-.ptst{flex:none;max-width:48%;padding:6px 12px;border-radius:999px;font:600 12.5px/1.2 var(--sans);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:default}
-.ptst.st-busy{background:#e8823a}.ptst.st-ok{background:#2f9e5b}.ptst.st-upd{background:#d8433b;cursor:pointer}
-.pttabs{display:flex;gap:22px;overflow-x:auto;padding:4px 16px 0;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.pttabs::-webkit-scrollbar{display:none}
-.pttabs button{flex:none;position:relative;padding:8px 0 11px;border:0;background:none;color:var(--sub);font:500 16px/1.2 var(--sans);cursor:pointer;white-space:nowrap}
-.pttabs button.on{color:var(--ink);font-weight:700}
-.pttabs button.on::after{content:'';position:absolute;left:0;right:0;bottom:3px;height:3px;border-radius:2px;background:var(--ink)}
-body.pinui #top{padding-top:var(--pinh,110px)!important}
-.pinnav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 14px);z-index:60;display:flex;gap:10px}
-.pinnav button{width:62px;height:58px;display:flex;align-items:center;justify-content:center;border:0;border-radius:20px;cursor:pointer;background:rgba(255,255,255,.92);color:#111;box-shadow:0 2px 10px rgba(0,0,0,.14);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
-html[data-theme=dark] .pinnav button{background:rgba(32,32,31,.92);color:#fff;box-shadow:0 2px 12px rgba(0,0,0,.4)}
-.pinnav svg{width:27px;height:27px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linejoin:round;stroke-linecap:round;opacity:.55}
-.pinnav button.on svg{opacity:1;fill:currentColor}
-.pinnav button.on svg .spk{fill:var(--bg);stroke:none}
-.pinnav #pnChat svg .spk{fill:currentColor;stroke:none}
-.pinnav #pnChat.on svg .spk{fill:rgba(128,128,128,.9)}
-body.searching .pinnav,body.pgopen .pinnav{display:none}
-body.pinui.hasq:not(.searching) #nav{display:flex!important}
-body.pinui.hasq:not(.searching) .cbar{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)!important}
-
-body.pgopen .pintop{display:none}
-body.pinui.searching .cbar{z-index:95!important}
-body.pinui.searching .cbin{background:var(--bg)!important;opacity:1!important}
-
 
 </style>
 </head>
 <body>
 
-<div id="pinTop" class="pintop hidden">
-  <div class="ptrow"><button type="button" class="ptbrand" id="ptBrand" aria-label="いちばん上へ"><img src="icon.jpg" alt="" aria-hidden="true"><span>下村良之介作品目録</span></button>
-    <span id="ptSt" class="ptst hidden"></span>
-    <button type="button" class="ptgear" id="ptGear" aria-label="設定"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.5-2-3.4-2.3.9a7.6 7.6 0 0 0-2.6-1.5L14.1 2.5h-4.2l-.4 2.5a7.6 7.6 0 0 0-2.6 1.5l-2.3-.9-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3l-2 1.5 2 3.4 2.3-.9a7.6 7.6 0 0 0 2.6 1.5l.4 2.5h4.2l.4-2.5a7.6 7.6 0 0 0 2.6-1.5l2.3.9 2-3.4z"/></svg></button></div>
-  <div class="pttabs" id="ptTabs" role="tablist"></div>
-</div>
-<div id="pinNav" class="pinnav hidden">
-  <button type="button" id="pnHome" aria-label="ホーム"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11 12 4l8 7v9h-5.5v-5.5h-5V20H4z"/></svg></button>
-  <button type="button" id="pnSearch" aria-label="探す"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></button>
-  <button type="button" id="pnChat" aria-label="質問する"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 4.5h15a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-9l-4.5 3.6v-3.6H4.5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2z"/><path class="spk" d="M12 7.3c.3 2 1.1 2.9 3.1 3.2-2 .3-2.8 1.2-3.1 3.2-.3-2-1.1-2.9-3.1-3.2 2-.3 2.8-1.2 3.1-3.2z"/></svg></button>
-</div>
 <header id="top">
   <div class="brand appbar">
     <button type="button" class="abtn" id="btnMenu" aria-label="メニューを開く"><img class="abapp" src="icon.jpg" alt="" aria-hidden="true"></button>
@@ -1489,7 +1440,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '40ecfc23d9', APP_URL = location.origin + location.pathname;
+const BUILD = '5cb6528380', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1517,8 +1468,7 @@ function syncThemeColor(){ let m = document.querySelector('meta[name="theme-colo
 setTimeout(syncThemeColor, 0); new MutationObserver(syncThemeColor).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
 /* お知らせ（読み込み中・保存しました・新しい版）は、上のページ名のところに色を変えて出す */
 function setTitle(t){ const h = $('#abTitle'); if (!h) return; h.dataset.t = t; abRender(); }
-function abRender(){ abRender0(); if (typeof capFit === 'function') capFit();
-  const h = document.getElementById('abTitle'), p = document.getElementById('ptSt'); if (h && p) { const st = ['st-busy','st-ok','st-upd'].find(c => h.classList.contains(c)); p.className = 'ptst' + (st ? ' ' + st : ' hidden'); p.textContent = st ? h.textContent.trim() : ''; } }
+function abRender(){ abRender0(); if (typeof capFit === 'function') capFit(); }
 function abRender0(){ const h = $('#abTitle'); if (!h) return;
   const ld = $('#loading'), ts = $('#toast'), up = $('#updBar');
   let st = '', tx = h.dataset.t || '';
@@ -1713,8 +1663,8 @@ function navOn(){ const nv = S.view;
 /* ---------- メニュー（左から出る）。パソコンの広い画面では左にずっと出しておく ---------- */
 let dwFold = false; try { dwFold = localStorage.getItem('smr_dw') === '0'; } catch(e){}
 const isWide = () => innerWidth >= 1000;
-function pinDrawer(){ const d = $('#drawer'); if (!d) return; const w = !PINUI && isWide() && !!S.user && !dwFold;
-  document.body.classList.toggle('wide', w); document.body.classList.toggle('wideoff', !PINUI && isWide() && !!S.user && dwFold); d.classList.toggle('pin', w);
+function pinDrawer(){ const d = $('#drawer'); if (!d) return; const w = isWide() && !!S.user && !dwFold;
+  document.body.classList.toggle('wide', w); document.body.classList.toggle('wideoff', isWide() && !!S.user && dwFold); d.classList.toggle('pin', w);
   if (w) document.body.classList.remove('dwopen');
   if (w) { d.classList.remove('hidden'); d.classList.add('open'); d.setAttribute('aria-hidden', 'false'); }
   else if (!d.classList.contains('open') || d.dataset.was === 'pin') { d.classList.remove('open'); d.classList.add('hidden'); }
@@ -1724,7 +1674,6 @@ function openDrawer(){ if (isWide()) { dwFold = !dwFold; try { localStorage.setI
   const d = $('#drawer'); document.body.classList.add('dwopen'); d.classList.remove('hidden'); d.setAttribute('aria-hidden', 'false'); requestAnimationFrame(() => d.classList.add('open')); setTimeout(markStuck, 240); }
 function closeDrawer(){ const d = $('#drawer'); if (d.classList.contains('hidden') || d.classList.contains('pin')) return; document.body.classList.remove('dwopen'); setTimeout(markStuck, 240); d.classList.remove('open'); d.setAttribute('aria-hidden', 'true'); setTimeout(() => d.classList.add('hidden'), 220); }
 function render(){
-  try { pinSync(); } catch(e){}
   const main = $('#main');
   document.body.classList.toggle('loggedout', !S.user && !S.publicView);
   if (!S.user && !S.publicView) { $('#finder').classList.add('hidden'); $('#chronobar').classList.add('hidden'); $('#top').classList.add('hidden'); $('#askbar').classList.add('hidden'); if (S.view==='ai') S.view='album'; navOn(); return showLoginWall(); }
@@ -1841,32 +1790,6 @@ function renderHome(){
   document.getElementById('dwNav').innerHTML = `<button type="button" data-v="home"><span class="pic">${HOMEIC}</span><span>ホーム</span></button>`
     + L.map(([v, t, k]) => `<button type="button" data-v="${v}"${v==='doc'?' class="edonly"':''}><span class="pic">${ico(k)}</span><span>${v==='ot' ? 'その他の作品' : v==='pb' ? '画集・資料' : t}</span></button>`).join('')
     + `<button type="button" data-v="help" class="dwhelp"><span class="pic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.6M12 16.8v.2"/></svg></span><span>使い方</span></button>`; })();
-
-/* ===== Pinterest風のUI：上に「アイコン＋題名＋設定」とページのタブ、下に ホーム・探す・質問 ===== */
-const PINUI = true;
-(function(){ const T = [['home','ホーム'],['album','作品アルバム'],['list','作品リスト'],['ex','展覧会'],['pb','画集・資料'],['ot','その他の作品'],['chrono','年表'],['doc','書類'],['help','使い方']];
-  document.getElementById('ptTabs').innerHTML = T.map(([v, t]) => `<button type="button" data-v="${v}"${v==='doc'?' class="edonly"':''}>${t}</button>`).join('');
-  document.getElementById('ptBrand').onclick = () => window.scrollTo({top: 0, behavior: 'smooth'});
-  document.getElementById('ptGear').onclick = () => { if (!S.user) return openLogin(); openMe(); };
-  document.getElementById('ptSt').onclick = () => { const h = document.getElementById('abTitle'); if (h && h.classList.contains('st-upd')) h.click(); };
-  document.getElementById('pnHome').onclick = () => { if (S.aiOpen) closeAI(); goHome(); };
-  document.getElementById('pnSearch').onclick = () => { if (S.aiOpen) closeAI(); document.body.classList.add('searching'); document.getElementById('fsq').focus(); };
-  document.getElementById('pnChat').onclick = () => document.getElementById('fmAsk').click();
-  document.getElementById('fsq').addEventListener('input', e => document.body.classList.toggle('hasq', !!e.target.value));
-  addEventListener('resize', () => pinSync());
-  document.addEventListener('click', () => setTimeout(() => { try { pinSync(); } catch(e){} }, 80));
-})();
-function pinSync(){ const b = document.body, on = !!(S.user || S.publicView);
-  b.classList.toggle('pinui', PINUI && on);
-  const top = document.getElementById('pinTop'), nav = document.getElementById('pinNav'); if (!top) return;
-  top.classList.toggle('hidden', !on); nav.classList.toggle('hidden', !on);
-  const v = ['album','list'].includes(S.view) ? S.view : S.view;
-  top.querySelectorAll('.pttabs button').forEach(x => { const o = x.dataset.v === v; if (o && !x.classList.contains('on')) setTimeout(() => x.scrollIntoView({inline: 'center', block: 'nearest', behavior: 'smooth'}), 30); x.classList.toggle('on', o); });
-  document.getElementById('pnHome').classList.toggle('on', S.view === 'home' && !S.aiOpen);
-  document.getElementById('pnChat').classList.toggle('on', !!S.aiOpen);
-  b.classList.toggle('hasq', !!(document.getElementById('fsq') || {}).value);
-  document.documentElement.style.setProperty('--pinh', top.offsetHeight + 'px');
-}
 function goHome(){ hidePop(); closeAllPages(); S.view = 'home'; render(); window.scrollTo(0, 0); }
 function goTodo(k){
   closeAllPages();
@@ -4594,12 +4517,12 @@ function markStuck0(){ const hs = [...document.querySelectorAll('#main .cyh')]; 
   if (cur < 0 || window.scrollY < 5) { fx.classList.add('hidden'); return; } // 次の年はこの下に潜り込み、完全に重なった時点で入れ替わる
   const src = hs[cur], inner = fx.firstChild;
   if (inner.dataset.i !== String(cur)) { inner.innerHTML = src.innerHTML; inner.dataset.i = cur; }
-  const wide = !document.body.classList.contains('pinui'), tb = document.querySelector('#top .appbar h1');
+  const wide = true, tb = document.querySelector('#top .appbar h1');
   fx.classList.toggle('side', wide);
   if (wide && tb) { const r = tb.getBoundingClientRect(); fx.style.top = r.top + 'px'; fx.style.setProperty('--abh', r.height + 'px'); inner.style.setProperty('padding-left', r.right + 'px', 'important'); } // パソコン：ページ名の右に並べる
   else { fx.style.top = t + 'px'; inner.style.setProperty('padding-left', Math.max(0, src.getBoundingClientRect().left) + 'px', 'important'); }
   src.style.visibility = 'hidden'; fx.classList.remove('hidden'); }
-function stkTop(){ const ab = document.body.classList.contains('pinui') && !document.body.classList.contains('pgopen') ? document.getElementById('pinTop') : document.querySelector('#top .appbar'); const b = ab ? Math.max(0, ab.getBoundingClientRect().bottom + 6) : 0; document.documentElement.style.setProperty('--stk', b + 'px'); document.documentElement.style.setProperty('--stkx', '0px');  markStuck(); }
+function stkTop(){ const ab = document.querySelector('#top .appbar'); const b = ab ? Math.max(0, ab.getBoundingClientRect().bottom + 6) : 0; document.documentElement.style.setProperty('--stk', b + 'px'); document.documentElement.style.setProperty('--stkx', '0px');  markStuck(); }
 window.addEventListener('resize', () => stkTop());
 function wtTop(){ const h = $('#wthd'); if (!h) return; const ab = document.querySelector('#top .appbar'); h.style.top = (ab ? Math.max(0, ab.getBoundingClientRect().bottom + 6) : 0) + 'px'; h.style.paddingTop = '0px'; }
 addEventListener('scroll', () => { if ($('#wthd')) requestAnimationFrame(wtTop); }, {passive:true});
@@ -4638,5 +4561,5 @@ function mcard(w){
     </div></button>`;
 }
 </script>
-</body>
+<script>try{checkBuild=function(){}}catch(e){}</script></body>
 </html>
