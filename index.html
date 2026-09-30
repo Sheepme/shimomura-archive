@@ -1120,7 +1120,7 @@ nav.fmask .ic svg{width:26px;height:26px}
 
 /* ---------- iPhoneのホーム画面アプリ：上の白い帯とぼかしの下に、大事なものを置かない ---------- */
 :root{--cap:0px}
-html.sa{--cap:42px}
+html.sa{--cap:env(safe-area-inset-top,0px)} /* 上の余白は画面の切り欠きの分だけ（すき間は作らない） */
 html.sa body{padding-top:0}
 html.sa header{top:0;padding-top:calc(var(--cap) + 14px)}
 html.sa main,html.sa .home{scroll-margin-top:var(--cap)}
@@ -1173,6 +1173,8 @@ header{background:var(--glass);-webkit-backdrop-filter:saturate(160%) blur(16px)
 .cbask .ic{display:flex}.cbask .ic svg{width:22px;height:22px;fill:#fff}
 .cbask.on{background:var(--ink);color:var(--bg)}
 body.briefing .cbar,body.loggedout .cbar{display:none}
+/* キーボードが出ている間は、下の検索欄をキーボードのすぐ上に置く */
+body.kbopen .cbar{top:calc(var(--vvt,0px) + var(--vvh,100%) - 62px);bottom:auto;transition:none}
 .page::after{content:'';display:block;height:calc(84px + env(safe-area-inset-bottom))}
 /* メニュー（左から） */
 :root{--dww:min(300px,80vw)}
@@ -1284,7 +1286,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '5d89077156', APP_URL = location.origin + location.pathname;
+const BUILD = '3cb40a0177', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3752,7 +3754,7 @@ $('#fsq').addEventListener('keydown', e => { if (e.key==='Enter' && !e.isComposi
 /* 下の検索欄：押したら、そのページで探す（探せないページなら作品アルバムに移る） */
 $('#fsq').addEventListener('focus', () => { closeDrawer(); if (S.aiOpen) closeAI(); const pgOpen = !$('#page').classList.contains('hidden'); if (pgOpen) closeAllPages();
   if (!SQ[S.view]) { S.view = S.wmode || 'album'; S.limit = 60; render(); window.scrollTo(0, 0); } else if (pgOpen) render();
-  const s = SQ[S.view]; $('#fsq').placeholder = s[1]; });
+  const s = SQ[S.view]; $('#fsq').placeholder = s[1]; $('#top').classList.remove('tuck'); });
 $('#fsq').addEventListener('input', e => $('#fsqClose').classList.toggle('hidden', !e.target.value));
 
 /* ---------- イベント ---------- */
@@ -3888,7 +3890,8 @@ $('#askq').addEventListener('keydown', e => { if (e.key==='Enter' && !e.shiftKey
 (function(){
   const vv = window.visualViewport; if (!vv) return;
   const root = document.documentElement;
-  const fit = () => { root.style.setProperty('--vvh', vv.height + 'px'); root.style.setProperty('--vvt', vv.offsetTop + 'px'); };
+  const fit = () => { root.style.setProperty('--vvh', vv.height + 'px'); root.style.setProperty('--vvt', vv.offsetTop + 'px');
+    const kb = innerHeight - vv.height > 120; document.body.classList.toggle('kbopen', kb); }; // キーボードが出ているか
   vv.addEventListener('resize', () => { fit();
     const a = document.activeElement;
     if (a && a.closest && a.closest('.sheet .box') && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) setTimeout(() => a.scrollIntoView({block:'center'}), 60);
