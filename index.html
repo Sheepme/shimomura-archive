@@ -1255,6 +1255,7 @@ html[data-theme=dark] .appbar .abtn,html[data-theme=dark] .appbar h1:not(.st-bus
 /* 画面のいちばん上（時計の下〜上のボタンのあたり）は、どのページでも地の色でうっすらぼかす（上端が暗いグラデーションにならないように） */
 body::before{content:'';position:fixed;left:0;right:0;top:0;height:calc(var(--tb) + var(--cap) + 64px);z-index:34;pointer-events:none;background:color-mix(in srgb,var(--bg) 55%,transparent);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 18px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 18px),transparent)}
 body.loggedout::before{display:none}
+#sbSample{position:fixed;top:0;left:0;right:0;height:1px;background-color:var(--bg);z-index:10002;pointer-events:none}
 /* 年表・展覧会の「年」：ガラスのボタン＋画面いっぱいの線を、上のボタンのすぐ下にいっしょに固定。止まっている間は線より上をぼかす */
 html,body{overflow-x:clip}
 .cy{grid-template-columns:1fr!important;gap:10px!important;padding-top:10px!important;margin-top:18px!important;border-top:0!important}
@@ -1338,6 +1339,7 @@ html.sa.tb header{padding-top:calc(var(--cap) + 4px - var(--tb))}
 </head>
 <body>
 
+<div id="sbSample" aria-hidden="true"></div><!-- iPhoneはいちばん上の要素の背景色で上端の色を決めるので、画面の地の色を置いておく -->
 <header id="top">
   <div class="brand appbar">
     <button type="button" class="abtn" id="btnMenu" aria-label="メニューを開く"><img class="abapp" src="icon.jpg" alt="" aria-hidden="true"></button>
@@ -1400,7 +1402,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '9d0792300e', APP_URL = location.origin + location.pathname;
+const BUILD = '243b158cc4', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1422,6 +1424,10 @@ function call(fn, ...args){
 }
 function busy(on, text){ $('#loading').innerHTML = '<span class="ldsp"></span>' + esc(text || '読み込み中…'); $('#loading').classList.toggle('hidden', !on); tbSync(); }
 function tbSync(){ abRender(); }
+/* 上端（ステータスバー）の色を画面の地の色にそろえる */
+function syncThemeColor(){ let m = document.querySelector('meta[name="theme-color"]'); if (!m) { m = document.createElement('meta'); m.name = 'theme-color'; document.head.appendChild(m); }
+  m.content = getComputedStyle(document.body).backgroundColor || '#faf9f5'; }
+setTimeout(syncThemeColor, 0); new MutationObserver(syncThemeColor).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
 /* お知らせ（読み込み中・保存しました・新しい版）は、上のページ名のところに色を変えて出す */
 function setTitle(t){ const h = $('#abTitle'); if (!h) return; h.dataset.t = t; abRender(); }
 function abRender(){ const h = $('#abTitle'); if (!h) return;
