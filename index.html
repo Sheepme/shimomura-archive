@@ -804,6 +804,7 @@ body.briefing nav.fmenu{display:none}
 .ivq{display:flex;gap:10px;align-items:flex-start;margin:14px 0 8px;font-size:19px;line-height:1.6;font-weight:600}.ivq .aiav{flex:none;width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#6d5bf5,#2aa7c4);color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center}
 .ivdots{color:var(--sub);font-style:normal}.iva{margin:0 0 8px 44px;background:var(--wash);border-radius:14px;padding:10px 14px;font-size:16px}
 .ivhear{text-align:center;color:#e0564c;font-weight:700;margin:6px 0}
+.srlive{margin:6px 0 12px;padding:14px 16px;border-radius:16px;border:2px dashed #e0564c;font-size:22px;font-weight:700;line-height:1.5;min-height:58px;color:var(--mut,#888);text-align:left;word-break:break-all}.srlive.qz{display:none}.srlive.qz.on{display:block}.srlive.on{color:var(--ink);border-style:solid;background:rgba(224,86,76,.08)}
 .ivbar{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:12px}
 .ivmic{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:96px;height:96px;border-radius:50%;border:0;background:linear-gradient(135deg,#6d5bf5,#2aa7c4);color:#fff;font-size:40px;box-shadow:0 10px 26px -8px rgba(80,70,220,.55)}
 .ivmic b{font-size:14px}.ivmic.on{background:#e0564c;animation:ivp 1.2s ease-in-out infinite}.ivmic:disabled{opacity:.5}
@@ -1112,7 +1113,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '01b1647d16', APP_URL = location.origin + location.pathname;
+const BUILD = '74e705762c', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1661,18 +1662,30 @@ function say(t, onEnd){
   if (!QV.tts) { if (onEnd) setTimeout(onEnd, 50); return; } sayStop();
   if (!S.ai || ttsBad >= 3 || !TTSA) return sayOS(t, onEnd);
   const my = ttsSeq; let done = false;
-  const fb = setTimeout(() => { if (!done && my===ttsSeq) { done = true; sayOS(t, onEnd); } }, 7000);
+  const fb = setTimeout(() => { if (!done && my===ttsSeq) { done = true; sayOS(t, onEnd); } }, 12000);
   ttsGet(t).then(u => { if (done || my!==ttsSeq) return; done = true; clearTimeout(fb); ttsBad = 0; TTSA.onended = () => { if (my===ttsSeq && onEnd) onEnd(); }; TTSA.src = u; try { TTSA.playbackRate = 1.12; } catch(e){} TTSA.play().catch(() => sayOS(t, onEnd)); })
     .catch(() => { ttsBad++; if (!done && my===ttsSeq) { done = true; clearTimeout(fb); sayOS(t, onEnd); } });
 }
+const MIC = { r: null };
+/** マイクを止める（quiet=true：次の聞き取りの前に止めるだけ） */
+function stopMic(quiet){ const r = MIC.r; if (!r) return; MIC.r = null; r.__killed = true; try { r.abort(); } catch(e){}
+  if (!quiet && IV) { IV.listening = false; try { ivDraw(); } catch(e){} } const b = $('#qzMic'); if (b) b.classList.remove('on'); }
+// アプリが最前面でなくなったら、マイクと読み上げを止める（切り忘れ防止）
+document.addEventListener('visibilitychange', () => { if (document.visibilityState !== 'visible') { stopMic(); sayStop(); } });
+addEventListener('pagehide', () => { stopMic(); sayStop(); });
 function listen(onText, onDone, auto){
   if (!SR || !QV.micOk) return false;
   sayStop();
-  const r = new SR(); r.lang = 'ja-JP'; r.interimResults = false; r.maxAlternatives = 1;
+  stopMic(true);
+  const r = new SR(); r.lang = 'ja-JP'; r.interimResults = true; r.maxAlternatives = 1; MIC.r = r;
   const b = $('#qzMic'); if (b) b.classList.add('on');
-  r.onresult = e => onText(e.results[0][0].transcript || '');
+  let fin = false, last = '';
+  const live = t => document.querySelectorAll('.srlive').forEach(el => { el.textContent = t || '…'; el.classList.toggle('on', !!t); });
+  r.onresult = e => { let t = ''; for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript || ''; last = t; live(t);
+    if (e.results[e.results.length - 1].isFinal && !fin) { fin = true; try { r.stop(); } catch(x){} onText(t); } };
   r.onerror = e => { if (auto && (e.error==='not-allowed' || e.error==='service-not-allowed')) { if (IV) { IV.listening = false; ivDraw(); } toast('🎤ボタンを押して話してね'); return; } if (e.error==='not-allowed' || e.error==='service-not-allowed') { QV.micOk = false; if (IV) ivDraw(); else qzDraw(); toast('マイクが使えません。ボタンか、キーボードのマイクで答えてください'); } else toast('聞き取れませんでした。もう一度どうぞ'); };
-  r.onend = () => { const b = $('#qzMic'); if (b) b.classList.remove('on'); if (onDone) onDone(); };
+  r.onend = () => { if (MIC.r === r) MIC.r = null; const b = $('#qzMic'); if (b) b.classList.remove('on');
+    if (!fin && last && !r.__killed) { fin = true; onText(last); } if (onDone && !r.__killed) onDone(); };
   try { r.start(); } catch(e){ return false; }
   return true;
 }
@@ -1701,7 +1714,7 @@ function startQuiz(first, nos){
   if (window.speechSynthesis) { try { speechSynthesis.speak(new SpeechSynthesisUtterance('')); } catch(e){} } /* iPhone：最初のタップで声を使えるようにする */
   qzDraw(true);
 }
-function endQuiz(){ const el = $('#quiz'); if (el) el.classList.add('hidden'); document.body.style.overflow = ''; sayStop(); Q = null; refreshData().catch(() => {}); }
+function endQuiz(){ stopMic(); const el = $('#quiz'); if (el) el.classList.add('hidden'); document.body.style.overflow = ''; sayStop(); Q = null; refreshData().catch(() => {}); }
 function qzHead(no, small){ const w = workOf(no) || {}, ph = photoBy[no] || [];
   return `<div class="qzmedia ${small?'sm':''}">${ph.length ? thImg(ph[0]['ファイルID'], 800) : `<div class="qznoph"><b>${esc(w['作品名'] || '無題')}</b><small>写真はまだありません</small></div>`}</div>
     <div class="qztitle"><b>${esc(w['作品名'] || '無題')}</b><span>No.${esc(no)}${w['制作年'] ? '・' + esc(w['制作年']) : ''}</span></div>`; }
@@ -1717,7 +1730,7 @@ function qzDraw(speak){
     <span class="qzstar">⭐ 今日 ${QZSTAT().n}問</span>
     <button type="button" class="qztts ${QV.tts?'on':''}" data-qz="tts" aria-label="読み上げ">${QV.tts ? '🔊' : '🔈'}</button></div>
     <div class="qzsegs">${segs}</div>`;
-  const mic = QV.micOk ? `<button type="button" class="qzmic" id="qzMic" data-qz="mic">🎤 声で答える</button>` : '';
+  const mic = QV.micOk ? `<button type="button" class="qzmic" id="qzMic" data-qz="mic">🎤 声で答える</button><div class="srlive qz"></div>` : '';
   let body = '';
   if (Q.mode==='done' || !s) {
     const S_ = Q.sum; Q.mode = 'done';
@@ -1926,7 +1939,7 @@ function ivBegin(list){
 function ivReset(){ Object.assign(IV, { hist: [], pend: [], eps: [], qa: [], mode: 'confirm', busy: false, listening: false, text: !(SR && QV.micOk), last: '', q: '', lq: '' }); }
 function ivConfirm(){ IV.mode = 'confirm'; IV.last = ''; ivDraw(); const w = workOf(IV.list[IV.wi]) || {};
   ivSpeak('この絵について聞いてもいい？' + (hasName(w) ? '「' + w['作品名'] + '」だよ。' : ''), '', () => { if (IV && IV.mode==='confirm' && !IV.text) ivListen(true); }); }
-function endInterview(){ sayStop(); const el = $('#quiz'); if (el) el.classList.add('hidden'); document.body.style.overflow = ''; IV = null; }
+function endInterview(){ stopMic(); sayStop(); const el = $('#quiz'); if (el) el.classList.add('hidden'); document.body.style.overflow = ''; IV = null; }
 function ivCur(no, f){ const w = workOf(no) || {}; if (f==='サイズ') return (w['幅cm']||w['高さcm']) ? `幅${w['幅cm']||'?'} × 高さ${w['高さcm']||'?'} cm` : '';
   if (f==='場所') return w['所在区分']==='不明' ? '' : (w['所在'] || w['所在区分'] || ''); return w[f] || ''; }
 function ivPendFor(f){ const m = { 'サイズ': ['幅cm','高さcm'], '場所': ['所在区分','所在'] }[f] || [f]; return IV.pend.filter(p => m.includes(p.f) && p.on); }
@@ -1969,7 +1982,7 @@ function ivDraw(){
     body = `<div class="ivmain"><span class="aiav">AI</span><div class="ivqt">この絵について聞いてもいい？</div></div>
       ${qzHead(no, true)}
       <div class="ivopts"><button class="qzwide yes" data-iv="ok">◯ この絵でいい</button><button class="qzwide" data-iv="other">別の絵にする ›</button><button class="qzwide" data-iv="list">一覧から選ぶ</button></div>
-      ${IV.listening ? '<div class="ivhear">🎤 聞いてるよ…「いいよ」「別の絵」「一覧」</div>' : ''}`;
+      ${IV.listening ? '<div class="ivhear">🎤 聞いてるよ…「いいよ」「別の絵」「一覧」</div><div class="srlive">…</div>' : ''}`;
   } else if (IV.mode==='sum' || IV.mode==='saved') {
     const pd = IV.pend.filter(p => p.on), ep = IV.eps.filter(x => x.on);
     body = `<div class="ivmain"><div class="ivqt">${IV.mode==='saved' ? '保存したよ。ありがとう！' : pd.length || ep.length ? 'この内容で保存していい？' : '新しく分かったことはなかったよ'}</div></div>
@@ -1980,7 +1993,7 @@ function ivDraw(){
   } else {
     body = `<div class="ivmain"><span class="aiav">AI</span><div class="ivqt">${IV.busy ? '<i class="ivdots">考え中…</i>' : esc(IV.q)}</div></div>
       ${IV.last ? `<div class="iva">${esc(IV.last)}</div>` : ''}
-      ${IV.listening ? '<div class="ivhear">🎤 聞いてるよ… 話してね</div>' : ''}${tx}
+      ${IV.listening ? '<div class="ivhear">🎤 聞いてるよ… 話してね</div><div class="srlive">…</div>' : ''}${tx}
       <div class="ivbar">${mic}<div class="ivsub"><button class="qzlink" data-iv="unk" ${IV.busy ? 'disabled' : ''}>分からない</button>${modeBtn}<button class="qzlink" data-iv="fin">この絵は終わり ›</button></div></div>
       ${ivWorkCard(no)}`;
   }
@@ -3764,7 +3777,7 @@ function openAI(){
     .catch(() => { if (!S.conv) S.conv = newConv(); }); }
   if (matchMedia('(pointer:fine)').matches) setTimeout(() => $('#askq').focus(), 50);
 }
-function closeAI(){ $('#aip').classList.add('hidden'); S.aiOpen = false; document.body.classList.remove('aiopen'); navOn(); }
+function closeAI(){ stopMic(); $('#aip').classList.add('hidden'); S.aiOpen = false; document.body.classList.remove('aiopen'); navOn(); }
 document.addEventListener('keydown', e => { if (e.key==='Escape' && S.aiOpen && $('#sheet').classList.contains('hidden')) closeAI(); });
 
 /* ---------- スマホ：カード型の作品リスト（表の情報を3〜4行にまとめる） ---------- */
