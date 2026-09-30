@@ -953,6 +953,7 @@ body.briefing nav.fmenu{display:none}
 .dwchk .mgck{flex:none;width:24px;height:24px;border-radius:7px;border:1.5px solid var(--line);color:transparent;display:flex;align-items:center;justify-content:center;font-weight:800}
 .dwchk:has(input:checked){border-color:#c0392b}.dwchk:has(input:checked) .mgck{background:#c0392b;border-color:#c0392b;color:#fff}
 #vcopy{position:absolute;top:190px;right:14px;z-index:2;border:1px solid var(--line);background:var(--paper);padding:8px 14px;font-size:14px;border-radius:999px;color:var(--warn)}
+.candbtn{width:100%;margin:8px 0 4px}.candgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;max-height:46vh;overflow-y:auto;margin:6px 0 12px}.candp{display:flex;flex-direction:column;gap:4px;padding:4px;border:2px solid transparent;border-radius:10px;background:var(--wash);color:var(--ink)}.candp img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;background:var(--line)}.candp small{font-size:11px;color:var(--sub);word-break:break-all}.candp.on{border-color:var(--ink);box-shadow:0 0 0 2px var(--ink) inset}
 .phhid{display:flex;align-items:center;justify-content:center;text-align:center;width:100%;height:100%;min-height:80px;background:var(--wash);color:var(--sub);font-size:12px;line-height:1.5}
 #vmain{position:absolute;top:146px;right:14px;z-index:2;border:1px solid var(--line);background:var(--paper);padding:8px 14px;font-size:14px;border-radius:999px;color:#b07a10}
 #vmain:disabled{opacity:1;background:#f2b33d;color:#fff;border-color:#f2b33d}
@@ -1174,7 +1175,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '7d8fc97941', APP_URL = location.origin + location.pathname;
+const BUILD = 'c6ae17418f', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1295,7 +1296,7 @@ function filtered(){
 }
 /* ---------- 写真（サーバー経由で読み込む） ---------- */
 const TH = {}; let thQueue = new Map(), thTimer = null;
-const HIDPH = id => !canEdit() && S.photos && (S.photos.find(p => p['ファイルID']===id) || {})['メモ'] && /^転載元：.*｜非表示$/.test(S.photos.find(p => p['ファイルID']===id)['メモ']);
+const HIDPH = id => !canEdit() && S.photos && /^転載元：[^｜]*｜[^｜]*｜非表示/.test((S.photos.find(p => p['ファイルID']===id) || {})['メモ'] || '');
 const thImg = (id, w, cls) => HIDPH(id) ? '<div class="phhid">© 著作物のため<br>非表示</div>' : thImg0(id, w, cls);
 const thImg0 = (id, w, cls) => TH[w+'_'+id] ? `<img src="${TH[w+'_'+id]}" alt="" class="${cls||''}">` : `<img data-tid="${esc(id)}" data-w="${w}" alt="" class="${cls||''}">`;
 const io = ('IntersectionObserver' in window) ? new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting){ io.unobserve(en.target); queueThumb(en.target); } }), {rootMargin:'400px'}) : null;
@@ -1576,8 +1577,10 @@ async function evMergeRun(pairs, pick){
 }
 /* ---- 美術館などが撮影した画像（著作物）：メモ「転載元：館名｜URL｜非表示」 ----
    ・写真に「© 館名」を常に表示　・AI（写真の向きの判定など）に送らない　・「非表示」なら閲覧だけの人には出さない */
-function copyOf(p){ const m = /^転載元：(.*)$/.exec(String((p||{})['メモ']||'')); if (!m) return null; const [mu, u, h] = m[1].split('｜'); return { mu: mu||'', u: u||'', hide: h === '非表示' }; }
-function copyMemo(mu, u, hide){ mu = String(mu||'').replace(/｜/g, ' ').trim(); u = String(u||'').replace(/｜/g, '').trim(); return '転載元：' + mu + (u || hide ? '｜' + u : '') + (hide ? '｜非表示' : ''); }
+function copyOf(p){ const m = /^転載元：(.*)$/.exec(String((p||{})['メモ']||'')); if (!m) return null; const [mu, u, h, n] = m[1].split('｜'); return { mu: mu||'', u: u||'', hide: h === '非表示', n: n||'' }; }
+/* メモの形：転載元：名前｜出典URL｜非表示｜管理番号（後ろの3つは省略できる） */
+function copyMemo(mu, u, hide, n){ const cl = v => String(v||'').replace(/｜/g, ' ').trim(); mu = cl(mu); u = cl(u); n = cl(n);
+  const parts = [mu, u, hide ? '非表示' : '', n]; while (parts.length > 1 && !parts[parts.length - 1]) parts.pop(); return '転載元：' + parts.join('｜'); }
 const COPY_SHOW = ['家族みんなに見せる', '編集できる人だけ'];
 const copyFields = c => `${F('撮影した美術館・所蔵先の名前（必須）', inp('cmu', c ? c.mu : ''))}${F('出典のページ（あれば）', inp('curl', c ? c.u : ''))}${F('見せる範囲', pick('chide', COPY_SHOW, c && c.hide ? COPY_SHOW[1] : COPY_SHOW[0]))}
   <p class="hint">写真に「© 名前」が常に表示され、AIには送りません。「編集できる人だけ」にすると、閲覧だけの家族には写真の代わりに「著作物のため非表示」と出ます。</p>`;
@@ -1586,8 +1589,30 @@ function sheetCopy(p){
   openSheet(`<h3>著作物の設定</h3><p class="hint">美術館などが撮影した画像は、著作物として扱います。</p>${copyFields(c)}
     <div class="btns">${c ? '<button type="button" id="cOff">著作物の設定を外す</button>' : '<button type="button" data-close>やめる</button>'}<button type="button" class="primary" id="cOk">保存</button></div>`);
   $('#cOk').onclick = () => { const mu = val('cmu'); if (!mu) return alert('美術館・所蔵先の名前を入れてください');
-    save('replacePhoto', [p['写真ID'], '', '', '', copyMemo(mu, val('curl'), val('chide') === COPY_SHOW[1])], '著作物として設定しました'); };
+    save('replacePhoto', [p['写真ID'], '', '', '', copyMemo(mu, val('curl'), val('chide') === COPY_SHOW[1], c && c.n)], '著作物として設定しました'); };
   if ($('#cOff')) $('#cOff').onclick = () => { if (!confirm('著作物の設定を外しますか？')) return; save('replacePhoto', [p['写真ID'], '', '', '', ''], '著作物の設定を外しました'); };
+}
+/* ---- 候補フォルダ（思文閣などから届いた写真）から選んで作品に登録する ---- */
+async function sheetCand(no){
+  busy(true, '写真の候補を読み込んでいます…');
+  let list = [];
+  try { list = await call('candPhotos'); } catch(e){ busy(false); return alert('読み込めませんでした。\n' + (e.message||e)); }
+  busy(false);
+  const sel = new Set();
+  openSheet(`<h3>届いた写真から選ぶ</h3><p class="hint">No.${esc(no)} の写真を選んでください（何枚でも）。まだどの作品にも入っていない写真だけ出ています（${list.length}枚）。</p>
+    ${list.length ? `<div class="search"><input id="cq" type="search" placeholder="番号で探す（例：241216-174）"></div><div class="candgrid">${list.map(p => `<button type="button" class="candp" data-cid="${esc(p.id)}" data-name="${esc(p.name)}">${thImg(p.id, 400)}<small>${esc(p.name)}</small></button>`).join('')}</div>` : '<p class="muted">候補の写真はありません。</p>'}
+    ${F('どこを写した？', pick('ck', ['表','裏','落款・サイン','部分','展示のようす'], '表'))}
+    ${F('見せる範囲', pick('chide2', COPY_SHOW, COPY_SHOW[0]))}
+    <p class="hint">ギャラリーが撮影した写真なので、著作物として登録します（写真に「© 思文閣」と表示し、AIには送りません。思文閣の管理番号も一緒に残します）。</p>
+    <div class="btns"><button type="button" data-close>やめる</button><button type="button" class="primary" id="cGo" disabled>選んだ写真を登録</button></div>`);
+  hydrate($('#sheetbox'));
+  const upd = () => { $('#cGo').disabled = !sel.size; $('#cGo').textContent = sel.size ? sel.size + '枚を登録' : '選んだ写真を登録'; };
+  document.querySelectorAll('.candp').forEach(b => b.onclick = () => { const id = b.dataset.cid; sel.has(id) ? sel.delete(id) : sel.add(id); b.classList.toggle('on', sel.has(id)); upd(); });
+  if ($('#cq')) $('#cq').oninput = e => { const q = e.target.value.trim(); document.querySelectorAll('.candp').forEach(b => b.style.display = !q || b.dataset.name.includes(q) ? '' : 'none'); };
+  $('#cGo').onclick = () => { if (!sel.size) return;
+    const folder = (list.find(p => sel.has(p.id)) || {}).folder || '';
+    const who = /思文閣/.test(folder) ? '思文閣' : 'ギャラリー';
+    save('linkPhotos', [no, [...sel], val('ck'), copyMemo(who, '', val('chide2') === COPY_SHOW[1], '{name}')], sel.size + '枚の写真を登録しました'); };
 }
 const docsOf = st => (S.docs||[]).filter(d => d['状態']===st);
 const docPages = d => String(d['ファイルID']||'').split(',').filter(Boolean);
@@ -2971,7 +2996,7 @@ const creditHTML = ph => [...new Set((ph||[]).map(p => String(p['メモ']||'')).
 function showV(){ const p = V.list[V.i]; if (!p) return;
   const k = (TH['3200_' + p['ファイルID']] ? '3200_' : '1600_') + p['ファイルID']; $('#vimg').removeAttribute('src'); $('#vimg').style.transform = '';
   if (TH[k]) $('#vimg').src = TH[k]; else call('getThumbs', [p['ファイルID']], 1600).then(m => { if (m[p['ファイルID']]) { TH[k] = m[p['ファイルID']]; if (V.list[V.i] === p) $('#vimg').src = TH[k]; } });
-  $('#vcount').textContent = (V.i+1) + ' / ' + V.list.length + '　' + (p['種類']||'') + (/^【仮】/.test(p['メモ']||'') ? '・仮' : '');
+  $('#vcount').textContent = (V.i+1) + ' / ' + V.list.length + '　' + (p['種類']||'') + (/^【仮】/.test(p['メモ']||'') ? '・仮' : '') + (copyOf(p) && copyOf(p).n ? '・' + copyOf(p).mu + ' ' + copyOf(p).n : '');
   $('#vcredit').innerHTML = creditHTML([p]); $('#vwm').innerHTML = wm(p).replace(/<\/?span[^>]*>/g, '');
   const isW = S.cur && workOf(S.cur), isMain = V.i===0; $('#vmain').classList.toggle('hidden', !canEdit() || !isW || V.list.length < 2 || !p['写真ID']); $('#vmain').textContent = isMain ? '★ メイン画像' : '☆ メイン画像にする'; $('#vmain').disabled = isMain;
   $('#vcopy').classList.toggle('hidden', !canEdit() || !p['写真ID']); $('#vcopy').textContent = copyOf(p) ? '© 著作物（' + copyOf(p).mu + '）' : '© 著作物の設定';
@@ -3338,6 +3363,7 @@ function sheetPhoto(no, replaceId){
   const isTmp = old && /^【仮】/.test(old['メモ']||'');
   openSheet(`<h3>${old ? '写真を差し替える' : '写真を追加'}</h3><p class="hint">No.${esc(no)}　${old ? '新しい写真を撮るか選んでください。元の写真もドライブに残ります' : 'カメラで撮るか、写真の中から選んでください'}</p>
     ${photoInputs(!old)}
+    ${!old ? `<button type="button" class="act candbtn" id="pCand">🖼 思文閣などから届いた写真から選ぶ</button>` : ''}
     ${F('どこを写した？', pick('pk', ['表','裏','落款・サイン','部分','展示のようす'], old ? old['種類'] : '表'))}
     ${F('だれが撮った写真？', pick('pwho', ['家族が撮った','美術館など（著作物）'], old && copyOf(old) ? '美術館など（著作物）' : '家族が撮った'))}
     <div id="pcopy" style="${old && copyOf(old) ? '' : 'display:none'}">${copyFields(old && copyOf(old))}</div>
@@ -3346,6 +3372,7 @@ function sheetPhoto(no, replaceId){
     ${BTNS('写真を保存')}`);
   let data = null, list = [];
   bindPhoto((d, cam, l) => { data = d; list = l || []; if (cam) setPick('ptmp', 'はい（仮の写真）'); });
+  if ($('#pCand')) $('#pCand').onclick = () => { closeSheet(); setTimeout(() => sheetCand(no), 300); };
   $('#pwho').addEventListener('click', () => setTimeout(() => { const cp = val('pwho') !== '家族が撮った'; $('#pcopy').style.display = cp ? '' : 'none'; $('#pfam').style.display = cp ? 'none' : ''; }, 0));
   $('#ok').onclick = async () => {
     if (!data) return alert('写真を撮るか選んでください');
