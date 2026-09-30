@@ -1236,8 +1236,9 @@ body:has(#viewer:not(.hidden)) .appbar,body:has(.docview) .appbar,body.kbopen:ha
 body.kbopen .sheet .box{max-height:calc(var(--vvh,100vh) - 12px)}
 @media(max-width:700px){ .aip,html.sa .aip{top:calc(var(--tb) + var(--cap) + 68px)} }
 /* Claudeのアプリと同じ：半透明のガラス（後ろがぼける）＋うっすら光る縁 */
-:root{--gl:rgba(255,255,255,.86);--gl-b:rgba(20,20,19,.08);--gl-s:0 8px 28px -8px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.8)}
-html[data-theme=dark]{--gl:rgba(52,52,50,.88);--gl-b:rgba(255,255,255,.14);--gl-s:0 10px 30px -8px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.08)}
+:root{--gl:rgba(255,255,255,.86);--gl-b:rgba(20,20,19,.08);--gl-s:0 0 14px rgba(0,0,0,.12)}
+html[data-theme=dark]{--gl:rgba(52,52,50,.88);--gl-b:rgba(255,255,255,.14);--gl-s:0 0 16px rgba(0,0,0,.45)}
+/* 影は上下左右に均等（下にずれて見えないように）、上のふちの光も付けない */
 .glass,.appbar .abtn,.appbar h1,.appbar .avatar,.cbin,.cbask{-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px)}
 .glass,.appbar .abtn,.appbar h1,.appbar .avatar,.cbin{background:var(--gl)!important;border:1px solid var(--gl-b)!important;box-shadow:var(--gl-s)!important;color:var(--ink)}
 /* 上のボタンは、より透けて・より強くぼかす */
@@ -1384,7 +1385,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'f014c547b2', APP_URL = location.origin + location.pathname;
+const BUILD = '627ebf6800', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
