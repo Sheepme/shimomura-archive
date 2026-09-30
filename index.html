@@ -1236,6 +1236,18 @@ html[data-theme=dark]{--gl:rgba(52,52,50,.88);--gl-b:rgba(255,255,255,.14);--gl-
 .appbar .brandr{width:52px;visibility:hidden;pointer-events:none} /* 名前はメニューのいちばん下に移した（ここは左右のバランス用） */
 .appbar .avatar{width:52px;height:52px;font-size:17px}
 body.dwopen .appbar{translate:var(--dww) 0}
+/* 上の帯は使わず、ページ名のボタンの色と文字でお知らせする */
+html.tb{--tb:0px!important}
+.tmsg,.updbar{display:none!important}
+.loading{height:0!important;padding:0!important;background:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;font-size:0!important;overflow:visible;box-shadow:none}
+.loading::after,.loading .ldsp{display:none!important}
+.appbar h1.st-busy,.appbar h1.st-ok,.appbar h1.st-upd{color:#fff!important;border-color:transparent!important;gap:8px;font-size:14.5px;transition:background .2s}
+.appbar h1.st-busy{background:rgba(217,119,40,.92)!important}
+.appbar h1.st-ok{background:rgba(61,138,92,.92)!important}
+.appbar h1.st-upd{background:rgba(214,78,58,.94)!important}
+.appbar h1.st-busy::before{content:'';width:14px;height:14px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:ldspin .8s linear infinite;flex:none}
+.appbar h1.st-ok::before{content:'✓';font-weight:700}
+.appbar h1.st-upd::before{content:'↻';font-weight:700;font-size:17px}
 @media(min-width:1000px){ body.wide .appbar{left:calc(264px + 10px)} }
 
 /* パソコン（広い画面）：左にメニューを常に表示し、中身はその右に */
@@ -1320,7 +1332,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '3148507189', APP_URL = location.origin + location.pathname;
+const BUILD = 'fde9d61dfe', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1341,7 +1353,16 @@ function call(fn, ...args){
   return new Promise((ok, ng) => google.script.run.withSuccessHandler(ok).withFailureHandler(ng)[fn](...args));
 }
 function busy(on, text){ $('#loading').innerHTML = '<span class="ldsp"></span>' + esc(text || '読み込み中…'); $('#loading').classList.toggle('hidden', !on); tbSync(); }
-function tbSync(){ document.documentElement.classList.toggle('tb', !$('#loading').classList.contains('hidden') || !$('#toast').classList.contains('hidden') || !!$('#updBar')); }
+function tbSync(){ abRender(); }
+/* お知らせ（読み込み中・保存しました・新しい版）は、上のページ名のところに色を変えて出す */
+function setTitle(t){ const h = $('#abTitle'); if (!h) return; h.dataset.t = t; abRender(); }
+function abRender(){ const h = $('#abTitle'); if (!h) return;
+  const ld = $('#loading'), ts = $('#toast'), up = $('#updBar');
+  let st = '', tx = h.dataset.t || '';
+  if (ld && !ld.classList.contains('hidden')) { st = 'busy'; tx = ld.textContent.trim() || '読み込み中…'; }
+  else if (ts && !ts.classList.contains('hidden')) { st = 'ok'; tx = ts.textContent.trim(); }
+  else if (up) { st = 'upd'; tx = up.classList.contains('go') ? '更新しています…' : '押して新しい版に更新'; }
+  h.className = st ? 'st-' + st : ''; h.textContent = tx; }
 /* お知らせ（保存しました など）も、読み込み中と同じ上の帯で出す（緑） */
 function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.remove('hidden'); tbSync(); clearTimeout(toast._t); toast._t=setTimeout(()=>{ el.classList.add('hidden'); tbSync(); },2600); }
 const OTRE = /^[YHZ]\d{3,}$/;
@@ -1506,7 +1527,7 @@ function navOn(){ const nv = S.view;
   $('#nav').classList.toggle('hidden', !S.user); $('#navAsk').classList.toggle('hidden', !S.user);
   if (document.body.classList.contains('pgopen')) return;
   const TT = {home:'ホーム', album:'作品アルバム', list:'作品リスト', ot:'その他の作品', ex:'展覧会', pb:'画集・資料', chrono:'年表', doc:'書類', ai:'作品目録AI'};
-  $('#abTitle').textContent = TT[nv] || '作品目録';
+  setTitle(TT[nv] || '作品目録');
   document.querySelectorAll('#dwNav button').forEach(b => b.classList.toggle('on', b.dataset.v===nv));
   let sq = null; try { sq = SQ[nv]; } catch(e){}
   const fi = $('#fsq'); if (fi && document.activeElement !== fi) { fi.placeholder = sq ? sq[1] : '作品を探す'; fi.value = sq ? (S[sq[0]] || '') : ''; $('#fsqClose').classList.toggle('hidden', !fi.value); } }
@@ -2904,7 +2925,7 @@ function abSync(){ const pg = $('#page'), open = !pg.classList.contains('hidden'
     if (['w','ot'].includes(tt)) { const w = workOf(id) || {}; nm = w['作品名'] || (isOtNo(id) ? (w['種別'] || 'その他') + '（名前なし）' : '無題'); }
     else if (tt==='ex') nm = (exById[id] || {})['名称'] || '';
     else if (tt==='pb') nm = (pbById[id] || {})['タイトル'] || '';
-    $('#abTitle').textContent = nm || T[tt] || ''; }
+    setTitle(nm || T[tt] || ''); }
   else navOn(); }
 function closeWork(fromHist){
   const pg = $('#page'), open = !pg.classList.contains('hidden');
@@ -3809,7 +3830,7 @@ $('#fsq').addEventListener('focus', () => { closeDrawer(); if (S.aiOpen) closeAI
   const s = SQ[S.view]; $('#fsq').placeholder = s[1]; $('#top').classList.remove('tuck'); scrollLock(true); document.body.classList.add('searching'); });
 $('#fsq').addEventListener('blur', () => { scrollLock(false); document.body.classList.remove('searching'); });
 /* 上のページ名を押すと、いちばん上までスクロール */
-$('#abTitle').addEventListener('click', () => { const pg = $('#page');
+$('#abTitle').addEventListener('click', () => { const up = $('#updBar'); if (up && $('#abTitle').classList.contains('st-upd')) { up.click(); abRender(); return; } const pg = $('#page');
   if (!pg.classList.contains('hidden')) pg.scrollTo({top:0, behavior:'smooth'}); else window.scrollTo({top:0, behavior:'smooth'}); });
 /* 検索の入力中は画面を動かさない（iPhoneがキーボードに合わせて勝手にスクロールするのを止める） */
 let lockY = 0;
