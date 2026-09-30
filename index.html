@@ -1258,9 +1258,10 @@ html.tb{--tb:0px!important}
 .loading{height:0!important;padding:0!important;background:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;font-size:0!important;overflow:visible;box-shadow:none}
 .loading::after,.loading .ldsp{display:none!important}
 .appbar h1.st-busy,.appbar h1.st-ok,.appbar h1.st-upd{color:#fff!important;border-color:transparent!important;gap:8px;font-size:14.5px;transition:background .2s}
-.appbar h1.st-busy{background:rgba(217,119,40,.92)!important}
-.appbar h1.st-ok{background:rgba(61,138,92,.92)!important}
-.appbar h1.st-upd{background:rgba(214,78,58,.94)!important}
+.appbar h1.st-busy{background:rgba(217,119,40,.62)!important}
+.appbar h1.st-ok{background:rgba(61,138,92,.62)!important}
+.appbar h1.st-upd{background:rgba(214,78,58,.66)!important}
+.appbar h1.st-busy,.appbar h1.st-ok,.appbar h1.st-upd{-webkit-backdrop-filter:saturate(200%) blur(40px)!important;backdrop-filter:saturate(200%) blur(40px)!important;text-shadow:0 1px 2px rgba(0,0,0,.25)}
 .appbar h1.st-busy::before{content:'';width:14px;height:14px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:ldspin .8s linear infinite;flex:none}
 .appbar h1.st-ok::before{content:'✓';font-weight:700}
 .appbar h1.st-upd::before{content:'↻';font-weight:700;font-size:17px}
@@ -1348,7 +1349,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '541d4d5889', APP_URL = location.origin + location.pathname;
+const BUILD = 'd9a15e7d39', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
