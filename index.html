@@ -1205,10 +1205,19 @@ html.sa .dwpanel{padding-top:calc(var(--cap) + 8px)}
 .tile .ph{border-radius:12px;overflow:hidden}
 html.sa header{padding-top:calc(var(--cap) + 4px)}
 /* ===== 上の部分：Claudeのように、ボタンを1つずつガラス風に浮かせて常に表示（中身はその下をスクロール） ===== */
-header,header.tuck{position:relative;top:auto!important;transform:none!important;background:transparent!important;border:0!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;padding:calc(var(--tb) + var(--cap) + 68px) 10px 0!important;transition:none}
+header,header.tuck{position:relative;z-index:auto!important;top:auto!important;transform:none!important;background:transparent!important;border:0!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;padding:calc(var(--tb) + var(--cap) + 68px) 10px 0!important;transition:none}
 html.tb header{padding-top:calc(var(--cap) + 68px)!important}
 .appbar,.brand.appbar{position:fixed;top:calc(var(--tb) + var(--cap) + 6px);left:10px;right:10px;z-index:35;display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:0;max-width:none;margin:0;padding:0;pointer-events:none;transition:top .25s ease,left .22s ease,translate .22s ease}
 .appbar>*{pointer-events:auto}
+/* 詳細ページ・入力画面でも上のボタンは出したまま（写真の拡大・書類・クイズなど全画面のときだけ隠す） */
+.appbar,.brand.appbar{z-index:96}
+body.pgopen .page .pagehead{display:none}
+.page{padding-top:calc(var(--tb) + var(--cap) + 68px)}
+body:has(#viewer:not(.hidden)) .appbar,body:has(.docview) .appbar,body.kbopen:has(#sheet:not(.hidden)) .appbar{opacity:0;pointer-events:none}
+.appbar{transition:top .25s ease,left .22s ease,translate .22s ease,opacity .15s}
+.sheet .box{max-height:min(92vh, calc(var(--vvh,100vh) - 12px - var(--tb) - 70px))}
+body.kbopen .sheet .box{max-height:calc(var(--vvh,100vh) - 12px)}
+@media(max-width:700px){ .aip,html.sa .aip{top:calc(var(--tb) + var(--cap) + 68px)} }
 /* Claudeのアプリと同じ：半透明のガラス（後ろがぼける）＋うっすら光る縁 */
 :root{--gl:rgba(255,255,255,.62);--gl-b:rgba(255,255,255,.7);--gl-s:0 10px 30px -10px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.6)}
 html[data-theme=dark]{--gl:rgba(58,58,56,.5);--gl-b:rgba(255,255,255,.1);--gl-s:0 10px 30px -10px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.07)}
@@ -1304,7 +1313,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '67b368f53b', APP_URL = location.origin + location.pathname;
+const BUILD = 'd16062e62e', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1484,6 +1493,7 @@ function navOn(){ const nv = S.view;
   const pic = $('#fmPage .ic'); if (pic && typeof IC !== 'undefined') { const k = {album:'works', list:'list', ex:'ex', pb:'pb', ot:'ot', chrono:'chrono', doc:'doc'}[nv] || 'works'; if (pic.dataset.k !== k && IC[k]) { pic.innerHTML = ico(k); pic.dataset.k = k; } }
   $('#fmPage').classList.toggle('on', nv!=='ai' && nv!=='home'); $('#fmAsk').classList.toggle('on', !!S.aiOpen); $('#fmHome').classList.toggle('on', nv==='home');
   $('#nav').classList.toggle('hidden', !S.user); $('#navAsk').classList.toggle('hidden', !S.user);
+  if (document.body.classList.contains('pgopen')) return;
   const TT = {home:'ホーム', album:'作品アルバム', list:'作品リスト', ot:'その他の作品', ex:'展覧会', pb:'画集・資料', chrono:'年表', doc:'書類', ai:'作品目録AI'};
   $('#abTitle').textContent = TT[nv] || '作品目録';
   document.querySelectorAll('#dwNav button').forEach(b => b.classList.toggle('on', b.dataset.v===nv));
@@ -2871,11 +2881,19 @@ function showPage(st, html, keepScroll, restoreSc){
   pg.innerHTML = html; hydrate(pg);
   pg.classList.remove('hidden'); document.body.style.overflow='hidden';
   pg.scrollTop = keepScroll ? sc : (restoreSc || 0);
+  abSync();
 }
+/* 上のボタン：詳細ページを開いている間は ☰ を「←もどる」にし、ページ名を作品番号などにする */
+const IC_MENU = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>', IC_BACK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
+function abSync(){ const pg = $('#page'), open = !pg.classList.contains('hidden'), b = $('#btnMenu');
+  document.body.classList.toggle('pgopen', open);
+  if (b && b.dataset.st !== (open ? 'b' : 'm')) { b.innerHTML = open ? IC_BACK : IC_MENU; b.dataset.st = open ? 'b' : 'm'; b.setAttribute('aria-label', open ? 'もどる' : 'メニューを開く'); }
+  if (open) { const no = pg.querySelector('.pagehead .no'), T = {w:'作品', ot:'その他の作品', ex:'展覧会', pb:'画集・資料'}; const tt = S.pcur && S.pcur.t; $('#abTitle').textContent = (['w','ot'].includes(tt) && no && no.textContent.trim()) || T[tt] || ''; }
+  else navOn(); }
 function closeWork(fromHist){
   const pg = $('#page'), open = !pg.classList.contains('hidden');
   if (open && S.stack.length){ const p = S.stack.pop(); S.pcur = null; ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[p.t](p.id, false, p.sc); if (!fromHist) hback(); return; }
-  pg.classList.add('hidden'); document.body.style.overflow=''; S.cur=null; S.pcur=null; S.stack=[]; if (open && !fromHist) hback();
+  pg.classList.add('hidden'); document.body.style.overflow=''; S.cur=null; S.pcur=null; S.stack=[]; if (open && !fromHist) hback(); abSync();
 }
 
 /* ---------- 展覧会の一覧 ---------- */
@@ -3780,7 +3798,7 @@ document.addEventListener('click', e => {
   if (!$('#fmPop').classList.contains('hidden') && !e.target.closest('#fmPop, #fmPage')) hidePop();
   const t = e.target.closest('button, [data-close]'); if (!t) return;
   if (t.id==='fmPage'){ $('#fmPop').classList.toggle('hidden'); $('#fmSearch').classList.add('hidden'); return; }
-  if (t.id==='btnMenu'){ openDrawer(); return; }
+  if (t.id==='btnMenu'){ if (!$('#page').classList.contains('hidden')) { closeWork(); return; } openDrawer(); return; }
   if (t.dataset.dwclose){ closeDrawer(); return; }
   if (t.id==='btnMe2'){ closeDrawer(); openMe(); return; }
   if (t.closest('#dwNav')){ closeDrawer(); closeAllPages(); if (S.aiOpen) closeAI(); }
