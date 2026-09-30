@@ -1266,7 +1266,7 @@ html,body{overflow-x:clip}
 .cy::before{display:none!important}
 @media(min-width:700px){.cy>.ce{padding-top:0!important}}
 .cyh{position:relative!important;top:auto!important;z-index:6;display:flex!important;flex-direction:row!important;align-items:center!important;height:46px;margin:0!important;padding:0!important;background:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important;border:0!important;width:auto}
-.cyh::after{content:'';position:absolute;left:-100vw;right:-100vw;top:50%;height:1.5px;margin-top:-.75px;background:color-mix(in srgb,var(--ink) 28%,transparent);z-index:0;pointer-events:none}
+.cyh::after{content:'';position:absolute;left:-100vw;right:-100vw;top:50%;height:2.5px;margin-top:-1.25px;background:color-mix(in srgb,var(--ink) 30%,transparent);z-index:0;pointer-events:none}
 .cyh::before{content:'';display:none;position:absolute;left:-100vw;right:-100vw;bottom:50%;height:calc(var(--stk,0px) + 40px);background:color-mix(in srgb,var(--bg) 55%,transparent);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);z-index:0;pointer-events:none}
 .cyh.stuck::before{display:none}
 #yfix{position:fixed;left:0;right:0;z-index:30;pointer-events:none}
@@ -1409,7 +1409,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'a10f243dfc', APP_URL = location.origin + location.pathname;
+const BUILD = '4a58b73597', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
