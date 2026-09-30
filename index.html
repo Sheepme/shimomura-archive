@@ -1175,7 +1175,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'ca5c730457', APP_URL = location.origin + location.pathname;
+const BUILD = '0b7d8286d8', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3306,7 +3306,7 @@ function openOt(id, keepScroll, restoreSc){
     ${creditHTML(ph)}
     <h3 class="sec">作品の情報</h3>
     ${canEdit() ? recInfo('ot', id, x) : `<dl class="info">${OTF.map(d => d[0]==='作品名' ? '' : dd2(d[0], escU(x[d[1]]||''))).join('')}</dl>`}
-    ${(eventBy[id]||[]).length ? `<h3 class="sec">あゆみ</h3><dl class="info">${(eventBy[id]||[]).slice().sort((a,b) => dateKey(a['日付'])-dateKey(b['日付'])).map(e => `<dt>${esc(e['日付']||'日付不明')}</dt><dd>${esc([e['種類'], e['相手先・場所'], e['内容']].filter(Boolean).join('　'))}</dd>`).join('')}</dl>` : ''}
+    ${(eventBy[id]||[]).length ? `<h3 class="sec">来歴</h3><dl class="info">${(eventBy[id]||[]).slice().sort((a,b) => dateKey(a['日付'])-dateKey(b['日付'])).map(e => `<dt>${esc(e['日付']||'日付不明')}</dt><dd>${esc([e['種類'], e['相手先・場所'], e['内容']].filter(Boolean).join('　'))}</dd>`).join('')}</dl>` : ''}
     ${canEdit() ? '<h3 class="sec">記録を更新する</h3><div class="actions bottomacts one"><button class="act main" data-act="photo">写真を追加（カメラ・写真）</button>' + delBtn('ot', id, 'この作品') + '</div>' : ''}</div>`;
   showPage({t:'ot', id}, html, keepScroll, restoreSc);
 }
