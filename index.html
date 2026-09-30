@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
 <title>下村良之介 作品目録</title>
+<meta name="robots" content="noindex, nofollow, noarchive, noimageindex, noai, noimageai">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="作品目録">
@@ -1171,7 +1172,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '0e1bfd3040', APP_URL = location.origin + location.pathname;
+const BUILD = 'c45b916eff', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
