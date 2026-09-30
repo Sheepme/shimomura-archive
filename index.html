@@ -983,11 +983,11 @@ body.briefing nav.fmenu{display:none}
 .mmhd .hsec{margin:0}
 .mmadd{border:1px dashed var(--note-sub);background:transparent;color:var(--sub);border-radius:999px;padding:6px 14px;font-size:15px}
 .mmlist{display:grid;gap:18px;margin:0 0 22px;padding:4px 2px}
-.mmnote{position:relative;background:linear-gradient(180deg,var(--note2) 0,var(--note2) 22px,var(--note) 22px);color:var(--note-ink);padding:30px 16px 14px 16px;box-shadow:var(--note-shadow);transform:rotate(-.8deg);border-radius:2px 2px 2px 14px/2px 2px 2px 22px}
+.mmnote{position:relative;background:var(--note);color:var(--note-ink);padding:30px 16px 14px 16px;box-shadow:var(--note-shadow);transform:rotate(-.8deg);border-radius:2px}
 .mmnote:nth-child(2n){transform:rotate(.7deg)}
 .mmnote:nth-child(3n){transform:rotate(-.3deg)}
 .mmnote::before{content:"";position:absolute;top:-9px;left:50%;width:84px;height:20px;margin-left:-42px;background:var(--note-tape);transform:rotate(-3deg);box-shadow:0 1px 2px rgba(0,0,0,.06)}
-.mmnote.done{background:linear-gradient(180deg,var(--note-done2) 0,var(--note-done2) 22px,var(--note-done) 22px)}
+.mmnote.done{background:var(--note-done)}
 .mmtxt{font-size:18px;line-height:1.7;white-space:pre-wrap;word-break:break-word;margin:0 0 10px;font-weight:500}
 .mmnote.done .mmtxt{opacity:.7}
 .mmws{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
@@ -1409,7 +1409,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd5a116affd', APP_URL = location.origin + location.pathname;
+const BUILD = '483539dbb6', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
