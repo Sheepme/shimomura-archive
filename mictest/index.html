@@ -1,0 +1,22 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><title>マイクのテスト</title>
+<style>body{font-family:system-ui,-apple-system,"Hiragino Sans",sans-serif;background:#f5f3ee;color:#222;margin:0;padding:calc(env(safe-area-inset-top) + 24px) 20px 40px;text-align:center}
+h1{font-size:24px}p{line-height:1.7;font-size:17px}button{font-size:20px;font-weight:700;border:0;border-radius:18px;padding:18px 20px;width:100%;max-width:420px;background:#2e9e68;color:#fff;margin:14px 0}
+#out{font-size:22px;min-height:60px;margin:18px 0;padding:14px;background:#fff;border-radius:14px}#st{color:#777;font-size:15px}
+@media (prefers-color-scheme:dark){body{background:#222;color:#eee}#out{background:#333}}</style></head>
+<body><h1>🎤 マイクのテスト</h1>
+<p>下のボタンを押して、<br>「こんにちは」と話してください。</p>
+<button id="go">🎤 押して話す</button>
+<div id="out">（ここに聞き取った言葉が出ます）</div>
+<div id="st"></div>
+<p style="font-size:13px;color:#999">このページは何も保存・送信しません。</p>
+<script>
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition,st=document.getElementById('st'),out=document.getElementById('out');
+const mode=(navigator.standalone||matchMedia('(display-mode: standalone)').matches)?'ホーム画面から開いています':'Safariで開いています';
+st.textContent=mode+(SR?'':'／この端末は聞き取り機能に対応していません');
+document.getElementById('go').onclick=()=>{if(!SR)return;const r=new SR();r.lang='ja-JP';r.interimResults=false;
+ r.onstart=()=>{st.textContent=mode+'／聞いています…'};
+ r.onresult=e=>{out.textContent='✅ '+e.results[0][0].transcript;st.textContent=mode+'／成功しました！'};
+ r.onerror=e=>{out.textContent='❌ 使えませんでした';st.textContent=mode+'／エラー：'+e.error};
+ try{r.start()}catch(e){st.textContent='エラー：'+e.message}};
+</script></body></html>
