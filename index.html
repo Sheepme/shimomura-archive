@@ -1205,16 +1205,20 @@ html.sa .dwpanel{padding-top:calc(var(--cap) + 8px)}
 .tile .ph{border-radius:12px;overflow:hidden}
 html.sa header{padding-top:calc(var(--cap) + 4px)}
 /* ===== 上の部分：Claudeのように、ボタンを1つずつガラス風に浮かせて常に表示（中身はその下をスクロール） ===== */
-header,header.tuck{position:relative;top:auto!important;transform:none!important;background:transparent!important;border:0!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;padding:calc(var(--tb) + var(--cap) + 64px) 10px 0!important;transition:none}
-html.tb header{padding-top:calc(var(--cap) + 64px)!important}
-.appbar,.brand.appbar{position:fixed;top:calc(var(--tb) + var(--cap) + 8px);left:10px;right:10px;z-index:35;display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:0;max-width:none;margin:0;padding:0;pointer-events:none;transition:top .25s ease,left .22s ease,translate .22s ease}
+header,header.tuck{position:relative;top:auto!important;transform:none!important;background:transparent!important;border:0!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;padding:calc(var(--tb) + var(--cap) + 68px) 10px 0!important;transition:none}
+html.tb header{padding-top:calc(var(--cap) + 68px)!important}
+.appbar,.brand.appbar{position:fixed;top:calc(var(--tb) + var(--cap) + 6px);left:10px;right:10px;z-index:35;display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:0;max-width:none;margin:0;padding:0;pointer-events:none;transition:top .25s ease,left .22s ease,translate .22s ease}
 .appbar>*{pointer-events:auto}
-.glass,.appbar .abtn,.appbar h1,.appbar .avatar{background:var(--glass-p);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border:1px solid var(--glass-b,rgba(255,255,255,.55));box-shadow:0 4px 18px -6px rgba(0,0,0,.22)}
-.appbar .abtn{width:46px;height:46px;border-radius:50%}
-.appbar h1,.brand.appbar h1{flex:0 1 auto;max-width:calc(100% - 128px);height:46px;display:flex;align-items:center;padding:0 20px;border-radius:23px;font:600 16px/1 var(--sans);color:var(--ink)}
+/* Claudeのアプリと同じ：半透明のガラス（後ろがぼける）＋うっすら光る縁 */
+:root{--gl:rgba(255,255,255,.62);--gl-b:rgba(255,255,255,.7);--gl-s:0 10px 30px -10px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.6)}
+html[data-theme=dark]{--gl:rgba(58,58,56,.5);--gl-b:rgba(255,255,255,.1);--gl-s:0 10px 30px -10px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.07)}
+.glass,.appbar .abtn,.appbar h1,.appbar .avatar,.cbin,.cbask{-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px)}
+.glass,.appbar .abtn,.appbar h1,.appbar .avatar,.cbin{background:var(--gl)!important;border:1px solid var(--gl-b)!important;box-shadow:var(--gl-s)!important;color:var(--ink)}
+.appbar .abtn{width:52px;height:52px;border-radius:50%}
+.appbar .abtn svg{width:24px;height:24px}
+.appbar h1,.brand.appbar h1{flex:0 1 auto;max-width:calc(100% - 140px);height:52px;display:flex;align-items:center;padding:0 22px;border-radius:26px;font:600 16px/1 var(--sans)}
 .appbar .brandr{width:auto}
-.appbar .avatar{width:46px;height:46px;font-size:17px;background:var(--glass-p);color:var(--ink)}
-html[data-theme=dark] .appbar .abtn,html[data-theme=dark] .appbar h1,html[data-theme=dark] .appbar .avatar{border-color:rgba(255,255,255,.1)}
+.appbar .avatar{width:52px;height:52px;font-size:17px}
 body.dwopen .appbar{translate:var(--dww) 0}
 @media(min-width:1000px){ body.wide .appbar{left:calc(264px + 10px)} }
 
@@ -1300,7 +1304,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '328e1d28da', APP_URL = location.origin + location.pathname;
+const BUILD = 'd2593f206d', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
