@@ -1171,7 +1171,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '10c941c2ab', APP_URL = location.origin + location.pathname;
+const BUILD = '0e1bfd3040', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1189,7 +1189,7 @@ function call(fn, ...args){
 }
 function busy(on, text){ $('#loading').textContent = text || '読み込み中…'; $('#loading').classList.toggle('hidden', !on); }
 function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.remove('hidden'); clearTimeout(toast._t); toast._t=setTimeout(()=>el.classList.add('hidden'),2600); }
-function setData(d){ Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], memoChecker:d.memoChecker||'直美', user:d.user, ai:d.ai, publicView:d.publicView}); if (S.token && !d.user) setToken(''); index(); renderUser();  if (d.user) setTimeout(prefetchThumbs, 0); }
+function setData(d){ if (S.upd) S.upd.t = 0; Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], memoChecker:d.memoChecker||'直美', user:d.user, ai:d.ai, publicView:d.publicView}); if (S.token && !d.user) setToken(''); index(); renderUser();  if (d.user) setTimeout(prefetchThumbs, 0); }
 const canRole = () => !!(S.user && ['編集','管理'].includes(S.user.role));
 const canEdit = () => canRole();
 try { S.edit = localStorage.getItem('smr_edit') === '1'; } catch(e){ S.edit = false; }
@@ -2378,16 +2378,30 @@ function dashHTML(){
     return `<button class="drow ${p===100?'full':''}" ${k==='quiz' ? 'data-qzmenu="1"' : k==='works' ? 'data-dlack="1"' : `data-todo="${k}"`} title="${esc(t)}：${a} / ${b}（${p}%）">
       <span class="dl">${esc(t)}</span><span class="dn">${p===100 ? '✓ ' : ''}${a.toLocaleString()}<small> / ${b.toLocaleString()}</small></span>
       <span class="db"><i style="width:${p}%"></i></span><span class="dp">${p}%</span></button>`; };
-  /* 最近7日間の答えた数（クイズ） */
-  const days = Array.from({length: 7}, (_, i) => { const d = new Date(Date.now() - (6 - i) * 864e5); return Utilities_ymd(d); });
-  const qd = {}; (S.quiz||[]).forEach(r => { const k = String(r['日時']||'').slice(0, 10); qd[k] = (qd[k]||0) + 1; });
-  const tq = QZSTAT().n; qd[days[6]] = Math.max(qd[days[6]]||0, tq);
-  const mx = Math.max(1, ...days.map(d => qd[d]||0));
+  /* 最近7日間に更新した箇所（変更記録から数える。読み込みは10分に1回まで） */
+  if (!S.upd || Date.now() - S.upd.t > 600000) setTimeout(loadUpd, 0);
   return `<h2 class="hsec">進み具合</h2>
     <div class="dhero"><b>${Math.round(tot * 100)}<small>%</small></b><span>写真・場所・要確認・クイズの平均</span><span class="db big"><i style="width:${Math.round(tot*100)}%"></i></span></div>
     <div class="dshcard">${rows.map(bar).join('')}</div>
-    <h2 class="hsec">この7日間にクイズで答えた数</h2>
-    <div class="dweek">${days.map((d, i) => `<div class="dwk" title="${d.slice(5).replace('/', '月')}日：${qd[d]||0}問"><span class="dv">${qd[d]||''}</span><i style="height:${Math.round((qd[d]||0) / mx * 100)}%"></i><small>${i===6 ? '今日' : ['日','月','火','水','木','金','土'][new Date(Date.now() - (6 - i) * 864e5).getDay()]}</small></div>`).join('')}</div>`;
+    <h2 class="hsec">この7日間に更新した箇所</h2>
+    <div id="dUpd">${updWeekHTML()}</div>`;
+}
+function updWeekHTML(){
+  if (!S.upd) return '<p class="muted" style="padding:8px 0">読み込んでいます…</p>';
+  const days = Array.from({length: 7}, (_, i) => Utilities_ymd(new Date(Date.now() - (6 - i) * 864e5)));
+  const qd = S.upd.byDay, mx = Math.max(1, ...days.map(d => qd[d]||0)), wk = days.reduce((a, d) => a + (qd[d]||0), 0);
+  const who = Object.entries(S.upd.byWho).sort((a, b) => b[1] - a[1]).map(([n, c]) => esc(n) + ' ' + c + '箇所').join('　');
+  return `<div class="dweek">${days.map((d, i) => `<div class="dwk" title="${d.slice(5).replace('/', '月')}日：${qd[d]||0}箇所"><span class="dv">${qd[d]||''}</span><i style="height:${Math.round((qd[d]||0) / mx * 100)}%"></i><small>${i===6 ? '今日' : ['日','月','火','水','木','金','土'][new Date(Date.now() - (6 - i) * 864e5).getDay()]}</small></div>`).join('')}</div>
+    <p class="muted" style="margin:8px 0 0;font-size:13px">7日間で ${wk}箇所${who ? '（' + who + '）' : ''}</p>`;
+}
+async function loadUpd(){
+  if (S.updBusy) return; S.updBusy = true;
+  try {
+    const log = await call('getLog', 1500), from = Utilities_ymd(new Date(Date.now() - 6 * 864e5)), byDay = {}, byWho = {};
+    (log || []).forEach(r => { const d = String(r['日時']||'').slice(0, 10); if (d < from) return; byDay[d] = (byDay[d]||0) + 1; const w = r['変更者'] || '?'; byWho[w] = (byWho[w]||0) + 1; });
+    S.upd = { t: Date.now(), byDay, byWho };
+    const el = $('#dUpd'); if (el) el.innerHTML = updWeekHTML();
+  } catch(e){} finally { S.updBusy = false; }
 }
 document.addEventListener('click', e => { const b = e.target.closest('[data-bsgo]'); if (!b) return; closeAllPages(); S.view = S.wmode || 'album'; S.filter = b.dataset.bsgo; S.q = ''; if ($('#q')) $('#q').value = ''; S.mus = ''; S.limit = 60; render(); window.scrollTo(0, 0); });
 document.addEventListener('click', e => { if (!e.target.closest('[data-dlack]')) return; closeAllPages(); S.view = S.wmode || 'album'; S.filter = 'lack'; S.q = ''; S.mus = ''; S.limit = 60; render(); window.scrollTo(0, 0); });
