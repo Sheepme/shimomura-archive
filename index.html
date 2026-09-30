@@ -1490,7 +1490,7 @@ body.wide .cbask>span:not(.ic),body.wideoff .cbask>span:not(.ic){display:inline!
 body:not(.wide):not(.wideoff) .cbask{width:58px!important;height:58px!important}
 body .chips .cn{margin-left:3px;opacity:.55;font-size:12px;font-weight:500}
 #finder #count{display:none!important}
-body[data-pv=list] #finder .meta{display:none!important} /* 作品リストは表の見出しで並べ替えるので、並び順の欄は出さない */ /* 件数はタブの名前の後ろに出す */
+@media(min-width:900px){ body[data-pv=list] #finder .meta{display:none!important} } /* 作品リストは表の見出しで並べ替えるので、並び順の欄は出さない */ /* 件数はタブの名前の後ろに出す */
 #finder .meta{justify-content:flex-end}
 #finder .meta .mright{margin-left:auto!important;justify-content:flex-end!important}
 /* 作品リスト（PCの表）：項目名の行は左右いっぱい、いちばん下のタブのすぐ下に固定 */
@@ -1572,7 +1572,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'c3b8e1a509', APP_URL = location.origin + location.pathname;
+const BUILD = '4bde280b2f', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4605,7 +4605,7 @@ function prefetchThumbs(){
 }
 
 /* ---------- PC：作品リストを表で見る（横にスクロール、写真と題名は固定） ---------- */
-const wideList = () => true; // スマホもPCと同じ表（項目名の行をタブの下に固定）
+const wideList = () => !tblMobile(); // PCは表、スマホはカード型リスト
 const tblMobile = () => { try { return !matchMedia('(min-width:900px)').matches; } catch(e){ return true; } };
 const WCOLS = [
   ['yr','制作年', w => w['制作年'], w => +((String(w['制作年']).match(/\d{4}/)||[])[0]||9999)],
