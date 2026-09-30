@@ -1273,14 +1273,14 @@ html,body{overflow-x:clip}
 #yfix .cyh{position:relative!important;height:46px}
 #yfix .cyh::after{left:0;right:0}
 body.pgopen #yfix,body.searching #yfix{display:none}
-.cyp{position:relative;z-index:1;display:inline-flex;align-items:center;gap:10px;height:46px;padding:0 18px;margin-left:-6px;border-radius:23px;white-space:nowrap;-webkit-backdrop-filter:saturate(200%) blur(40px);backdrop-filter:saturate(200%) blur(40px);box-shadow:var(--gl-s);color:#faf9f5;background:rgba(30,30,28,.8);border:1px solid rgba(255,255,255,.12)}
+.cyp{position:relative;z-index:1;display:inline-flex;align-items:center;gap:10px;height:46px;padding:0 18px;margin-left:-6px;border-radius:23px;white-space:nowrap;-webkit-backdrop-filter:saturate(200%) blur(40px);backdrop-filter:saturate(200%) blur(40px);box-shadow:var(--gl-s);color:#faf9f5;background:rgba(30,30,28,.58);border:1px solid rgba(255,255,255,.12)}
 .cyp .cyy{font-size:20px!important;line-height:1!important;font-weight:600;color:inherit}
 .cyp .cage{position:static!important;font-size:13px!important;letter-spacing:.04em;color:rgba(250,249,245,.65)!important}
-html[data-theme=dark] .cyp{color:#141413;background:rgba(250,249,245,.84);border-color:rgba(255,255,255,.8)}
+html[data-theme=dark] .cyp{color:#141413;background:rgba(250,249,245,.62);border-color:rgba(255,255,255,.8)}
 html[data-theme=dark] .cyp .cage{color:rgba(20,20,19,.55)!important}
 /* 上のボタンは、画面と逆の配色（明るい表示では暗いガラス、暗い表示では明るいガラス） */
-.appbar .abtn,.appbar h1:not(.st-busy):not(.st-ok):not(.st-upd),.appbar .avatar{--ink:#faf9f5;--sub:rgba(250,249,245,.7);--faint:rgba(250,249,245,.5);--hov:rgba(255,255,255,.12);color:#faf9f5!important;background:rgba(30,30,28,.8)!important;border-color:rgba(255,255,255,.12)!important}
-html[data-theme=dark] .appbar .abtn,html[data-theme=dark] .appbar h1:not(.st-busy):not(.st-ok):not(.st-upd),html[data-theme=dark] .appbar .avatar{--ink:#141413;--sub:rgba(20,20,19,.62);--faint:rgba(20,20,19,.45);--hov:rgba(0,0,0,.08);color:#141413!important;background:rgba(250,249,245,.84)!important;border-color:rgba(255,255,255,.8)!important}
+.appbar .abtn,.appbar h1:not(.st-busy):not(.st-ok):not(.st-upd),.appbar .avatar{--ink:#faf9f5;--sub:rgba(250,249,245,.7);--faint:rgba(250,249,245,.5);--hov:rgba(255,255,255,.12);color:#faf9f5!important;background:rgba(30,30,28,.58)!important;border-color:rgba(255,255,255,.12)!important}
+html[data-theme=dark] .appbar .abtn,html[data-theme=dark] .appbar h1:not(.st-busy):not(.st-ok):not(.st-upd),html[data-theme=dark] .appbar .avatar{--ink:#141413;--sub:rgba(20,20,19,.62);--faint:rgba(20,20,19,.45);--hov:rgba(0,0,0,.08);color:#141413!important;background:rgba(250,249,245,.62)!important;border-color:rgba(255,255,255,.8)!important}
 .appbar .avatar .avi{background:var(--ink)!important;color:var(--bg)!important}
 html:not([data-theme=dark]) .appbar .avatar .avi{background:#faf9f5!important;color:#141413!important}
 html[data-theme=dark] .appbar .avatar .avi{background:#141413!important;color:#faf9f5!important}
@@ -1409,7 +1409,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '4a58b73597', APP_URL = location.origin + location.pathname;
+const BUILD = 'd5a116affd', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
