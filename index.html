@@ -1256,10 +1256,8 @@ html[data-theme=dark] .appbar .abtn,html[data-theme=dark] .appbar h1:not(.st-bus
 .zoomb button{background:transparent!important;color:var(--ink)!important;font-weight:500}
 .zoomb button+button{border-left:1px solid var(--line)!important}
 /* 画面のいちばん上（時計の下〜上のボタンのあたり）は、どのページでも地の色でうっすらぼかす（上端が暗いグラデーションにならないように） */
-/* 画面上部のぼかしは、この1枚だけにそろえる（上のボタンの下まで。年のボタンが止まっている間は年の線まで伸ばす） */
-body::before{content:'';position:fixed;left:0;right:0;top:0;height:calc(var(--stk,70px) - 6px);z-index:5;pointer-events:none;background:color-mix(in srgb,var(--bg) 88%,transparent);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 16px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 16px),transparent)}
-body.ystuck::before{height:calc(var(--stk,70px) + 23px);-webkit-mask-image:none;mask-image:none}
-body.pgopen::before{z-index:41;height:calc(var(--stk,70px) - 6px);-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 16px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 16px),transparent)}
+/* 画面上部のアプリ側のぼかしはなし（iPhoneが自動でかけるぼかしだけ。Claudeのアプリと同じ見え方） */
+body::before{display:none!important}
 body.loggedout::before{display:none}
 #sbSample{position:fixed;top:0;left:0;right:0;height:1px;background-color:var(--bg);z-index:10002;pointer-events:none}
 /* 年表・展覧会の「年」：ガラスのボタン＋画面いっぱいの線を、上のボタンのすぐ下にいっしょに固定。止まっている間は線より上をぼかす */
@@ -1408,7 +1406,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'cbba692390', APP_URL = location.origin + location.pathname;
+const BUILD = '21052cbf81', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
