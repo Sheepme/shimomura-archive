@@ -1374,7 +1374,7 @@ html[data-theme=dark] .appbar .abtn,html[data-theme=dark] .appbar h1:not(.st-bus
 #yfix.side .cyp::before{content:'';position:absolute;left:0;top:30%;bottom:30%;width:1px;background:currentColor;opacity:.3}
 html.sa.tb header{padding-top:calc(var(--cap) + 4px - var(--tb))}
 /* ===== 上のヘッダー（2026-10）：左にアイコン＋「下村良之介作品目録 › …」、右にメニュー。メニューは右から出る ===== */
-#top .appbar,#top .brand.appbar{top:0!important;left:0!important;right:0!important;translate:none!important;gap:10px!important;padding:calc(var(--tb,0px) + var(--cap,0px) + var(--edge,0px) + 8px) 12px 8px 14px!important;background:var(--bg)!important;border-bottom:1px solid var(--line);pointer-events:auto!important;box-sizing:border-box;align-items:center!important}
+#top .appbar,#top .brand.appbar{top:0!important;left:0!important;right:0!important;translate:none!important;gap:10px!important;padding:calc(var(--tb,0px) + var(--cap,0px) + 6px) 12px 6px 12px!important;background:var(--bg)!important;border-bottom:1px solid var(--line);pointer-events:auto!important;box-sizing:border-box;align-items:center!important}
 #abCap{display:none!important}
 #top .appbar .abtn{width:38px!important;height:38px!important;margin:0!important;flex:none;border:0!important;border-radius:50%!important;background:transparent!important;color:var(--ink)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important;display:flex!important;visibility:visible!important}
 #top .appbar .abtn svg{width:24px;height:24px}
@@ -1383,16 +1383,20 @@ html.sa.tb header{padding-top:calc(var(--cap) + 4px - var(--tb))}
 #top .appbar h1.st-busy,#top .appbar h1.st-ok,#top .appbar h1.st-upd{flex:0 1 auto!important;padding:0 16px!important;border-radius:20px!important;font-size:14px!important;font-weight:600!important;border:0!important}
 #top .appbar h1 .crumb{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sub);cursor:pointer;width:auto;height:auto;margin:0;border-radius:0;display:inline}
 #top .appbar h1 .crumb{flex:0 100 auto}
-@media(max-width:599px){ #top .appbar h1 .crumb[data-ci]:not(.chome),#top .appbar h1 .crumb[data-ci]:not(.chome)+.absep{display:none} }
 #top .appbar h1 .crumb.chome{flex:0 6 auto;color:var(--ink)}
 #top .appbar h1 .crumb.cur{color:var(--ink);flex:0 1 auto}
 #top .appbar h1 .crumb:not(.cur):hover{text-decoration:underline;text-underline-offset:4px}
 #top .appbar h1 .absep{flex:none;color:var(--faint);font-weight:400;margin:0 2px}
+#top .appbar h1 .crumb:not(.cur){flex:0 3 auto}
 .abham{flex:none;margin-left:auto;width:42px;height:42px;display:flex;align-items:center;justify-content:center;border:0;border-radius:50%;background:none;color:var(--ink);cursor:pointer;pointer-events:auto}
 .abham:hover{background:var(--hov)}
 .abham svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
 body.dwopen #btnMenu:has(.abapp){display:flex!important}
 #yfix{z-index:34}
+html.sa{--edge:0px!important}
+header,header.tuck{padding-top:calc(var(--tb,0px) + var(--cap,0px) + 58px)!important}
+body.hdstick:not(.pgopen):not(.searching) header#top{position:sticky!important;top:var(--hdtop,0px)!important;z-index:33!important;background:var(--bg)!important}
+html[data-theme=dark]{--bg:#1c1c1b}
 /* サブメニュー（すべて・自宅・美術館…など）は Pinterest と同じ：文字だけ、選んでいるものは太字＋下線 */
 body .chips{gap:22px!important;padding:4px 2px 2px!important}
 body .chips .chip{position:relative;padding:8px 0 11px!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;color:var(--sub)!important;font:500 16px/1.2 var(--sans)!important}
@@ -1475,7 +1479,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '1aaa9a3435', APP_URL = location.origin + location.pathname;
+const BUILD = 'ba6690389d', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1514,14 +1518,13 @@ function abRender0(){ const h = $('#abTitle'); if (!h) return;
   if (st) { h.textContent = tx; return; }
   // ふだんは「下村良之介作品目録 › ページ名 › 作品名」を同じ大きさの文字で横に並べる（押すとそこへ戻る）
   const pgOpen = document.body.classList.contains('pgopen'), SEP = '<span class="absep">›</span>';
-  const HOME = '<span class="crumb chome" data-home="1">下村良之介作品目録</span>';
+  // アイコン › ひとつ前 › いまのページ（例：アイコン › 作品アルバム › 作品名）
   if (pgOpen && S.pcur) {
     const cr = [{nm: VIEW_NM[S.view] || 'ホーム'}].concat((S.stack || []).map(x => ({nm: pcName(x.t, x.id)})));
-    const head = S.view === 'home' ? '' : HOME + SEP;
-    const items = cr.map((c, i) => (i === 0 && S.view === 'home') ? `<span class="crumb chome" data-ci="0">下村良之介作品目録</span>` : `<span class="crumb" data-ci="${i}">${esc(c.nm)}</span>`);
-    h.innerHTML = head + items.join(SEP) + SEP + `<span class="crumb cur">${esc(pcName(S.pcur.t, S.pcur.id))}</span>`;
+    const k = cr.length - 1;
+    h.innerHTML = SEP + `<span class="crumb" data-ci="${k}">${esc(cr[k].nm)}</span>` + SEP + `<span class="crumb cur">${esc(pcName(S.pcur.t, S.pcur.id))}</span>`;
     return; }
-  h.innerHTML = S.view === 'home' ? '<span class="crumb chome cur">下村良之介作品目録</span>' : HOME + SEP + `<span class="crumb cur">${esc(tx)}</span>`; }
+  h.innerHTML = S.view === 'home' ? '<span class="crumb chome cur">下村良之介作品目録</span>' : SEP + `<span class="crumb cur">${esc(tx)}</span>`; }
 /* お知らせ（保存しました など）も、読み込み中と同じ上の帯で出す（緑） */
 function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.remove('hidden'); tbSync(); clearTimeout(toast._t); toast._t=setTimeout(()=>{ el.classList.add('hidden'); tbSync(); },2600); }
 const OTRE = /^[YHZ]\d{3,}$/;
@@ -1704,6 +1707,7 @@ function openDrawer(){ if (false) { dwFold = !dwFold; try { localStorage.setItem
   const d = $('#drawer'); document.body.classList.add('dwopen'); d.classList.remove('hidden'); d.setAttribute('aria-hidden', 'false'); requestAnimationFrame(() => d.classList.add('open')); setTimeout(markStuck, 240); }
 function closeDrawer(){ const d = $('#drawer'); if (d.classList.contains('hidden') || d.classList.contains('pin')) return; document.body.classList.remove('dwopen'); setTimeout(markStuck, 240); d.classList.remove('open'); d.setAttribute('aria-hidden', 'true'); setTimeout(() => d.classList.add('hidden'), 220); }
 function render(){
+  setTimeout(() => { try { stkTop(); } catch(e){} }, 0);
   const main = $('#main');
   document.body.classList.toggle('loggedout', !S.user && !S.publicView);
   if (!S.user && !S.publicView) { $('#finder').classList.add('hidden'); $('#chronobar').classList.add('hidden'); $('#top').classList.add('hidden'); $('#askbar').classList.add('hidden'); if (S.view==='ai') S.view='album'; navOn(); return showLoginWall(); }
@@ -3110,7 +3114,7 @@ function pcName(t, id){
 const VIEW_NM = {home:'ホーム', album:'作品アルバム', list:'作品リスト', ot:'その他の作品', ex:'展覧会', pb:'画集・資料', chrono:'年表', doc:'書類', ai:'作品目録AI'};
 function abSync(){ const pg = $('#page'), open = !pg.classList.contains('hidden'), b = $('#btnMenu');
   document.body.classList.toggle('pgopen', open);
-  if (b && b.dataset.st !== (open ? 'b' : 'm')) { b.innerHTML = open ? IC_BACK : IC_MENU; b.dataset.st = open ? 'b' : 'm'; b.setAttribute('aria-label', open ? 'もどる' : 'メニューを開く'); }
+  if (b && b.dataset.st !== (open ? 'b' : 'm')) { b.innerHTML = IC_MENU; b.dataset.st = open ? 'b' : 'm'; b.setAttribute('aria-label', open ? 'もどる' : 'メニューを開く'); }
   if (open) { const no = pg.querySelector('.pagehead .no'), T = {w:'作品', ot:'その他の作品', ex:'展覧会', pb:'画集・資料'}; const tt = S.pcur && S.pcur.t, id = S.pcur && S.pcur.id;
     let nm = '';
     if (['w','ot'].includes(tt)) { const w = workOf(id) || {}; nm = w['作品名'] || (isOtNo(id) ? (w['種別'] || 'その他') + '（名前なし）' : '無題'); }
@@ -4043,7 +4047,7 @@ document.addEventListener('click', e => {
   if (!$('#fmPop').classList.contains('hidden') && !e.target.closest('#fmPop, #fmPage')) hidePop();
   const t = e.target.closest('button, [data-close]'); if (!t) return;
   if (t.id==='fmPage'){ $('#fmPop').classList.toggle('hidden'); $('#fmSearch').classList.add('hidden'); return; }
-  if (t.id==='btnMenu'){ if (!$('#page').classList.contains('hidden')) { closeWork(); return; } openDrawer(); return; }
+  if (t.id==='btnMenu'){ openDrawer(); return; }
   if (t.id==='dwX'){ closeDrawer(); return; }
   if (t.dataset.dwclose){ closeDrawer(); return; }
   if (t.id==='btnMe2'){ closeDrawer(); openMe(); return; }
@@ -4553,7 +4557,12 @@ function markStuck0(){ const hs = [...document.querySelectorAll('#main .cyh')]; 
   if (wide && tb) { const r = tb.getBoundingClientRect(); fx.style.top = r.top + 'px'; fx.style.setProperty('--abh', r.height + 'px'); inner.style.setProperty('padding-left', r.right + 'px', 'important'); } // パソコン：ページ名の右に並べる
   else { fx.style.top = t + 'px'; inner.style.setProperty('padding-left', Math.max(0, src.getBoundingClientRect().left) + 'px', 'important'); }
   src.style.visibility = 'hidden'; fx.classList.remove('hidden'); }
-function stkTop(){ const ab = document.querySelector('#top .appbar'); const b = ab ? Math.max(0, ab.getBoundingClientRect().bottom + 6) : 0; document.documentElement.style.setProperty('--stk', b + 'px'); document.documentElement.style.setProperty('--stkx', '0px');  markStuck(); }
+function hdStick(){ const hd = document.getElementById('top'), ab = hd && hd.querySelector('.appbar'); if (!hd || !ab) return;
+  const c = [...hd.querySelectorAll('#finder:not(.hidden) .chips:not(.hidden), #chronobar:not(.hidden) .chips')].find(x => x.offsetParent);
+  document.body.classList.toggle('hdstick', !!c && !hd.classList.contains('hidden'));
+  if (!c) return; const o = c.getBoundingClientRect().top - hd.getBoundingClientRect().top;
+  document.documentElement.style.setProperty('--hdtop', (ab.getBoundingClientRect().bottom - o) + 'px'); }
+function stkTop(){ try { hdStick(); } catch(e){} const hd0 = document.getElementById('top'), hb = document.body.classList.contains('hdstick') && hd0 ? hd0.getBoundingClientRect().bottom : 0; const ab = document.querySelector('#top .appbar'); const b = Math.max(hb, ab ? Math.max(0, ab.getBoundingClientRect().bottom + 6) : 0); document.documentElement.style.setProperty('--stk', b + 'px'); document.documentElement.style.setProperty('--stkx', '0px');  markStuck(); }
 window.addEventListener('resize', () => stkTop());
 function wtTop(){ const h = $('#wthd'); if (!h) return; const ab = document.querySelector('#top .appbar'); h.style.top = (ab ? Math.max(0, ab.getBoundingClientRect().bottom + 6) : 0) + 'px'; h.style.paddingTop = '0px'; }
 addEventListener('scroll', () => { if ($('#wthd')) requestAnimationFrame(wtTop); }, {passive:true});
