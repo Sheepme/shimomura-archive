@@ -812,7 +812,8 @@ body.briefing nav.fmenu{display:none}
 .ivq{display:flex;gap:10px;align-items:flex-start;margin:14px 0 8px;font-size:19px;line-height:1.6;font-weight:600}.ivq .aiav{flex:none;width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#6d5bf5,#2aa7c4);color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center}
 .ivdots{color:var(--sub);font-style:normal}.iva{margin:0 0 8px 44px;background:var(--wash);border-radius:14px;padding:10px 14px;font-size:16px}
 .ivhear{text-align:center;color:#e0564c;font-weight:700;margin:6px 0}
-.srlive{margin:6px 0 12px;padding:14px 16px;border-radius:16px;border:2px dashed #e0564c;font-size:22px;font-weight:700;line-height:1.5;min-height:58px;color:var(--mut,#888);text-align:left;word-break:break-all}.srlive.qz{display:none}.srlive.qz.on{display:block}.srlive.on{color:var(--ink);border-style:solid;background:rgba(224,86,76,.08)}
+.srlive{margin:6px 0 12px;padding:14px 16px;border-radius:16px;border:2px dashed #e0564c;font-size:22px;font-weight:700;line-height:1.5;min-height:58px;color:var(--mut,#888);text-align:left;word-break:break-all}.srtap{flex:none;width:100%;margin:10px 0 0;padding:12px;border-radius:16px;border:2px solid #e0564c;background:transparent;color:#e0564c;font-size:18px;font-weight:700}
+.srlive.qz{display:none}.srlive.qz.on{display:block}.srlive.on{color:var(--ink);border-style:solid;background:rgba(224,86,76,.08)}
 .ivbar{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:12px}
 .ivmic{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:96px;height:96px;border-radius:50%;border:0;background:linear-gradient(135deg,#6d5bf5,#2aa7c4);color:#fff;font-size:40px;box-shadow:0 10px 26px -8px rgba(80,70,220,.55)}
 .ivmic b{font-size:14px}.ivmic.on{background:#e0564c;animation:ivp 1.2s ease-in-out infinite}.ivmic:disabled{opacity:.5}
@@ -1121,7 +1122,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '8e4b583fc9', APP_URL = location.origin + location.pathname;
+const BUILD = 'c272e7ac84', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1687,12 +1688,14 @@ function listen(onText, onDone, auto){
   stopMic(true);
   const r = new SR(); r.lang = 'ja-JP'; r.interimResults = true; r.maxAlternatives = 1; MIC.r = r;
   const b = $('#qzMic'); if (b) b.classList.add('on');
-  let fin = false, last = '';
+  let fin = false, last = '', heard = false;
+  const wd = setTimeout(() => { if (!heard && MIC.r === r) { stopMic(); toast('声が聞こえなかったよ。🎤を押して話してね'); } }, 9000);
+  r.onspeechstart = r.onsoundstart = () => { heard = true; };
   const live = t => document.querySelectorAll('.srlive').forEach(el => { el.textContent = t || '…'; el.classList.toggle('on', !!t); });
-  r.onresult = e => { let t = ''; for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript || ''; last = t; live(t);
+  r.onresult = e => { heard = true; let t = ''; for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript || ''; last = t; live(t);
     if (e.results[e.results.length - 1].isFinal && !fin) { fin = true; try { r.stop(); } catch(x){} onText(t); } };
   r.onerror = e => { if (auto && (e.error==='not-allowed' || e.error==='service-not-allowed')) { if (IV) { IV.listening = false; ivDraw(); } toast('🎤ボタンを押して話してね'); return; } if (e.error==='not-allowed' || e.error==='service-not-allowed') { QV.micOk = false; if (IV) ivDraw(); else qzDraw(); toast('マイクが使えません。ボタンか、キーボードのマイクで答えてください'); } else toast('聞き取れませんでした。もう一度どうぞ'); };
-  r.onend = () => { if (MIC.r === r) MIC.r = null; const b = $('#qzMic'); if (b) b.classList.remove('on');
+  r.onend = () => { clearTimeout(wd); if (MIC.r === r) MIC.r = null; const b = $('#qzMic'); if (b) b.classList.remove('on');
     if (!fin && last && !r.__killed) { fin = true; onText(last); } if (onDone && !r.__killed) onDone(); };
   try { r.start(); } catch(e){ return false; }
   return true;
@@ -1946,7 +1949,7 @@ function ivBegin(list){
 }
 function ivReset(){ Object.assign(IV, { hist: [], pend: [], eps: [], qa: [], mode: 'confirm', busy: false, listening: false, text: !(SR && QV.micOk), last: '', q: '', lq: '' }); }
 function ivConfirm(){ IV.mode = 'confirm'; IV.last = ''; ivDraw(); const w = workOf(IV.list[IV.wi]) || {};
-  ivSpeak('この絵について聞いてもいい？' + (hasName(w) ? '「' + w['作品名'] + '」だよ。' : ''), '', () => { if (IV && IV.mode==='confirm' && !IV.text) ivListen(true); }); }
+  ivSpeak('この絵について聞いてもいい？' + (hasName(w) ? '「' + w['作品名'] + '」だよ。' : ''), '', () => { if (IV && IV.mode==='confirm' && !IV.text) ivAutoListen(); }); }
 function endInterview(){ stopMic(); sayStop(); const el = $('#quiz'); if (el) el.classList.add('hidden'); document.body.style.overflow = ''; IV = null; }
 function ivCur(no, f){ const w = workOf(no) || {}; if (f==='サイズ') return (w['幅cm']||w['高さcm']) ? `幅${w['幅cm']||'?'} × 高さ${w['高さcm']||'?'} cm` : '';
   if (f==='場所') return w['所在区分']==='不明' ? '' : (w['所在'] || w['所在区分'] || ''); return w[f] || ''; }
@@ -1990,7 +1993,7 @@ function ivDraw(){
     body = `<div class="ivmain"><span class="aiav">AI</span><div class="ivqt">この絵について聞いてもいい？</div></div>
       ${qzHead(no, true)}
       <div class="ivopts"><button class="qzwide yes" data-iv="ok">◯ この絵でいい</button><button class="qzwide" data-iv="other">別の絵にする ›</button><button class="qzwide" data-iv="list">一覧から選ぶ</button></div>
-      ${IV.listening ? '<div class="ivhear">🎤 聞いてるよ…「いいよ」「別の絵」「一覧」</div><div class="srlive">…</div>' : ''}`;
+      ${IV.listening ? '<div class="ivhear">🎤 聞いてるよ…「いいよ」「別の絵」「一覧」</div><div class="srlive">…</div>' : !IV.text && SR && QV.micOk ? '<button class="srtap" data-iv="mic">🎤 押して話す</button>' : ''}`;
   } else if (IV.mode==='sum' || IV.mode==='saved') {
     const pd = IV.pend.filter(p => p.on), ep = IV.eps.filter(x => x.on);
     body = `<div class="ivmain"><div class="ivqt">${IV.mode==='saved' ? '保存したよ。ありがとう！' : pd.length || ep.length ? 'この内容で保存していい？' : '新しく分かったことはなかったよ'}</div></div>
@@ -2022,9 +2025,12 @@ function ivTurn(answer){
     if (answer) IV.qa.push({ q: (IV.hist[IV.hist.length - 1] || {}).q || '', a: answer, r: JSON.stringify({ ex: r.ex, ep: r.ep }) });
     IV.q = r.q; IV.hist.push({ q: r.q, a: '' });
     if (r.end || IV.hist.length > 8) { IV.mode = 'sum'; ivDraw(); ivSpeak(r.q, r.audio); return; }
-    ivDraw(); ivSpeak(r.q, r.audio, () => { if (IV && IV.mode==='talk' && !IV.text && !IV.busy) ivListen(true); });
+    ivDraw(); ivSpeak(r.q, r.audio, () => { if (IV && IV.mode==='talk' && !IV.text && !IV.busy) ivAutoListen(); });
   }).catch(e => { if (!IV) return; IV.busy = false; IV.q = 'うまくいかなかった。もう一回話してみて。（' + (e.message || e) + '）'; ivDraw(); });
 }
+/** 読み上げのあと自動で聞く：スピーカーを解放して少し待ってから（iPhoneで声が入らない対策） */
+function ivAutoListen(){ try { if (TTSA) { TTSA.pause(); TTSA.removeAttribute('src'); TTSA.load(); } } catch(e){}
+  const my = IV; setTimeout(() => { if (IV && IV === my && !IV.listening && !IV.busy && !IV.text && !document.hidden) ivListen(true); }, 450); }
 function ivListen(auto){
   if (!IV || IV.busy) return;
   let got = false;
@@ -2068,7 +2074,7 @@ document.addEventListener('click', e => {
   if (k==='send') { const t = ($('#ivIn').value||'').trim(); if (!t) return; return ivTurn(t); }
   if (k==='unk') return ivTurn('分からない');
   if (k==='fin') { sayStop(); IV.mode = 'sum'; return ivDraw(); }
-  if (k==='more') { IV.mode = 'talk'; ivDraw(); return ivSpeak(IV.q, '', () => { if (IV && IV.mode==='talk' && !IV.text) ivListen(true); }); }
+  if (k==='more') { IV.mode = 'talk'; ivDraw(); return ivSpeak(IV.q, '', () => { if (IV && IV.mode==='talk' && !IV.text) ivAutoListen(); }); }
   if (k==='save') return ivSave();
   if (k==='photo' || k==='doc') { const no = IV.list[IV.wi]; endInterview(); setTimeout(() => { openWork(no); setTimeout(() => k==='photo' ? sheetPhoto(no) : sheetDoc(no), 300); }, 300); return; }
   if (k==='next') { IV.wi++; if (IV.wi >= IV.list.length) return endInterview(); ivReset(); return ivConfirm(); }
