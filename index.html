@@ -1245,7 +1245,14 @@ html[data-theme=dark] .appbar .abtn,html[data-theme=dark] .appbar h1:not(.st-bus
 .appbar .abtn .abapp{width:40px;height:40px;border-radius:50%;object-fit:cover;display:block;box-shadow:0 0 0 1px rgba(0,0,0,.08)}
 .appbar .abtn svg{width:24px;height:24px}
 .appbar h1,.brand.appbar h1{cursor:pointer!important;-webkit-user-select:none;user-select:none;flex:0 1 auto;max-width:calc(100% - 140px);height:52px;display:flex;align-items:center;padding:0 22px;border-radius:26px;font:600 16px/1 var(--sans)}
-.appbar .brandr{display:none} /* 名前はメニューのいちばん下に移した */
+.appbar .brandr{display:none} /* 名前はメニューのいちばん下に移した（広い画面では右上にも出す） */
+.appbar .avatar .avn{display:none}
+@media(min-width:1000px){
+  .appbar .brandr{display:flex!important;margin-left:auto;width:auto}
+  .appbar .avatar{width:auto!important;padding:0 18px 0 6px;border-radius:26px;gap:10px;font-weight:500}
+  .appbar .avatar .avi{width:40px;height:40px;border-radius:50%;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:16px}
+  .appbar .avatar .avn{display:inline;font-size:15px}
+}
 /* タイトルは ☰ のすぐ右に左寄せ（Claudeのアプリと同じ並び） */
 .appbar,.brand.appbar{justify-content:flex-start!important;gap:10px!important}
 .appbar h1,.brand.appbar h1{max-width:calc(100% - 64px)!important;padding:0 20px 0 16px!important;gap:10px;font-weight:500!important;font-size:15.5px!important;min-width:0}
@@ -1357,7 +1364,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'b865181500', APP_URL = location.origin + location.pathname;
+const BUILD = '4daf3d45b5', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1425,7 +1432,7 @@ function setToken(t){ S.token = t; try { t ? localStorage.setItem('smr_token', t
 try { S.token = localStorage.getItem('smr_token') || ''; } catch(e){ S.token = ''; }
 function renderUser(){
   const on = canEdit();
-  $('#userbox').innerHTML = S.user ? `<button class="avatar" id="btnMe" aria-label="${esc(S.user.name||'')}さんのメニュー">${esc(String(S.user.name||'？').trim().charAt(0))}</button>` : '';
+  $('#userbox').innerHTML = S.user ? `<button class="avatar" id="btnMe" aria-label="${esc(S.user.name||'')}さんのメニュー"><span class="avi">${esc(String(S.user.name||'？').trim().charAt(0))}</span><span class="avn">${esc(S.user.name||'')}</span></button>` : '';
   setTimeout(pinDrawer, 0);
   const f = $('#dwFoot'); if (f) f.innerHTML = S.user ? `<button type="button" class="dwme" id="btnMe2"><span class="avatar sm">${esc(String(S.user.name||'？').trim().charAt(0))}</span><span><b>${esc(S.user.name||'')}</b><small>${esc(S.user.role||'')}</small></span></button>` : '';
   document.body.classList.remove('editing'); document.body.classList.toggle('canedit', on);
