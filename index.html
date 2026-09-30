@@ -322,6 +322,7 @@ dl.info dd{position:relative;padding-right:44px}
 .wdocs{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}.wdoc{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--paper);color:var(--ink)}.wdoc b{flex:1;font-size:16px}.wdoc small{color:var(--sub);font-size:13px}.wdoc .tg{opacity:.5}
 .evdup{border:1px dashed var(--warn);border-radius:12px;padding:10px 12px;margin:0 0 12px;color:var(--warn);font-size:14px}.evdup b{display:block;margin-bottom:6px}
 .evdupbtn{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;text-align:left;padding:9px 12px;margin-top:6px;border:1px solid var(--warn);border-radius:10px;background:transparent;color:var(--ink);font-size:15px}.evdupbtn small{color:var(--warn);white-space:nowrap}
+.evsib{display:flex;gap:10px;align-items:flex-start;margin:14px 0 4px;padding:10px 12px;border-radius:12px;background:var(--wash);font-size:14px;line-height:1.5}.evsib input{width:20px;height:20px;flex:none;margin-top:2px}
 .evconf{border:1px solid var(--warn);border-radius:12px;padding:10px 12px;color:var(--warn)}.evconf>b{display:block;margin-bottom:6px;font-size:14px}.evcf{margin-top:8px}.evcf small{display:block;color:var(--sub);font-size:12px;margin-bottom:4px}.evopt{display:block;width:100%;text-align:left;margin:4px 0;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font-size:15px}.evopt.on{border-color:var(--ink);box-shadow:0 0 0 2px var(--ink) inset;font-weight:700}
 .flagbox .yrq{display:inline-block;margin-top:10px;font-weight:700}
 .flagbox .mgbtn{display:inline-block;width:auto;margin:8px 0 0;padding:5px 14px;font-size:14px;border:1px solid var(--warn);background:transparent;color:var(--warn);border-radius:999px}
@@ -1170,7 +1171,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd22366d4ed', APP_URL = location.origin + location.pathname;
+const BUILD = '10c941c2ab', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1471,70 +1472,102 @@ function workDocsHTML(no){
   return `<h3 class="sec">この作品の書類（${ds.length}通）</h3><div class="wdocs">${ds.map(d => `<button class="wdoc" ${d['状態']==='まだ' ? 'data-docnew-read="' + esc(d['書類ID']) + '"' : 'data-doc="' + esc(d['書類ID']) + '"'}><b>${esc(docTitle(d))}</b><small>${esc(st(d))}</small><span class="tg">›</span></button>`).join('')}</div>`;
 }
 /* ---- 同じ出来事（制作・出品・掲載・貸出・委託・寄贈・販売・贈与・廃棄など）が重なっていたら1つにまとめる ----
-   同じ種類・同じ相手・同じ時期なら候補。内容は補い合い、書類はすべて残す。食い違う項目は選んでもらう */
+   同じ種類・同じ相手・同じ時期なら候補。内容は補い合い、書類はすべて残す。食い違う項目は選んでもらう。
+   同じ書類の組み合わせを持つ他の作品も、同じ選び方でまとめて直せる */
 const evNorm = v => String(v||'').normalize('NFKC').replace(/[\s、。・,.()（）「」]/g, '').toLowerCase();
 const EV_SAME = { '貸与':'貸出', '貸し出し':'貸出', '破棄':'廃棄', '贈与':'譲渡', '画集掲載':'掲載', '出展':'出品' };
-const evKind = k => EV_SAME[String(k||'').trim()] || String(k||'').trim();
+const evKind = e => { let k = String(e['種類']||'').trim(); const c = String(e['内容']||'').trim();
+  if (k === '移動' && EVENT_TYPES.includes(EV_SAME[c] || c)) k = c;   // 「移動（内容：寄贈）」は寄贈として見る
+  return EV_SAME[k] || k; };
 const evYear = e => (String(e['日付']||'').match(/\d{4}/)||[''])[0];
 const evDocs = e => [...new Set((String(e['根拠・出典']||'').match(/D\d{6,}[0-9A-Za-z-]*/g) || []))];
 const evLinkId = e => e['展覧会ID'] || e['資料ID'] || '';
-function evDupPairs(ev){
-  const out = [];
-  for (let i = 0; i < ev.length; i++) for (let j = i + 1; j < ev.length; j++) {
-    const a = ev[i], b = ev[j];
-    if (!evKind(a['種類']) || evKind(a['種類']) !== evKind(b['種類'])) continue;
-    const la = evLinkId(a), lb = evLinkId(b);
-    if (la && lb) { if (la === lb) out.push([a, b]); continue; }  // 同じ展覧会・画集なら同じ出来事
-    const ya = evYear(a), yb = evYear(b); if (ya && yb && ya !== yb) continue;
-    const pa = evNorm(a['相手先・場所']), pb = evNorm(b['相手先・場所']);
-    if (pa && pb && !(pa === pb || pa.includes(pb) || pb.includes(pa))) continue;
-    if (!ya && !yb && !pa && !pb) continue;
-    out.push([a, b]);
-  }
-  return out;
+function evPlaceCore(v){ return evNorm(v).replace(/^(パリ市?|京都市?|東京都?|大阪市?)/, ''); }
+function evSamePlace(x, y){ // 同じ相手先か（言語ちがい・前置きちがいも拾う）
+  const a = evPlaceCore(x), b = evPlaceCore(y); if (!a || !b) return true;
+  if (a === b || a.includes(b) || b.includes(a)) return true;
+  let best = 0; for (let i = 0; i < a.length; i++) for (let j = 0; j < b.length; j++) { let n = 0; while (a[i+n] && a[i+n] === b[j+n]) n++; if (n > best) best = n; }
+  return best >= 5 && best >= Math.min(a.length, b.length) * 0.6;
 }
+function evIsDup(a, b){
+  if (!evKind(a) || evKind(a) !== evKind(b)) return false;
+  const la = evLinkId(a), lb = evLinkId(b); if (la && lb) return la === lb;
+  const ya = evYear(a), yb = evYear(b); if (ya && yb && ya !== yb) return false;
+  if (!evSamePlace(a['相手先・場所'], b['相手先・場所'])) return false;
+  return !!(ya || yb || a['相手先・場所'] || b['相手先・場所']);
+}
+function evDupPairs(ev){ const out = []; for (let i = 0; i < ev.length; i++) for (let j = i + 1; j < ev.length; j++) if (evIsDup(ev[i], ev[j])) out.push([ev[i], ev[j]]); return out; }
 function evDupHTML(ev){
   const ps = evDupPairs(ev); if (!ps.length) return '';
-  const lab = e => [evYear(e), e['種類'], e['相手先・場所']].filter(Boolean).join(' ');
+  const lab = e => [evYear(e), evKind(e), e['相手先・場所']].filter(Boolean).join(' ');
   return `<div class="evdup"><b>同じ出来事が重なっているかもしれません（${ps.length}組）</b>${ps.map(([a,b]) => `<button class="evdupbtn" data-evdup="${esc(a['出来事ID'])}|${esc(b['出来事ID'])}"><span>${esc(lab(a))}</span><small>1つにまとめる ›</small></button>`).join('')}</div>`;
 }
-const EV_SURE = ['確認済み','書類で確認','資料で確認','家族の記憶','推定','不明'];
-function evScore(e){ return ['日付','相手先・場所','内容','根拠・出典','担当者・連絡先'].filter(k => e[k]).length + evDocs(e).length; }
-function sheetEvMerge(idA, idB){
-  const a = S.events.find(e => e['出来事ID']===idA), b = S.events.find(e => e['出来事ID']===idB); if (!a || !b) return;
-  const keep = evScore(b) > evScore(a) ? b : a, drop = keep === a ? b : a;
-  const F = ['日付','種類','相手先・場所','内容','担当者・連絡先','確かさ','根拠・出典'];
-  const m = {}, conf = {}, pick = {};
-  F.forEach(k => {
-    const x = String(keep[k]||'').trim(), y = String(drop[k]||'').trim();
-    if (k === '根拠・出典') { const parts = [...new Set([x, y].join(' ／ ').split(/\s*[／\/]\s*/).map(v => v.trim()).filter(Boolean))]; m[k] = parts.join(' ／ '); return; }
-    if (k === '種類') { m[k] = x || y; return; }
-    if (k === '確かさ') { const r = v => { const i = EV_SURE.indexOf(v); return i < 0 ? 99 : i; }; m[k] = !x ? y : !y ? x : (r(y) < r(x) ? y : x); return; }
+const EV_SURE = ['確認済み','書類で確認','資料で確認','家族の記憶','推定','自動変換（要確認）','不明'];
+const EV_F = ['日付','種類','相手先・場所','内容','担当者・連絡先','確かさ','根拠・出典'];
+function evScore(e){ return ['日付','相手先・場所','内容','根拠・出典','担当者・連絡先'].filter(k => e[k]).length + evDocs(e).length * 2; }
+/* a側・b側の2つをまとめる計画。pick[項目] = 'a' | 'b' | 'ab'（両方）。決まっていない食い違いは conf に入る */
+function evPlan(a, b, pick){
+  const keep = evScore(b) > evScore(a) ? b : a, drop = keep === a ? b : a, m = {}, conf = {};
+  EV_F.forEach(k => {
+    const x = String(a[k]||'').trim(), y = String(b[k]||'').trim();
+    if (k === '根拠・出典') { m[k] = [...new Set([x, y].join(' ／ ').split(/\s*[／\/]\s*/).map(v => v.trim()).filter(Boolean))].join(' ／ '); return; }
+    if (k === '種類') { m[k] = x === '移動' && y ? y : y === '移動' && x ? x : (x || y); if (m[k] === '移動') m[k] = evKind(a); return; }
+    if (k === '確かさ') { const r = v => { const i = EV_SURE.indexOf(v); return i < 0 ? 50 : i; }; m[k] = !x ? y : !y ? x : (r(y) < r(x) ? y : x); return; }
+    if (k === '内容' && (x === evKind(a) || x === '寄贈') && y) { m[k] = y; return; }   // 「寄贈」だけの内容は詳しい方に
+    if (k === '内容' && (y === evKind(b) || y === '寄贈') && x) { m[k] = x; return; }
     if (!x || !y || evNorm(x) === evNorm(y)) { m[k] = x || y; return; }
     if (evNorm(x).includes(evNorm(y))) { m[k] = x; return; }
     if (evNorm(y).includes(evNorm(x))) { m[k] = y; return; }
-    conf[k] = k === '内容' ? [x, y, x + ' ／ ' + y] : [x, y];   // 食い違い：選んでもらう
+    if (pick && pick[k]) { m[k] = pick[k] === 'a' ? x : pick[k] === 'b' ? y : x + ' ／ ' + y; return; }
+    conf[k] = [x, y];
   });
-  const docs = [...new Set([...evDocs(keep), ...evDocs(drop)])];
+  const patch = {}; EV_F.forEach(k => { if (m[k] !== undefined && String(keep[k]||'').trim() !== String(m[k]||'')) patch[k] = m[k] || ''; });
+  return { keep, drop, m, conf, patch };
+}
+/* 同じ書類の組み合わせを持つ、ほかの作品の同じペアを探す */
+function evSiblings(a, b){
+  const da = evDocs(a), db = evDocs(b); if (!da.length && !db.length) return [];
+  const has = (e, ds) => evDocs(e).some(d => ds.includes(d)), out = [];
+  const byNo = {}; S.events.forEach(e => { if (e['作品番号'] !== a['作品番号']) (byNo[e['作品番号']] = byNo[e['作品番号']] || []).push(e); });
+  Object.keys(byNo).forEach(no => {
+    const evs = byNo[no], x = evs.find(e => da.length ? has(e, da) : false), y = evs.find(e => e !== x && (db.length ? has(e, db) : false));
+    if (x && y && evIsDup(x, y)) out.push([x, y]);
+  });
+  return out;
+}
+function sheetEvMerge(idA, idB){
+  const a = S.events.find(e => e['出来事ID']===idA), b = S.events.find(e => e['出来事ID']===idB); if (!a || !b) return;
+  const pick = {}, sibs = evSiblings(a, b); let withSibs = true;
   const draw = () => {
-    const left = Object.keys(conf).filter(k => pick[k] === undefined);
+    const p = evPlan(a, b, pick), left = Object.keys(evPlan(a, b, null).conf).filter(k => !pick[k]);
+    const confAll = evPlan(a, b, null).conf, docs = [...new Set([...evDocs(a), ...evDocs(b)])];
     openSheet(`<h3>同じ出来事を1つにまとめる</h3><p class="hint">2つの記録の内容を合わせて1つにします。書類はすべて残ります。まとめた方は「アーカイブ」に残るので、あとで戻せます。</p>
-      ${Object.keys(conf).length ? `<div class="evconf"><b>食い違っているところがあります。正しい方を選んでください</b>${Object.keys(conf).map(k => `<div class="evcf"><small>${k}</small>${conf[k].map((v, i) => `<button class="evopt ${pick[k]===i?'on':''}" data-evpick="${k}|${i}">${i===2 ? '両方残す' : esc(v)}</button>`).join('')}</div>`).join('')}</div>` : ''}
-      <h4 style="margin:14px 0 6px">まとめた結果</h4><dl class="info">${F.map(k => { const v = conf[k] ? (pick[k]===undefined ? '（選んでください）' : conf[k][pick[k]]) : m[k]; return v ? `<dt>${k}</dt><dd>${esc(v)}</dd>` : ''; }).join('')}
+      ${Object.keys(confAll).length ? `<div class="evconf"><b>食い違っているところがあります。正しい方を選んでください</b>${Object.keys(confAll).map(k => `<div class="evcf"><small>${k}</small>${[['a', confAll[k][0]], ['b', confAll[k][1]]].concat(k === '内容' ? [['ab', '両方残す']] : []).map(([v, t]) => `<button class="evopt ${pick[k]===v?'on':''}" data-evpick="${k}|${v}">${esc(t)}</button>`).join('')}</div>`).join('')}</div>` : ''}
+      <h4 style="margin:14px 0 6px">まとめた結果</h4><dl class="info">${EV_F.filter(k => k !== '根拠・出典').map(k => { const v = confAll[k] && !pick[k] ? '（選んでください）' : p.m[k]; return v ? `<dt>${k}</dt><dd>${esc(v)}</dd>` : ''; }).join('')}
         ${docs.length ? `<dt>書類</dt><dd>${docs.length}通（${docs.map(esc).join('、')}）</dd>` : ''}</dl>
+      ${sibs.length ? `<label class="evsib"><input type="checkbox" id="evSib" ${withSibs?'checked':''}> 同じ書類がひも付いたほかの作品（${sibs.length}点：${sibs.map(([x]) => 'No.' + esc(x['作品番号'])).join('、')}）も、同じようにまとめる</label>` : ''}
       <div class="btns"><button type="button" data-close>やめる</button><button type="button" class="primary" id="evmGo" ${left.length ? 'disabled' : ''}>${left.length ? 'あと' + left.length + 'か所選んでください' : '1つにまとめる'}</button></div>`);
-    document.querySelectorAll('[data-evpick]').forEach(x => x.onclick = () => { const [k, i] = x.dataset.evpick.split('|'); pick[k] = +i; draw(); });
-    const go = $('#evmGo'); if (go && !left.length) go.onclick = async () => {
-      const fin = Object.assign({}, m); Object.keys(conf).forEach(k => fin[k] = conf[k][pick[k]]);
-      const patch = {}; F.forEach(k => { if (String(keep[k]||'').trim() !== String(fin[k]||'')) patch[k] = fin[k] || ''; });
-      busy(true, 'まとめています…');
-      try { if (Object.keys(patch).length) await call('updateEvent', keep['出来事ID'], patch); }
-      catch(e){ busy(false); return alert('保存できませんでした。\n' + (e.message||e)); }
-      busy(false);
-      save('archiveItem', ['e', drop['出来事ID'], '同じ出来事のため統合（残した記録：' + keep['出来事ID'] + '）'], '1つにまとめました');
-    };
+    document.querySelectorAll('[data-evpick]').forEach(x => x.onclick = () => { const [k, v] = x.dataset.evpick.split('|'); pick[k] = v; draw(); });
+    if ($('#evSib')) $('#evSib').onchange = e => { withSibs = e.target.checked; };
+    const go = $('#evmGo'); if (go && !left.length) go.onclick = () => evMergeRun([[a, b]].concat(withSibs ? sibs : []), pick);
   };
   draw();
+}
+async function evMergeRun(pairs, pick){
+  closeSheet(); let ok = 0; const skipped = [];
+  for (let i = 0; i < pairs.length; i++) {
+    const [a, b] = pairs[i], p = evPlan(a, b, pick);
+    if (Object.keys(p.conf).length) { skipped.push(a['作品番号']); continue; }  // この作品だけ別の食い違いがある
+    busy(true, 'まとめています（' + (i + 1) + '/' + pairs.length + '）…');
+    try {
+      if (Object.keys(p.patch).length) await call('updateEvent', p.keep['出来事ID'], p.patch);
+      const d = await call('archiveItem', 'e', p.drop['出来事ID'], '同じ出来事のため統合（残した記録：' + p.keep['出来事ID'] + '）');
+      setData(d); ok++;
+    } catch(e){ busy(false); alert('No.' + a['作品番号'] + ' でエラーになりました。\n' + (e.message||e)); break; }
+  }
+  busy(false); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+  toast(ok + '点の作品でまとめました');
+  if (skipped.length) alert('次の作品は、ほかにも食い違いがあったので、まだまとめていません。\n作品ページから1つずつまとめてください。\n' + skipped.map(n => 'No.' + n).join('、'));
 }
 const docsOf = st => (S.docs||[]).filter(d => d['状態']===st);
 const docPages = d => String(d['ファイルID']||'').split(',').filter(Boolean);
