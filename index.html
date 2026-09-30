@@ -1269,6 +1269,14 @@ html,body{overflow-x:clip}
 .cyh::after{content:'';position:absolute;left:-100vw;right:-100vw;top:50%;height:2.5px;margin-top:-1.25px;background:color-mix(in srgb,var(--ink) 30%,transparent);z-index:0;pointer-events:none}
 .cyh::before{content:'';display:none;position:absolute;left:-100vw;right:-100vw;bottom:50%;height:calc(var(--stk,0px) + 40px);background:color-mix(in srgb,var(--bg) 55%,transparent);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);z-index:0;pointer-events:none}
 .cyh.stuck::before{display:none}
+.help{max-width:680px;margin:0 auto}.hlead{font-size:17px;color:var(--sub);line-height:1.7;margin:-8px 0 18px}
+.hidx{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 28px}.hidx a{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:var(--wash);color:var(--ink);text-decoration:none;font-size:15px;font-weight:500}
+.hidx a b,.hno{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:13px;flex:none}
+.hsecb{padding:26px 0 30px;border-top:1px solid var(--line)}.hsecb h3{display:flex;align-items:center;gap:10px;font:600 22px/1.3 var(--disp);margin:0 0 8px}
+.hl{font-size:17px;line-height:1.7;margin:0 0 14px}.hshot{border-radius:22px;overflow:hidden;border:1px solid var(--line);background:var(--wash);max-width:360px;margin:0 auto 16px;box-shadow:0 10px 30px -14px rgba(0,0,0,.35)}.hshot img{display:block;width:100%;height:auto}
+.hsteps{margin:0;padding-left:1.4em;font-size:17px;line-height:1.75}.hsteps li{margin:0 0 6px}.hsteps b,.hl b{background:linear-gradient(transparent 60%,color-mix(in srgb,#e8b04a 45%,transparent) 60%)}
+.hend{margin:24px 0 10px;text-align:center;color:var(--sub);font-size:16px}
+.dwhelp{margin-top:8px;border-top:1px solid var(--line)!important;border-radius:0 0 12px 12px!important}
 #yfix{position:fixed;left:0;right:0;z-index:30;pointer-events:none}
 #yfix .cyh{position:relative!important;height:46px}
 #yfix .cyh::after{left:0;right:0}
@@ -1412,7 +1420,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '4defb9b5e6', APP_URL = location.origin + location.pathname;
+const BUILD = '935e32f7fd', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1626,7 +1634,7 @@ function navOn(){ const nv = S.view;
   $('#fmPage').classList.toggle('on', nv!=='ai' && nv!=='home'); $('#fmAsk').classList.toggle('on', !!S.aiOpen); $('#fmHome').classList.toggle('on', nv==='home');
   $('#nav').classList.toggle('hidden', !S.user); $('#navAsk').classList.toggle('hidden', !S.user);
   if (document.body.classList.contains('pgopen')) return;
-  const TT = {home:'ホーム', album:'作品アルバム', list:'作品リスト', ot:'その他の作品', ex:'展覧会', pb:'画集・資料', chrono:'年表', doc:'書類', ai:'作品目録AI'};
+  const TT = {help:'使い方', home:'ホーム', album:'作品アルバム', list:'作品リスト', ot:'その他の作品', ex:'展覧会', pb:'画集・資料', chrono:'年表', doc:'書類', ai:'作品目録AI'};
   setTitle(TT[nv] || '作品目録');
   document.querySelectorAll('#dwNav button').forEach(b => b.classList.toggle('on', b.dataset.v===nv));
   let sq = null; try { sq = SQ[nv]; } catch(e){}
@@ -1650,10 +1658,11 @@ function render(){
   if (!S.user && !S.publicView) { $('#finder').classList.add('hidden'); $('#chronobar').classList.add('hidden'); $('#top').classList.add('hidden'); $('#askbar').classList.add('hidden'); if (S.view==='ai') S.view='album'; navOn(); return showLoginWall(); }
   $('#chronobar').classList.toggle('hidden', !['chrono','ex','pb','ot'].includes(S.view));
   setTimeout(stkTop, 50);
-  $('#finder').classList.toggle('hidden', ['ai','chrono','ex','pb','ot','home','doc'].includes(S.view) || !S.works.length && !S.user && !S.publicView); $('#top').classList.toggle('hidden', S.view==='ai');
+  $('#finder').classList.toggle('hidden', ['ai','chrono','ex','pb','ot','home','doc','help'].includes(S.view) || !S.works.length && !S.user && !S.publicView); $('#top').classList.toggle('hidden', S.view==='ai');
   navOn();
   if (S.view==='ai') { S.view = 'home'; setTimeout(openAI, 0); }
   if (S.view==='home') return renderHome();
+  if (S.view==='help') return renderHelp();
   if (S.view==='doc') return canEdit() ? renderDocs() : (S.view='home', renderHome());
   if (S.view==='chrono') return renderChrono();
   if (S.view==='ex') return renderExList();
@@ -1749,7 +1758,7 @@ function renderHome(){
     ${basicsHTML()}
     <div class="qzrow ${canEdit()?'':'one'}">${canEdit() ? `<button class="qzhome q" data-qzmenu="1"><span class="qzhi qq">Q</span><span><b>クイズ</b><small>はい・いいえで確認</small></span><span class="tg">›</span></button>` : ''}<button class="qzhome iv" data-ivgo="1"><span class="qzhi">🎤</span><span><b>インタビュー</b><small>声でおしゃべり</small></span><span class="tg">›</span></button></div>
     ${canEdit() ? `<h2 class="hsec">やること</h2><div class="todos">${todo.map(card).join('')}</div>` : ''}
-    <button class="tourlink" data-tour="">使い方をもう一度見る</button></div><aside class="dash">${dashHTML()}</aside></div>`;
+    <button class="tourlink" data-v="help">使い方を見る</button></div><aside class="dash">${dashHTML()}</aside></div>`;
   hydrate($('#main'));
   window.scrollTo(0, 0);
 }
@@ -1758,7 +1767,8 @@ function renderHome(){
   document.getElementById('fmPop').innerHTML = L.map(([v, t, k]) => `<button data-v="${v}"${v==='doc'?' class="edonly"':''}><span class="pic">${ico(k)}</span><span>${v==='ot' ? 'その他の作品' : t}</span></button>`).join('');
   const HOMEIC = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.2 12 4.5l8 6.7V20h-5.2v-5.6H9.2V20H4z"/></svg>';
   document.getElementById('dwNav').innerHTML = `<button type="button" data-v="home"><span class="pic">${HOMEIC}</span><span>ホーム</span></button>`
-    + L.map(([v, t, k]) => `<button type="button" data-v="${v}"${v==='doc'?' class="edonly"':''}><span class="pic">${ico(k)}</span><span>${v==='ot' ? 'その他の作品' : v==='pb' ? '画集・資料' : t}</span></button>`).join(''); })();
+    + L.map(([v, t, k]) => `<button type="button" data-v="${v}"${v==='doc'?' class="edonly"':''}><span class="pic">${ico(k)}</span><span>${v==='ot' ? 'その他の作品' : v==='pb' ? '画集・資料' : t}</span></button>`).join('')
+    + `<button type="button" data-v="help" class="dwhelp"><span class="pic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.6M12 16.8v.2"/></svg></span><span>使い方</span></button>`; })();
 function goHome(){ hidePop(); closeAllPages(); S.view = 'home'; render(); window.scrollTo(0, 0); }
 function goTodo(k){
   closeAllPages();
@@ -2890,7 +2900,8 @@ const TOUR = [
   ['photo', '写真を撮る', '「写真を追加」→「カメラで撮る」で、その場で撮れます。<br>「写真を選ぶ」なら、何枚でもまとめて登録できます。'],
   ['ai', 'AIに質問', '下の［質問］を押すと、作品のことを文章で聞けます。<br>例：「京都の美術館にある作品は？」']
 ];
-function showTour(){
+function showTour(){ closeAllPages(); S.view = 'help'; render(); window.scrollTo(0, 0); } // ツアーはやめて、使い方のページへ
+function showTourOld(){
   let i = 0; const el = document.createElement('div'); el.className = 'tour'; el.id = 'tour';
   const draw = () => {
     const [k, t, b] = TOUR[i], last = i === TOUR.length - 1;
@@ -2910,6 +2921,29 @@ function showTour(){
   draw(); document.body.appendChild(el);
 }
 const tourSeen = () => { try { return localStorage.getItem('smr_tour') === '1'; } catch(e){ return true; } };
+
+/* ---------- 使い方のページ（スクリーンショット付き） ---------- */
+const HELP = [
+  ['home', 'ホーム', 'アプリを開くと、まずこの画面になります。', ['上のあいさつの下に、<b>確認してほしいこと（付箋）</b>が並びます。', '<b>基本の3つ</b>（写真・作品名・保管場所）の進み具合が分かります。', '<b>クイズ</b>・<b>インタビュー</b>で、作品のことを教えてください。']],
+  ['menu', 'ページを移る（メニュー）', '左上の<b>写真のボタン</b>を押すと、メニューが出ます。', ['見たいページ（作品アルバム・年表など）を押します。', 'いちばん下の<b>お名前</b>を押すと、明るい／暗い表示の切り替えやログアウトができます。', 'メニューの外（右側）を押すと閉じます。']],
+  ['search', '作品を探す', '画面の下の<b>「作品を探す」</b>を押して、言葉を入れます。', ['作品名・番号・年・美術館名など、分かるところだけで大丈夫です。', '入れたそばから、合う作品だけが並びます。', '右の <b>✕</b> で、探す前に戻ります。']],
+  ['work', '作品のページ', '作品の写真を押すと、その作品のページが開きます。', ['<b>いまの場所</b>の右のえんぴつで、場所を変えられます。', '下の方の<b>「写真を追加」</b>で、写真を撮って入れられます。', '左上の <b>←</b> で、前の画面に戻ります。']],
+  ['memo', '確認してほしいこと（付箋）', 'ホームの付箋は、家族からの「これ合ってる？」という質問です。', ['付箋の中の作品を押すと、その作品のページが開きます。', '確かめたら、左下の<b>「確認しました」</b>にチェックを入れます。']],
+  ['quiz', 'クイズ・インタビュー', 'ホームのカードから始めます。', ['<b>クイズ</b>：「はい」「いいえ」で答えるだけで、作品の情報がそろっていきます。', '<b>インタビュー</b>：マイクに話しかけると、声で答えられます。']],
+  ['ai', '質問する（AI）', '右下の<b>青いボタン</b>を押すと、作品について何でも質問できます。', ['例：「京都市美術館にある作品は？」', '答えに出てくる作品の番号を押すと、その作品のページが開きます。']],
+  ['chrono', '年表・展覧会', '年ごとに、展覧会や作品が並びます。', ['スクロールすると、いまの年が上に出たままになります。', '年の線のところで、年が切り替わります。']],
+  ['notice', '上のお知らせの色', 'ページ名のボタンの色で、いまの状態をお知らせします。', ['<b style="color:#d97728">オレンジ</b>：読み込み中・保存中です。少し待ってください。', '<b style="color:#3d8a5c">緑</b>：保存できました。', '<b style="color:#d64e3a">赤</b>：新しい版があります。押すと新しくなります。']]
+];
+function renderHelp(){
+  window.scrollTo(0, 0);
+  $('#main').innerHTML = `<div class="help"><h2 class="hello">使い方</h2><p class="hlead">分からないときは、このページを見てください。どこを押しても、こわれることはありません。</p>
+    <div class="hidx">${HELP.map(([k, t], i) => `<a href="#h-${k}"><b>${i + 1}</b>${t}</a>`).join('')}</div>
+    ${HELP.map(([k, t, lead, steps], i) => `<section class="hsecb" id="h-${k}"><h3><span class="hno">${i + 1}</span>${t}</h3><p class="hl">${lead}</p>
+      <div class="hshot"><img src="help/${k}.jpg" alt="${t}の画面" loading="lazy"></div>
+      <ol class="hsteps">${steps.map(x => `<li>${x}</li>`).join('')}</ol></section>`).join('')}
+    <p class="hend">それでも分からないときは、卓也に聞いてください。</p></div>`;
+  $('#main').querySelectorAll('.hidx a').forEach(a => a.onclick = e => { e.preventDefault(); const el = document.querySelector(a.getAttribute('href')); if (el) window.scrollTo({top: el.getBoundingClientRect().top + scrollY - (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stk')) || 70) - 8, behavior: 'smooth'}); });
+}
 
 /* ---------- 作品ページ ---------- */
 function workOf(no){ return S.works.find(w => w['作品番号']===no) || otWork(no); }
@@ -3836,7 +3870,7 @@ function openLogin(why){
         if (!r.ok) { err(r.msg); inp.select(); return; }
         setToken(r.token); try { localStorage.setItem('smr_name', email); } catch(e){}
         inp.blur();
-        const d = await call('getData'); setData(d); closeSheet(); S.view = 'home'; render(); if (!tourSeen()) showTour();
+        const d = await call('getData'); setData(d); closeSheet(); S.view = 'home'; render();
         toast('ようこそ、' + (r.user.name || email) + 'さん');
       } catch(e){ err('つながりませんでした。もう一度エンターを押してください'); }
       finally { busy(false); }
