@@ -1416,6 +1416,9 @@ html body #main section.cy .cage{font-size:12px!important;color:var(--sub)!impor
 #top .appbar h1 .hmic{display:none}
 #top .appbar h1 .hmic svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;display:block}
 #top .appbar h1 .cprev .hmic svg{stroke-width:1.7}
+#top .appbar h1.cpfit .cprev .hmtx{display:inline!important}
+#top .appbar h1.cpfit .cprev .hmic{display:none!important}
+#top .appbar h1.cpfit .cprev{flex:0 3 auto!important;overflow:hidden!important}
 @media(min-width:1000px){ body.wide #top .appbar,body.wide #top .brand.appbar{left:264px!important} }
 @media(max-width:599px){ #top .appbar h1 .chome[data-home] .hmtx,#top .appbar h1 .cprev:has(.hmic) .hmtx{display:none} #top .appbar h1 .chome[data-home] .hmic,#top .appbar h1 .cprev .hmic{display:flex;align-items:center} #top .appbar h1 .chome[data-home],#top .appbar h1 .cprev:has(.hmic){flex:none;overflow:visible} }
 #top .appbar .abmenu svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
@@ -1569,7 +1572,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'aafbeec1fc', APP_URL = location.origin + location.pathname;
+const BUILD = 'eaeb5e9f88', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1597,7 +1600,11 @@ function syncThemeColor(){ let m = document.querySelector('meta[name="theme-colo
 setTimeout(syncThemeColor, 0); new MutationObserver(syncThemeColor).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
 /* お知らせ（読み込み中・保存しました・新しい版）は、上のページ名のところに色を変えて出す */
 function setTitle(t){ const h = $('#abTitle'); if (!h) return; h.dataset.t = t; abRender(); }
-function abRender(){ abRender0(); if (typeof capFit === 'function') capFit(); }
+function abRender(){ abRender0(); if (typeof capFit === 'function') capFit(); abFit(); }
+/* スマホ：ひとつ前の階層は、入りきるなら文字で、入りきらなければアイコンで */
+function abFit(){ const h = document.getElementById('abTitle'); if (!h) return; const pv = h.querySelector('.cprev'); h.classList.remove('cpfit'); if (!pv || !pv.querySelector('.hmic') || !h.clientWidth) return;
+  h.classList.add('cpfit'); const cut = [...h.querySelectorAll('.crumb')].some(c => c.scrollWidth > c.clientWidth + 1); if (cut) h.classList.remove('cpfit'); }
+addEventListener('resize', () => { try { abFit(); } catch(e){} });
 function abRender0(){ const h = $('#abTitle'); if (!h) return;
   const ld = $('#loading'), ts = $('#toast'), up = $('#updBar');
   let st = '', tx = h.dataset.t || '';
