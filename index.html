@@ -1197,6 +1197,19 @@ html.sa .dwpanel{padding-top:calc(var(--cap) + 8px)}
 .sheet .box{border-radius:20px 20px 0 0}
 .tile .ph{border-radius:12px;overflow:hidden}
 html.sa header{padding-top:calc(var(--cap) + 4px)}
+/* パソコン（広い画面）：左にメニューを常に表示し、中身はその右に */
+@media(min-width:1000px){
+  body.wide{padding-left:264px}
+  body.wide #btnMenu{visibility:hidden}
+  .drawer.pin{inset:0 auto 0 0;width:264px;z-index:36}
+  .drawer.pin .dwscrim{display:none}
+  .drawer.pin .dwpanel{width:264px;transform:none;box-shadow:none;transition:none;background:var(--wash)}
+  body.wide .cbar{left:calc(264px + 24px);right:24px;max-width:760px;margin:0 auto}
+  body.wide .page{left:264px}
+  body.wide .aip{right:24px}
+  body.wide .appbar h1{font-size:18px}
+  body.wide main{padding-left:32px;padding-right:32px}
+}
 html.sa.tb header{padding-top:calc(var(--cap) + 4px - var(--tb))}
 
 </style>
@@ -1265,7 +1278,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '22898574a2', APP_URL = location.origin + location.pathname;
+const BUILD = '2f7cc4a250', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1305,6 +1318,7 @@ try { S.token = localStorage.getItem('smr_token') || ''; } catch(e){ S.token = '
 function renderUser(){
   const on = canEdit();
   $('#userbox').innerHTML = S.user ? `<button class="avatar" id="btnMe" aria-label="${esc(S.user.name||'')}さんのメニュー">${esc(String(S.user.name||'？').trim().charAt(0))}</button>` : '';
+  setTimeout(pinDrawer, 0);
   const f = $('#dwFoot'); if (f) f.innerHTML = S.user ? `<button type="button" class="dwme" id="btnMe2"><span class="avatar sm">${esc(String(S.user.name||'？').trim().charAt(0))}</span><span><b>${esc(S.user.name||'')}</b><small>${esc(S.user.role||'')}</small></span></button>` : '';
   document.body.classList.remove('editing'); document.body.classList.toggle('canedit', on);
 }
@@ -1449,9 +1463,15 @@ function navOn(){ const nv = S.view;
   document.querySelectorAll('#dwNav button').forEach(b => b.classList.toggle('on', b.dataset.v===nv));
   let sq = null; try { sq = SQ[nv]; } catch(e){}
   const fi = $('#fsq'); if (fi && document.activeElement !== fi) { fi.placeholder = sq ? sq[1] : '作品を探す'; fi.value = sq ? (S[sq[0]] || '') : ''; $('#fsqClose').classList.toggle('hidden', !fi.value); } }
-/* ---------- メニュー（左から出る） ---------- */
+/* ---------- メニュー（左から出る）。パソコンの広い画面では左にずっと出しておく ---------- */
+function pinDrawer(){ const d = $('#drawer'); if (!d) return; const w = innerWidth >= 1000 && !!S.user;
+  document.body.classList.toggle('wide', w); d.classList.toggle('pin', w);
+  if (w) { d.classList.remove('hidden'); d.classList.add('open'); d.setAttribute('aria-hidden', 'false'); }
+  else if (!d.classList.contains('open') || d.dataset.was === 'pin') { d.classList.remove('open'); d.classList.add('hidden'); }
+  d.dataset.was = w ? 'pin' : ''; }
+addEventListener('resize', () => pinDrawer());
 function openDrawer(){ const d = $('#drawer'); d.classList.remove('hidden'); d.setAttribute('aria-hidden', 'false'); requestAnimationFrame(() => d.classList.add('open')); }
-function closeDrawer(){ const d = $('#drawer'); if (d.classList.contains('hidden')) return; d.classList.remove('open'); d.setAttribute('aria-hidden', 'true'); setTimeout(() => d.classList.add('hidden'), 220); }
+function closeDrawer(){ const d = $('#drawer'); if (d.classList.contains('hidden') || d.classList.contains('pin')) return; d.classList.remove('open'); d.setAttribute('aria-hidden', 'true'); setTimeout(() => d.classList.add('hidden'), 220); }
 function render(){
   const main = $('#main');
   document.body.classList.toggle('loggedout', !S.user && !S.publicView);
