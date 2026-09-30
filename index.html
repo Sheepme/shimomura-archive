@@ -612,6 +612,7 @@ html,body{overflow-x:clip;max-width:100%}
 .srcln{margin-top:4px}
 .noyr{margin-left:.8em;color:var(--sub)}
 #count{white-space:nowrap}
+.otmeta{margin:-14px 0 20px}.otcount{white-space:nowrap;font-size:16px;color:var(--ink);font-weight:500;letter-spacing:.02em}.otcount b{font-size:22px;font-weight:700;margin:0 3px}.otcount small{font-size:13px;color:var(--sub);font-weight:400}
 #count{font-size:16px;color:var(--ink);font-weight:500;letter-spacing:.02em}
 #count b{font-size:22px;font-weight:700;margin:0 1px;font-variant-numeric:tabular-nums}
 .meta select#sort{border:1.5px solid var(--ink);background:var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%231d1d1b' stroke-width='1.8'/%3E%3C/svg%3E") no-repeat right 12px center;color:var(--ink);font-size:15px;font-weight:600;padding:0 32px 0 14px;height:39px;line-height:36px;box-sizing:border-box;border-radius:999px;text-align:left;cursor:pointer;width:auto;flex:none;max-width:60%}
@@ -1199,7 +1200,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'cfc25bc711', APP_URL = location.origin + location.pathname;
+const BUILD = '936fbc8c08', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3316,9 +3317,11 @@ function renderOtList(){
 function drawOtList(){
   const q = S.oq.trim().toLowerCase();
   const list = S.others.filter(x => (S.otk==='すべて' || (x['種別']||'その他')===S.otk) && (!q || [x['作品名'], x['作品名メモ'], x['制作年'], x['画材'], x['所在'], x['所在区分'], x['補足'], x['作品番号']].join(' ').toLowerCase().includes(q)));
-  let html = `<div class="chead"><h2>その他の作品</h2><p class="csub">${S.otk!=='すべて' && OT_NOTE[S.otk] ? esc(OT_NOTE[S.otk]) + '　' : ''}${list.length}件${list.length!==S.others.length ? '（全' + S.others.length + '件）' : ''}</p></div>`;
+  const N0 = masN(), [ca, cb] = colRange();
+  let html = `<div class="meta otmeta"><span class="otcount">${list.length!==S.others.length ? S.others.length + '件中 <b>' + list.length + '</b> 件' : '全 <b>' + list.length + '</b> 件'}${S.otk!=='すべて' && OT_NOTE[S.otk] ? '<small>　' + esc(OT_NOTE[S.otk]) + '</small>' : ''}</span>
+    <span class="mright"><span class="zoomb"><button type="button" data-otcol="1" aria-label="小さく（列を増やす）" ${N0 >= cb ? 'disabled' : ''}>−</button><button type="button" data-otcol="-1" aria-label="大きく（列を減らす）" ${N0 <= ca ? 'disabled' : ''}>＋</button></span></span></div>`;
   { // 作品アルバムと同じ並べ方（縦に積む）
-    const N = masN(), cols = Array.from({length:N}, () => []);
+    const N = masN(); S.masN = N; const cols = Array.from({length:N}, () => []);
     list.forEach((x, i) => { const no = x['作品番号']; cols[i % N].push(`
       <button class="tile" data-ot="${esc(no)}">
         <div class="ph ${(photoBy[no]||[]).length ? '' : 'noph'}">${thumbHTML(no, 400)}</div>
@@ -3683,6 +3686,7 @@ document.addEventListener('click', e => {
   if (t.dataset.rec){ if (canEdit()) sheetRec(t.dataset.rec, t.dataset.rid, t.dataset.rf); return; }
   if (t.dataset.ex){ openEx(t.dataset.ex); return; }
   if (t.dataset.pb){ openPb(t.dataset.pb); return; }
+  if (t.dataset.otcol){ setCols(+t.dataset.otcol); return; }
   if (t.dataset.ot){ openOt(t.dataset.ot); return; }
   if (t.dataset.otk){ S.otk = t.dataset.otk; render(); return; }
   if (t.dataset.cf){ S.cf=t.dataset.cf; render(); return; }
@@ -3722,20 +3726,20 @@ const colKey = () => 'smr_cols_' + (innerWidth < 700 ? 'm' : innerWidth < 900 ? 
 const colRange = () => innerWidth < 700 ? [1, 5] : innerWidth < 900 ? [2, 6] : [2, 10];
 function masN(){ const [a, b] = colRange(); let u = 0; try { u = +localStorage.getItem(colKey()) || 0; } catch (e) { } return u ? Math.min(b, Math.max(a, u)) : masBase(); }
 function setCols(d){
-  if (S.view!=='album' || !$('#page').classList.contains('hidden')) return;
+  if (!['album','ot'].includes(S.view) || !$('#page').classList.contains('hidden')) return;
   const [a, b] = colRange(), cur = masN(), n = Math.min(b, Math.max(a, cur + d));
   if (n===cur) { toast(d > 0 ? 'これ以上小さくできません' : 'これ以上大きくできません'); return; }
   try { localStorage.setItem(colKey(), n); } catch (e) { }
   let anc = null, off = 0;
-  for (const t of document.querySelectorAll('#main .mas .tile')) { const r = t.getBoundingClientRect(); if (r.bottom > 90) { anc = t.dataset.no; off = r.top; break; } }
+  for (const t of document.querySelectorAll('#main .mas .tile')) { const r = t.getBoundingClientRect(); if (r.bottom > 90) { anc = t.dataset.no || t.dataset.ot; off = r.top; break; } }
   render();
-  if (anc) { const t = document.querySelector('#main .mas .tile[data-no="' + CSS.escape(anc) + '"]'); if (t) window.scrollBy(0, t.getBoundingClientRect().top - off); }
+  if (anc) { const t = document.querySelector('#main .mas .tile[data-no="' + CSS.escape(anc) + '"], #main .mas .tile[data-ot="' + CSS.escape(anc) + '"]'); if (t) window.scrollBy(0, t.getBoundingClientRect().top - off); }
   toast(n + '列');
 }
 (function(){
   let d0 = 0;
   const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
-  const onAlbum = () => S.view==='album' && $('#page').classList.contains('hidden');
+  const onAlbum = () => ['album','ot'].includes(S.view) && $('#page').classList.contains('hidden');
   document.addEventListener('touchstart', e => { if (e.touches.length===2 && onAlbum()) d0 = dist(e.touches); }, {passive:true});
   document.addEventListener('touchmove', e => {
     if (e.touches.length!==2 || !d0 || !onAlbum()) return;
@@ -3749,7 +3753,7 @@ function setCols(d){
   addEventListener('wheel', e => { if (!e.ctrlKey || !onAlbum()) return; e.preventDefault(); acc += e.deltaY; clearTimeout(wt); wt = setTimeout(() => acc = 0, 250);
     if (acc > 60) { acc = 0; setCols(1); } else if (acc < -60) { acc = 0; setCols(-1); } }, {passive:false});
 })();
-let rzT; addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(() => { if (S.view==='list' && S.tblM !== tblMobile() && $('#page').classList.contains('hidden')) render(); const N = masN(); if (S.view==='album' && S.masN && N!==S.masN && $('#page').classList.contains('hidden')) render(); }, 200); });
+let rzT; addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(() => { if (S.view==='list' && S.tblM !== tblMobile() && $('#page').classList.contains('hidden')) render(); const N = masN(); if (['album','ot'].includes(S.view) && S.masN && N!==S.masN && $('#page').classList.contains('hidden')) render(); }, 200); });
 let qt; $('#q').addEventListener('input', e => { clearTimeout(qt); qt=setTimeout(()=>{ S.q=e.target.value; S.limit=60; render(); }, 250); });
 $('#sort').addEventListener('change', e => { S.sort=e.target.value; render(); });
 $('#colPlus').addEventListener('click', () => setCols(-1)); $('#colMinus').addEventListener('click', () => setCols(1));
