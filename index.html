@@ -1320,11 +1320,15 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '444d4bc813', APP_URL = location.origin + location.pathname;
+const BUILD = '3148507189', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
   call('appBuild').then(b => { if (!b || b === BUILD || $('#updBar')) return;
+    // 入力中でなければ、そのまま新しい版に切り替える（古い画面が残らないように）
+    const busyEdit = !$('#sheet').classList.contains('hidden') || (document.activeElement && /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) || S.aiOpen || !!document.querySelector('.quiz:not(.hidden)');
+    let tried = ''; try { tried = sessionStorage.getItem('smr_upd') || ''; } catch(e){}
+    if (!busyEdit && tried !== b) { try { sessionStorage.setItem('smr_upd', b); } catch(e){} location.replace(APP_URL + '?r=' + Date.now()); return; }
     const d = document.createElement('button'); d.type = 'button'; d.id = 'updBar'; d.className = 'updbar';
     d.innerHTML = '<span>🔄</span><b>新しい版があります。ここをタップして更新してください</b>';
     d.onclick = () => { d.classList.add('go'); d.querySelector('span').outerHTML = '<span class="ldsp"></span>'; d.querySelector('b').textContent = '更新しています…'; window.open(APP_URL + '?r=' + Date.now(), '_top'); };
