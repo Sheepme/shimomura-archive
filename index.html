@@ -1227,7 +1227,7 @@ html[data-theme=dark]{--gl:rgba(58,58,56,.5);--gl-b:rgba(255,255,255,.1);--gl-s:
 .glass,.appbar .abtn,.appbar h1,.appbar .avatar,.cbin{background:var(--gl)!important;border:1px solid var(--gl-b)!important;box-shadow:var(--gl-s)!important;color:var(--ink)}
 .appbar .abtn{width:52px;height:52px;border-radius:50%}
 .appbar .abtn svg{width:24px;height:24px}
-.appbar h1,.brand.appbar h1{flex:0 1 auto;max-width:calc(100% - 140px);height:52px;display:flex;align-items:center;padding:0 22px;border-radius:26px;font:600 16px/1 var(--sans)}
+.appbar h1,.brand.appbar h1{cursor:pointer!important;-webkit-user-select:none;user-select:none;flex:0 1 auto;max-width:calc(100% - 140px);height:52px;display:flex;align-items:center;padding:0 22px;border-radius:26px;font:600 16px/1 var(--sans)}
 .appbar .brandr{width:52px;visibility:hidden;pointer-events:none} /* 名前はメニューのいちばん下に移した（ここは左右のバランス用） */
 .appbar .avatar{width:52px;height:52px;font-size:17px}
 body.dwopen .appbar{translate:var(--dww) 0}
@@ -1315,7 +1315,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '24e8eaffda', APP_URL = location.origin + location.pathname;
+const BUILD = 'eeac06c69d', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3799,6 +3799,9 @@ $('#fsq').addEventListener('focus', () => { closeDrawer(); if (S.aiOpen) closeAI
   if (!SQ[S.view]) { S.view = S.wmode || 'album'; S.limit = 60; render(); window.scrollTo(0, 0); } else if (pgOpen) render();
   const s = SQ[S.view]; $('#fsq').placeholder = s[1]; $('#top').classList.remove('tuck'); scrollLock(true); });
 $('#fsq').addEventListener('blur', () => scrollLock(false));
+/* 上のページ名を押すと、いちばん上までスクロール */
+$('#abTitle').addEventListener('click', () => { const pg = $('#page');
+  if (!pg.classList.contains('hidden')) pg.scrollTo({top:0, behavior:'smooth'}); else window.scrollTo({top:0, behavior:'smooth'}); });
 /* 検索の入力中は画面を動かさない（iPhoneがキーボードに合わせて勝手にスクロールするのを止める） */
 let lockY = 0;
 function scrollLock(on){ const b = document.body;
