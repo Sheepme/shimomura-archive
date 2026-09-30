@@ -1199,7 +1199,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '1e611b1b8b', APP_URL = location.origin + location.pathname;
+const BUILD = 'cfc25bc711', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3317,9 +3317,17 @@ function drawOtList(){
   const q = S.oq.trim().toLowerCase();
   const list = S.others.filter(x => (S.otk==='すべて' || (x['種別']||'その他')===S.otk) && (!q || [x['作品名'], x['作品名メモ'], x['制作年'], x['画材'], x['所在'], x['所在区分'], x['補足'], x['作品番号']].join(' ').toLowerCase().includes(q)));
   let html = `<div class="chead"><h2>その他の作品</h2><p class="csub">${S.otk!=='すべて' && OT_NOTE[S.otk] ? esc(OT_NOTE[S.otk]) + '　' : ''}${list.length}件${list.length!==S.others.length ? '（全' + S.others.length + '件）' : ''}</p></div>`;
-  html += '<div class="grid">' + list.map(x => `<button class="tile" data-ot="${esc(x['作品番号'])}"><div class="ph">${thumbHTML(x['作品番号'], 400)}</div>
-      <div class="cap"><div class="no">${esc([x['作品番号'], x['種別'], x['制作年']].filter(Boolean).join('・'))}</div><div class="tt">${otName(x)}</div></div></button>`).join('')
-    + (canEdit() ? '<button class="tile addtile" data-addk="ot"><div class="ph"><span class="plus">＋</span></div><div class="cap"><div class="tt">追加する</div></div></button>' : '') + '</div>';
+  { // 作品アルバムと同じ並べ方（縦に積む）
+    const N = masN(), cols = Array.from({length:N}, () => []);
+    list.forEach((x, i) => { const no = x['作品番号']; cols[i % N].push(`
+      <button class="tile" data-ot="${esc(no)}">
+        <div class="ph ${(photoBy[no]||[]).length ? '' : 'noph'}">${thumbHTML(no, 400)}</div>
+        <div class="cap"><div class="no">${esc(no)}<span class="noyr">${esc([x['種別'], x['制作年']].filter(Boolean).join('・'))}</span></div>
+        <div class="tt">${otName(x)}</div></div>
+      </button>`); });
+    html += list.length ? '<div class="mas' + (N >= 4 && innerWidth < 700 ? ' dense' : N >= 3 && innerWidth < 700 ? ' mid' : '') + '">' + cols.map(c => '<div class="mcol">' + c.join('') + '</div>').join('') + '</div>' : '';
+    if (canEdit()) html += '<button class="addrow" data-addk="ot" style="margin-top:28px"><span class="plus">＋</span><span>その他の作品を登録する</span></button>';
+  }
   if (!list.length && !canEdit()) html += `<p class="muted" style="text-align:center;padding:40px 0">${S.others.length ? '見つかりませんでした' : 'まだ登録がありません'}</p>`;
   $('#main').innerHTML = html; hydrate($('#main'));
 }
