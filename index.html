@@ -977,7 +977,7 @@ body.briefing nav.fmenu{display:none}
 #vmain:disabled{opacity:1;background:#f2b33d;color:#fff;border-color:#f2b33d}
 
 /* ---------- 確認メモ（付箋） ---------- */
-:root{--note:#fff3a8;--note2:#ffe97a;--note-ink:#3b3520;--note-sub:#7a6f45;--note-tape:rgba(255,255,255,.55);--note-shadow:0 1px 1px rgba(0,0,0,.08),0 8px 16px -6px rgba(90,70,0,.28);--note-done:#e4f0d8;--note-done2:#d3e6c1}
+:root{--note:#f3edd8;--note2:#f3edd8;--note-ink:#3a3629;--note-sub:#7d7560;--note-tape:rgba(255,255,255,.5);--note-shadow:0 1px 1px rgba(0,0,0,.06),0 6px 14px -8px rgba(60,50,20,.22);--note-done:#e3e8da;--note-done2:#e3e8da} /* 付箋は落ち着いた生成りの黄色 */
 :root[data-theme="dark"]{--note-shadow:0 8px 18px -6px rgba(0,0,0,.6)}
 .mmhd{display:flex;align-items:center;justify-content:space-between;margin:6px 0 12px}
 .mmhd .hsec{margin:0}
@@ -1272,6 +1272,7 @@ html,body{overflow-x:clip}
 #yfix{position:fixed;left:0;right:0;z-index:30;pointer-events:none}
 #yfix .cyh{position:relative!important;height:46px}
 #yfix .cyh::after{left:0;right:0}
+#yfix.side{z-index:97}#yfix.side .cyh::after{display:none}#yfix.side .cyp{margin-left:0;height:52px;border-radius:26px;box-shadow:none;border:1.5px solid rgba(255,255,255,.75)}
 body.pgopen #yfix,body.searching #yfix{display:none}
 .cyp{position:relative;z-index:1;display:inline-flex;align-items:center;gap:10px;height:46px;padding:0 18px;margin-left:-6px;border-radius:23px;white-space:nowrap;-webkit-backdrop-filter:saturate(200%) blur(40px);backdrop-filter:saturate(200%) blur(40px);box-shadow:var(--gl-s);color:#faf9f5;background:rgba(30,30,28,.58);border:1px solid rgba(255,255,255,.12)}
 .cyp .cyy{font-size:20px!important;line-height:1!important;font-weight:600;color:inherit}
@@ -1411,7 +1412,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '4f479fb210', APP_URL = location.origin + location.pathname;
+const BUILD = '4defb9b5e6', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4450,7 +4451,10 @@ function markStuck(){ const hs = [...document.querySelectorAll('#main .cyh')]; l
   if (cur < 0 || window.scrollY < 5) { fx.classList.add('hidden'); return; } // 次の年はこの下に潜り込み、完全に重なった時点で入れ替わる
   const src = hs[cur], inner = fx.firstChild;
   if (inner.dataset.i !== String(cur)) { inner.innerHTML = src.innerHTML; inner.dataset.i = cur; }
-  fx.style.top = t + 'px'; inner.style.setProperty('padding-left', Math.max(0, src.getBoundingClientRect().left) + 'px', 'important');
+  const wide = innerWidth >= 1000, tb = document.querySelector('#top .appbar h1');
+  fx.classList.toggle('side', wide);
+  if (wide && tb) { const r = tb.getBoundingClientRect(); fx.style.top = (r.top + (r.height - 52) / 2 - 3) + 'px'; inner.style.setProperty('padding-left', (r.right + 10) + 'px', 'important'); } // パソコン：ページ名の右に並べる
+  else { fx.style.top = t + 'px'; inner.style.setProperty('padding-left', Math.max(0, src.getBoundingClientRect().left) + 'px', 'important'); }
   src.style.visibility = 'hidden'; fx.classList.remove('hidden'); }
 function stkTop(){ const ab = document.querySelector('#top .appbar'); const b = ab ? Math.max(0, ab.getBoundingClientRect().bottom + 6) : 0; document.documentElement.style.setProperty('--stk', b + 'px'); document.documentElement.style.setProperty('--stkx', '0px');  markStuck(); }
 window.addEventListener('resize', () => stkTop());
