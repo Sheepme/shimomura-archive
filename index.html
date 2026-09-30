@@ -1247,6 +1247,10 @@ html[data-theme=dark] .appbar .abtn,html[data-theme=dark] .appbar h1:not(.st-bus
 /* 年表・展覧会の「年」も、上のボタンと同じガラスのボタンにして、上のボタンのすぐ下に並べる */
 .cyh{top:var(--stk,0px)!important;width:fit-content;display:inline-flex!important;flex-direction:row!important;align-items:center!important;gap:10px!important;height:46px;padding:0 18px!important;margin:-4px 0 0 -6px!important;border-radius:23px;-webkit-backdrop-filter:saturate(200%) blur(40px)!important;backdrop-filter:saturate(200%) blur(40px)!important;box-shadow:var(--gl-s)}
 .cyh::before{display:none!important}
+/* 年の変わり目：年のボタンの真ん中を通る線（ボタンが線の上に乗る形） */
+.cy{border-top:0!important}
+@media(min-width:700px){.cy>.ce{padding-top:44px}} /* 広い画面：線と重ならないように中身は線の下から */
+.cy::before{content:'';position:absolute;left:0;right:0;top:37px;height:1.5px;background:color-mix(in srgb,var(--ink) 28%,transparent);pointer-events:none;z-index:0}
 .cyh,.cyh *{white-space:nowrap}
 .cyh .cyy{font-size:20px!important;line-height:1!important;font-weight:600}
 .cyh .cage{font-size:13px!important;letter-spacing:.04em}
@@ -1385,7 +1389,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '627ebf6800', APP_URL = location.origin + location.pathname;
+const BUILD = '7ef4e167c1', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3176,7 +3180,7 @@ function renderChrono(){
     <div class="decs">${decs.map(d => `<button data-dec="${d}">${d}年代</button>`).join('')}${Y['年不明']?'<button data-dec="x">年不明</button>':''}</div>`;
   if (Y['年不明']) years.push('年不明');
   let html = `<div class="chead"><h2>年表</h2><p class="csub">展覧会 ${S.exhibits.length}件・画集など ${S.pubs.length}件・作品 ${S.works.length}点</p></div>`;
-  if (canEdit()) html += `<div class="actions"><button class="act main" data-rec="ex" data-rid="">＋ 展覧会を追加</button><button class="act main" data-rec="pb" data-rid="">＋ 画集・資料を追加</button></div>`;
+  // 年表は見るためのページ（追加は展覧会・画集のページから）
   html += years.map(y => `<section class="cy" id="y${y==='年不明'?'x':y}"><div class="cyh"><h3 class="cyy">${y}</h3>${ageTag(y)}</div><ul class="ce">${Y[y].sort((a,b) => a.s-b.s).map(chronoItemHTML).join('')}</ul></section>`).join('');
   if (!years.length) html += '<p class="muted" style="text-align:center;padding:40px 0">該当する記録がありません</p>';
   $('#main').innerHTML = html; hydrate($('#main'));
