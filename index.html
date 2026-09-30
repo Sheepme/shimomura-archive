@@ -1373,8 +1373,32 @@ html[data-theme=dark] .appbar .abtn,html[data-theme=dark] .appbar h1:not(.st-bus
 .appbar h1,.brand.appbar h1{padding-left:12px!important}
 #yfix.side .cyp::before{content:'';position:absolute;left:0;top:30%;bottom:30%;width:1px;background:currentColor;opacity:.3}
 html.sa.tb header{padding-top:calc(var(--cap) + 4px - var(--tb))}
+/* ===== 左右の余白をそろえる（上のバー・タブ・中身・件名） ===== */
+:root{--gx:16px}
+@media(min-width:900px){ :root{--gx:32px} }
+body main#main{padding-left:var(--gx)!important;padding-right:var(--gx)!important}
+.page .pagebody,.page .pagebody.one{padding-left:var(--gx)!important;padding-right:var(--gx)!important}
+/* 作品リスト：タブのすぐ下から始め、区切り線は画面の左右いっぱい */
+body[data-view=list] main#main{padding-top:0!important}
+body[data-view=list] .mcl .row{margin:0 calc(-1 * var(--gx));padding-left:var(--gx);padding-right:var(--gx);width:auto;box-sizing:border-box}
+/* ===== 年：カプセルをやめて「年の列」と「項目の列」に分ける ===== */
+:root{--ycol:62px}
+@media(min-width:700px){ :root{--ycol:120px} }
+#main section.cy{display:grid!important;grid-template-columns:var(--ycol) minmax(0,1fr)!important;gap:0 14px!important;margin:0 calc(-1 * var(--gx))!important;padding:14px var(--gx) 16px!important;border-top:1px solid var(--line)!important}
+#main section.cy>.cyh{position:sticky!important;top:calc(var(--rowtop,0px) + var(--rowh,0px) + 12px)!important;align-self:start!important;height:auto!important;display:block!important;background:none!important;padding:0!important;margin:0!important;z-index:1;visibility:visible!important;transition:top .25s ease}
+#main section.cy>.cyh::after,#main section.cy>.cyh::before{display:none!important}
+html body #main section.cy .cyp{display:flex!important;flex-direction:column;align-items:flex-start;gap:3px;height:auto!important;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;color:var(--ink)!important}
+html body #main section.cy .cyy{font:700 20px/1.1 var(--sans)!important;margin:0!important;color:var(--ink)!important;letter-spacing:.01em}
+html body #main section.cy .cage{font-size:12px!important;color:var(--sub)!important;opacity:1!important}
+@media(min-width:700px){ html body #main section.cy .cyy{font-size:26px!important} html body #main section.cy .cage{font-size:13px!important} }
+#main section.cy>ul.ce{margin:0!important;min-width:0}
+#main section.cy .ce>li:first-child{padding-top:2px!important}
+#main section.cy .ce>li:last-child{border-bottom:0!important;padding-bottom:0!important}
+#yfix{display:none!important}
+#finder>.chips.stk,#chronobar>.chips.stk{margin-left:0!important;margin-right:0!important}
+
 /* ===== 上のヘッダー（2026-10）：左にアイコン＋「下村良之介作品目録 › …」、右にメニュー。メニューは右から出る ===== */
-#top .appbar,#top .brand.appbar{top:0!important;left:0!important;right:0!important;translate:none!important;gap:10px!important;padding:calc(var(--tb,0px) + var(--cap,0px) + 6px) 12px 6px 12px!important;background:var(--bg)!important;border-bottom:1px solid var(--line);pointer-events:auto!important;box-sizing:border-box;align-items:center!important}
+#top .appbar,#top .brand.appbar{top:0!important;left:0!important;right:0!important;translate:none!important;gap:10px!important;padding:calc(var(--tb,0px) + var(--cap,0px) + 6px) 12px 6px calc(var(--gx) - 11px)!important;background:var(--bg)!important;border-bottom:1px solid var(--line);pointer-events:auto!important;box-sizing:border-box;align-items:center!important}
 #abCap{display:none!important}
 #top .appbar .abtn{width:38px!important;height:38px!important;margin:0!important;flex:none;border:0!important;border-radius:50%!important;background:transparent!important;color:var(--ink)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important;display:flex!important;visibility:visible!important}
 #top .appbar .abtn svg{width:24px;height:24px}
@@ -1413,13 +1437,13 @@ header,header.tuck{padding-top:calc(var(--tb,0px) + var(--cap,0px) + 58px)!impor
 #top:not(.hidden){display:contents!important}
 #finder:not(.hidden),#chronobar:not(.hidden){display:contents!important}
 #hdsp{height:calc(var(--tb,0px) + var(--cap,0px) + 58px)}
-#finder>*,#chronobar>*{margin-left:10px!important;margin-right:10px!important}
-.chips.stk{position:sticky!important;top:var(--rowtop,0px);z-index:33;background:var(--bg);margin-left:0!important;margin-right:0!important;padding-left:12px!important;padding-right:12px!important;transition:top .25s ease}
+#finder>*,#chronobar>*{margin-left:var(--gx)!important;margin-right:var(--gx)!important}
+.chips.stk{position:sticky!important;top:var(--rowtop,0px);z-index:33;background:var(--bg);margin-left:0!important;margin-right:0!important;padding-left:var(--gx)!important;padding-right:var(--gx)!important;transition:top .25s ease}
 #top .appbar{transition:transform .25s ease,top .25s ease,left .22s ease,translate .22s ease!important}
-body:not(.pgopen):not(.searching):not(.dwopen) #top.tuck .appbar{transform:translateY(calc(-100% - 2px))}
+body:not(.pgopen):not(.searching):not(.dwopen) #top.tuck .appbar{transform:translateY(calc(-100% + var(--tb,0px) + var(--cap,0px)))}
 html[data-theme=dark]{--bg:#1c1c1b}
 /* サブメニュー（すべて・自宅・美術館…など）は Pinterest と同じ：文字だけ、選んでいるものは太字＋下線 */
-body .chips{gap:22px!important;padding:4px 2px 2px!important}
+body .chips{gap:22px!important;padding:4px 0 2px!important}
 body .chips .chip{position:relative;padding:8px 0 11px!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;color:var(--sub)!important;font:500 16px/1.2 var(--sans)!important}
 body .chips .chip.on{color:var(--ink)!important;font-weight:700!important;background:none!important}
 body .chips .chip.on::after{content:'';position:absolute;left:0;right:0;bottom:3px;height:3px;border-radius:2px;background:var(--ink)}
@@ -1431,7 +1455,7 @@ body .decs button{background:none!important;border:0!important;border-radius:0!i
 body .decs button:hover{color:var(--ink)!important}
 #yfix:not(.side){margin-top:-6px;padding-top:6px;background:var(--bg)}
 #top .appbar .abtn,#top .appbar h1:not(.st-busy):not(.st-ok):not(.st-upd){--ink:inherit;--sub:inherit;--faint:inherit;--hov:inherit}
-@media(min-width:1000px){ #top .appbar,#top .brand.appbar{padding-left:24px!important;padding-right:20px!important} #top .appbar h1{font-size:19px!important} }
+@media(min-width:1000px){ #top .appbar,#top .brand.appbar{padding-right:20px!important} #top .appbar h1{font-size:19px!important} }
 
 
 </style>
@@ -1501,7 +1525,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '6dda0dc87b', APP_URL = location.origin + location.pathname;
+const BUILD = '650c6e0949', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1733,7 +1757,7 @@ function openDrawer(){ if (isWide()) { dwFold = !dwFold; try { localStorage.setI
   const d = $('#drawer'); document.body.classList.add('dwopen'); d.classList.remove('hidden'); d.setAttribute('aria-hidden', 'false'); requestAnimationFrame(() => d.classList.add('open')); setTimeout(markStuck, 240); }
 function closeDrawer(){ const d = $('#drawer'); if (d.classList.contains('hidden') || d.classList.contains('pin')) return; document.body.classList.remove('dwopen'); setTimeout(markStuck, 240); d.classList.remove('open'); d.setAttribute('aria-hidden', 'true'); setTimeout(() => d.classList.add('hidden'), 220); }
 function render(){
-  document.body.classList.toggle('vhome', S.view === 'home');
+  document.body.classList.toggle('vhome', S.view === 'home'); document.body.dataset.view = S.view;
   setTimeout(() => { try { stkTop(); } catch(e){} }, 0);
   const main = $('#main');
   document.body.classList.toggle('loggedout', !S.user && !S.publicView);
@@ -4559,7 +4583,7 @@ function wtSync(){ const w = $('#wtwrap'), h = $('#wthd'); if (!w || !h) return;
 /* 年のボタンが上で止まっているときだけ、線より上をぼかす */
 /* 年のボタン：上のボタンのすぐ下の決まった位置に「いまの年」を出しておく（スクロールで動かさない）。
    次の年のボタンが下から来て重なったら消え、次の年がその位置に来たら入れ替わる */
-function markStuck(){ markStuck0(); capFit(); }
+function markStuck(){ const fx = document.getElementById('yfix'); if (fx) fx.classList.add('hidden'); } // 年は各年の左の列で止まる（上に重ねる表示はやめた）
 /* ヘッダーの「アイコン・ページ名・年」をひとつのカプセルにまとめる（後ろに1枚の背景を敷く） */
 function capFit(){ const cc = document.getElementById('abCap'); if (cc) cc.remove(); return;
   const ab = document.querySelector('#top .appbar'), h = ab && ab.querySelector('h1'); if (!h) return;
@@ -4591,7 +4615,7 @@ function hdStick(){ const hd = document.getElementById('top'), ab = hd && hd.que
   const tuck = hd.classList.contains('tuck') && !document.body.classList.contains('pgopen'), cs = getComputedStyle(document.documentElement);
   const safe = (parseFloat(cs.getPropertyValue('--tb')) || 0) + (parseFloat(cs.getPropertyValue('--cap')) || 0);
   const abb = ab.offsetTop + ab.offsetHeight, top = tuck ? safe : abb;
-  document.documentElement.style.setProperty('--rowtop', top + 'px');
+  document.documentElement.style.setProperty('--rowtop', top + 'px'); document.documentElement.style.setProperty('--rowh', (last ? last.offsetHeight : 0) + 'px');
   return last ? top + last.offsetHeight : top; }
 function stkTop(){ let hb = 0; try { hb = hdStick() || 0; } catch(e){} const ab = document.querySelector('#top .appbar'); const b = hb ? hb + 6 : (ab ? Math.max(0, ab.getBoundingClientRect().bottom + 6) : 0); document.documentElement.style.setProperty('--stk', b + 'px'); document.documentElement.style.setProperty('--stkx', '0px');  markStuck(); }
 window.addEventListener('resize', () => stkTop());
