@@ -1175,9 +1175,14 @@ header{background:var(--glass);-webkit-backdrop-filter:saturate(160%) blur(16px)
 body.briefing .cbar,body.loggedout .cbar{display:none}
 .page::after{content:'';display:block;height:calc(84px + env(safe-area-inset-bottom))}
 /* メニュー（左から） */
-.drawer{position:fixed;inset:0;z-index:120}
-.dwscrim{position:absolute;inset:0;border:0;padding:0;background:rgba(20,20,19,.32);opacity:0;transition:opacity .2s ease}
-.dwpanel{position:absolute;top:0;bottom:0;left:0;width:min(300px,82vw);background:var(--bg);border-right:1px solid var(--line);transform:translateX(-102%);transition:transform .22s ease;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 16px) 10px calc(env(safe-area-inset-bottom) + 12px);box-shadow:8px 0 30px -12px rgba(0,0,0,.25)}
+:root{--dww:min(300px,80vw)}
+.drawer{position:fixed;inset:0;top:var(--tb);z-index:120}
+.dwscrim{position:absolute;inset:0;left:var(--dww);border:0;padding:0;background:rgba(20,20,19,.10);opacity:0;transition:opacity .22s ease}
+/* スマホ：メニューは上に重ねず、画面を右へ押し出す（右に少し中身が見える） */
+header,main,.cbar,.page{transition:translate .22s ease}
+body.dwopen header,body.dwopen main,body.dwopen .cbar,body.dwopen .page{translate:var(--dww) 0}
+body.dwopen{overflow:hidden}
+.dwpanel{position:absolute;top:0;bottom:0;left:0;width:var(--dww);background:var(--bg);border-right:1px solid var(--line);transform:translateX(-102%);transition:transform .22s ease;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 16px) 10px calc(env(safe-area-inset-bottom) + 12px)}
 html.sa .dwpanel{padding-top:calc(var(--cap) + 8px)}
 .drawer.open .dwscrim{opacity:1}.drawer.open .dwpanel{transform:none}
 .dwhead{font:600 21px/1.4 var(--disp);padding:6px 12px 18px;color:var(--ink);letter-spacing:.02em}
@@ -1200,8 +1205,9 @@ html.sa header{padding-top:calc(var(--cap) + 4px)}
 /* パソコン（広い画面）：左にメニューを常に表示し、中身はその右に */
 @media(min-width:1000px){
   body.wide{padding-left:264px}
-  body.wide #btnMenu{visibility:hidden}
-  .drawer.pin{inset:0 auto 0 0;width:264px;z-index:36}
+  .drawer.pin{inset:0 auto 0 0;top:var(--tb);width:264px;z-index:36}
+  body{transition:padding-left .22s ease}
+  body.wide #btnMenu,body.wideoff #btnMenu{visibility:visible}
   .drawer.pin .dwscrim{display:none}
   .drawer.pin .dwpanel{width:264px;transform:none;box-shadow:none;transition:none;background:var(--wash)}
   body.wide .cbar{left:calc(264px + 24px);right:24px;max-width:760px;margin:0 auto}
@@ -1278,7 +1284,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '2f7cc4a250', APP_URL = location.origin + location.pathname;
+const BUILD = '5d89077156', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1464,14 +1470,18 @@ function navOn(){ const nv = S.view;
   let sq = null; try { sq = SQ[nv]; } catch(e){}
   const fi = $('#fsq'); if (fi && document.activeElement !== fi) { fi.placeholder = sq ? sq[1] : '作品を探す'; fi.value = sq ? (S[sq[0]] || '') : ''; $('#fsqClose').classList.toggle('hidden', !fi.value); } }
 /* ---------- メニュー（左から出る）。パソコンの広い画面では左にずっと出しておく ---------- */
-function pinDrawer(){ const d = $('#drawer'); if (!d) return; const w = innerWidth >= 1000 && !!S.user;
-  document.body.classList.toggle('wide', w); d.classList.toggle('pin', w);
+let dwFold = false; try { dwFold = localStorage.getItem('smr_dw') === '0'; } catch(e){}
+const isWide = () => innerWidth >= 1000;
+function pinDrawer(){ const d = $('#drawer'); if (!d) return; const w = isWide() && !!S.user && !dwFold;
+  document.body.classList.toggle('wide', w); document.body.classList.toggle('wideoff', isWide() && !!S.user && dwFold); d.classList.toggle('pin', w);
+  if (w) document.body.classList.remove('dwopen');
   if (w) { d.classList.remove('hidden'); d.classList.add('open'); d.setAttribute('aria-hidden', 'false'); }
   else if (!d.classList.contains('open') || d.dataset.was === 'pin') { d.classList.remove('open'); d.classList.add('hidden'); }
   d.dataset.was = w ? 'pin' : ''; }
 addEventListener('resize', () => pinDrawer());
-function openDrawer(){ const d = $('#drawer'); d.classList.remove('hidden'); d.setAttribute('aria-hidden', 'false'); requestAnimationFrame(() => d.classList.add('open')); }
-function closeDrawer(){ const d = $('#drawer'); if (d.classList.contains('hidden') || d.classList.contains('pin')) return; d.classList.remove('open'); d.setAttribute('aria-hidden', 'true'); setTimeout(() => d.classList.add('hidden'), 220); }
+function openDrawer(){ if (isWide()) { dwFold = !dwFold; try { localStorage.setItem('smr_dw', dwFold ? '0' : '1'); } catch(e){} pinDrawer(); setTimeout(() => { if (['album','ot'].includes(S.view)) render(); }, 240); return; }
+  const d = $('#drawer'); document.body.classList.add('dwopen'); d.classList.remove('hidden'); d.setAttribute('aria-hidden', 'false'); requestAnimationFrame(() => d.classList.add('open')); }
+function closeDrawer(){ const d = $('#drawer'); if (d.classList.contains('hidden') || d.classList.contains('pin')) return; document.body.classList.remove('dwopen'); d.classList.remove('open'); d.setAttribute('aria-hidden', 'true'); setTimeout(() => d.classList.add('hidden'), 220); }
 function render(){
   const main = $('#main');
   document.body.classList.toggle('loggedout', !S.user && !S.publicView);
