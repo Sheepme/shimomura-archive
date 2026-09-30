@@ -1315,7 +1315,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'a60721be52', APP_URL = location.origin + location.pathname;
+const BUILD = '24e8eaffda', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2890,7 +2890,12 @@ const IC_MENU = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 
 function abSync(){ const pg = $('#page'), open = !pg.classList.contains('hidden'), b = $('#btnMenu');
   document.body.classList.toggle('pgopen', open);
   if (b && b.dataset.st !== (open ? 'b' : 'm')) { b.innerHTML = open ? IC_BACK : IC_MENU; b.dataset.st = open ? 'b' : 'm'; b.setAttribute('aria-label', open ? 'もどる' : 'メニューを開く'); }
-  if (open) { const no = pg.querySelector('.pagehead .no'), T = {w:'作品', ot:'その他の作品', ex:'展覧会', pb:'画集・資料'}; const tt = S.pcur && S.pcur.t; $('#abTitle').textContent = (['w','ot'].includes(tt) && no && no.textContent.trim()) || T[tt] || ''; }
+  if (open) { const no = pg.querySelector('.pagehead .no'), T = {w:'作品', ot:'その他の作品', ex:'展覧会', pb:'画集・資料'}; const tt = S.pcur && S.pcur.t, id = S.pcur && S.pcur.id;
+    let nm = '';
+    if (['w','ot'].includes(tt)) { const w = workOf(id) || {}; nm = w['作品名'] || (isOtNo(id) ? (w['種別'] || 'その他') + '（名前なし）' : '無題'); }
+    else if (tt==='ex') nm = (exById[id] || {})['名称'] || '';
+    else if (tt==='pb') nm = (pbById[id] || {})['タイトル'] || '';
+    $('#abTitle').textContent = nm || T[tt] || ''; }
   else navOn(); }
 function closeWork(fromHist){
   const pg = $('#page'), open = !pg.classList.contains('hidden');
