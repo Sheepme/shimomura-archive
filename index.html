@@ -15,7 +15,14 @@
   var C = null, NOH = ['startLogin','login','logout','appBuild','getThumbs','getDocThumbs','getOriginal','getLog','getArchive','getAIHistory','tts','checkMemo','askAI','interviewTurn','detectRotation'];
   function rh(s){ var a = 0, b = 0x811c9dc5; for (var i = 0; i < s.length; i++){ var c = s.charCodeAt(i); a = (Math.imul(a, 31) + c) | 0; b = Math.imul(b ^ c, 16777619); } return (a >>> 0).toString(36) + '.' + (b >>> 0).toString(36); }
   function isData(d){ return !!d && typeof d === 'object' && Array.isArray(d.works) && Array.isArray(d.events); }
-  function remember(d){ var n = { s: {}, h: {} }; Object.keys(d).forEach(function(k){ if (Array.isArray(d[k])) { n.s[k] = d[k].map(function(r){ return JSON.stringify(r); }); n.h[k] = n.s[k].map(rh); } }); C = n; }
+  function remember(d){ var n = { s: {}, h: {} }; Object.keys(d).forEach(function(k){ if (Array.isArray(d[k])) { n.s[k] = d[k].map(function(r){ return JSON.stringify(r); }); n.h[k] = n.s[k].map(rh); } }); C = n; saveC(); }
+  /* 控えを端末に保存して、次に開いたときも差分だけで済ませる（ログアウト・別の人のログインで消す） */
+  var DBP = null, saveT = null;
+  function db(){ return DBP || (DBP = new Promise(function(ok){ try { var r = indexedDB.open('smr_cache', 1); r.onupgradeneeded = function(){ r.result.createObjectStore('kv'); }; r.onsuccess = function(){ ok(r.result); }; r.onerror = function(){ ok(null); }; } catch(e){ ok(null); } })); }
+  function idb(mode, fn){ return db().then(function(d){ if (!d) return null; return new Promise(function(ok){ try { var t = d.transaction('kv', mode), st = t.objectStore('kv'), q = fn(st); t.oncomplete = function(){ ok(q && q.result); }; t.onerror = t.onabort = function(){ ok(null); }; } catch(e){ ok(null); } }); }); }
+  function saveC(){ clearTimeout(saveT); saveT = setTimeout(function(){ var c = C; idb('readwrite', function(st){ return c ? st.put(c, 'C') : st.delete('C'); }); }, 800); }
+  function dropC(){ C = null; clearTimeout(saveT); idb('readwrite', function(st){ return st.delete('C'); }); }
+  var ready = idb('readonly', function(st){ return st.get('C'); }).then(function(c){ if (c && c.s && c.h && !C) C = c; }, function(){});
   function unpack(d){
     if (!d || !d.__pk) return d;
     var o = {}; Object.keys(d).forEach(function(k){ if (k === '__pk') return; var v = d[k], old = C && C.s[k];
@@ -29,7 +36,8 @@
     if (v && typeof v === 'object' && v.data) { if (v.data.__pk) v.data = unpack(v.data); if (isData(v.data)) remember(v.data); }
     return v;
   }
-  function send(fn, args){
+  function send(fn, args){ return ready.then(function(){ return send2(fn, args); }); }
+  function send2(fn, args){
     if (fn === 'appBuild') return fetch('version.json?t=' + Date.now(), {cache:'no-store'}).then(function(r){return r.json()}).then(function(j){return j.build});
     var t0 = Date.now(), tries = 0;
     function once(){
@@ -41,7 +49,10 @@
           if (SAFE.indexOf(fn) >= 0 && tries < 3) return new Promise(function(ok){ setTimeout(ok, 1500 * tries); }).then(once);
           throw new Error('通信が切れました（' + fn + '・' + Math.round((Date.now() - t0) / 1000) + '秒）\n電波の良い所で、もう一度ためしてください。');
         })
-        .then(function(j){ if (!j || !j.ok) throw new Error(j && j.e || '通信に失敗しました'); return take(j.v); });
+        .then(function(j){
+          if (!j || !j.ok) { if (j && /LOGIN_REQUIRED/.test(j.e || '')) dropC(); throw new Error(j && j.e || '通信に失敗しました'); }
+          if (fn === 'login' || fn === 'logout') dropC();
+          return take(j.v); });
     }
     return once();
   }
@@ -1154,7 +1165,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'ccf56fa82c', APP_URL = location.origin + location.pathname;
+const BUILD = '5f422935dc', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
