@@ -1280,7 +1280,7 @@ html,body{overflow-x:clip}
 #yfix{position:fixed;left:0;right:0;z-index:30;pointer-events:none}
 #yfix .cyh{position:relative!important;height:46px}
 #yfix .cyh::after{left:0;right:0}
-#yfix.side{z-index:97}#yfix.side .cyh::after{display:none}#yfix.side .cyp{margin-left:0;height:52px;border-radius:26px;box-shadow:none;border:1.5px solid rgba(255,255,255,.75)}
+#yfix.side{z-index:97}#yfix.side .cyh::after{display:none}#yfix.side .cyh{height:var(--abh,52px)}#yfix.side .cyp{margin-left:0;box-sizing:border-box;height:var(--abh,52px);border-radius:calc(var(--abh,52px)/2);box-shadow:none;border:1.5px solid rgba(255,255,255,.75)}
 body.pgopen #yfix,body.searching #yfix{display:none}
 .cyp{position:relative;z-index:1;display:inline-flex;align-items:center;gap:10px;height:46px;padding:0 18px;margin-left:-6px;border-radius:23px;white-space:nowrap;-webkit-backdrop-filter:saturate(200%) blur(40px);backdrop-filter:saturate(200%) blur(40px);box-shadow:var(--gl-s);color:#faf9f5;background:rgba(30,30,28,.58);border:1px solid rgba(255,255,255,.12)}
 .cyp .cyy{font-size:20px!important;line-height:1!important;font-weight:600;color:inherit}
@@ -1420,7 +1420,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '935e32f7fd', APP_URL = location.origin + location.pathname;
+const BUILD = 'd7d8cf4b12', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4487,7 +4487,7 @@ function markStuck(){ const hs = [...document.querySelectorAll('#main .cyh')]; l
   if (inner.dataset.i !== String(cur)) { inner.innerHTML = src.innerHTML; inner.dataset.i = cur; }
   const wide = innerWidth >= 1000, tb = document.querySelector('#top .appbar h1');
   fx.classList.toggle('side', wide);
-  if (wide && tb) { const r = tb.getBoundingClientRect(); fx.style.top = (r.top + (r.height - 52) / 2 - 3) + 'px'; inner.style.setProperty('padding-left', (r.right + 10) + 'px', 'important'); } // パソコン：ページ名の右に並べる
+  if (wide && tb) { const r = tb.getBoundingClientRect(); fx.style.top = r.top + 'px'; fx.style.setProperty('--abh', r.height + 'px'); inner.style.setProperty('padding-left', (r.right + 10) + 'px', 'important'); } // パソコン：ページ名の右に並べる
   else { fx.style.top = t + 'px'; inner.style.setProperty('padding-left', Math.max(0, src.getBoundingClientRect().left) + 'px', 'important'); }
   src.style.visibility = 'hidden'; fx.classList.remove('hidden'); }
 function stkTop(){ const ab = document.querySelector('#top .appbar'); const b = ab ? Math.max(0, ab.getBoundingClientRect().bottom + 6) : 0; document.documentElement.style.setProperty('--stk', b + 'px'); document.documentElement.style.setProperty('--stkx', '0px');  markStuck(); }
