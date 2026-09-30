@@ -1352,17 +1352,14 @@ html.tb{--tb:0px!important}
   body.wide .appbar h1{font-size:18px}
   body.wide main{padding-left:32px;padding-right:32px}
 }
-/* パソコンでメニューを開いているとき：大きいアイコン＋二行のタイトル、右上に小さな閉じるボタン。上の顔アイコンは隠す */
-.dwicon,.dwx{display:none}
-@media(min-width:1000px){
-  body.wide .dwhead{display:flex;align-items:center;gap:12px;position:relative;padding:6px 36px 18px 10px}
-  body.wide .dwicon{display:block;width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none}
-  body.wide .dwtt{font-size:19px;line-height:1.35}
-  body.wide .dwx{display:flex;align-items:center;justify-content:center;position:absolute;top:0;right:0;width:28px;height:28px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--sub);cursor:pointer}
-  body.wide .dwx:hover{background:color-mix(in srgb,var(--ink) 8%,transparent);color:var(--ink)}
-  body.wide .dwx svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
-  body.wide #btnMenu:has(.abapp){display:none}
-}
+/* メニューを開いているとき（スマホ・PC共通）：大きいアイコン＋二行のタイトル、右上に小さな閉じるボタン。上の顔アイコンは隠す */
+.dwhead{display:flex;align-items:center;gap:12px;position:relative;padding:6px 36px 18px 10px}
+.dwicon{display:block;width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none}
+.dwtt{font-size:19px;line-height:1.35}
+.dwx{display:flex;align-items:center;justify-content:center;position:absolute;top:0;right:0;width:28px;height:28px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--sub);cursor:pointer}
+.dwx:hover{background:color-mix(in srgb,var(--ink) 8%,transparent);color:var(--ink)}
+.dwx svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+body.wide #btnMenu:has(.abapp),body.dwopen #btnMenu:has(.abapp){display:none}
 html.sa.tb header{padding-top:calc(var(--cap) + 4px - var(--tb))}
 
 </style>
@@ -1431,7 +1428,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '2368447b07', APP_URL = location.origin + location.pathname;
+const BUILD = 'b153f14628', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1661,8 +1658,8 @@ function pinDrawer(){ const d = $('#drawer'); if (!d) return; const w = isWide()
   d.dataset.was = w ? 'pin' : ''; if (typeof markStuck === 'function') { markStuck(); setTimeout(markStuck, 260); } }
 addEventListener('resize', () => pinDrawer());
 function openDrawer(){ if (isWide()) { dwFold = !dwFold; try { localStorage.setItem('smr_dw', dwFold ? '0' : '1'); } catch(e){} pinDrawer(); setTimeout(() => { if (['album','ot'].includes(S.view)) render(); }, 240); return; }
-  const d = $('#drawer'); document.body.classList.add('dwopen'); d.classList.remove('hidden'); d.setAttribute('aria-hidden', 'false'); requestAnimationFrame(() => d.classList.add('open')); }
-function closeDrawer(){ const d = $('#drawer'); if (d.classList.contains('hidden') || d.classList.contains('pin')) return; document.body.classList.remove('dwopen'); d.classList.remove('open'); d.setAttribute('aria-hidden', 'true'); setTimeout(() => d.classList.add('hidden'), 220); }
+  const d = $('#drawer'); document.body.classList.add('dwopen'); d.classList.remove('hidden'); d.setAttribute('aria-hidden', 'false'); requestAnimationFrame(() => d.classList.add('open')); setTimeout(markStuck, 240); }
+function closeDrawer(){ const d = $('#drawer'); if (d.classList.contains('hidden') || d.classList.contains('pin')) return; document.body.classList.remove('dwopen'); setTimeout(markStuck, 240); d.classList.remove('open'); d.setAttribute('aria-hidden', 'true'); setTimeout(() => d.classList.add('hidden'), 220); }
 function render(){
   const main = $('#main');
   document.body.classList.toggle('loggedout', !S.user && !S.publicView);
@@ -4497,7 +4494,7 @@ function markStuck(){ const hs = [...document.querySelectorAll('#main .cyh')]; l
   if (cur < 0 || window.scrollY < 5) { fx.classList.add('hidden'); return; } // 次の年はこの下に潜り込み、完全に重なった時点で入れ替わる
   const src = hs[cur], inner = fx.firstChild;
   if (inner.dataset.i !== String(cur)) { inner.innerHTML = src.innerHTML; inner.dataset.i = cur; }
-  const wide = innerWidth >= 1000, tb = document.querySelector('#top .appbar h1');
+  const wide = true, tb = document.querySelector('#top .appbar h1');
   fx.classList.toggle('side', wide);
   if (wide && tb) { const r = tb.getBoundingClientRect(); fx.style.top = r.top + 'px'; fx.style.setProperty('--abh', r.height + 'px'); inner.style.setProperty('padding-left', (r.right + 10) + 'px', 'important'); } // パソコン：ページ名の右に並べる
   else { fx.style.top = t + 'px'; inner.style.setProperty('padding-left', Math.max(0, src.getBoundingClientRect().left) + 'px', 'important'); }
