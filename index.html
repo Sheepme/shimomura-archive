@@ -1392,11 +1392,18 @@ html.sa.tb header{padding-top:calc(var(--cap) + 4px - var(--tb))}
 .abham:hover{background:var(--hov)}
 .abham svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
 body.dwopen #btnMenu:has(.abapp){display:flex!important}
-body.dwopen header,body.dwopen main,body.dwopen .cbar,body.dwopen .page,body.dwopen .appbar{translate:none!important}
-.dwscrim{left:0!important;background:rgba(20,20,19,.28)!important}
-.dwpanel{left:auto!important;right:0!important;border-right:0!important;border-left:1px solid var(--line);transform:translateX(102%)!important;box-shadow:-8px 0 30px rgba(0,0,0,.12)}
-.drawer.open .dwpanel{transform:none!important}
 #yfix{z-index:34}
+/* サブメニュー（すべて・自宅・美術館…など）は Pinterest と同じ：文字だけ、選んでいるものは太字＋下線 */
+body .chips{gap:22px!important;padding:4px 2px 2px!important}
+body .chips .chip{position:relative;padding:8px 0 11px!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;color:var(--sub)!important;font:500 16px/1.2 var(--sans)!important}
+body .chips .chip.on{color:var(--ink)!important;font-weight:700!important;background:none!important}
+body .chips .chip.on::after{content:'';position:absolute;left:0;right:0;bottom:3px;height:3px;border-radius:2px;background:var(--ink)}
+body .subchips{gap:18px!important}
+body .subchips .chip{font-size:14px!important;padding:6px 0 9px!important}
+body .subchips .chip.on::after{height:2px}
+body .decs{gap:18px!important}
+body .decs button{background:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding:6px 0!important;color:var(--sub)!important;font:500 14px/1.2 var(--sans)!important}
+body .decs button:hover{color:var(--ink)!important}
 #yfix:not(.side){margin-top:-6px;padding-top:6px;background:var(--bg)}
 #top .appbar .abtn,#top .appbar h1:not(.st-busy):not(.st-ok):not(.st-upd){--ink:inherit;--sub:inherit;--faint:inherit;--hov:inherit}
 @media(min-width:1000px){ #top .appbar,#top .brand.appbar{padding-left:24px!important;padding-right:20px!important} #top .appbar h1{font-size:19px!important} }
@@ -1411,7 +1418,6 @@ body.dwopen header,body.dwopen main,body.dwopen .cbar,body.dwopen .page,body.dwo
     <button type="button" class="abtn" id="btnMenu" aria-label="メニューを開く"><img class="abapp" src="icon.jpg" alt="" aria-hidden="true"></button>
     <h1 id="abTitle">ホーム</h1>
     <div class="brandr"><div class="userbox" id="userbox"></div></div>
-    <button type="button" class="abham" id="btnHam" aria-label="メニューを開く"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
   </div>
   <div id="finder">
     <div class="search"><input id="q" type="search" placeholder="作品名・番号・年・美術館名で探す" enterkeyhint="search"></div>
@@ -1469,7 +1475,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '6dc0d0242e', APP_URL = location.origin + location.pathname;
+const BUILD = '1aaa9a3435', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4037,8 +4043,7 @@ document.addEventListener('click', e => {
   if (!$('#fmPop').classList.contains('hidden') && !e.target.closest('#fmPop, #fmPage')) hidePop();
   const t = e.target.closest('button, [data-close]'); if (!t) return;
   if (t.id==='fmPage'){ $('#fmPop').classList.toggle('hidden'); $('#fmSearch').classList.add('hidden'); return; }
-  if (t.id==='btnMenu'){ if (!$('#page').classList.contains('hidden')) { closeWork(); return; } goHome(); return; }
-  if (t.id==='btnHam'){ openDrawer(); return; }
+  if (t.id==='btnMenu'){ if (!$('#page').classList.contains('hidden')) { closeWork(); return; } openDrawer(); return; }
   if (t.id==='dwX'){ closeDrawer(); return; }
   if (t.dataset.dwclose){ closeDrawer(); return; }
   if (t.id==='btnMe2'){ closeDrawer(); openMe(); return; }
