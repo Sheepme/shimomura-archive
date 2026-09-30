@@ -405,7 +405,11 @@ dl.info dd .fill{border:0;background:none;padding:0;color:var(--warn);font-size:
 .chathead span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
 
 .toast{position:fixed;left:50%;bottom:calc(var(--nav) + 24px);transform:translateX(-50%);background:var(--ink);color:var(--inv);padding:12px 22px;z-index:80;font-size:16px;letter-spacing:.06em}
-.loading{position:fixed;inset:0;z-index:110;display:flex;align-items:center;justify-content:center;background:var(--glass);font-size:16px;letter-spacing:.14em;color:var(--sub)}
+/* 読み込み中・保存中は、画面を隠さずに一番上のオレンジの帯で知らせる（下の画面は押せないようにだけする） */
+.loading{position:fixed;top:0;left:0;right:0;z-index:110;display:flex;align-items:center;justify-content:center;gap:8px;padding:calc(env(safe-area-inset-top) + 8px) 16px 9px;background:#e8871e;color:#fff;font-size:15px;font-weight:600;letter-spacing:.06em;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+.loading::before{content:'';position:fixed;inset:0;z-index:-1;background:transparent}
+.loading::after{content:'';width:14px;height:14px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:ldspin .8s linear infinite;order:-1}
+@keyframes ldspin{to{transform:rotate(360deg)}}
 .logrow{border-bottom:1px solid var(--line);padding:12px 0;font-size:16px}
 .logrow b{font-weight:500}
 
@@ -1176,7 +1180,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '622ce7e961', APP_URL = location.origin + location.pathname;
+const BUILD = '48c3abe790', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
