@@ -953,6 +953,7 @@ body.briefing nav.fmenu{display:none}
 .dwchk .mgck{flex:none;width:24px;height:24px;border-radius:7px;border:1.5px solid var(--line);color:transparent;display:flex;align-items:center;justify-content:center;font-weight:800}
 .dwchk:has(input:checked){border-color:#c0392b}.dwchk:has(input:checked) .mgck{background:#c0392b;border-color:#c0392b;color:#fff}
 #vcopy{position:absolute;top:190px;right:14px;z-index:2;border:1px solid var(--line);background:var(--paper);padding:8px 14px;font-size:14px;border-radius:999px;color:var(--warn)}
+.wsug{display:flex;flex-direction:column;gap:4px;margin:6px 0 8px}.wsug button{display:flex;align-items:center;gap:10px;text-align:left;padding:8px 10px;border-radius:10px;background:var(--wash);color:var(--ink);font-size:15px;border:0}.wsug .th{flex:none;width:40px;height:40px;border-radius:6px;overflow:hidden;background:var(--line)}.wsug .th img{width:100%;height:100%;object-fit:cover}.wsug .th .wm{display:none}
 .candbtn{width:100%;margin:8px 0 4px}.candgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;max-height:46vh;overflow-y:auto;margin:6px 0 12px}.candp{display:flex;flex-direction:column;gap:4px;padding:4px;border:2px solid transparent;border-radius:10px;background:var(--wash);color:var(--ink)}.candp img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;background:var(--line)}.candp small{font-size:11px;color:var(--sub);word-break:break-all}.candp.on{border-color:var(--ink);box-shadow:0 0 0 2px var(--ink) inset}
 .phhid{display:flex;align-items:center;justify-content:center;text-align:center;width:100%;height:100%;min-height:80px;background:var(--wash);color:var(--sub);font-size:12px;line-height:1.5}
 #vmain{position:absolute;top:146px;right:14px;z-index:2;border:1px solid var(--line);background:var(--paper);padding:8px 14px;font-size:14px;border-radius:999px;color:#b07a10}
@@ -1175,7 +1176,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd844778920', APP_URL = location.origin + location.pathname;
+const BUILD = '1e0e5fb459', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1785,7 +1786,7 @@ function docForm(d, r){
       ${x.note ? `<div class="dnote">書類には：<b>${esc(x.note)}</b></div>` : ''}
       <div class="dwrow"><label class="dchk"><input type="checkbox" class="dwon" ${x.no ? 'checked' : ''}><span></span></label>
         <span class="dwth">${x.no && (photoBy[x.no]||[]).length ? thumbHTML(x.no, 200) : ''}</span>
-        <input class="dwin" list="dlWorks" value="${esc(x.no ? wLabel(x.no) : '')}" placeholder="番号か作品名を入れる"></div>
+        <input class="dwin" autocomplete="off" value="${esc(x.no ? wLabel(x.no) : '')}" placeholder="番号か作品名を入れる"></div>
       ${x.no && x.low ? '<div class="dlow">AIの自信が低いので、合っているか確かめてください</div>' : ''}${!x.no ? '<div class="dlow">どの作品か分かりませんでした。番号か作品名を入れてください</div>' : ''}</div>`;
   openSheet(`<h3>確かめて登録する</h3>
     <div class="dpages rv">${pg.map((f, i) => `<span class="dpgi" data-dv="${esc(f)}">${docImg(f, 400)}<b>${i+1}</b></span>`).join('')}</div>
@@ -2616,6 +2617,26 @@ function workOf(no){ return S.works.find(w => w['作品番号']===no) || otWork(
 /* その他の作品（Y001・H001・Z001）も、ひも付けや表示では作品と同じように扱う */
 function otWork(no){ const x = otById[no]; return x ? {'作品番号': no, '作品名': x['作品名'] || (x['種類'] || 'その他') + '（名前なし）', '制作年': x['制作年'], _ot: 1} : undefined; }
 const isOtNo = no => !!otById[no];
+/* 作品を探す入力欄の候補（小文字・番号だけ・名前の一部でも出る） */
+function workHits(v){
+  const q = String(v||'').normalize('NFKC').trim().toLowerCase().replace(/^no\.?\s*/, ''); if (!q) return [];
+  const all = S.works.concat((S.others||[]).map(x => otWork(x['番号'])));
+  const dm = q.match(/^([a-z]?)\s*-?\s*0*(\d+)$/), out = [];
+  all.forEach(w => { const no = String(w['作品番号']), lo = no.toLowerCase(), nm = String(w['作品名']||'').toLowerCase();
+    let sc = 0;
+    if (dm) { const m = lo.match(/^([a-z]?)0*(\d+)/); if (m && (!dm[1] || dm[1]===m[1])) { if (m[2]===dm[2]) sc = 3; else if (m[2].startsWith(dm[2])) sc = 2; } }
+    if (!sc && (lo.includes(q) || nm.includes(q) || String(w['作品名メモ']||'').toLowerCase().includes(q))) sc = 1;
+    if (sc) out.push([sc, w]); });
+  return out.sort((a, b) => b[0]-a[0] || String(a[1]['作品番号']).localeCompare(String(b[1]['作品番号']))).slice(0, 8).map(x => x[1]);
+}
+document.addEventListener('input', e => { const el = e.target; if (!el.matches || !el.matches('.dwin, .mmwin')) return;
+  const row = el.closest('.dwrow, .mmwrow') || el; let box = row.nextElementSibling;
+  if (!box || !box.classList.contains('wsug')) { box = document.createElement('div'); box.className = 'wsug'; row.after(box); }
+  const hits = workHits(el.value);
+  box.innerHTML = hits.map(w => `<button type="button" data-wno="${esc(w['作品番号'])}"><span class="th">${(photoBy[w['作品番号']]||[]).length ? thumbHTML(w['作品番号'], 200) : ''}</span><span>${esc(wLabel(w['作品番号']))}</span></button>`).join('');
+  hydrate(box);
+  box.onclick = ev => { const b = ev.target.closest('[data-wno]'); if (!b) return; el.value = wLabel(b.dataset.wno); box.innerHTML = ''; el.dispatchEvent(new Event('change', {bubbles: true})); el.blur(); };
+});
 function openWork(no, keepScroll, restoreSc){
   if (isOtNo(no) && !S.works.some(w => w['作品番号']===no)) return openOt(no, keepScroll, restoreSc);
   const w = workOf(no); if (!w) return;
@@ -3949,7 +3970,7 @@ function memoHTML(){
 function sheetMemo(id){
   const m = id ? (S.memos||[]).find(x => x['メモID']===id) : null;
   const nos = m ? String(m['作品番号']||'').split(',').filter(Boolean) : (S.pcur && S.pcur.t==='w' ? [S.pcur.id] : []);
-  const row = no => `<div class="mmwrow"><input class="mmwin" list="dlWorksM" value="${esc(no ? wLabel(no) : '')}" placeholder="番号か作品名を入れる"><button type="button" data-mmrm="1" aria-label="外す">×</button></div>`;
+  const row = no => `<div class="mmwrow"><input class="mmwin" autocomplete="off" value="${esc(no ? wLabel(no) : '')}" placeholder="番号か作品名を入れる"><button type="button" data-mmrm="1" aria-label="外す">×</button></div>`;
   openSheet(`<h3>${m ? 'お母さんへの確認メモを直す' : 'お母さんへの確認メモを書く'}</h3><p class="hint">${esc(S.memoChecker||'直美')}さんに確認してほしいことを書きます。ホームのいちばん上に付箋で出ます。</p>
     ${F('確認してほしいこと', `<textarea id="mmText" placeholder="例：この屏風は京都市美術館にありますか？">${esc(m ? m['内容'] : '')}</textarea>`)}
     <div class="field"><label>関係する作品（いくつでも）</label><div id="mmWs">${(nos.length ? nos : ['']).map(row).join('')}</div>
