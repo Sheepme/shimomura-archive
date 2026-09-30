@@ -1450,6 +1450,7 @@ body .chips .chip.on::after{content:'';position:absolute;left:0;right:0;bottom:3
 body .subchips{gap:18px!important}
 body .subchips .chip{font-size:14px!important;padding:6px 0 9px!important}
 body .subchips .chip.on::after{height:2px}
+@media(pointer:fine){ body .chips,body .decs{cursor:grab} body .chips.dragging,body .decs.dragging{cursor:grabbing;user-select:none} body .chips.dragging .chip{pointer-events:none} }
 body .decs{gap:18px!important}
 body .decs button{background:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding:6px 0!important;color:var(--sub)!important;font:500 14px/1.2 var(--sans)!important}
 body .decs button:hover{color:var(--ink)!important}
@@ -1525,7 +1526,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '151c3e4f21', APP_URL = location.origin + location.pathname;
+const BUILD = 'ded4668131', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4272,6 +4273,13 @@ $('#askq').addEventListener('keydown', e => { if (e.key==='Enter' && !e.shiftKey
   new MutationObserver(() => document.querySelectorAll('.search input').forEach(i => { if (i.value && !i.closest('.search').classList.contains('has')) sync(i); })).observe(document.body, {childList:true, subtree:true});
 })();
 
+/* ---------- PC：カテゴリの行はマウスでつかんで左右にドラッグできる ---------- */
+(function(){ let el = null, x0 = 0, s0 = 0, moved = false;
+  document.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse' || e.button !== 0) return; const r = e.target.closest && e.target.closest('.chips, .decs'); if (!r || r.scrollWidth <= r.clientWidth) return; el = r; x0 = e.clientX; s0 = r.scrollLeft; moved = false; });
+  document.addEventListener('pointermove', e => { if (!el) return; const dx = e.clientX - x0; if (!moved && Math.abs(dx) > 5) { moved = true; el.classList.add('dragging'); } if (moved) { el.scrollLeft = s0 - dx; e.preventDefault(); } });
+  const end = () => { if (!el) return; const r = el; el = null; r.classList.remove('dragging'); if (moved) { const kill = ev => { ev.stopPropagation(); ev.preventDefault(); }; document.addEventListener('click', kill, {capture: true, once: true}); setTimeout(() => document.removeEventListener('click', kill, {capture: true}), 50); } };
+  document.addEventListener('pointerup', end); document.addEventListener('pointercancel', end);
+})();
 /* ---------- 起動 ---------- */
 busy(true, '作品を読み込んでいます…');
 renderUser();
