@@ -1176,6 +1176,8 @@ body.briefing .cbar,body.loggedout .cbar{display:none}
 /* キーボードが出ている間は、下の検索欄をキーボードのすぐ上に置く */
 body.kbopen .cbar{top:calc(var(--vvt,0px) + var(--vvh,100%) - 62px);bottom:auto;transition:none}
 body.slock{position:fixed;left:0;right:0;width:100%;overflow:hidden}
+/* 検索の入力中は「質問」ボタンを消して、検索欄を横いっぱいに */
+body.searching .cbask{display:none}
 body.kbopen .appbar{top:calc(var(--vvt,0px) + var(--tb) + var(--cap) + 6px);transition:none}
 .page::after{content:'';display:block;height:calc(84px + env(safe-area-inset-bottom))}
 /* メニュー（左から） */
@@ -1315,7 +1317,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'eeac06c69d', APP_URL = location.origin + location.pathname;
+const BUILD = 'e5980596c2', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3797,8 +3799,8 @@ $('#fsq').addEventListener('keydown', e => { if (e.key==='Enter' && !e.isComposi
 /* 下の検索欄：押したら、そのページで探す（探せないページなら作品アルバムに移る） */
 $('#fsq').addEventListener('focus', () => { closeDrawer(); if (S.aiOpen) closeAI(); const pgOpen = !$('#page').classList.contains('hidden'); if (pgOpen) closeAllPages();
   if (!SQ[S.view]) { S.view = S.wmode || 'album'; S.limit = 60; render(); window.scrollTo(0, 0); } else if (pgOpen) render();
-  const s = SQ[S.view]; $('#fsq').placeholder = s[1]; $('#top').classList.remove('tuck'); scrollLock(true); });
-$('#fsq').addEventListener('blur', () => scrollLock(false));
+  const s = SQ[S.view]; $('#fsq').placeholder = s[1]; $('#top').classList.remove('tuck'); scrollLock(true); document.body.classList.add('searching'); });
+$('#fsq').addEventListener('blur', () => { scrollLock(false); document.body.classList.remove('searching'); });
 /* 上のページ名を押すと、いちばん上までスクロール */
 $('#abTitle').addEventListener('click', () => { const pg = $('#page');
   if (!pg.classList.contains('hidden')) pg.scrollTo({top:0, behavior:'smooth'}); else window.scrollTo({top:0, behavior:'smooth'}); });
@@ -3943,7 +3945,12 @@ $('#askq').addEventListener('keydown', e => { if (e.key==='Enter' && !e.shiftKey
   const vv = window.visualViewport; if (!vv) return;
   const root = document.documentElement;
   const fit = () => { root.style.setProperty('--vvh', vv.height + 'px'); root.style.setProperty('--vvt', vv.offsetTop + 'px');
-    const kb = innerHeight - vv.height > 120; document.body.classList.toggle('kbopen', kb); }; // キーボードが出ているか
+    // キーボードが出ているか（iPhoneは innerHeight も一緒に縮むので、いちばん高かったときと比べる）
+    const a = document.activeElement, typing = !!(a && /^(INPUT|TEXTAREA)$/.test(a.tagName));
+    if (!typing) fit.base = Math.max(fit.base || 0, vv.height); else fit.base = Math.max(fit.base || 0, screen.height * 0.6);
+    document.body.classList.toggle('kbopen', typing && vv.height < (fit.base || vv.height) - 120); };
+  vv.addEventListener('scroll', () => fit()); // キーボードで画面がずれたときも位置を合わせる
+  document.addEventListener('focusout', () => setTimeout(fit, 50));
   vv.addEventListener('resize', () => { fit();
     const a = document.activeElement;
     if (a && a.closest && a.closest('.sheet .box') && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) setTimeout(() => a.scrollIntoView({block:'center'}), 60);
