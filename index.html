@@ -219,7 +219,7 @@ dl.info dd{position:relative;padding-right:44px}
 .vclose{position:absolute;top:12px;left:16px;z-index:3;border:1px solid var(--line);background:var(--paper);padding:8px 16px;font-size:16px;border-radius:999px}
 .vbar{position:absolute;bottom:52px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:24px;font-size:16px;color:var(--sub)}
 .vbar button{border:1px solid var(--line);background:var(--paper);padding:8px 18px;font-size:17px;border-radius:999px}
-#vorig{position:absolute;bottom:16px;font-size:14px;color:var(--sub)}
+#vorig{position:absolute;bottom:16px;font-size:14px;color:var(--sub);background:transparent;border:1px solid var(--line);border-radius:999px;padding:6px 14px}
 
 /* タイムライン */
 
@@ -1153,7 +1153,7 @@ html.sa .toast{top:calc(14px + var(--cap))}
 <div id="page" class="page hidden"></div>
 <div id="sheet" class="sheet hidden"><div class="box" id="sheetbox"></div></div>
 <div id="confirm" class="sheet hidden" style="z-index:100"><div class="box" id="confirmbox"></div></div>
-<div id="viewer" class="viewer hidden"><button class="vclose" id="vclose">✕ 閉じる</button><button id="vrep" class="hidden">この写真を差し替える</button><button id="vdel" class="hidden">削除</button><button id="vmain" class="hidden">★ メイン画像にする</button><div id="vrot" class="vrot hidden"><button type="button" data-rot="-90">↺ 左に回す</button><button type="button" data-rot="90">↻ 右に回す</button></div><img id="vimg" alt=""><span id="vwm" class="wm vwm"></span><div class="vbar"><button id="vprev">‹ 前</button><span id="vcount"></span><p id="vcredit" class="credit"></p><button id="vnext">次 ›</button></div><a id="vorig" target="_blank" rel="noopener">元の画像を開く</a></div>
+<div id="viewer" class="viewer hidden"><button class="vclose" id="vclose">✕ 閉じる</button><button id="vrep" class="hidden">この写真を差し替える</button><button id="vdel" class="hidden">削除</button><button id="vmain" class="hidden">★ メイン画像にする</button><div id="vrot" class="vrot hidden"><button type="button" data-rot="-90">↺ 左に回す</button><button type="button" data-rot="90">↻ 右に回す</button></div><img id="vimg" alt=""><span id="vwm" class="wm vwm"></span><div class="vbar"><button id="vprev">‹ 前</button><span id="vcount"></span><p id="vcredit" class="credit"></p><button id="vnext">次 ›</button></div><button id="vorig" type="button">高画質で見る</button></div>
 <div id="loading" class="loading hidden">読み込み中…</div>
 <div id="toast" class="toast hidden"></div>
 
@@ -1172,7 +1172,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'c45b916eff', APP_URL = location.origin + location.pathname;
+const BUILD = '66697ca6be', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2950,13 +2950,17 @@ const creditHTML = ph => [...new Set((ph||[]).map(p => String(p['メモ']||'')).
   const [mu, u] = m.slice(4).split('｜');
   return `<p class="credit">＊この画像は${esc(mu)}から転載したものです。家族用の資料としての利用に限定します。転載したり誰かに渡す場合は、撮影元に確認を取ってください。${u ? `（<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u)}</a>）` : ''}</p>`; }).join('');
 function showV(){ const p = V.list[V.i]; if (!p) return;
-  const k = '1600_' + p['ファイルID']; $('#vimg').removeAttribute('src'); $('#vimg').style.transform = '';
+  const k = (TH['3200_' + p['ファイルID']] ? '3200_' : '1600_') + p['ファイルID']; $('#vimg').removeAttribute('src'); $('#vimg').style.transform = '';
   if (TH[k]) $('#vimg').src = TH[k]; else call('getThumbs', [p['ファイルID']], 1600).then(m => { if (m[p['ファイルID']]) { TH[k] = m[p['ファイルID']]; if (V.list[V.i] === p) $('#vimg').src = TH[k]; } });
   $('#vcount').textContent = (V.i+1) + ' / ' + V.list.length + '　' + (p['種類']||'') + (/^【仮】/.test(p['メモ']||'') ? '・仮' : '');
   $('#vcredit').innerHTML = creditHTML([p]); $('#vwm').innerHTML = wm(p).replace(/<\/?span[^>]*>/g, '');
   const isW = S.cur && workOf(S.cur), isMain = V.i===0; $('#vmain').classList.toggle('hidden', !canEdit() || !isW || V.list.length < 2 || !p['写真ID']); $('#vmain').textContent = isMain ? '★ メイン画像' : '☆ メイン画像にする'; $('#vmain').disabled = isMain;
   $('#vrep').classList.toggle('hidden', !canEdit()); $('#vdel').classList.toggle('hidden', !canEdit() || !p['写真ID']); $('#vrot').classList.toggle('hidden', !canEdit());
-  $('#vorig').href = 'https:\/\/drive.google.com/file/d/' + encodeURIComponent(p['ファイルID']) + '/view';
+  $('#vorig').textContent = TH['3200_' + p['ファイルID']] ? '高画質で表示中' : '高画質で見る';
+  $('#vorig').onclick = () => { const id = p['ファイルID'], k2 = '3200_' + id; if (TH[k2]) { $('#vimg').src = TH[k2]; return; }
+    $('#vorig').textContent = '読み込み中…';
+    call('getThumbs', [id], 3200).then(m => { if (!m[id]) throw new Error('empty'); TH[k2] = m[id]; if (V.list[V.i] === p) { $('#vimg').src = m[id]; $('#vorig').textContent = '高画質で表示中'; } })
+      .catch(() => { $('#vorig').textContent = '高画質で見る'; toast('高画質の写真を読み込めませんでした'); }); };
   $('#vprev').style.visibility = V.i>0?'visible':'hidden'; $('#vnext').style.visibility = V.i<V.list.length-1?'visible':'hidden'; }
 $('#vclose').onclick = () => closeViewer();
 $('#vmain').onclick = () => { const p = V.list[V.i], no = S.cur; if (!p || !canEdit()) return;
