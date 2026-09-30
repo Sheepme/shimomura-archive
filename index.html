@@ -1409,7 +1409,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'fa0a4fe41d', APP_URL = location.origin + location.pathname;
+const BUILD = 'a10f243dfc', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4445,7 +4445,7 @@ function markStuck(){ const hs = [...document.querySelectorAll('#main .cyh')]; l
   const t = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stk')) || 0, H = 46;
   let cur = -1; hs.forEach((h, i) => { const r = h.getBoundingClientRect(); h.style.visibility = r.top < t - 1 ? 'hidden' : ''; if (r.top <= t + 1) cur = i; });
   const next = hs[cur + 1], nt = next ? next.getBoundingClientRect().top : Infinity;
-  if (cur < 0 || window.scrollY < 5 || nt < t + H) { fx.classList.add('hidden'); return; }
+  if (cur < 0 || window.scrollY < 5) { fx.classList.add('hidden'); return; } // 次の年はこの下に潜り込み、完全に重なった時点で入れ替わる
   const src = hs[cur], inner = fx.firstChild;
   if (inner.dataset.i !== String(cur)) { inner.innerHTML = src.innerHTML; inner.dataset.i = cur; }
   fx.style.top = t + 'px'; inner.style.setProperty('padding-left', Math.max(0, src.getBoundingClientRect().left) + 'px', 'important');
