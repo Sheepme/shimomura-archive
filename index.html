@@ -1244,6 +1244,9 @@ html[data-theme=dark]{--gl:rgba(52,52,50,.88);--gl-b:rgba(255,255,255,.14);--gl-
 /* 上のボタンは、より透けて・より強くぼかす */
 .appbar .abtn,.appbar h1:not(.st-busy):not(.st-ok):not(.st-upd){background:rgba(255,255,255,.52)!important;-webkit-backdrop-filter:saturate(200%) blur(40px)!important;backdrop-filter:saturate(200%) blur(40px)!important}
 html[data-theme=dark] .appbar .abtn,html[data-theme=dark] .appbar h1:not(.st-busy):not(.st-ok):not(.st-upd){background:rgba(46,46,44,.5)!important}
+/* 検索欄：何も入っていないときは、より透けさせる（入力中・入力済みはくっきり） */
+.cbin:has(#fsq:placeholder-shown):not(:focus-within){background:color-mix(in srgb,var(--paper) 42%,transparent)!important;-webkit-backdrop-filter:saturate(200%) blur(40px)!important;backdrop-filter:saturate(200%) blur(40px)!important}
+.cbin{transition:background .2s}
 /* 並び替え・列の数のボタン：細い線をやめて、年代などのサブのボタンと同じ淡い塗りに */
 #sort{border:1px solid transparent!important;background-color:var(--wash)!important;color:var(--ink)!important;font-weight:500}
 .zoomb{border:1px solid transparent!important;background:var(--wash)!important}
@@ -1394,7 +1397,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'dbf810b2e6', APP_URL = location.origin + location.pathname;
+const BUILD = 'c2a98681da', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
