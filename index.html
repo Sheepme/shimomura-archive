@@ -276,6 +276,8 @@ dl.info dd{position:relative;padding-right:44px}
 .pvn{grid-column:1/-1;font-size:14px;color:var(--sub)}
 .bottomacts{margin-top:4px}
 .actions.one{grid-template-columns:1fr}
+.wdocs{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}.wdoc{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--paper);color:var(--ink)}.wdoc b{flex:1;font-size:16px}.wdoc small{color:var(--sub);font-size:13px}.wdoc .tg{opacity:.5}
+.flagbox .yrq{display:inline-block;margin-top:10px;font-weight:700}
 .flagbox .mgbtn{display:inline-block;width:auto;margin:8px 0 0;padding:5px 14px;font-size:14px;border:1px solid var(--warn);background:transparent;color:var(--warn);border-radius:999px}
 .mgcands{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
 .mgcand{display:flex;gap:12px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--paper);padding:8px;border-radius:6px;font-size:16px}
@@ -1122,7 +1124,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'c272e7ac84', APP_URL = location.origin + location.pathname;
+const BUILD = '4f5f5cc2cc', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1408,6 +1410,20 @@ function goTodo(k){
 /* ---------- 書類（預かり書・寄贈書など）：① 撮る → ② AIで読み取る → ③ 確認して登録 ---------- */
 const DOC_EVENTS = ['寄託','寄贈','貸出','返却','委託','販売','譲渡','移動','所在確認','その他'];
 const DOC_MOVE = ['寄託','寄贈','貸出','返却','委託','販売','譲渡','移動'];
+/** 要確認メモの中身に合わせたボタン（年の食い違い→正しい年を選ぶ／重複→統合する／それ以外→確認できた） */
+function flagActs(w){
+  const m = String(w['要確認メモ']||''), ys = [...new Set((m.match(/(1[89]\d\d|20\d\d)(?=年)/g) || []))];
+  if (/重複|同じ作品|統合|二重/.test(m)) return '<br><button class="mgbtn" data-act="merge">統合する</button>';
+  if (ys.length >= 2 && /制作|年/.test(m)) return `<br><span class="yrq">正しい制作年はどっち？</span><br>${ys.map(y => `<button class="mgbtn" data-yrfix="${y}">${y}年</button>`).join(' ')} <button class="mgbtn" data-act="edit">ほかの年</button>`;
+  return '<br><button class="mgbtn" data-act="flag">確認できた</button>';
+}
+/** 作品ページ：この作品にひも付いた書類（読む前のものも出す） */
+function workDocsHTML(no){
+  const ds = (S.docs||[]).filter(d => String(d['作品番号']||'').split(',').includes(String(no)));
+  if (!ds.length) return '';
+  const st = d => ({'まだ':'まだ読んでいない','確認待ち':'確認待ち','登録済み':'登録済み','登録しない':'登録しない'})[d['状態']] || d['状態'] || '';
+  return `<h3 class="sec">この作品の書類（${ds.length}通）</h3><div class="wdocs">${ds.map(d => `<button class="wdoc" ${d['状態']==='まだ' ? 'data-docnew-read="' + esc(d['書類ID']) + '"' : 'data-doc="' + esc(d['書類ID']) + '"'}><b>${esc(docTitle(d))}</b><small>${esc(st(d))}</small><span class="tg">›</span></button>`).join('')}</div>`;
+}
 const docsOf = st => (S.docs||[]).filter(d => d['状態']===st);
 const docPages = d => String(d['ファイルID']||'').split(',').filter(Boolean);
 const docRes = d => { try { return JSON.parse(d['読取結果']||'{}'); } catch(e){ return {}; } };
@@ -1492,9 +1508,21 @@ async function readDocsFlow(ids){
   if (!S.ai) return alert('AIの設定がまだです');
   let n = 0, limited = false, errs = 0;
   try {
-    for (let i = 0; i < ids.length; i += 2) {
-      busy(true, 'AIが書類を読んでいます（' + Math.min(i + 2, ids.length) + '/' + ids.length + '）　1通 20秒ほど');
-      const r = await call('readDocs', ids.slice(i, i + 2));
+    for (let i = 0; i < ids.length; i++) {
+      busy(true, 'AIが書類を読んでいます（' + (i + 1) + '/' + ids.length + '）　1通 20秒ほど');
+      let r;
+      try { r = await call('readDocs', [ids[i]]); }
+      catch(e){
+        // iPhoneは長い通信を途中で切ることがある。Google側では読み続けているので、結果が出るのを待って確かめる
+        if (!/load failed|failed to fetch|network|通信/i.test(String(e && e.message || e))) throw e;
+        let ok = false;
+        for (let k = 0; k < 8 && !ok; k++) {
+          busy(true, 'AIが書類を読んでいます（' + (i + 1) + '/' + ids.length + '）　もう少し待ってね…');
+          await new Promise(res => setTimeout(res, 10000));
+          try { setData(await call('getData')); const d = docById(ids[i]); ok = !!d && d['状態'] !== 'まだ'; } catch(x){}
+        }
+        ok ? n++ : errs++; continue;
+      }
       setData(r.data); Object.values(r.res).forEach(x => x.err ? errs++ : n++);
       if (r.limited) { limited = true; break; }
     }
@@ -2390,7 +2418,7 @@ function openWork(no, keepScroll, restoreSc){
       <div class="tombstone">${esc([w['制作年']||'制作年不明', w['画材'], (w['幅cm']||w['高さcm'])?`${w['幅cm']||'?'} × ${w['高さcm']||'?'} cm`:''].filter(Boolean).join('　|　'))}</div>
       <div class="loc"><span class="lk">いまの場所</span><span style="display:flex;align-items:center"><b>${esc(w['所在']||w['所在区分']||'不明')}</b>${canEdit()?`<button class="pen" data-act="move" aria-label="場所を変える"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.6"/></svg></button>`:''}</span></div>
       ${canEdit() ? `<label class="locok ${w['場所確認日']?'on':''}"><input type="checkbox" id="locOk" ${w['場所確認日']?'checked':''}><span>${w['場所確認日'] ? 'この場所にあることを確認済み<small>' + esc(String(w['場所確認日']).split(' ')[0]) + '　' + esc(w['場所確認者']||'') + '</small>' : 'この場所にあることを確認した'}</span></label>` : (w['場所確認日'] ? `<p class="locokv">場所の確認：${esc(String(w['場所確認日']).split(' ')[0])}（${esc(w['場所確認者']||'')}）</p>` : '')}
-      ${w['要確認']?`<div class="flagbox">要確認 — ${escU(w['要確認メモ']||'（メモなし）')}${canEdit()?'<br><button class="mgbtn" data-act="merge">統合する</button>':''}</div>`:''}
+      ${w['要確認']?`<div class="flagbox">要確認 — ${escU(w['要確認メモ']||'（メモなし）')}${canEdit()?flagActs(w):''}</div>`:''}
       <h3 class="sec">作品の情報</h3>
       <dl class="info">
         ${dd('作品名', w['作品名'], 'w1')}
@@ -2413,6 +2441,7 @@ function openWork(no, keepScroll, restoreSc){
           ${canEdit() && /^書類 D/.test(e['根拠・出典']||'') ? `<button class="golink" data-doc="${esc(String(e['根拠・出典']).slice(3))}">書類を見る ›</button>` : ''}<div class="src">${escU([/^書類 D/.test(e['根拠・出典']||'') ? '書類より' : e['根拠・出典'], e['確かさ'], e['登録者']!=='旧リストから移行'?e['登録者']:''].filter(Boolean).join(' · '))}</div>
           ${canEdit()?`<button class="pen" data-evedit="${esc(e['出来事ID'])}" aria-label="このできごとを直す"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.6"/></svg></button>`:''}
         </div></li>`; }).join('')}</ul>` : '<p style="color:var(--sub)">まだ記録がありません</p>'}
+      ${canEdit() ? workDocsHTML(no) : ''}
       ${canEdit() ? `<h3 class="sec">記録を更新する</h3><div class="actions bottomacts">
         <button class="act main" data-act="move">場所を変える</button>
         <button class="act main" data-act="event">できごとを追加</button>
@@ -3338,7 +3367,15 @@ document.addEventListener('click', e => {
   if (t.dataset.todo){ goTodo(t.dataset.todo); return; }
   if (t.dataset.docnew !== undefined){ sheetDoc(); return; }
   if (t.dataset.docread !== undefined){ readDocsFlow(docsOf('まだ').map(d => d['書類ID'])); return; }
+  if (t.dataset.docnewRead){ if (confirm('この書類をAIに読んでもらいますか？')) readDocsFlow([t.dataset.docnewRead]); return; }
   if (t.dataset.doc){ sheetDocReview(t.dataset.doc); return; }
+  if (t.dataset.yrfix){ const no = S.cur, y = t.dataset.yrfix, w = workOf(no) || {};
+    if (!confirm('制作年を ' + y + '年 にして、要確認を外しますか？')) return;
+    const v = /年$/.test(String(w['制作年']||'')) ? y + '年' : y;
+    busy(true, '保存しています…');
+    call('updateWork', no, { '制作年': v }).then(() => { busy(false); save('setFlag', [no, false, ''], '制作年を' + y + '年にしました'); })
+      .catch(e => { busy(false); alert('保存できませんでした。\n' + (e.message||e)); });
+    return; }
   if (t.id==='fmHome'){ goHome(); return; }
   if (t.dataset.tour !== undefined){ showTour(); return; }
   if (t.dataset.pt){ S.pt = t.dataset.pt; render(); return; }
