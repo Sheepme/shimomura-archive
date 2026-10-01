@@ -1528,7 +1528,7 @@ body .decs button:hover{color:var(--ink)!important}
     <div class="chips" id="chips"></div>
     <div class="chips subchips hidden" id="subchips"></div>
     <div class="meta"><div class="seg" id="wseg"><button data-wm="album">アルバム</button><button data-wm="list">リスト</button></div><span id="count"></span>
-      <span class="mright"><select id="sort"><option value="no">番号順</option><option value="year">制作年順</option><option value="upd">更新が新しい順</option></select><span class="zoomb hidden" id="zoomb"><button type="button" id="colMinus" aria-label="小さく（列を増やす）">−</button><button type="button" id="colPlus" aria-label="大きく（列を減らす）">＋</button></span></span>
+      <span class="mright"><select id="sort"><option value="rand">ランダム</option><option value="no">番号順</option><option value="year">制作年順</option><option value="upd">更新が新しい順</option></select><span class="zoomb hidden" id="zoomb"><button type="button" id="colMinus" aria-label="小さく（列を増やす）">−</button><button type="button" id="colPlus" aria-label="大きく（列を減らす）">＋</button></span></span>
     </div>
   </div>
   <div id="chronobar" class="hidden"></div>
@@ -1567,7 +1567,7 @@ body .decs button:hover{color:var(--ink)!important}
 <script>
 /* ---------- 状態 ---------- */
 const S = { works:[], events:[], photos:[], places:[], exhibits:[], pubs:[], stack:[], pcur:null, cf:'all', cmain:false, me:'', ai:false,
-  view:'home', wmode:'album', xnl:false, pnl:false, xt:'すべて', xq:'', xmain:false, pt:'すべて', pq:'', filter:'all', q:'', sort:'no', limit:60, chat:[], cur:null };
+  view:'home', wmode:'album', xnl:false, pnl:false, xt:'すべて', xq:'', xmain:false, pt:'すべて', pq:'', filter:'all', q:'', sort:'rand', limit:60, chat:[], cur:null };
 const FILTERS = [['all','すべて'],['自宅','自宅'],['美術館','美術館'],['個人蔵','個人蔵'],['委託中','委託中'],['flag','要確認'],['nophoto','写真なし'],['noname','作品名なし'],['noloc','保管場所不明'],['unconf','場所未確認'],['tmp','仮の写真'],['lack','情報が足りない'],['廃棄','廃棄']];
 const LOC_KINDS = ['自宅','美術館','個人蔵','委託中','貸出中','その他','廃棄','不明'];
 const EVENT_TYPES = ['出品','掲載','画集掲載','寄贈','寄託','委託','販売','譲渡','貸出','返却','修復','移動','所在確認','廃棄','その他'];
@@ -1579,7 +1579,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '0ff5110937', APP_URL = location.origin + location.pathname;
+const BUILD = 'af31065576', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1759,6 +1759,9 @@ function filtered(){
       .concat((eventBy[w['作品番号']]||[]).map(e=>e['相手先・場所']+' '+e['内容']+' '+e['日付'])).join(' ').toLowerCase();
     return q.split(/\s+/).every(t => hay.includes(t));
   });
+  if (S.sort==='rand') { // ランダム（開くたびに変わる。同じ画面の中では順番を保つ）。写真のない作品は後ろへ
+    const R = filtered.rk || (filtered.rk = {}), k = no => R[no] === undefined ? (R[no] = Math.random()) : R[no];
+    a.sort((x,y) => (photoBy[x['作品番号']] ? 0 : 1) - (photoBy[y['作品番号']] ? 0 : 1) || k(x['作品番号']) - k(y['作品番号'])); }
   if (S.sort==='year') a.sort((x,y)=>yearOf(x['制作年'])-yearOf(y['制作年']));
   if (S.sort==='upd') a.sort((x,y)=>String(y['最終更新日時']).localeCompare(String(x['最終更新日時'])));
   return a;
@@ -1951,6 +1954,9 @@ function renderHome(){
   document.getElementById('dwNav').innerHTML = `<button type="button" data-v="home"><span class="pic">${HOMEIC}</span><span>ホーム</span></button>`
     + L.map(([v, t, k]) => `<button type="button" data-v="${v}"${v==='doc'?' class="edonly"':''}><span class="pic">${ico(k)}</span><span>${v==='ot' ? 'その他の作品' : v==='pb' ? '画集・資料' : t}</span></button>`).join('')
     + `<button type="button" data-v="help" class="dwhelp"><span class="pic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.6M12 16.8v.2"/></svg></span><span>使い方</span></button>`; })();
+/* 開いたときの最初の画面（卓也さんだけ作品アルバムから始める） */
+function applyStart(){ if (applyStart.done || !S.user) return; applyStart.done = 1;
+  if (S.user.name === '卓也' && S.view === 'home') { S.view = 'album'; S.wmode = 'album'; S.filter = 'all'; S.mus = ''; S.limit = 60; } }
 function goHome(){ hidePop(); closeAllPages(); S.view = 'home'; render(); window.scrollTo(0, 0); }
 function goTodo(k){
   closeAllPages();
@@ -4052,7 +4058,7 @@ function openLogin(why){
         if (!r.ok) { err(r.msg); inp.select(); return; }
         setToken(r.token); try { localStorage.setItem('smr_name', email); } catch(e){}
         inp.blur();
-        const d = await call('getData'); setData(d); closeSheet(); S.view = 'home'; render();
+        const d = await call('getData'); setData(d); closeSheet(); S.view = 'home'; applyStart.done = 0; applyStart(); render();
         toast('ようこそ、' + (r.user.name || email) + 'さん');
       } catch(e){ err('つながりませんでした。もう一度エンターを押してください'); }
       finally { busy(false); }
@@ -4392,8 +4398,8 @@ async function refreshData(){
 /* 起動：端末に控えがあれば、まずそれをすぐ表示し、裏で最新に更新する（待ち時間をなくす） */
 (async () => {
   let shown = false;
-  try { const c = S.token && window.__smrCached ? await window.__smrCached() : null; if (c) { setData(c); render(); busy(false); shown = true; } } catch(e){}
-  call('getData').then(d => { setData(d); render(); if (shown && S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); })
+  try { const c = S.token && window.__smrCached ? await window.__smrCached() : null; if (c) { setData(c); applyStart(); render(); busy(false); shown = true; } } catch(e){}
+  call('getData').then(d => { setData(d); applyStart(); render(); if (shown && S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); })
     .catch(e => { if (isLoginErr(e)) { setToken(''); S.user = null; renderUser(); showLoginWall(); $('#finder').classList.add('hidden'); }
       else if (!shown) $('#main').innerHTML = '<div class="flagbox">読み込めませんでした。時間をおいてもう一度開いてください。<br>' + esc(e.message||e) + '</div>'; })
     .finally(() => busy(false));
