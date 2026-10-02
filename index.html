@@ -1483,7 +1483,7 @@ body.scr .cbar,body.scr #pdfbg,body.scr #pjbg{display:none!important}
 body.wide .noteview{left:264px}.nvin{max-width:760px;margin:0 auto;padding:0 18px}.nvt{font-size:24px;margin:0 0 10px}
 .nvpager{display:flex;align-items:center;gap:8px;margin:8px 0}.nvpager .act{margin:0;flex:none;padding:8px 14px}.nvpager .act:disabled{opacity:.35}.nvsel{flex:1;min-width:0;font-size:16px;padding:8px}
 .nphoto{margin:8px 0;padding:8px 12px;border:1px dashed var(--line);border-radius:10px;color:var(--sub);font-size:15px;background:var(--wash)}
-.nvnote{font-size:17px;line-height:1.85;min-height:40vh}.dvnote{font-size:17px}
+.nvnote{font-size:17px;line-height:1.85;min-height:40vh}@media (max-width:899px){.nvnote{font-size:20px;line-height:1.9}.nvnote .nsec{font-size:18px}.nvnote .nphoto{font-size:18px}.nvtoc{font-size:15px}}.dvnote{font-size:17px}
 .spinev{display:flex;gap:8px;overflow-x:auto;margin:4px 0 10px}.spinev img{max-height:60vh;max-width:100%;border-radius:6px;border:1px solid var(--line)}
 .pdfnm{font-weight:600;margin-bottom:8px;word-break:break-all}.pdfnm small{font-weight:400;color:var(--faint);margin-left:8px;font-size:12px}
 .pdfw{padding:8px 0;border-top:1px solid var(--line)}.pdfw:first-of-type{border-top:0}
@@ -1703,7 +1703,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'b5f48d2f52', APP_URL = location.origin + location.pathname;
+const BUILD = '865682ca55', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2365,7 +2365,7 @@ async function noteView(id, startP, qq){ const d = docById(id); if (!d) return;
     <select class="nvsel">${parts.map((p, i) => `<option value="${i}" ${i === cur ? 'selected' : ''}>${p.n || i + 1} / ${parts[parts.length - 1].n || parts.length}ページ${toc[p.n] ? '　' + esc(toc[p.n].slice(0, 24)) : ''}${hit(p.t) ? '　●' : ''}</option>`).join('')}</select>
     <button type="button" class="act" data-np="1" ${cur === parts.length - 1 ? 'disabled' : ''}>次 ›</button></div>`;
   const draw = () => { const p = parts[cur], body = p.t.trim();
-    el.querySelector('.nvbody').innerHTML = pager() + (toc[p.n] ? `<p class="nvtoc">${esc(toc[p.n])}</p>` : '') + `<div class="note nvnote">${body ? noteHTML(body, q).replace(/<p class="hint" style="margin-top:12px">[\s\S]*$/, '') : '<p class="hint">このページには文字がありません（写真・図など）。</p>'}</div>` + pager()
+    el.querySelector('.nvbody').innerHTML = (toc[p.n] ? `<p class="nvtoc">${esc(toc[p.n])}</p>` : '') + `<div class="note nvnote">${body ? noteHTML(body, q).replace(/<p class="hint" style="margin-top:12px">[\s\S]*$/, '') : '<p class="hint">このページには文字がありません（写真・図など）。</p>'}</div>` + pager()
       + (pdf ? `<button type="button" class="act pdfopen" data-pdfopen="${esc(pdf)}" data-pdfp="${esc(p.n || '')}"${hit(p.t) ? ` data-pdfq="${esc(q)}" data-pdfl="${esc(((p.t.split('\n').find(l => qre.test(l)) || '').trim()).slice(0, 90))}"` : ''}>📄 原本（PDF）で見る${p.n ? '（' + esc(p.n) + 'ページ）' : ''}</button>` : '') + '<p class="hint" style="margin-top:10px">※AIが資料の文字を書き起こしたものです。読めなかった字は〓になっています。</p>';
     el.querySelectorAll('[data-np]').forEach(b => b.onclick = () => { cur = Math.min(parts.length - 1, Math.max(0, cur + (+b.dataset.np))); draw(); el.scrollTop = 0; });
     el.querySelectorAll('.nvsel').forEach(sl => sl.onchange = () => { cur = +sl.value; draw(); el.scrollTop = 0; }); };
