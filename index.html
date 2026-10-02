@@ -1435,7 +1435,7 @@ html body #main section.cy .cage{font-size:12px!important;color:var(--sub)!impor
 .mmic{display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:var(--sub);background:var(--wash)}
 .dfx{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:8px 0}.dfx.done{opacity:.6}.dfx b{display:block;font-size:15px}
 .dfrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0}.dfrow span{background:var(--wash);border-radius:8px;padding:6px 8px;font-size:16px;word-break:break-all}.dfrow small{display:block;font-size:12px;color:var(--sub)}
-.dfbtn{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dfbtn .act{margin:0}.dfill{margin:8px 0;font-size:14px;color:var(--sub)}.dfill p{margin:4px 0}.dtoc{display:flex;flex-direction:column;gap:2px;margin:6px 0 10px}.dtr{display:flex;gap:10px;align-items:flex-start;text-align:left;padding:8px 10px;border-radius:10px;background:var(--card,#fff);border:1px solid rgba(0,0,0,.06);font:inherit;color:var(--ink,inherit);font-size:14px;line-height:1.5}button.dtr{cursor:pointer;width:100%}.dtp{flex:0 0 auto;min-width:3.6em;color:var(--sub);font-variant-numeric:tabular-nums}.nobadge{display:inline-block;background:#e6f4ea;color:#1e7a3c;border-radius:6px;padding:0 6px;font-size:11px;margin-left:4px}.nvtoc{margin:8px 0 0;font-size:13px;color:var(--sub)}.dmemo{white-space:pre-wrap}
+.dfbtn{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dfbtn .act{margin:0}.dfill{margin:8px 0;font-size:14px;color:var(--sub)}.dfill p{margin:4px 0}.dtoc{display:flex;flex-direction:column;gap:2px;margin:6px 0 10px}.dtr{display:flex;gap:10px;align-items:flex-start;text-align:left;padding:8px 10px;border-radius:10px;background:var(--card,#fff);border:1px solid rgba(0,0,0,.06);font:inherit;color:var(--ink,inherit);font-size:14px;line-height:1.5}button.dtr{cursor:pointer;width:100%}.dtp{flex:0 0 auto;min-width:3.6em;color:var(--sub);font-variant-numeric:tabular-nums}#bgsave{position:fixed;left:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:9500;display:flex;align-items:center;gap:8px;background:rgba(30,30,30,.88);color:#fff;font-size:13px;padding:8px 12px;border-radius:20px;box-shadow:0 2px 10px rgba(0,0,0,.2);pointer-events:none}#bgsave.hidden{display:none}#bgsave .ldspin{width:14px;height:14px;border-width:2px;border-color:rgba(255,255,255,.3);border-top-color:#fff}.nobadge{display:inline-block;background:#e6f4ea;color:#1e7a3c;border-radius:6px;padding:0 6px;font-size:11px;margin-left:4px}.nvtoc{margin:8px 0 0;font-size:13px;color:var(--sub)}.dmemo{white-space:pre-wrap}
 .shx{position:sticky;top:0;float:right;width:40px;height:40px;margin:-10px -8px 0 12px;border-radius:50%;border:1px solid var(--line);background:var(--paper);color:var(--ink);font-size:17px;line-height:1;padding:0;z-index:3;display:flex;align-items:center;justify-content:center}
 #sheetbox.split{max-width:min(1500px,96vw);width:96vw;height:min(92vh, calc(var(--vvh,100vh) - 12px - var(--tb)));max-height:none;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(380px,1fr);gap:28px;overflow:hidden;padding:24px}
 #sheetbox.split .dsv{overflow:auto;min-height:0;background:var(--wash);border-radius:10px}#sheetbox.split .dsv img{display:block;width:100%;height:auto;margin:0 0 8px}
@@ -1703,7 +1703,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '925a76dbb3', APP_URL = location.origin + location.pathname;
+const BUILD = '086ad2b766', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1817,9 +1817,10 @@ async function saveRecover(fn){
 /* 写真の保存は、通信が切れたら自動でもう一度送る（サーバー側で同じ写真は二重に登録しない） */
 const IDEM = ['addPhoto', 'addPhotos'];
 const netErr = e => /通信が切れました|通信に失敗|load failed|failed to fetch|network/i.test(String(e && e.message || e));
-async function callRetry(fn, ...args){
+function callRetry(fn, ...args){ return callRetryN(m => busy(true, m), fn, ...args); }
+async function callRetryN(note, fn, ...args){
   for (let k = 0; ; k++) { try { return await call(fn, ...args); }
-    catch(e){ if (k < 3 && IDEM.includes(fn) && netErr(e)) { busy(true, '通信が切れたので、もう一度送っています…（' + (k + 1) + '回目）'); await new Promise(r => setTimeout(r, 2500 * (k + 1))); continue; } throw e; } } }
+    catch(e){ if (k < 3 && IDEM.includes(fn) && netErr(e)) { note('通信が切れたので、もう一度送っています…（' + (k + 1) + '回目）'); await new Promise(r => setTimeout(r, 2500 * (k + 1))); continue; } throw e; } } }
 async function save(fn, args, msg){
   busy(true,'保存しています…');
   try { const d = await callRetry(fn, ...args); setData(d); toast(d && d.dup ? '保存済みでした（同じ写真は二重に登録しません）' : (msg||'保存しました')); closeSheet(); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); return d; }
@@ -4582,23 +4583,31 @@ function sheetPhoto(no, replaceId){
     const memo = isCopy ? copyMemo(val('cmu'), val('curl'), val('chide') === COPY_SHOW[1]) : (val('ptmp').indexOf('はい')===0 ? '【仮】' : '') + val('pm');
     if (!old && list.length > 1) return savePhotos(no, list, val('pk'), memo);
     if (old) save('replacePhoto', [old['写真ID'], data, PMIME, val('pk'), memo], '写真を差し替えました');
-    else save('addPhoto', [no, data, PMIME, val('pk'), memo], '写真を保存しました');
+    else { const kd = val('pk'); bgRun(no, note => callRetryN(note, 'addPhoto', no, data, PMIME, kd, memo)); }
   };
 }
 let PMIME = 'image/jpeg';
+/* ---------- 裏で保存（写真）：画面はすぐ閉じて操作を続けられ、終わったら「完了しました」 ---------- */
+const BGS = { n: 0 };
+function bgShow(msg){ let el = $('#bgsave'); if (!el) { el = document.createElement('div'); el.id = 'bgsave'; document.body.appendChild(el); }
+  el.innerHTML = BGS.n ? `<span class="ldspin"></span>${esc(msg || '写真を保存しています…')}${BGS.n > 1 ? '（' + BGS.n + '件）' : ''}` : ''; el.classList.toggle('hidden', !BGS.n); }
+window.addEventListener('beforeunload', e => { if (BGS.n) { e.preventDefault(); e.returnValue = ''; } });
+async function bgRun(no, job){
+  BGS.n++; bgShow(); closeSheet(); toast('裏で保存しています');
+  try { const r = await job(m => bgShow(m)); BGS.n--; bgShow();
+    const d = r && r.works ? r : await call('getData'); setData(d); render();
+    if (S.pcur && $('#sheet').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+    toast(r && r.dup && !r.n ? '完了しました（この写真は保存済みでした）' : '完了しました：写真を保存しました');
+    return true; }
+  catch(e){ BGS.n--; bgShow();
+    if (isLoginErr(e)) { setToken(''); S.user=null; renderUser(); alert('ログインの有効期限が切れました。もう一度ログインしてから、写真を保存し直してください。'); openLogin(); return false; }
+    if (confirm('写真を保存できませんでした（' + (e.message||e) + '）。\nもう一度送りますか？（保存済みの写真が二重になることはありません）')) return bgRun(no, job);
+    return false; } }
 async function savePhotos(no, list, kind, memo){
-  let done = 0;
-  try {
-    for (let i = 0; i < list.length; i += 3) {
-      busy(true, '写真を保存しています（' + Math.min(i+3, list.length) + '/' + list.length + '）');
-      await callRetry('addPhotos', no, list.slice(i, i+3), kind, memo); done = Math.min(i+3, list.length);
-    }
-    const d = await call('getData'); setData(d); toast(list.length + '枚の写真を保存しました'); closeSheet(); render();
-    if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
-  } catch(e){
-    if (isLoginErr(e)) { setToken(''); S.user=null; renderUser(); alert('ログインの有効期限が切れました。もう一度ログインしてください。'); openLogin(); }
-    else alert('保存できませんでした（' + done + '枚まで保存済み）。\nもう一度保存しても、保存済みの写真が二重に登録されることはありません。\n' + (e.message||e));
-  } finally { busy(false); }
+  return bgRun(no, async note => { let n = 0, dup = 0;
+    for (let i = 0; i < list.length; i += 3) { note('写真を保存しています（' + Math.min(i+3, list.length) + '/' + list.length + '枚）…');
+      const r = await callRetryN(note, 'addPhotos', no, list.slice(i, i+3), kind, memo); n += (r && r.n) || 0; dup += (r && r.dup) || 0; }
+    return { n: n, dup: dup }; });
 }
 function shrink(file){ /* 長い辺を1800pxに縮めてJPEGに（透明な部分があるPNGはPNGのまま） */
   return new Promise((ok, ng) => {
