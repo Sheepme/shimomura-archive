@@ -13,7 +13,7 @@
 (function(){
   var API = "https://script.google.com/macros/s/AKfycbz2w0lUll7wmfJdesc1yTkk3i7NQJgXSTAL9Obwy3BodOvLbpFpK3rGVt53b_hJRWO7Uw/exec";
   /* 通信量を減らす：最後に受け取ったデータを行ごとに覚えておき、変わった行だけ受け取る */
-  var C = null, NOH = ['startLogin','login','logout','appBuild','getThumbs','getDocThumbs','getOriginal','getLog','getArchive','getAIHistory','tts','checkMemo','askAI','interviewTurn','detectRotation','getPdf','getSpine','pdfJobStatus','startPdfJob','stopPdfJob','aiMore','readPdf','pendingPdfs','transcribe'];
+  var C = null, NOH = ['startLogin','login','logout','appBuild','getThumbs','getDocThumbs','getOriginal','getLog','getArchive','getAIHistory','tts','checkMemo','askAI','interviewTurn','detectRotation','getPdf','getSpine','pdfJobStatus','startPdfJob','stopPdfJob','aiMore','readPdf','pendingPdfs','transcribe','getDocText','searchDocs','startTextJob'];
   function rh(s){ var a = 0, b = 0x811c9dc5; for (var i = 0; i < s.length; i++){ var c = s.charCodeAt(i); a = (Math.imul(a, 31) + c) | 0; b = Math.imul(b ^ c, 16777619); } return (a >>> 0).toString(36) + '.' + (b >>> 0).toString(36); }
   function isData(d){ return !!d && typeof d === 'object' && Array.isArray(d.works) && Array.isArray(d.events); }
   function remember(d){ var n = { s: {}, h: {}, o: {} }; Object.keys(d).forEach(function(k){ if (Array.isArray(d[k])) { n.s[k] = d[k].map(function(r){ return JSON.stringify(r); }); n.h[k] = n.s[k].map(rh); } else n.o[k] = d[k]; }); C = n; saveC(); }
@@ -59,7 +59,7 @@
     return once();
   }
   var SAFE = ['startLogin','appBuild','getData','getThumbs','getDocThumbs','getOriginal','getLog','getArchive','getAIHistory','tts','checkMemo',
-    'updateWork','setFlag','updateEvent','setLocConfirmed','setMainPhoto','setDocTitle','setDocState','updateExhibit','updatePub','updateOther','saveVenue','getPdf','getSpine','pdfJobStatus','pendingPdfs','resolveDiff','setDocCheck','readPdf'];
+    'updateWork','setFlag','updateEvent','setLocConfirmed','setMainPhoto','setDocTitle','setDocState','updateExhibit','updatePub','updateOther','saveVenue','getPdf','getSpine','pdfJobStatus','pendingPdfs','resolveDiff','setDocCheck','readPdf','getDocText','searchDocs'];
   function runner(ok, ng){ return new Proxy({}, { get: function(_, k){
     if (k === 'withSuccessHandler') return function(f){ return runner(f, ng); };
     if (k === 'withFailureHandler') return function(f){ return runner(ok, f); };
@@ -1472,6 +1472,8 @@ body.scr .cbar,body.scr #pdfbg,body.scr #pjbg{display:none!important}
 .ldwrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;height:100%;min-height:200px;color:var(--sub);font-size:15px}
 .ldspin{width:36px;height:36px;border-radius:50%;border:3px solid var(--wash2);border-top-color:var(--sub);animation:ldrot .8s linear infinite}@keyframes ldrot{to{transform:rotate(360deg)}}
 .dfal{width:100%;margin:8px 0 0;font-size:14px}.dfsame .dfbtn .act{font-size:14px;word-break:break-all}
+.dsearch{display:flex;gap:8px;margin:0 0 10px}.dsearch input{flex:1;min-width:0}.dsearch .act{margin:0;flex:none}
+.dtext{white-space:pre-wrap;font-size:15px;line-height:1.8;background:var(--wash);border-radius:10px;padding:12px 14px;margin:6px 0 12px;max-height:60vh;overflow:auto;word-break:break-all}
 .spinev{display:flex;gap:8px;overflow-x:auto;margin:4px 0 10px}.spinev img{max-height:60vh;max-width:100%;border-radius:6px;border:1px solid var(--line)}
 .pdfnm{font-weight:600;margin-bottom:8px;word-break:break-all}.pdfnm small{font-weight:400;color:var(--faint);margin-left:8px;font-size:12px}
 .pdfw{padding:8px 0;border-top:1px solid var(--line)}.pdfw:first-of-type{border-top:0}
@@ -1691,7 +1693,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'cf756bd293', APP_URL = location.origin + location.pathname;
+const BUILD = 'e24e84a9b6', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2316,7 +2318,17 @@ function renderDocs(){ setTimeout(sameChk, 500);
   if (nNew) h += `<h3 class="sec">まだ読んでいない（${nNew}通）</h3><div class="dlist">${docsOf('まだ').map(d => card(d)).join('')}</div>`;
   if (done.length) h += `<h3 class="sec">終わったもの（${done.length}通）</h3><div class="dlist">${done.slice().reverse().map(d => card(d, d['状態']==='登録しない' ? '登録しなかった' : '登録済み')).join('')}</div>`;
   if (!(S.docs||[]).length) h += '<p class="muted" style="text-align:center;padding:30px 0">まだ書類はありません。<br>「書類を撮る」から始めてください。</p>';
+  const noTxt = (S.docs||[]).filter(d => d['状態']==='登録済み' && !d['全文あり'] && docRes(d).PDF).length;
+  const tools = `<div class="dsearch"><input id="dsq" type="search" placeholder="資料の中身（全文）から探す" enterkeyhint="search"><button type="button" class="act" id="dsqGo">探す</button></div><div id="dsres"></div>`
+    + (noTxt && !(PJ.j && PJ.j.on) ? `<button type="button" class="act dbig" id="txtJob">📝 全文がまだの資料 ${noTxt}通を書き起こす（サーバーで）</button>` : '');
+  h = h.replace('<button class="act main dbig" data-docnew="">', tools + '<button class="act main dbig" data-docnew="">');
   $('#main').innerHTML = '<div class="docs">' + h + '</div>'; hydrateDocs($('#main'));
+  const go = async () => { const q = $('#dsq').value.trim(), out = $('#dsres'); if (!q) { out.innerHTML = ''; return; } out.innerHTML = '<div class="ldwrap" style="min-height:80px"><span class="ldspin"></span>探しています…</div>';
+    try { const L = await call('searchDocs', q); out.innerHTML = L.length ? `<h3 class="sec">「${esc(q)}」が出てくる資料 ${L.length}件</h3><div class="dlist">${L.map(x => { const d = docById(x.id); return d ? docCard(d, '…' + x.s + '…') : ''; }).join('')}</div>` : '<p class="hint">見つかりませんでした</p>'; hydrateDocs(out); }
+    catch(e){ out.innerHTML = `<p class="hint">探せませんでした（${esc(e.message || e)}）</p>`; } };
+  $('#dsqGo').onclick = go; $('#dsq').onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); go(); } };
+  if ($('#txtJob')) $('#txtJob').onclick = async () => { if (!confirm(noTxt + '通の資料の全文を、サーバーで書き起こします。\n費用の目安：1ページ0.3〜0.8円ほど。よろしいですか？')) return;
+    busy(true, 'サーバーに頼んでいます…'); try { pjShow(await call('startTextJob')); clearTimeout(PJ.t); PJ.t = setTimeout(pjPoll, 15000); toast('全文の書き起こしを始めました'); render(); } catch(e){ alert('始められませんでした（' + (e.message || e) + '）'); } finally { busy(false); } };
 }
 
 /* ① 撮る：何ページでも続けて撮れる */
@@ -2409,6 +2421,7 @@ function sheetDocReview(id){
       ${(r['食い違い']||[]).length ? `<h3 class="sec" style="font-size:18px">台帳との食い違い</h3><p class="hint">どちらが正しいか選んでください。台帳を直すときも、元の値は変更履歴に残ります。</p>${r['食い違い'].map((x, i) => `<div class="dfx ${x.r?'done':''}"><b>${esc(x.name)}：${esc(x.f)}</b><div class="dfrow"><span><small>台帳</small>${esc(x.cur)}</span><span><small>この書類</small>${esc(x.doc)}</span></div>${x.r ? `<p class="hint">${({doc:'✓ 書類が正しい（台帳を直しました）', ledger:'✓ 台帳が正しい（書類の誤りとしてメモしました）', same:'✓ 同じもの（表記ゆれ）' + (x.auto ? '：自動で判定' : 'として覚えました'), alias:'✓ 作品の別名' + (x.auto ? '（登録済みの別名と同じ）' : 'として登録しました')})[x.r] || '✓'}</p>` : `<div class="dfbtn"><button type="button" class="act" data-dfx="${i}|ledger">台帳が正しい</button><button type="button" class="act main" data-dfx="${i}|doc">書類が正しい</button></div>${x.t==='w' && x.f==='作品名' ? `<button type="button" class="act dfal" data-dfal="${i}|alias">「${esc(x.doc)}」をこの作品の別名として登録</button>` : /日$|制作年|cm$/.test(x.f) ? '' : `<div class="dfsame" id="dfs${i}"><button type="button" class="act dfal" data-dfsame="${i}">同じもの（表記ゆれ）として覚える</button></div>`}`}</div>`).join('')}` : ''}
       ${(r['補完']||[]).length ? `<details class="dfill"><summary>この書類から自動で埋めた項目（${r['補完'].length}件）</summary>${r['補完'].map(x => `<p>${esc(x.name)}：${esc(x.f)}　→　${esc(x.v)}</p>`).join('')}</details>` : ''}
       ${d['メモ'] ? `<p class="hint dmemo">📝 ${esc(d['メモ'])}</p>` : ''}
+      ${d['全文あり'] ? `<button type="button" class="act pdfopen" id="dvTxt">📝 全文を見る</button><div id="dvTxtBox"></div>` : ''}
       ${r.PDF ? `<button type="button" class="act pdfopen" data-pdfopen="${esc(pg[0]||'')}">📄 PDFを見る</button>` : ''}
       ${d['保管番号'] ? `<button type="button" class="act pdfopen" data-spine="${esc(d['保管番号'])}">📦 ${esc(d['保管番号'])} の背表紙を見る</button>` : ''}
       ${r['展覧会ID'] && (S.exhibits||[]).some(e => e['展覧会ID']===r['展覧会ID']) ? `<p><button type="button" class="golink" data-ex="${esc(r['展覧会ID'])}">展覧会：${esc((S.exhibits.find(e => e['展覧会ID']===r['展覧会ID'])||{})['名称']||'')} ›</button></p>` : ''}
@@ -2425,6 +2438,8 @@ function sheetDocReview(id){
       $('#dfs' + i).querySelectorAll('[data-dfo]').forEach(o => o.onclick = () => { const [j, pk] = o.dataset.dfo.split('|'); alGo(j, pk); }); });
     document.querySelectorAll('#sheetbox [data-dfx]').forEach(b => b.onclick = () => { const [i, pk] = b.dataset.dfx.split('|'); busy(true, '保存しています…');
       call('resolveDiff', id, +i, pk).then(x => { setData(x); busy(false); render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); sheetDocReview(id); toast(pk==='doc' ? '台帳を直しました' : '書類の誤りとしてメモしました'); }).catch(e => { busy(false); alert('保存できませんでした：' + (e.message || e)); }); });
+    if ($('#dvTxt')) $('#dvTxt').onclick = async () => { const bx = $('#dvTxtBox'); if (bx.innerHTML) { bx.innerHTML = ''; return; } bx.innerHTML = '<div class="ldwrap" style="min-height:80px"><span class="ldspin"></span>読み込んでいます…</div>';
+      try { const t = await call('getDocText', id); bx.innerHTML = t ? `<div class="dtext">${esc(t)}</div>` : '<p class="hint">全文がありません</p>'; } catch(e){ bx.innerHTML = `<p class="hint">読み込めませんでした（${esc(e.message || e)}）</p>`; } };
     if ($('#dvChk')) $('#dvChk').onclick = () => { busy(true, '保存しています…'); call('setDocCheck', id, '').then(x => { setData(x); busy(false); render(); sheetDocReview(id); toast('確認済みにしました'); }).catch(e => { busy(false); alert('保存できませんでした：' + (e.message || e)); }); };
     if ($('#dvAgain')) $('#dvAgain').onclick = () => docState(id, '確認待ち', () => sheetDocReview(id));
     $('#dvTtl').onclick = () => { const t = prompt('この書類のタイトル', docTitle(d)); if (t==null || !t.trim() || t.trim()===docTitle(d)) return;
@@ -5002,13 +5017,13 @@ async function pjPoll(){ clearTimeout(PJ.t); if (!S.user) { PJ.t = setTimeout(pj
   pjShow(j); if (j && j.on) PJ.t = setTimeout(pjPoll, 20000); }
 function pjShow(j){ const was = PJ.j && PJ.j.on; PJ.j = j; let el = $('#pjbg');
   if (j && j.on) { if (!el) { el = document.createElement('button'); el.type = 'button'; el.id = 'pjbg'; el.onclick = () => sheetPdfScan(); document.body.appendChild(el); }
-    el.textContent = `☁ サーバーで読み取り中　登録 ${j.done}件${j.left != null ? '・残り ' + j.left + '件' : ''} ›`; if ($('#pdfHead')) pdfHead(); return; }
+    el.textContent = j.mode === 'text' ? `☁ 全文を書き起こし中　${j.done}件${j.left != null ? '・残り ' + j.left + '件' : ''} ›` : `☁ サーバーで読み取り中　登録 ${j.done}件${j.left != null ? '・残り ' + j.left + '件' : ''} ›`; if ($('#pdfHead')) pdfHead(); return; }
   if (el) el.remove(); if ($('#pdfHead')) pdfHead();
   if (!j || !j.end) return;
   let seen = ''; try { seen = localStorage.getItem('smr_pjseen') || ''; } catch(e){}
   if (seen === j.end) return; try { localStorage.setItem('smr_pjseen', j.end); } catch(e){}
   if (j.done) refreshData();
-  const msg = j.msg ? `サーバーでの読み取りが止まりました：${j.msg}（登録 ${j.done}件）` : j.capped ? `使いすぎ防止の上限で、サーバーでの読み取りが止まりました（登録 ${j.done}件）。` : j.stopped ? `サーバーでの読み取りを止めました（登録 ${j.done}件）。`
+  const msg = j.mode === 'text' ? (j.capped ? `使いすぎ防止の上限で、全文の書き起こしが止まりました（${j.done}件）。` : `全文の書き起こしが終わりました（${j.done}件${j.fail ? '・できなかった ' + j.fail + '件' : ''}）。`) : j.msg ? `サーバーでの読み取りが止まりました：${j.msg}（登録 ${j.done}件）` : j.capped ? `使いすぎ防止の上限で、サーバーでの読み取りが止まりました（登録 ${j.done}件）。` : j.stopped ? `サーバーでの読み取りを止めました（登録 ${j.done}件）。`
     : `サーバーでの読み取りと登録が終わりました（登録 ${j.done}件${j.diff ? '・食い違い ' + j.diff + '件' : ''}${j.dupN ? '・同じ書類がありそうで保留 ' + j.dupN + '件' : ''}${j.fail ? '・読めなかった ' + j.fail + '件' : ''}）。`;
   setTimeout(() => { if (!$('#sheet').classList.contains('hidden') && !$('#pdfHead')) { toast(msg); return; }
     if (j.capped) { if (confirm(msg + '\nこのまま続けますか？（今日だけ50件ふやします）')) pjMore(); }
