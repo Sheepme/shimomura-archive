@@ -1430,6 +1430,7 @@ html body #main section.cy .cage{font-size:12px!important;color:var(--sub)!impor
 .pdfbox{display:inline-block;margin-right:8px;padding:1px 8px;border-radius:8px;background:var(--wash);font-size:13px;font-weight:600}
 .doclinks .golink{display:block;margin:8px 0;text-align:left;font-size:16px}
 #pdfbg{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(112px + env(safe-area-inset-bottom));z-index:60;max-width:calc(100% - 32px);white-space:nowrap;padding:10px 16px;border-radius:22px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,.15)}#pdfbg.done{background:var(--ink);color:var(--bg);font-weight:600}
+.dchk{border:1px solid var(--warn);border-radius:10px;padding:10px 12px;margin:10px 0;font-size:15px}.dchk b{display:block;color:var(--warn)}.dchk .act{width:100%;margin-top:8px}
 .spinev{display:flex;gap:8px;overflow-x:auto;margin:4px 0 10px}.spinev img{max-height:60vh;max-width:100%;border-radius:6px;border:1px solid var(--line)}
 .pdfnm{font-weight:600;margin-bottom:8px;word-break:break-all}.pdfnm small{font-weight:400;color:var(--faint);margin-left:8px;font-size:12px}
 .pdfw{padding:8px 0;border-top:1px solid var(--line)}.pdfw:first-of-type{border-top:0}
@@ -1649,7 +1650,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd1a7a2468b', APP_URL = location.origin + location.pathname;
+const BUILD = '92d19c110c', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2233,6 +2234,8 @@ function renderDocs(){
     <button class="act main dbig" data-docnew="">${ico('photo')}書類を撮る</button>
     <button class="act dbig" data-pdfscan="1">📄 スキャンした資料（PDF）を読み取る</button>`;
   if (nNew) h += `<button class="act dbig dread" data-docread="">${ico('ai')}AIに読んでもらう（${nNew}通）</button>`;
+  const chk = (S.docs||[]).filter(d => d['状態']==='登録済み' && docRes(d)['要確認']);
+  if (chk.length) h += `<h3 class="sec">⚠ 要確認（${chk.length}通）</h3><div class="dlist">${chk.map(d => card(d, '⚠ ' + docRes(d)['要確認'])).join('')}</div>`;
   if (rev.length) h += `<h3 class="sec">確かめて登録する（${rev.length}通）</h3><div class="dlist">${rev.map(d => card(d, '確かめて登録 ›')).join('')}</div>`;
   if (nNew) h += `<h3 class="sec">まだ読んでいない（${nNew}通）</h3><div class="dlist">${docsOf('まだ').map(d => card(d)).join('')}</div>`;
   if (done.length) h += `<h3 class="sec">終わったもの（${done.length}通）</h3><div class="dlist">${done.slice().reverse().map(d => card(d, d['状態']==='登録しない' ? '登録しなかった' : '登録済み')).join('')}</div>`;
@@ -2326,6 +2329,7 @@ function sheetDocReview(id){
     const nos = String(d['作品番号']||'').split(',').filter(Boolean);
     openSheet(`<h3 class="dttl">${esc(docTitle(d))}<button type="button" class="edbtn" id="dvTtl" aria-label="タイトルを直す">✎</button></h3>${imgs}
       <p class="hint">${esc([r['日付'], r['相手先'] && r.PDF ? r['相手先'] : '', r['要約']].filter(Boolean).join('　'))}</p>
+      ${r['要確認'] ? `<div class="dchk"><b>⚠ 要確認</b>${esc(r['要確認'])}<button type="button" class="act" id="dvChk">確認した</button></div>` : ''}
       ${r.PDF ? `<button type="button" class="act pdfopen" data-pdfopen="${esc(pg[0]||'')}">📄 PDFを見る</button>` : ''}
       ${d['保管番号'] ? `<button type="button" class="act pdfopen" data-spine="${esc(d['保管番号'])}">📦 ${esc(d['保管番号'])} の背表紙を見る</button>` : ''}
       ${r['展覧会ID'] && (S.exhibits||[]).some(e => e['展覧会ID']===r['展覧会ID']) ? `<p><button type="button" class="golink" data-ex="${esc(r['展覧会ID'])}">展覧会：${esc((S.exhibits.find(e => e['展覧会ID']===r['展覧会ID'])||{})['名称']||'')} ›</button></p>` : ''}
@@ -2335,6 +2339,7 @@ function sheetDocReview(id){
       <div class="btns"><button type="button" data-close>閉じる</button></div>`);
     wireDocImgs(); hydrateDocs($('#sheetbox'));
     document.querySelectorAll('#sheetbox [data-ex],#sheetbox [data-pb]').forEach(b => b.addEventListener('click', () => { SNAP.v = null; closeSheet(); }));
+    if ($('#dvChk')) $('#dvChk').onclick = () => { busy(true, '保存しています…'); call('setDocCheck', id, '').then(x => { setData(x); busy(false); render(); sheetDocReview(id); toast('確認済みにしました'); }).catch(e => { busy(false); alert('保存できませんでした：' + (e.message || e)); }); };
     if ($('#dvAgain')) $('#dvAgain').onclick = () => docState(id, '確認待ち', () => sheetDocReview(id));
     $('#dvTtl').onclick = () => { const t = prompt('この書類のタイトル', docTitle(d)); if (t==null || !t.trim() || t.trim()===docTitle(d)) return;
       busy(true, '保存しています…'); call('setDocTitle', id, t.trim()).then(x => { setData(x); busy(false); render(); sheetDocReview(id); toast('タイトルを変えました'); }).catch(e => { busy(false); alert('保存できませんでした：' + (e.message || e)); }); };
@@ -4803,8 +4808,8 @@ function pdfCard(i){ const el = $('#pc' + i); if (!el || !PDFQ) return; const x 
       <div class="field"><label>どんな資料か</label><textarea data-k="掲載内容" rows="2">${esc(a['掲載内容']||'')}</textarea></div>
       <div class="field"><label>展覧会</label><select data-k="exId">${exOpts}</select></div>
       ${(r.d.pbs||[]).length ? `<div class="field"><label>関係する画集・本（チェックしたものにつなぐ）</label>${r.d.pbs.map(b => `<label class="pdfck"><input type="checkbox" data-pbid="${esc(b.id)}" ${b.s >= 0.8 ? 'checked' : ''}> ${esc(b['タイトル'])}${b['発行年月'] ? '（' + esc(fmtDate(b['発行年月'])) + '）' : ''}</label>`).join('')}</div>` : ''}
-      <div class="field"><label>下村良之介の作品（ひも付ける作品にチェック）</label>${(r.d.works||[]).length ? r.d.works.map(w => `<div class="pdfw"><b>${esc(w['作品名'])}</b>${w['メモ'] ? `<small>${esc(w['メモ'])}</small>` : ''}
-        ${w.cands.length ? w.cands.map((c, j) => `<label class="pdfck"><input type="checkbox" data-no="${esc(c.no)}" ${j===0 && c.s >= 0.8 ? 'checked' : ''}> No.${esc(c.no)} ${esc(c['作品名'])}${c['制作年'] ? '（' + esc(c['制作年']) + '）' : ''}</label>`).join('') : '<small class="muted">台帳に同じ名前の作品が見つかりません（あとで作品ページからひも付けできます）</small>'}</div>`).join('') : '<p class="hint">下村良之介の作品は見つかりませんでした</p>'}</div>
+      <div class="field"><label>下村良之介の作品</label>${(r.d.works||[]).length ? '<p class="hint">いちばん近い作品に自動でチェックしました。登録すると、書類に「要確認（紐付け作品を確認）」が付きます。</p>' + r.d.works.map(w => `<div class="pdfw"><b>${esc(w['作品名'])}</b>${w['メモ'] ? `<small>${esc(w['メモ'])}</small>` : ''}
+        ${w.cands.length ? w.cands.map((c, j) => `<label class="pdfck"><input type="checkbox" data-no="${esc(c.no)}" ${j===0 ? 'checked' : ''}> No.${esc(c.no)} ${esc(c['作品名'])}${c['制作年'] ? '（' + esc(c['制作年']) + '）' : ''}</label>`).join('') : '<small class="muted">台帳に同じ名前の作品が見つかりません（あとで作品ページからひも付けできます）</small>'}</div>`).join('') : '<p class="hint">下村良之介の作品は見つかりませんでした</p>'}</div>
       <div class="btns"><button type="button" data-pq="skip|${i}">あとで</button><button type="button" data-pq="again|${i}">読み直す</button><button type="button" class="primary" data-pq="reg|${i}">登録する</button></div>`;
   pdfSnap(); }
 async function pdfRead(i, again){ const x = PDFQ.list[i]; PDFQ.res[x.id] = {loading: 1}; pdfCard(i);
@@ -4836,6 +4841,7 @@ async function pdfReg(i){ const x = PDFQ.list[i], r = PDFQ.res[x.id], el = $('#p
   const rec = { box: x.box || '', pub: {'タイトル': v('タイトル'), '種類': v('種類'), '発行年月': v('発行年月'), '発行元': v('発行元'), '掲載内容': v('掲載内容'), '保管番号': v('保管番号')},
     exId: v('exId'), ex: {'名称': ex['名称'] || '', '種類': ex['種類'] || '', '開始日': ex['開始日'] || '', '終了日': ex['終了日'] || '', '会場': ex['会場'] || '', '都市': ex['都市'] || ''},
     pbIds: [...el.querySelectorAll('input[data-pbid]:checked')].map(c => c.dataset.pbid),
+    check: (r.d.works||[]).length ? '紐付け作品を確認' + ((r.d.works||[]).filter(w => !w.cands.length).length ? '（台帳で見つからない作品：' + r.d.works.filter(w => !w.cands.length).map(w => w['作品名']).join('、') + '）' : '') : '',
     nos: [...new Set([...el.querySelectorAll('input[data-no]:checked')].map(c => c.dataset.no))] };
   busy(true, '登録しています…');
   try { const d = await call('registerPdf', x.id, rec); setData(d); render(); PDFQ.res[x.id] = {done: d.newId}; toast('登録しました'); }
