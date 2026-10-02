@@ -1451,7 +1451,8 @@ header,header.tuck{padding-top:calc(var(--tb,0px) + var(--cap,0px) + 58px)!impor
 #hdsp{height:calc(var(--tb,0px) + var(--cap,0px) + 58px)}
 #finder>*,#chronobar>*{margin-left:var(--gx)!important;margin-right:var(--gx)!important}
 .chips.stk{position:sticky!important;top:var(--rowtop,0px);z-index:33;background:var(--bg);margin-left:0!important;margin-right:0!important;padding-left:var(--gx)!important;padding-right:var(--gx)!important;transition:top .25s ease}
-.chips.stk{box-shadow:0 calc(-1 * var(--rowtop,0px)) 0 0 var(--bg),0 calc(-.66 * var(--rowtop,0px)) 0 0 var(--bg),0 calc(-.33 * var(--rowtop,0px)) 0 0 var(--bg)} /* 上のバーとの動きのずれで、すき間から後ろが見えないように上を地の色で埋める */
+.chips.stk{box-shadow:0 calc(-1 * var(--rowtop,0px)) 0 0 var(--bg),0 calc(-.66 * var(--rowtop,0px)) 0 0 var(--bg),0 calc(-.33 * var(--rowtop,0px)) 0 0 var(--bg)}
+@media(max-width:899px){ .chips.stk{box-shadow:0 -150px 0 150px var(--bg)} } /* スマホ：動いている途中でもすき間が出ないよう、上を大きめに地の色で埋める */ /* 上のバーとの動きのずれで、すき間から後ろが見えないように上を地の色で埋める */
 #top .appbar{transition:transform .25s ease,top .25s ease,left .22s ease,translate .22s ease!important}
 body:not(.pgopen):not(.searching):not(.dwopen) #top.tuck .appbar{transform:translateY(calc(-1 * var(--abb,0px) - 4px))} /* 隠すときは画面の外まで上げる（切り欠きの部分はカテゴリの上の地の色で埋まる） */
 html[data-theme=dark]{--bg:#1c1c1b}
@@ -1581,7 +1582,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '2994e4a1d0', APP_URL = location.origin + location.pathname;
+const BUILD = '9b9900f241', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
