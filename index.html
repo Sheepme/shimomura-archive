@@ -1435,6 +1435,11 @@ html body #main section.cy .cage{font-size:12px!important;color:var(--sub)!impor
 .dfx{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:8px 0}.dfx.done{opacity:.6}.dfx b{display:block;font-size:15px}
 .dfrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0}.dfrow span{background:var(--wash);border-radius:8px;padding:6px 8px;font-size:16px;word-break:break-all}.dfrow small{display:block;font-size:12px;color:var(--sub)}
 .dfbtn{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dfbtn .act{margin:0}.dfill{margin:8px 0;font-size:14px;color:var(--sub)}.dfill p{margin:4px 0}.dmemo{white-space:pre-wrap}
+.shx{position:sticky;top:0;float:right;width:40px;height:40px;margin:-10px -8px 0 12px;border-radius:50%;border:1px solid var(--line);background:var(--paper);color:var(--ink);font-size:17px;line-height:1;padding:0;z-index:3;display:flex;align-items:center;justify-content:center}
+#sheetbox.split{max-width:min(1500px,96vw);width:96vw;height:min(92vh, calc(var(--vvh,100vh) - 12px - var(--tb)));max-height:none;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(380px,1fr);gap:28px;overflow:hidden;padding:24px}
+#sheetbox.split .dsv{overflow:auto;min-height:0;background:var(--wash);border-radius:10px}#sheetbox.split .dsv img{display:block;width:100%;height:auto;margin:0 0 8px}
+#sheetbox.split .dsvpdf{width:100%;height:100%;border:0;display:block}#sheetbox.split .dsr{overflow-y:auto;min-height:0;padding-right:6px}
+#sheetbox.split .dsr .dpages.rv,#sheetbox.split .dsr .dpages.rv + .hint{display:none}
 .spinev{display:flex;gap:8px;overflow-x:auto;margin:4px 0 10px}.spinev img{max-height:60vh;max-width:100%;border-radius:6px;border:1px solid var(--line)}
 .pdfnm{font-weight:600;margin-bottom:8px;word-break:break-all}.pdfnm small{font-weight:400;color:var(--faint);margin-left:8px;font-size:12px}
 .pdfw{padding:8px 0;border-top:1px solid var(--line)}.pdfw:first-of-type{border-top:0}
@@ -1654,7 +1659,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'dd1aeb04d8', APP_URL = location.origin + location.pathname;
+const BUILD = '5d29152313', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3222,7 +3227,18 @@ document.addEventListener('click', async e => {
   catch(err){ alert('戻せませんでした。\n' + (err.message||err)); }
   finally { busy(false); }
 });
-(function(){ const _o = sheetDocReview; sheetDocReview = function(id){ _o(id); const bx = $('#sheetbox .btns'); if (bx && canEdit() && !$('#sheetbox [data-del]')) bx.insertAdjacentHTML('beforebegin', delBtn('doc', id, 'この書類')); }; })();
+(function(){ const _o = sheetDocReview; sheetDocReview = function(id){ _o(id); const bx = $('#sheetbox .btns'); if (bx && canEdit() && !$('#sheetbox [data-del]')) bx.insertAdjacentHTML('beforebegin', delBtn('doc', id, 'この書類')); docSplit(id); }; })();
+/* 画面が広いときは、左に書類（PDF・写真）、右に確認・修正の画面を並べる */
+const DPDF = {};
+async function docSplit(id){ const d = docById(id), box = $('#sheetbox'); if (!d || window.innerWidth < 1000 || !box || box.classList.contains('split')) return;
+  const r = docRes(d), pg = docPages(d); if (!pg.length) return;
+  const L = document.createElement('div'), R = document.createElement('div'); L.className = 'dsv'; R.className = 'dsr';
+  while (box.firstChild) R.appendChild(box.firstChild); box.classList.add('split'); box.append(L, R);
+  if (r.PDF) { L.innerHTML = '<p class="hint" style="padding:16px">PDFを読み込んでいます…</p>';
+    try { const u = DPDF[pg[0]] || (DPDF[pg[0]] = URL.createObjectURL(await (await fetch(await call('getPdf', pg[0]))).blob())); if (box.contains(L)) L.innerHTML = `<iframe class="dsvpdf" src="${u}" title="書類のPDF"></iframe>`; }
+    catch(e){ if (box.contains(L)) L.innerHTML = '<p class="hint" style="padding:16px">PDFを表示できませんでした</p>'; } }
+  else { L.innerHTML = pg.map(f => docImg(f, 1600)).join(''); hydrateDocs(L); }
+}
 
 /* ---------- 使い方ツアー ---------- */
 const TOUR = [
@@ -3836,7 +3852,7 @@ $('#vprev').onclick = () => { V.i--; showV(); };
 $('#vnext').onclick = () => { V.i++; showV(); };
 
 /* ---------- 入力シート ---------- */
-function openSheet(html){ $('#sheetbox').innerHTML = html; if ($('#sheet').classList.contains('hidden')) hpush('s'); $('#sheet').classList.remove('hidden');
+function openSheet(html){ $('#sheetbox').classList.remove('split'); $('#sheetbox').innerHTML = '<button type="button" class="shx" data-close aria-label="閉じる">✕</button>' + html; if ($('#sheet').classList.contains('hidden')) hpush('s'); $('#sheet').classList.remove('hidden');
   clearTimeout(SNAP.t); SNAP.v = null; SNAP.t = setTimeout(() => { SNAP.v = sheetState(); }, 250); }
 /* 入力中の内容があるか（開いたときの状態とくらべる）。写真を選んだ・項目を選んだ・文字を入れた、を見分ける */
 const SNAP = { v: null, t: 0 };
@@ -3846,7 +3862,7 @@ function sheetState(){ const b = $('#sheetbox'); if (!b) return '';
     + '|' + [...b.querySelectorAll('img.preview,.pvs img')].filter(i => !i.classList.contains('hidden') && i.getAttribute('src')).length; }
 const sheetDirty = () => !$('#sheet').classList.contains('hidden') && SNAP.v !== null && sheetState() !== SNAP.v;
 const askLeave = () => !sheetDirty() || confirm('入力した内容は、まだ保存されていません。閉じていいですか？');
-function closeSheet(fromHist){ $('#sheetbox').onclick = null; const open = !$('#sheet').classList.contains('hidden'); $('#sheet').classList.add('hidden'); $('#sheetbox').innerHTML=''; if (open && !fromHist) hback(); try { if (PDFQ && PDFQ.running) setTimeout(pdfBg, 0); } catch(e){} }
+function closeSheet(fromHist){ $('#sheetbox').onclick = null; $('#sheetbox').classList.remove('split'); const open = !$('#sheet').classList.contains('hidden'); $('#sheet').classList.add('hidden'); $('#sheetbox').innerHTML=''; if (open && !fromHist) hback(); try { if (PDFQ && PDFQ.running) setTimeout(pdfBg, 0); } catch(e){} }
 
 /* ---------- スワイプで戻る（ブラウザの「戻る」と連動） ---------- */
 /* 画面を開くたびに履歴を1つ積み、戻る操作で一番上の画面を閉じる */
@@ -4624,15 +4640,15 @@ document.addEventListener('click', e => {
   if (t.id==='chatReset'){ S.chat=[]; S.conv = newConv(); renderAI(); return; }
   if (t.id==='aiClose'){ closeAI(); return; }
 });
-$('#sheet').addEventListener('click', e => { if (e.target.id==='sheet' && askLeave()) closeSheet(); }); // 外側を押したとき：入力中なら確認
+/* 外側を押しても閉じない（閉じるのは「閉じる」や右上の✕だけ）2026/10/02 藤本さん */
 /* 入力の画面を開いたまま、上のバーやメニューなど画面のほかの所を押したとき：入力中なら確認してから閉じる（その場の入力欄も同じ） */
 const ieDirty = dd => [...dd.querySelectorAll('.iein')].some(i => i.value !== i.dataset.v0);
 document.addEventListener('click', e => {
   if (e.target.closest && e.target.closest('#confirm')) return;
   const sh = $('#sheet');
-  if (!sh.classList.contains('hidden') && e.target.id !== 'sheet' && !e.target.closest('#sheetbox')) {
-    if (!askLeave()) { e.preventDefault(); e.stopPropagation(); return; }
-    SNAP.v = null; closeSheet(); return; }
+  if (!sh.classList.contains('hidden') && !e.target.closest('#sheetbox')) {
+    if (e.target.closest('.docview, #viewer, #loading, #toast, #itemTip')) return; // 写真の拡大などは使える
+    e.preventDefault(); e.stopPropagation(); return; } // 画面のほかの所を押しても閉じない
   const ie = document.querySelector('#page dd.iedit');
   if (ie && !ie.contains(e.target)) {
     if (ieDirty(ie) && !confirm('入力した内容は、まだ保存されていません。閉じていいですか？')) { e.preventDefault(); e.stopPropagation(); return; }
