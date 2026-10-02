@@ -1479,6 +1479,11 @@ body.scr .cbar,body.scr #pdfbg,body.scr #pjbg{display:none!important}
 .nsec{font-size:15px;margin:14px 0 4px;color:var(--sub)}.nart{font-weight:700;margin:10px 0 2px}.nart.me{color:var(--warn)}
 .nit{display:flex;gap:10px;padding:1px 0 1px 6px}.nit.me{background:var(--warn-soft);border-radius:6px}.nno{flex:none;min-width:1.6em;text-align:right;color:var(--faint);font-variant-numeric:tabular-nums}
 .nrow{display:flex;flex-wrap:wrap;gap:4px 14px;padding:2px 0;border-bottom:1px solid var(--line)}.npara{margin:4px 0}.nme{color:var(--warn)}.note mark{background:#ffe08a;color:inherit;border-radius:3px}
+.noteview{position:fixed;inset:0;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:calc(var(--tb,0px) + var(--cap,0px) + var(--edge,0px) + 72px) 0 calc(40px + env(safe-area-inset-bottom))}
+body.wide .noteview{left:264px}.nvin{max-width:760px;margin:0 auto;padding:0 18px}.nvt{font-size:24px;margin:0 0 10px}
+.nvpager{display:flex;align-items:center;gap:8px;margin:8px 0}.nvpager .act{margin:0;flex:none;padding:8px 14px}.nvpager .act:disabled{opacity:.35}.nvsel{flex:1;min-width:0;font-size:16px;padding:8px}
+.nphoto{margin:8px 0;padding:8px 12px;border:1px dashed var(--line);border-radius:10px;color:var(--sub);font-size:15px;background:var(--wash)}
+.nvnote{font-size:17px;line-height:1.85;min-height:40vh}.dvnote{font-size:17px}
 .spinev{display:flex;gap:8px;overflow-x:auto;margin:4px 0 10px}.spinev img{max-height:60vh;max-width:100%;border-radius:6px;border:1px solid var(--line)}
 .pdfnm{font-weight:600;margin-bottom:8px;word-break:break-all}.pdfnm small{font-weight:400;color:var(--faint);margin-left:8px;font-size:12px}
 .pdfw{padding:8px 0;border-top:1px solid var(--line)}.pdfw:first-of-type{border-top:0}
@@ -1698,7 +1703,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd6db97d592', APP_URL = location.origin + location.pathname;
+const BUILD = '0222dc8e2b', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2270,12 +2275,39 @@ const docImg = (fid, w) => `<img data-did="${esc(fid)}" data-dw="${w||400}" alt=
 const DTEXT = {};
 async function docNote(id){ const t = DTEXT[id] != null ? DTEXT[id] : (DTEXT[id] = await call('getDocText', id)); return t ? noteHTML(t, NOTEQ) : '<p class="hint">ノートがありません</p>'; }
 let NOTEQ = '';
+/* ノートのページ：資料のページごとにめくって読む（長い資料・写真や手紙が入った資料にも） */
+async function noteView(id){ const d = docById(id); if (!d) return;
+  const el = document.createElement('div'); el.className = 'noteview';
+  el.innerHTML = `<div class="nvin"><h2 class="nvt">${esc(docTitle(d))}</h2><div class="nvbody"><div class="ldwrap"><span class="ldspin"></span>ノートを読み込んでいます…</div></div></div>`;
+  document.body.appendChild(el); hpush('n'); scrPush(el);
+  let t = ''; try { t = DTEXT[id] != null ? DTEXT[id] : (DTEXT[id] = await call('getDocText', id)); } catch(e){ el.querySelector('.nvbody').innerHTML = `<p class="hint">ノートを読み込めませんでした（${esc(e.message || e)}）</p>`; return; }
+  if (!el.isConnected) return;
+  const parts = []; String(t || '').split(/【\s*p\.?\s*(\d+)\s*】/i).forEach((x, i, a) => { if (i % 2 === 1) parts.push({ n: x, t: a[i + 1] || '' }); else if (i === 0 && x.trim()) parts.push({ n: '', t: x }); });
+  if (!parts.length) parts.push({ n: '1', t: t || '' });
+  const q = NOTEQ, k = q ? q.normalize('NFKC').toLowerCase() : '';
+  let cur = Math.max(0, k ? parts.findIndex(p => p.t.normalize('NFKC').toLowerCase().indexOf(k) >= 0) : 0);
+  const pdf = (docPages(d)[0] && docRes(d).PDF) ? docPages(d)[0] : '';
+  const pager = () => parts.length < 2 ? '' : `<div class="nvpager"><button type="button" class="act" data-np="-1" ${cur === 0 ? 'disabled' : ''}>‹ 前</button>
+    <select class="nvsel">${parts.map((p, i) => `<option value="${i}" ${i === cur ? 'selected' : ''}>${p.n || i + 1} / ${parts[parts.length - 1].n || parts.length}ページ${k && p.t.normalize('NFKC').toLowerCase().indexOf(k) >= 0 ? '　●' : ''}</option>`).join('')}</select>
+    <button type="button" class="act" data-np="1" ${cur === parts.length - 1 ? 'disabled' : ''}>次 ›</button></div>`;
+  const draw = () => { const p = parts[cur], body = p.t.trim();
+    el.querySelector('.nvbody').innerHTML = pager() + `<div class="note nvnote">${body ? noteHTML(body, q).replace(/<p class="hint" style="margin-top:12px">[\s\S]*$/, '') : '<p class="hint">このページには文字がありません（写真・図など）。</p>'}</div>` + pager()
+      + (pdf ? `<button type="button" class="act pdfopen" data-pdfopen="${esc(pdf)}">📄 原本（PDF）で見る</button>` : '') + '<p class="hint" style="margin-top:10px">※AIが資料の文字を書き起こしたものです。読めなかった字は〓になっています。</p>';
+    el.querySelectorAll('[data-np]').forEach(b => b.onclick = () => { cur = Math.min(parts.length - 1, Math.max(0, cur + (+b.dataset.np))); draw(); el.scrollTop = 0; });
+    el.querySelectorAll('.nvsel').forEach(sl => sl.onchange = () => { cur = +sl.value; draw(); el.scrollTop = 0; }); };
+  draw();
+  /* 左右にスワイプでページをめくる */
+  let sx = null, sy = 0; el.addEventListener('touchstart', e => { if (e.touches.length === 1) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; } }, {passive: true});
+  el.addEventListener('touchend', e => { if (sx === null) return; const t2 = e.changedTouches[0], dx = t2.clientX - sx, dy = t2.clientY - sy; sx = null;
+    if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.5 && sx !== 0) { const n = cur + (dx < 0 ? 1 : -1); if (n >= 0 && n < parts.length) { cur = n; draw(); el.scrollTop = 0; } } }, {passive: true});
+}
 function noteHTML(t, q){
   const L = String(t).replace(/\r/g, '').split('\n'), out = []; let me = false;
   const mark = s => { let h = esc(s); h = h.replace(/下村\s*良之介/g, m => `<b class="nme">${m}</b>`); if (q) { const k = esc(q).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); try { h = h.replace(new RegExp(k, 'g'), m => `<mark>${m}</mark>`); } catch(e){} } return h; };
   const isItem = s => /^\s*\d+\s*[.．、)）]?\s*\S/.test(s) && !/^\s*\d{4}\s*年/.test(s);
   for (let i = 0; i < L.length; i++) { const s = L[i].trim(); if (!s) continue; let m;
     if ((m = s.match(/^【\s*p\.?\s*(\d+)\s*】$/i))) { out.push(`<div class="npg">${m[1]}ページ</div>`); me = false; continue; }
+    if ((m = s.match(/^[［\[]\s*(写真|絵|図|イラスト|地図)\s*[：:]\s*(.+?)[］\]]$/))) { out.push(`<div class="nphoto">🖼 ${esc(m[1])}：${mark(m[2])}</div>`); continue; }
     if (/^[［\[].+[］\]]$/.test(s) || /^第[一二三四五六七八九十\d]+室$/.test(s) || /^[0-9０-９]+\s*階$/.test(s)) { out.push(`<h4 class="nsec">${mark(s.replace(/^[［\[]|[］\]]$/g, ''))}</h4>`); me = false; continue; }
     const next = (L[i + 1] || '').trim();
     if ((m = s.match(/^[〇○◯●◎]\s*(.+)/)) || (!isItem(s) && s.length <= 12 && isItem(next) && !/[：:｜|。]/.test(s))) { const nm = m ? m[1] : s; me = /下村\s*良之介/.test(nm); out.push(`<div class="nart${me ? ' me' : ''}">${mark(nm)}</div>`); continue; }
@@ -2439,13 +2471,13 @@ function sheetDocReview(id){
   if (st==='登録済み' || st==='登録しない') {
     const nos = String(d['作品番号']||'').split(',').filter(Boolean);
     const noteMode = !!d['全文あり'] && window.innerWidth < 1000; // ノートがあるスマホでは、原本の画像は押したときだけ読み込む
-    openSheet(`<h3 class="dttl">${esc(docTitle(d))}<button type="button" class="edbtn" id="dvTtl" aria-label="タイトルを直す">✎</button></h3>${noteMode ? `<div class="note" id="dvNote"><div class="ldwrap" style="min-height:120px"><span class="ldspin"></span>ノートを読み込んでいます…</div></div><button type="button" class="act pdfopen" id="dvImgs">🖼 原本の画像を見る（${pg.length}枚）</button><div id="dvImgsBox"></div>` : imgs}
+    openSheet(`<h3 class="dttl">${esc(docTitle(d))}<button type="button" class="edbtn" id="dvTtl" aria-label="タイトルを直す">✎</button></h3>${noteMode ? `<button type="button" class="act main pdfopen dvnote" data-note="${esc(id)}">📖 ノートで読む（資料の文字）</button><button type="button" class="act pdfopen" id="dvImgs">🖼 原本の画像を見る（${pg.length}枚）</button><div id="dvImgsBox"></div>` : imgs}
       <p class="hint">${esc([r['日付'], r['相手先'] && r.PDF ? r['相手先'] : '', r['要約']].filter(Boolean).join('　'))}</p>
       ${r['要確認'] ? `<div class="dchk"><b>⚠ 要確認</b>${esc(r['要確認'])}<button type="button" class="act" id="dvChk">確認した</button></div>` : ''}
       ${(r['食い違い']||[]).length ? `<h3 class="sec" style="font-size:18px">台帳との食い違い</h3><p class="hint">どちらが正しいか選んでください。台帳を直すときも、元の値は変更履歴に残ります。</p>${r['食い違い'].map((x, i) => `<div class="dfx ${x.r?'done':''}"><b>${esc(x.name)}：${esc(x.f)}</b><div class="dfrow"><span><small>台帳</small>${esc(x.cur)}</span><span><small>この書類</small>${esc(x.doc)}</span></div>${x.r ? `<p class="hint">${({doc:'✓ 書類が正しい（台帳を直しました）', ledger:'✓ 台帳が正しい（書類の誤りとしてメモしました）', same:'✓ 同じもの（表記ゆれ）' + (x.auto ? '：自動で判定' : 'として覚えました'), alias:'✓ 作品の別名' + (x.auto ? '（登録済みの別名と同じ）' : 'として登録しました')})[x.r] || '✓'}</p>` : `<div class="dfbtn"><button type="button" class="act" data-dfx="${i}|ledger">台帳が正しい</button><button type="button" class="act main" data-dfx="${i}|doc">書類が正しい</button></div>${x.t==='w' && x.f==='作品名' ? `<button type="button" class="act dfal" data-dfal="${i}|alias">「${esc(x.doc)}」をこの作品の別名として登録</button>` : /日$|制作年|cm$/.test(x.f) ? '' : `<div class="dfsame" id="dfs${i}"><button type="button" class="act dfal" data-dfsame="${i}">同じもの（表記ゆれ）として覚える</button></div>`}`}</div>`).join('')}` : ''}
       ${(r['補完']||[]).length ? `<details class="dfill"><summary>この書類から自動で埋めた項目（${r['補完'].length}件）</summary>${r['補完'].map(x => `<p>${esc(x.name)}：${esc(x.f)}　→　${esc(x.v)}</p>`).join('')}</details>` : ''}
       ${d['メモ'] ? `<p class="hint dmemo">📝 ${esc(d['メモ'])}</p>` : ''}
-      ${d['全文あり'] && !noteMode ? `<h3 class="sec" style="font-size:18px">ノート（資料の文字）</h3><div class="note" id="dvNote"><div class="ldwrap" style="min-height:120px"><span class="ldspin"></span>ノートを読み込んでいます…</div></div>` : ''}
+      ${d['全文あり'] && !noteMode ? `<button type="button" class="act main pdfopen dvnote" data-note="${esc(id)}">📖 ノートで読む（資料の文字）</button>` : ''}
       ${r.PDF ? `<button type="button" class="act pdfopen" data-pdfopen="${esc(pg[0]||'')}">📄 PDFを見る</button>` : ''}
       ${d['保管番号'] ? `<button type="button" class="act pdfopen" data-spine="${esc(d['保管番号'])}">📦 ${esc(d['保管番号'])} の背表紙を見る</button>` : ''}
       ${r['展覧会ID'] && (S.exhibits||[]).some(e => e['展覧会ID']===r['展覧会ID']) ? `<p><button type="button" class="golink" data-ex="${esc(r['展覧会ID'])}">展覧会：${esc((S.exhibits.find(e => e['展覧会ID']===r['展覧会ID'])||{})['名称']||'')} ›</button></p>` : ''}
@@ -2462,7 +2494,7 @@ function sheetDocReview(id){
       $('#dfs' + i).querySelectorAll('[data-dfo]').forEach(o => o.onclick = () => { const [j, pk] = o.dataset.dfo.split('|'); alGo(j, pk); }); });
     document.querySelectorAll('#sheetbox [data-dfx]').forEach(b => b.onclick = () => { const [i, pk] = b.dataset.dfx.split('|'); busy(true, '保存しています…');
       call('resolveDiff', id, +i, pk).then(x => { setData(x); busy(false); render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); sheetDocReview(id); toast(pk==='doc' ? '台帳を直しました' : '書類の誤りとしてメモしました'); }).catch(e => { busy(false); alert('保存できませんでした：' + (e.message || e)); }); });
-    if ($('#dvNote')) docNote(id).then(h => { const n = $('#dvNote'); if (n) n.innerHTML = h; }).catch(e => { const n = $('#dvNote'); if (n) n.innerHTML = `<p class="hint">ノートを読み込めませんでした（${esc(e.message || e)}）</p>`; });
+    document.querySelectorAll('#sheetbox [data-note]').forEach(b => b.onclick = () => noteView(b.dataset.note));
     if ($('#dvImgs')) $('#dvImgs').onclick = () => { const bx = $('#dvImgsBox'); if (bx.innerHTML) { bx.innerHTML = ''; return; } bx.innerHTML = imgs; wireDocImgs(); hydrateDocs(bx); };
     if ($('#dvChk')) $('#dvChk').onclick = () => { busy(true, '保存しています…'); call('setDocCheck', id, '').then(x => { setData(x); busy(false); render(); sheetDocReview(id); toast('確認済みにしました'); }).catch(e => { busy(false); alert('保存できませんでした：' + (e.message || e)); }); };
     if ($('#dvAgain')) $('#dvAgain').onclick = () => docState(id, '確認待ち', () => sheetDocReview(id));
@@ -3998,7 +4030,7 @@ function scrUnder(){ return SCR[SCR.length - 1] || (!$('#page').classList.contai
 /* 動かすときは transform を使わず左の余白で動かす（iPhoneでスクロールする画面に transform をかけると、スクロールできなくなることがあるため） */
 function scrAnim(el, from, to){ if (!el) return; try { const w = el.getBoundingClientRect().width || innerWidth, px = v => Math.round(parseFloat(v) / 100 * w) + 'px';
   const a = el.animate([{ marginLeft: px(from) }, { marginLeft: px(to) }], { duration: SCR_MS, easing: SCR_EASE }); a.onfinish = a.oncancel = () => { try { a.cancel(); } catch(e){} }; } catch(e){} }
-function scrTitle(el){ if (!el) return ''; if (el.id === 'sheet') { const h = el.querySelector('#sheetbox h3'); return h ? h.textContent.replace(/[✎]/g, '').trim() : ''; } if (el.id === 'viewer') return '写真'; if (el.classList.contains('docview')) return '書類'; return ''; }
+function scrTitle(el){ if (!el) return ''; if (el.id === 'sheet') { const h = el.querySelector('#sheetbox h3'); return h ? h.textContent.replace(/[✎]/g, '').trim() : ''; } if (el.id === 'viewer') return '写真'; if (el.classList.contains('docview')) return '書類'; if (el.classList.contains('noteview')) return 'ノート'; return ''; }
 function scrHead(){ const on = SCR.length > 0; document.body.classList.toggle('scr', on); const b = $('#btnMenu');
   if (b) { if (on && b.dataset.scr !== '1') { b.dataset.scr = '1'; b.dataset.mh = b.innerHTML; b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>'; b.setAttribute('aria-label', '戻る'); }
     else if (!on && b.dataset.scr === '1') { b.dataset.scr = ''; b.innerHTML = b.dataset.mh || b.innerHTML; b.setAttribute('aria-label', 'メニューを開く'); } }
@@ -4028,7 +4060,7 @@ function scrCrumb(){ if (!SCR.length) return; const h = $('#abTitle'); if (!h ||
 function scrBack(fromHist){ const top = SCR[SCR.length - 1]; if (!top) return false;
   if (top.id === 'sheet') { if (!askLeave()) { if (fromHist) hpush('s'); return true; } closeSheet(fromHist); return true; }
   if (top.id === 'viewer') { closeViewer(fromHist); return true; }
-  if (top.classList.contains('docview')) { docClose(top, fromHist); return true; }
+  if (top.classList.contains('docview') || top.classList.contains('noteview')) { docClose(top, fromHist); return true; }
   return false; }
 function openSheet(html){ $('#sheetbox').classList.remove('split'); $('#sheetbox').innerHTML = html; if ($('#sheet').classList.contains('hidden')) { hpush('s'); $('#sheet').classList.remove('hidden'); scrPush($('#sheet')); }
   clearTimeout(SNAP.t); SNAP.v = null; SNAP.t = setTimeout(() => { SNAP.v = sheetState(); }, 250); }
@@ -4829,7 +4861,7 @@ document.addEventListener('click', e => {
   if (e.target.closest && e.target.closest('#confirm')) return;
   const sh = $('#sheet');
   if (!sh.classList.contains('hidden') && !e.target.closest('#sheetbox')) {
-    if (e.target.closest('.docview, #viewer, #loading, #toast, #itemTip, #top, .appbar')) return; // 写真の拡大・上のバー（戻る・パンくず）は使える
+    if (e.target.closest('.docview, .noteview, #viewer, #loading, #toast, #itemTip, #top, .appbar')) return; // 写真の拡大・上のバー（戻る・パンくず）は使える
     e.preventDefault(); e.stopPropagation(); return; } // 画面のほかの所を押しても閉じない
   const ie = document.querySelector('#page dd.iedit');
   if (ie && !ie.contains(e.target)) {
