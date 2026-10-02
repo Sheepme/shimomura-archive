@@ -1636,7 +1636,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '0b9e5157d0', APP_URL = location.origin + location.pathname;
+const BUILD = '5288946add', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3879,6 +3879,7 @@ function inlineEdit(btn, no, f){
   else if (IE_AREA[f]) body = `<textarea class="iein" data-k="${spec[0][0]}" rows="3">${esc(w[spec[0][0]]||'')}</textarea>`;
   else body = `<input class="iein" data-k="${spec[0][0]}" value="${esc(w[spec[0][0]]||'')}" placeholder="${esc(spec[0][1]||'')}" enterkeyhint="done">`;
   dd.innerHTML = body + `<div class="ieb"><button type="button" class="ieno" data-ie="no">やめる</button><button type="button" class="ieok" data-ie="ok">保存</button></div>`;
+  dd.querySelectorAll('.iein').forEach(i => i.dataset.v0 = i.value);
   const first = dd.querySelector('.iein'); setTimeout(() => { first.focus(); if (first.select && first.tagName === 'INPUT') first.select(); }, 30);
   const go = () => { const patch = {}; dd.querySelectorAll('.iein').forEach(i => { const v = i.value.trim(); if (v !== String(w[i.dataset.k]||'')) patch[i.dataset.k] = v; });
     if (!Object.keys(patch).length) { inlineCancel(); return; }
@@ -3907,7 +3908,7 @@ function recInline(btn){
   else if (d[2]==='area') body = `<textarea class="iein" rows="3">${esc(cur)}</textarea>`;
   else body = `<input class="iein" id="iexf" type="${d[2]==='url' ? 'url' : 'text'}" value="${esc(cur)}" placeholder="${esc(d[3]||'')}" enterkeyhint="done">`;
   dd.innerHTML = body + `<div class="ieb"><button type="button" class="ieno" data-ie="no">やめる</button><button type="button" class="ieok" data-ie="ok">保存</button></div>`;
-  const el = dd.querySelector('.iein');
+  const el = dd.querySelector('.iein'); el.dataset.v0 = el.value;
   if (el.id === 'iexf' && (SUG[kind]||[]).includes(d[1])) { const src = kind==='ex' ? S.exhibits : kind==='pb' ? S.pubs : (S.others||[]); suggestList(el, usedVals(src, d[1])); }
   setTimeout(() => { el.focus(); if (el.select && el.tagName === 'INPUT') el.select(); }, 30);
   const go = () => { const v = el.value.trim(); if (v === cur) { inlineCancel(); return; }
@@ -4532,7 +4533,7 @@ document.addEventListener('click', e => {
   if (t.dataset.fill !== undefined && S.cur){ if (!inlineEdit(t, S.cur, t.dataset.fill)) sheetEdit(S.cur, t.dataset.fill); return; } // 鉛筆を押すと、その場で直せる
   if (t.dataset.evedit){ sheetEventEdit(t.dataset.evedit); return; }
   if (t.dataset.act){ const no=S.cur; ({move:sheetMove,event:sheetEvent,photo:sheetPhoto,edit:sheetEdit,flag:sheetFlag,merge:sheetMerge,doc:sheetDoc})[t.dataset.act](no); return; }
-  if (t.hasAttribute('data-close')){ closeSheet(); return; }
+  if (t.hasAttribute('data-close')){ if (askLeave()) closeSheet(); return; } // 入力中なら「保存されていません」を確認
   if (t.dataset.o !== undefined){ const g=t.parentElement; g.dataset.v=t.dataset.o; g.querySelectorAll('button').forEach(b=>b.classList.toggle('on', b===t)); return; }
   if (t.dataset.sg){ ask(t.dataset.sg); return; }
   if (t.id==='askgo'){ ask($('#askq').value); return; }
@@ -4544,6 +4545,19 @@ document.addEventListener('click', e => {
   if (t.id==='aiClose'){ closeAI(); return; }
 });
 $('#sheet').addEventListener('click', e => { if (e.target.id==='sheet' && askLeave()) closeSheet(); }); // 外側を押したとき：入力中なら確認
+/* 入力の画面を開いたまま、上のバーやメニューなど画面のほかの所を押したとき：入力中なら確認してから閉じる（その場の入力欄も同じ） */
+const ieDirty = dd => [...dd.querySelectorAll('.iein')].some(i => i.value !== i.dataset.v0);
+document.addEventListener('click', e => {
+  if (e.target.closest && e.target.closest('#confirm')) return;
+  const sh = $('#sheet');
+  if (!sh.classList.contains('hidden') && e.target.id !== 'sheet' && !e.target.closest('#sheetbox')) {
+    if (!askLeave()) { e.preventDefault(); e.stopPropagation(); return; }
+    SNAP.v = null; closeSheet(); return; }
+  const ie = document.querySelector('#page dd.iedit');
+  if (ie && !ie.contains(e.target)) {
+    if (ieDirty(ie) && !confirm('入力した内容は、まだ保存されていません。閉じていいですか？')) { e.preventDefault(); e.stopPropagation(); return; }
+    inlineCancel(); }
+}, true);
 $('#confirm').addEventListener('click', e => { if (e.target.id==='confirm') closeConfirm(); });
 $('#page').addEventListener('change', async e => {
   if (e.target.id !== 'locOk' || !S.cur) return;
