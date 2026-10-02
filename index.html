@@ -973,7 +973,13 @@ body.briefing nav.fmenu{display:none}
 #vcopy{position:absolute;top:190px;right:14px;z-index:2;border:1px solid var(--line);background:var(--paper);padding:8px 14px;font-size:14px;border-radius:999px;color:var(--warn)}
 .wsug{display:flex;flex-direction:column;gap:4px;margin:6px 0 8px}.wsug button{display:flex;align-items:center;gap:10px;text-align:left;padding:8px 10px;border-radius:10px;background:var(--wash);color:var(--ink);font-size:15px;border:0}.wsug .th{flex:none;width:40px;height:40px;border-radius:6px;overflow:hidden;background:var(--line)}.wsug .th img{width:100%;height:100%;object-fit:cover}.wsug .th .wm{display:none}
 .oulbl{display:block;font-size:15px;color:var(--sub);margin:14px 0 2px}
-body.dropping::after{content:'ここに写真をドロップ';position:fixed;inset:12px;z-index:9999;display:flex;align-items:center;justify-content:center;border:3px dashed var(--ink);border-radius:18px;background:rgba(255,255,255,.82);color:var(--ink);font-size:24px;letter-spacing:.06em;pointer-events:none}
+.dropz{margin:10px 0 6px;padding:14px;border:2px dashed var(--line);border-radius:12px;background:var(--wash);text-align:center;transition:border-color .15s,background .15s}
+.dropz .dzt{font-size:15px;color:var(--sub);margin-bottom:8px}.dropz .dzsp{display:none}
+@media (hover:none){.dropz .dzpc{display:none}.dropz .dzsp{display:inline}}
+.dropz .dzrow{display:flex;gap:6px}.dropz .dzurl{flex:1;min-width:0;padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-size:15px;background:var(--paper)}
+.dropz .dzgo{padding:9px 16px;border:1px solid var(--ink);border-radius:8px;background:var(--ink);color:var(--inv);font-size:15px}
+body.dropping .dropz{border-color:var(--ink);background:var(--paper)}
+body.dropping::after{content:'ここに画像をドロップ';position:fixed;inset:12px;z-index:9999;display:flex;align-items:center;justify-content:center;border:3px dashed var(--ink);border-radius:18px;background:rgba(255,255,255,.82);color:var(--ink);font-size:24px;letter-spacing:.06em;pointer-events:none}
 .oustep{margin:8px 0 10px;padding-left:1.4em;font-size:16px;line-height:1.7}.oustep small{color:var(--sub);font-size:13px}
 .candbtn{width:100%;margin:8px 0 4px}.candgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;max-height:46vh;overflow-y:auto;margin:6px 0 12px}.candp{display:flex;flex-direction:column;gap:4px;padding:4px;border:2px solid transparent;border-radius:10px;background:var(--wash);color:var(--ink)}.candp img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;background:var(--line)}.candp small{font-size:11px;color:var(--sub);word-break:break-all}.candp.on{border-color:var(--ink);box-shadow:0 0 0 2px var(--ink) inset}
 .phhid{display:flex;align-items:center;justify-content:center;text-align:center;width:100%;height:100%;min-height:80px;background:var(--wash);color:var(--sub);font-size:12px;line-height:1.5}
@@ -1594,7 +1600,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '5a8462c29a', APP_URL = location.origin + location.pathname;
+const BUILD = 'b70292d113', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2184,6 +2190,7 @@ function sheetDoc(no){
     ${w ? `<p class="dfor">作品：${esc(nol(no))}　${esc(w['作品名']||'無題')}</p>` : ''}
     <div class="dpages" id="dpg"></div>
     <div class="camrow"><label class="act main camb" id="dcamL">1ページ目を撮る<input type="file" id="dCam" class="vh" accept="image/&#42;" capture="environment"></label><label class="act camb">写真から選ぶ<input type="file" id="dLib" class="vh" accept="image/&#42;" multiple></label></div>
+    <div class="dropz" data-dropz><div class="dzt"><span class="dzpc">画像のURLを貼るか、ここにドラッグしてください</span><span class="dzsp">画像のURLを貼ってください</span></div><div class="dzrow"><input type="url" class="dzurl" placeholder="https://…（画像のURL）" enterkeyhint="go"><button type="button" class="dzgo">追加</button></div></div>
     <div class="btns"><button type="button" data-close>やめる</button><button type="button" class="primary" id="ok">保存する</button></div>`);
   const draw = () => {
     $('#dpg').innerHTML = pages.map((p, i) => `<span class="dpgi"><img src="data:${p.mime};base64,${p.b64}" alt=""><b>${i+1}</b><button type="button" data-rm="${i}" aria-label="このページを消す">✕</button></span>`).join('');
@@ -3364,7 +3371,7 @@ function askUnlink(kind, eid){
 }
 
 /* ---------- 写真（カメラで撮る／写真を選ぶ） ---------- */
-const photoInputs = multi => `<div class="camrow"><label class="act main camb">カメラで撮る<input type="file" id="pfCam" class="vh" accept="image/&#42;" capture="environment"></label><label class="act camb">写真を選ぶ${multi?'（何枚でも）':''}<input type="file" id="pfLib" class="vh" accept="image/&#42;"${multi?' multiple':''}></label></div><img id="pv" class="preview hidden" alt=""><div id="pvs" class="pvs hidden"></div>`;
+const photoInputs = multi => `<div class="camrow"><label class="act main camb">カメラで撮る<input type="file" id="pfCam" class="vh" accept="image/&#42;" capture="environment"></label><label class="act camb">写真を選ぶ${multi?'（何枚でも）':''}<input type="file" id="pfLib" class="vh" accept="image/&#42;"${multi?' multiple':''}></label></div><div class="dropz" data-dropz><div class="dzt"><span class="dzpc">画像のURLを貼るか、ここにドラッグしてください</span><span class="dzsp">画像のURLを貼ってください</span></div><div class="dzrow"><input type="url" class="dzurl" placeholder="https://…（画像のURL）" enterkeyhint="go"><button type="button" class="dzgo">追加</button></div></div><img id="pv" class="preview hidden" alt=""><div id="pvs" class="pvs hidden"></div>`;
 function bindPhoto(onReady){
   let list = [];
   ['pfCam','pfLib'].forEach(fid => $('#' + fid).onchange = async e => {
@@ -4016,8 +4023,26 @@ function sheetOtUrlForm(r){
     if (!inp) { const b = opener(); if (!b) return toast('写真を追加する画面を開いてから、ドロップしてください'); b.click(); for (let i = 0; i < 20 && !(inp = target()); i++) await new Promise(r => setTimeout(r, 100)); }
     if (!inp) return toast('写真を追加する画面を開いてから、ドロップしてください');
     if (!inp.multiple && fs.length > 1) { toast('ここでは1枚だけ入れられます（最初の1枚を使います）'); fs = fs.slice(0, 1); }
-    const dt = new DataTransfer(); fs.forEach(f => dt.items.add(f)); inp.files = dt.files;
-    inp.dispatchEvent(new Event('change', { bubbles: true }));
+    feedFiles(inp, fs);
+  });
+  /* 画像のURL：サーバーで画像を受け取り、ドロップと同じ形で入れる */
+  window.feedFiles = (inp, fs) => { const dt = new DataTransfer(); fs.forEach(f => dt.items.add(f)); inp.files = dt.files; inp.dispatchEvent(new Event('change', { bubbles: true })); };
+  async function addByUrl(zone){
+    const box = zone.querySelector('.dzurl'), u = box.value.trim();
+    if (!/^https?:\/\/\S+/.test(u)) return alert('https:// から始まる画像のURLを貼ってください');
+    const inp = target(); if (!inp) return;
+    busy(true, '画像を受け取っています…');
+    try { const r = await call('fetchImage', u); busy(false);
+      const bin = atob(r.b64), arr = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      box.value = ''; feedFiles(inp, [new File([arr], r.name || 'web.jpg', { type: r.mime || 'image/jpeg' })]); }
+    catch(err){ busy(false); alert(String(err && err.message || err)); }
+  }
+  document.addEventListener('click', e => { const g = e.target.closest('.dzgo'); if (g) addByUrl(g.closest('[data-dropz]')); });
+  document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.classList && e.target.classList.contains('dzurl')) { e.preventDefault(); addByUrl(e.target.closest('[data-dropz]')); } });
+  document.addEventListener('paste', e => { // 画像そのものを貼り付けたとき（コピーした画像・スクリーンショット）
+    const z = e.target.closest && e.target.closest('[data-dropz]'); if (!z) return;
+    const fs = [...(e.clipboardData && e.clipboardData.files || [])].filter(f => /^image\//.test(f.type)); if (!fs.length) { setTimeout(() => { if (/^https?:\/\/\S+$/.test(z.querySelector('.dzurl').value.trim())) addByUrl(z); }, 0); return; }
+    e.preventDefault(); const inp = target(); if (inp) feedFiles(inp, inp.multiple ? fs : fs.slice(0, 1));
   });
 })();
 /* 本画の一覧にある作品を、その他の作品に移す */
