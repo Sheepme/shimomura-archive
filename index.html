@@ -973,6 +973,7 @@ body.briefing nav.fmenu{display:none}
 #vcopy{position:absolute;top:190px;right:14px;z-index:2;border:1px solid var(--line);background:var(--paper);padding:8px 14px;font-size:14px;border-radius:999px;color:var(--warn)}
 .wsug{display:flex;flex-direction:column;gap:4px;margin:6px 0 8px}.wsug button{display:flex;align-items:center;gap:10px;text-align:left;padding:8px 10px;border-radius:10px;background:var(--wash);color:var(--ink);font-size:15px;border:0}.wsug .th{flex:none;width:40px;height:40px;border-radius:6px;overflow:hidden;background:var(--line)}.wsug .th img{width:100%;height:100%;object-fit:cover}.wsug .th .wm{display:none}
 .oulbl{display:block;font-size:15px;color:var(--sub);margin:14px 0 2px}
+body.dropping::after{content:'ここに写真をドロップ';position:fixed;inset:12px;z-index:9999;display:flex;align-items:center;justify-content:center;border:3px dashed var(--ink);border-radius:18px;background:rgba(255,255,255,.82);color:var(--ink);font-size:24px;letter-spacing:.06em;pointer-events:none}
 .oustep{margin:8px 0 10px;padding-left:1.4em;font-size:16px;line-height:1.7}.oustep small{color:var(--sub);font-size:13px}
 .candbtn{width:100%;margin:8px 0 4px}.candgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;max-height:46vh;overflow-y:auto;margin:6px 0 12px}.candp{display:flex;flex-direction:column;gap:4px;padding:4px;border:2px solid transparent;border-radius:10px;background:var(--wash);color:var(--ink)}.candp img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;background:var(--line)}.candp small{font-size:11px;color:var(--sub);word-break:break-all}.candp.on{border-color:var(--ink);box-shadow:0 0 0 2px var(--ink) inset}
 .phhid{display:flex;align-items:center;justify-content:center;text-align:center;width:100%;height:100%;min-height:80px;background:var(--wash);color:var(--sub);font-size:12px;line-height:1.5}
@@ -1593,7 +1594,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '9752ab54d0', APP_URL = location.origin + location.pathname;
+const BUILD = '227f71718e', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2356,7 +2357,9 @@ function quizIndex(){ QZI = {}; (S.quiz||[]).forEach(r => { if (r['種類']==='�
 const qzLast = (no, item) => QZI[no + '|' + item];
 const qzDone = (no, item, v) => { const r = qzLast(no, item); return !!r && ((r['答え']==='はい' && r['値']===String(v||'')) || (r['答え']==='不明' && r['値']===String(v||''))); };
 const qzUnknown = (no, item) => { const r = qzLast(no, item); return !!r && r['答え']==='不明'; };
-const sizeOf = w => (w['幅cm']||w['高さcm']) ? `幅${w['幅cm']||'?'}センチ、高さ${w['高さcm']||'?'}センチ` : '';
+const sizeOf = w => (w['幅cm']||w['高さcm']) ? `幅${w['幅cm']||'?'}センチ、高さ${w['高さcm']||'?'}センチ${w['奥行きcm'] ? '、奥行き' + w['奥行きcm'] + 'センチ' : ''}` : '';
+/* サイズの表示（立体物は奥行きも）：long＝「幅 × 高さ × 奥行き cm」、短い形＝「幅 × 高さ × 奥行き」 */
+const dimTxt = (w, long, unit) => (w['幅cm']||w['高さcm']||w['奥行きcm']) ? (long ? `幅 ${w['幅cm']||'?'} × 高さ ${w['高さcm']||'?'}${w['奥行きcm'] ? ' × 奥行き ' + w['奥行きcm'] : ''} cm` : `${w['幅cm']||'?'} × ${w['高さcm']||'?'}${w['奥行きcm'] ? ' × ' + w['奥行きcm'] : ''}${unit || ''}`) : '';
 const evText = e => { const y = yr(e['日付']); return [y ? y + '年' : '年は分からない', (e['相手先・場所']||'') + (e['相手先・場所'] ? 'に' : ''), e['種類']].filter(Boolean).join('、'); };
 const toSeireki = t => String(t||'').normalize('NFKC').replace(/昭和\s*(\d+)\s*年?/, (m, n) => (1925 + +n) + '年').replace(/平成\s*(\d+)\s*年?/, (m, n) => (1988 + +n) + '年').replace(/大正\s*(\d+)\s*年?/, (m, n) => (1911 + +n) + '年');
 function qzSteps(no, first){
@@ -2620,7 +2623,7 @@ const briefLoc = w => w['所在'] ? (String(w['所在']).startsWith(w['所在区
 function briefText(no, withLoc){
   const w = workOf(no) || {}, ev = (eventBy[no]||[]).filter(e => !['エピソード','移動','所在確認'].includes(e['種類'])).sort((a, b) => dateKey(a['日付']) - dateKey(b['日付']));
   const L = [`下村良之介「${w['作品名'] || '無題'}」（作品番号 No.${no}）`];
-  [['制作年', w['制作年']], ['画材', w['画材']], ['サイズ', (w['幅cm']||w['高さcm']) ? `幅 ${w['幅cm']||'?'} × 高さ ${w['高さcm']||'?'} cm` : ''], ['種別', w['種別']], ['シリーズ', w['シリーズ']],
+  [['制作年', w['制作年']], ['画材', w['画材']], ['サイズ', dimTxt(w, true)], ['種別', w['種別']], ['シリーズ', w['シリーズ']],
     withLoc ? ['保管場所', briefLoc(w)] : null].filter(x => x && x[1]).forEach(([k, x]) => L.push(k + '：' + x));
   if (ev.length) { L.push('', '来歴'); ev.forEach(e => L.push('・' + [yr(e['日付']) ? yr(e['日付']) + '年' : '', e['種類'], e['相手先・場所'], e['内容'] && e['内容']!==e['相手先・場所'] ? e['内容'] : ''].filter(Boolean).join(' '))); }
   return L.join('\n');
@@ -2634,7 +2637,7 @@ function openBrief(no){
     <div class="brbody" id="briefBody">
       ${ph ? `<div class="brph">${thImg(ph['ファイルID'], 1200)}</div>` : '<div class="brph nophoto">写真はまだありません</div>'}
       <h2>${esc(w['作品名'] || '無題')}</h2><p class="brby">下村良之介　${esc(nol(no))}</p>
-      <table class="brtb">${row('制作年', w['制作年'])}${row('画材', w['画材'])}${row('サイズ', (w['幅cm']||w['高さcm']) ? `幅 ${w['幅cm']||'?'} × 高さ ${w['高さcm']||'?'} cm` : '')}${row('種別', w['種別'])}${row('シリーズ', w['シリーズ'])}
+      <table class="brtb">${row('制作年', w['制作年'])}${row('画材', w['画材'])}${row('サイズ', dimTxt(w, true))}${row('種別', w['種別'])}${row('シリーズ', w['シリーズ'])}
         <tr class="brloc"><th>保管場所</th><td>${esc(briefLoc(w) || '不明')}</td></tr></table>
       ${ev.length ? `<h3>来歴</h3><ul class="brev">${ev.map(e => `<li><b>${esc(yr(e['日付']) ? yr(e['日付']) + '年' : '年不明')}</b> ${esc([e['種類'], e['相手先・場所'], e['内容'] && e['内容']!==e['相手先・場所'] ? e['内容'] : ''].filter(Boolean).join('　'))}</li>`).join('')}</ul>` : ''}
     </div>
@@ -3194,14 +3197,14 @@ function openWork(no, keepScroll, restoreSc){
       ${ot ? `<div class="eyebrow">${esc(w['種別']||'その他')}</div>` : ''}
       <h2 class="title">${w['作品名']?esc(w['作品名']):`<span class="untitled" style="font-size:24px">${ot ? '名前なし' : '無題'}</span>`}</h2>
       ${w['作品名メモ']?`<div class="subtitle">${esc(w['作品名メモ'])}</div>`:''}
-      <div class="tombstone">${esc([w['制作年']||'制作年不明', w['画材'], (w['幅cm']||w['高さcm'])?`${w['幅cm']||'?'} × ${w['高さcm']||'?'} cm`:''].filter(Boolean).join('　|　'))}</div>
+      <div class="tombstone">${esc([w['制作年']||'制作年不明', w['画材'], dimTxt(w, false, ' cm')].filter(Boolean).join('　|　'))}</div>
       <div class="loc"><span class="lk">いまの場所</span><span style="display:flex;align-items:center"><b>${esc(w['所在']||w['所在区分']||'不明')}</b>${canEdit()?`<button class="pen" data-act="move" aria-label="場所を変える"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.6"/></svg></button>`:''}</span></div>
       ${canEdit() ? `<label class="locok ${w['場所確認日']?'on':''}"><input type="checkbox" id="locOk" ${w['場所確認日']?'checked':''}><span>${w['場所確認日'] ? 'この場所にあることを確認済み<small>' + esc(String(w['場所確認日']).split(' ')[0]) + '　' + esc(w['場所確認者']||'') + '</small>' : 'この場所にあることを確認した'}</span></label>` : (w['場所確認日'] ? `<p class="locokv">場所の確認：${esc(String(w['場所確認日']).split(' ')[0])}（${esc(w['場所確認者']||'')}）</p>` : '')}
       ${w['要確認']?`<div class="flagbox">要確認 — ${escU(w['要確認メモ']||'（メモなし）')}${canEdit()?flagActs(w):''}</div>`:''}
       <h3 class="sec">作品の情報</h3>
       <dl class="info">
         ${dd('作品名', w['作品名'], 'w1')}
-        ${dd('サイズ', (w['幅cm']||w['高さcm'])?`幅 ${w['幅cm']||'?'} × 高さ ${w['高さcm']||'?'} cm`:'', 'w3')}
+        ${dd('サイズ', dimTxt(w, true), 'w3')}
         ${dd('制作年', w['制作年'], 'w5')}${dd('画材', w['画材'], 'w6')}${dd(ot ? '種類' : '種別', w['種別'], 'w7')}${dd('シリーズ', w['シリーズ'], 'w8')}
         ${dd('状態', w['状態メモ'], 'w9')}${dd('メモ', w['補足'], 'w10')}
         ${dd('所蔵者・連絡先', w['所蔵者・連絡先'], 'w11')}${dd('管理メモ', w['管理メモ'], 'w12')}
@@ -3784,6 +3787,7 @@ function sheetEdit(no, focusId){
     ${F('作品名', inp('w1', w['作品名']))}
     ${F('別名・仮題など', inp('w2', w['作品名メモ']))}
     <div class="two">${F('幅（cm）', inp('w3', w['幅cm'], '', 'text'))}${F('高さ（cm）', inp('w4', w['高さcm'], '', 'text'))}</div>
+    ${isOtNo(no) || w['奥行きcm'] ? F('奥行き（cm）', inp('w4d', w['奥行きcm'], 'やきものなど立体のとき', 'text')) : ''}
     ${F('制作年', inp('w5', w['制作年'], '例：1961年 / 1960年代'))}
     ${F('画材', inp('w6', w['画材'], '例：顔料/紙/紙粘土'))}
     ${isOtNo(no) ? F('種類（変えると番号も付け直します）', pick('w7', OT_T, w['種別'])) : F('種別', pick('w7', KINDS, w['種別']))}
@@ -3795,8 +3799,8 @@ function sheetEdit(no, focusId){
     ${BTNS()}`);
   if (focusId) setTimeout(() => { const el = $('#'+focusId); if (el) { el.scrollIntoView({block:'center'}); if (el.focus && el.tagName!=='DIV') el.focus(); } }, 80);
   $('#ok').onclick = () => {
-    const patch = {'作品名':val('w1'),'作品名メモ':val('w2'),'幅cm':val('w3'),'高さcm':val('w4'),'制作年':val('w5'),'画材':val('w6'),'種別':val('w7'),'シリーズ':val('w8'),'状態メモ':val('w9'),'補足':val('w10'),'所蔵者・連絡先':val('w11'),'管理メモ':val('w12')};
-    const label = {'作品名メモ':'別名・仮題','幅cm':'幅（cm）','高さcm':'高さ（cm）','状態メモ':'状態','補足':'メモ','所蔵者・連絡先':'所蔵者・連絡先','管理メモ':'管理メモ'};
+    const patch = {'作品名':val('w1'),'作品名メモ':val('w2'),'幅cm':val('w3'),'高さcm':val('w4'),...($('#w4d') ? {'奥行きcm':val('w4d')} : {}),'制作年':val('w5'),'画材':val('w6'),'種別':val('w7'),'シリーズ':val('w8'),'状態メモ':val('w9'),'補足':val('w10'),'所蔵者・連絡先':val('w11'),'管理メモ':val('w12')};
+    const label = {'作品名メモ':'別名・仮題','幅cm':'幅（cm）','高さcm':'高さ（cm）','奥行きcm':'奥行き（cm）','状態メモ':'状態','補足':'メモ','所蔵者・連絡先':'所蔵者・連絡先','管理メモ':'管理メモ'};
     confirmSave((isOtNo(no) ? '' : 'No.')+no+' の情報を直す', Object.keys(patch).map(k => [(isOtNo(no) && k==='種別' ? '種類' : label[k]||k), w[k]||'', patch[k]]), 'updateWork', [no, patch]).then(d => { if (d && d.newId) { closeAllPages(); openWork(d.newId); toast('番号が ' + d.newId + ' になりました'); } });
   };
 }
@@ -3954,6 +3958,7 @@ function sheetOtUrlForm(r){
     ${F('制作年', inp('ou3', f['制作年'] || '', '例：1975年ごろ'))}
     ${F('幅（cm）', inp('ou4', f['幅cm'] || '', '例：27.5'))}
     ${F('高さ（cm）', inp('ou5', f['高さcm'] || '', '例：26'))}
+    ${F('奥行き（cm）', inp('ou5d', f['奥行きcm'] || '', 'やきものなど立体のとき'))}
     ${F('画材・技法', inp('ou6', f['画材'] || '', '例：銅版画'))}
     ${F('メモ', `<textarea id="ou7" rows="5">${esc(f['補足'] || '')}</textarea>`)}
     ${F('保管場所（必ず選ぶ）', pick('ou8', LOC_KINDS.filter(k => !['廃棄','統合済み'].includes(k)), '不明'))}
@@ -3971,13 +3976,41 @@ function sheetOtUrlForm(r){
     if (!val('ou1')) return alert('種類を選んでください');
     if (!val('ou8')) return alert('保管場所を選んでください（分からなければ「不明」）');
     const k = val('ou8');
-    const nf = {'種類': val('ou1'), '作品名': val('ou2'), '制作年': val('ou3'), '幅cm': val('ou4'), '高さcm': val('ou5'), '画材': val('ou6'), '補足': val('ou7'),
+    const nf = {'種類': val('ou1'), '作品名': val('ou2'), '制作年': val('ou3'), '幅cm': val('ou4'), '高さcm': val('ou5'), '奥行きcm': val('ou5d'), '画材': val('ou6'), '補足': val('ou7'),
       '所在区分': k === '貸出中' ? 'その他' : k, '所在': val('ou9') || (k === '自宅' ? '自宅' : k === '不明' ? '' : k)};
     const sel = imgs.filter((u, i) => on.has(i) && document.querySelector(`[data-oi="${i}"]`));
     const d = await save('newOtherFromUrl', [nf, {url: r.url, site: val('ouSite')}, sel, upl], sel.length || upl.length ? '登録しました（写真を取り込みました）' : '登録しました');
     if (d && d.newId) { openWork(d.newId); if (d.photoNg) setTimeout(() => alert('写真のうち ' + d.photoNg + '枚は取り込めませんでした。'), 400); }
   };
 }
+/* ---------- 写真のドラッグ＆ドロップ（パソコン用）：開いている画面の「写真を選ぶ」に入れる。作品ページなら「写真を追加」を開いてから入れる ---------- */
+(function(){
+  const vis = el => !!el && (el.offsetParent !== null || !!(el.closest('label') && el.closest('label').offsetParent !== null));
+  const target = () => {
+    const open = !$('#sheet').classList.contains('hidden');
+    const ins = [...(open ? $('#sheetbox') : document).querySelectorAll('input[type=file][accept^="image"]')].filter(i => !i.hasAttribute('capture'));
+    return ins.find(vis) || (open ? ins[0] : null) || null;
+  };
+  const opener = () => !$('#sheet').classList.contains('hidden') ? null : [...document.querySelectorAll('[data-act="photo"],[data-cover]')].find(b => b.offsetParent !== null) || null;
+  const hasFiles = e => !!e.dataTransfer && [...e.dataTransfer.types].includes('Files');
+  let n = 0;
+  const off = () => { n = 0; document.body.classList.remove('dropping'); };
+  addEventListener('dragenter', e => { if (!hasFiles(e) || !canEdit() || !(target() || opener())) return; e.preventDefault(); n++; document.body.classList.add('dropping'); });
+  addEventListener('dragover', e => { if (!hasFiles(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = canEdit() && (target() || opener()) ? 'copy' : 'none'; });
+  addEventListener('dragleave', e => { if (hasFiles(e) && --n <= 0) off(); });
+  addEventListener('drop', async e => {
+    if (!hasFiles(e)) return; e.preventDefault(); off();
+    if (!canEdit()) return;
+    let fs = [...e.dataTransfer.files].filter(f => /^image\//.test(f.type) || /\.(heic|heif|jpe?g|png|webp|gif)$/i.test(f.name));
+    if (!fs.length) return alert('写真のファイルをドロップしてください');
+    let inp = target();
+    if (!inp) { const b = opener(); if (!b) return toast('写真を追加する画面を開いてから、ドロップしてください'); b.click(); for (let i = 0; i < 20 && !(inp = target()); i++) await new Promise(r => setTimeout(r, 100)); }
+    if (!inp) return toast('写真を追加する画面を開いてから、ドロップしてください');
+    if (!inp.multiple && fs.length > 1) { toast('ここでは1枚だけ入れられます（最初の1枚を使います）'); fs = fs.slice(0, 1); }
+    const dt = new DataTransfer(); fs.forEach(f => dt.items.add(f)); inp.files = dt.files;
+    inp.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+})();
 /* 本画の一覧にある作品を、その他の作品に移す */
 function sheetToOther(no){
   const w = workOf(no); if (!w || !canEdit()) return;
@@ -3995,8 +4028,8 @@ function sheetToOther(no){
 document.addEventListener('click', e => { const b = e.target.closest('[data-toot]'); if (b && canEdit()) sheetToOther(b.dataset.toot); });
 function openOt(id, keepScroll, restoreSc){ return openWork(id, keepScroll, restoreSc); } // その他の作品も本作と同じページ
 /* ---------- 統合（同じ作品の2つの番号を1つにまとめる） ---------- */
-const MF = ['作品名','作品名メモ','幅cm','高さcm','制作年','画材','種別','シリーズ','所在区分','所在','自宅エリア','状態メモ','補足','所蔵者・連絡先','管理メモ'];
-const MFN = {'作品名メモ':'作品名の補足','幅cm':'幅（cm）','高さcm':'高さ（cm）','所在区分':'場所の区分','所在':'いまの場所','状態メモ':'状態','補足':'メモ'};
+const MF = ['作品名','作品名メモ','幅cm','高さcm','奥行きcm','制作年','画材','種別','シリーズ','所在区分','所在','自宅エリア','状態メモ','補足','所蔵者・連絡先','管理メモ'];
+const MFN = {'作品名メモ':'作品名の補足','幅cm':'幅（cm）','高さcm':'高さ（cm）','奥行きcm':'奥行き（cm）','所在区分':'場所の区分','所在':'いまの場所','状態メモ':'状態','補足':'メモ'};
 const padNo = v => { v = String(v||'').trim().replace(/^No\.?\s*/i,''); return /^\d{1,2}(-\d+)?$/.test(v) ? v.replace(/^\d+/, m => m.padStart(3,'0')) : v; };
 const mgCnt = n => '写真' + (photoBy[n]||[]).length + '枚・来歴' + S.events.filter(e => e['作品番号']===n).length + '件';
 function sheetMerge(no){
@@ -4755,7 +4788,7 @@ const wideList = () => !tblMobile(); // PCは表、スマホはカード型リ�
 const tblMobile = () => { try { return !matchMedia('(min-width:900px)').matches; } catch(e){ return true; } };
 const WCOLS = [
   ['yr','制作年', w => w['制作年'], w => +((String(w['制作年']).match(/\d{4}/)||[])[0]||9999)],
-  ['sz','サイズ（cm）', w => (w['幅cm']||w['高さcm']) ? `${w['幅cm']||'?'} × ${w['高さcm']||'?'}` : '', w => (+w['幅cm']||0)*(+w['高さcm']||0)],
+  ['sz','サイズ（cm）', w => dimTxt(w), w => (+w['幅cm']||0)*(+w['高さcm']||0)],
   ['md','画材', w => w['画材']], ['kd','種別', w => w['種別']], ['sr','シリーズ', w => w['シリーズ']],
   ['lc','いまの場所', null, w => (w['所在区分']||'') + (w['所在']||'')],
   ['ck','場所の確認', null, w => w['場所確認日'] || ''],
@@ -4869,7 +4902,7 @@ document.addEventListener('keydown', e => { if (e.key==='Escape' && S.aiOpen && 
 /* ---------- スマホ：カード型の作品リスト（表の情報を3〜4行にまとめる） ---------- */
 function mcard(w){
   const no = w['作品番号'], lk = lacks(w), q = (k, v, t) => v ? esc(v) : (lk.includes(k) ? `<span class="lack">${t}？</span>` : '');
-  const sz = (w['幅cm']||w['高さcm']) ? `${w['幅cm']||'?'}×${w['高さcm']||'?'}cm` : '<span class="lack">サイズ？</span>';
+  const sz = (w['幅cm']||w['高さcm']||w['奥行きcm']) ? esc(dimTxt(w, false, 'cm')).replace(/ /g, '') : '<span class="lack">サイズ？</span>';
   const l2 = [q('制作年', w['制作年'], '年'), sz, q('画材', w['画材'], '画材'), q('種別', w['種別'], '種別')].filter(Boolean).join('<i>｜</i>');
   const kind = w['所在区分'], pl = [w['所在'], w['自宅エリア'] && !String(w['所在']||'').includes(w['自宅エリア']) ? 'エリア' + w['自宅エリア'] : ''].filter(Boolean).join(' ').replace(new RegExp('^' + (kind||'#') + '\\s*'), '');
   const loc = kind && kind!=='不明' ? `<span class="mloc">${esc(kind)}</span><span class="mpl">${esc(pl && pl!==kind ? pl : '')}</span>` : '<span class="lack">場所？</span>';
