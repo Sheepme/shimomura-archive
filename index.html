@@ -1444,6 +1444,8 @@ img[data-tid]:not([src]),img[data-did]:not([src]){background:linear-gradient(100
 .tile .ph img[data-tid]:not([src]),.dth img:not([src]),.mmth img:not([src]),.wsug img:not([src]){min-height:0;height:100%}
 @keyframes ldshim{from{background-position:100% 0}to{background-position:0 0}}
 img.lowres{filter:blur(4px);transition:filter .3s}
+body:has(.docview) #top,body.vopen #top,body.vopen .appbar{visibility:hidden!important;pointer-events:none!important} /* 写真を大きく見ている間は、上のバーを押せないようにする */
+#vspin{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 16px;border-radius:14px;background:rgba(0,0,0,.45);color:#fff;z-index:4;pointer-events:none}#vspin.hidden{display:none}#vspin .ldspin{border-color:rgba(255,255,255,.35);border-top-color:#fff}#vspin small{font-size:12px}
 .lrspin{position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;border:2.5px solid rgba(255,255,255,.7);border-top-color:#444;box-shadow:0 0 0 1px rgba(0,0,0,.12);animation:ldrot .8s linear infinite;pointer-events:none;z-index:2}
 .ldwrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;height:100%;min-height:200px;color:var(--sub);font-size:15px}
 .ldspin{width:36px;height:36px;border-radius:50%;border:3px solid var(--wash2);border-top-color:var(--sub);animation:ldrot .8s linear infinite}@keyframes ldrot{to{transform:rotate(360deg)}}
@@ -1666,7 +1668,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '2cc375131a', APP_URL = location.origin + location.pathname;
+const BUILD = '4345f8f80e', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3762,15 +3764,18 @@ function openPb(id, keepScroll, restoreSc){
 
 /* ---------- 写真の拡大表示 ---------- */
 let V = {list:[], i:0};
-function openViewer(i){ V.list = photoBy[S.cur]||[]; V.i = i; showV(); if ($('#viewer').classList.contains('hidden')) hpush('v'); $('#viewer').classList.remove('hidden'); }
-function closeViewer(fromHist){ const open = !$('#viewer').classList.contains('hidden'); $('#viewer').classList.add('hidden'); if (open && !fromHist) hback(); }
+function openViewer(i){ V.list = photoBy[S.cur]||[]; V.i = i; document.body.classList.add('vopen'); showV(); if ($('#viewer').classList.contains('hidden')) hpush('v'); $('#viewer').classList.remove('hidden'); }
+function closeViewer(fromHist){ const open = !$('#viewer').classList.contains('hidden'); $('#viewer').classList.add('hidden'); setTimeout(() => document.body.classList.remove('vopen'), 400); /* 閉じた直後のタップが下のメニューに届かないよう少し待つ */ if (open && !fromHist) hback(); }
 /* 美術館などから転載した画像の注意書き（写真のメモが「転載元：館名｜URL」のとき） */
 const creditHTML = ph => [...new Set((ph||[]).map(p => String(p['メモ']||'')).filter(m => /^転載元：/.test(m)).map(m => { const [mu, u] = m.slice(4).split('｜'); return (mu||'').trim() + '｜' + (u||'').trim(); }))].map(m => { // 同じ転載元は1つにまとめる
   const [mu, u] = m.split('｜');
   return `<p class="credit">＊この画像は${/^[@＠]/.test(mu) ? 'Webサイト「' + esc(mu.slice(1)) + '」' : esc(mu)}から転載したものです。家族用の資料としての利用に限定します。転載したり誰かに渡す場合は、撮影元に確認を取ってください。${u ? `（<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u)}</a>）` : ''}</p>`; }).join('');
 function showV(){ const p = V.list[V.i]; if (!p) return;
-  const k = (TH['3200_' + p['ファイルID']] ? '3200_' : '1600_') + p['ファイルID']; $('#vimg').removeAttribute('src'); $('#vimg').style.transform = '';
-  if (TH[k]) $('#vimg').src = TH[k]; else call('getThumbs', [p['ファイルID']], 1600).then(m => { if (m[p['ファイルID']]) { TH[k] = m[p['ファイルID']]; if (V.list[V.i] === p) $('#vimg').src = TH[k]; } });
+  const k = (TH['3200_' + p['ファイルID']] ? '3200_' : '1600_') + p['ファイルID']; $('#vimg').removeAttribute('src'); $('#vimg').style.transform = ''; $('#vimg').classList.remove('lowres');
+  const lo = ['1200', '800', '400', '200'].find(x => TH[x + '_' + p['ファイルID']]);
+  if (TH[k]) { $('#vimg').src = TH[k]; vSpin(false); }
+  else { if (lo) { $('#vimg').src = TH[lo + '_' + p['ファイルID']]; $('#vimg').classList.add('lowres'); } vSpin(true); // 大きい写真が届くまで、小さい写真＋読み込み中のマーク
+    call('getThumbs', [p['ファイルID']], 1600).then(m => { if (m[p['ファイルID']]) { TH[k] = m[p['ファイルID']]; if (V.list[V.i] === p) { $('#vimg').src = TH[k]; $('#vimg').classList.remove('lowres'); vSpin(false); } } }).catch(() => { if (V.list[V.i] === p) vSpin(false); }); }
   $('#vcount').textContent = (V.i+1) + ' / ' + V.list.length + '　' + (p['種類']||'') + (/^【仮】/.test(p['メモ']||'') ? '・仮' : '') + (copyOf(p) && copyOf(p).n ? '・' + copyOf(p).mu + ' ' + copyOf(p).n : '');
   $('#vcredit').innerHTML = creditHTML([p]); $('#vwm').innerHTML = wm(p).replace(/<\/?span[^>]*>/g, '');
   const isW = S.cur && workOf(S.cur), isMain = V.i===0; $('#vmain').classList.toggle('hidden', !canEdit() || !isW || V.list.length < 2 || !p['写真ID']); $('#vmain').textContent = isMain ? '★ メイン画像' : '☆ メイン画像にする'; $('#vmain').disabled = isMain;
@@ -3778,11 +3783,12 @@ function showV(){ const p = V.list[V.i]; if (!p) return;
   $('#vrep').classList.toggle('hidden', !canEdit()); $('#vdel').classList.toggle('hidden', !canEdit() || !p['写真ID']); $('#vrot').classList.toggle('hidden', !canEdit());
   $('#vorig').textContent = TH['3200_' + p['ファイルID']] ? '高画質で表示中' : '高画質で見る';
   $('#vorig').onclick = () => { const id = p['ファイルID'], k2 = '3200_' + id; if (TH[k2]) { $('#vimg').src = TH[k2]; return; }
-    $('#vorig').textContent = '読み込み中…';
-    call('getThumbs', [id], 3200).then(m => { if (!m[id]) throw new Error('empty'); TH[k2] = m[id]; if (V.list[V.i] === p) { $('#vimg').src = m[id]; $('#vorig').textContent = '高画質で表示中'; } })
-      .catch(() => { $('#vorig').textContent = '高画質で見る'; toast('高画質の写真を読み込めませんでした'); }); };
+    $('#vorig').textContent = '読み込み中…'; vSpin(true);
+    call('getThumbs', [id], 3200).then(m => { if (!m[id]) throw new Error('empty'); TH[k2] = m[id]; if (V.list[V.i] === p) { $('#vimg').src = m[id]; $('#vorig').textContent = '高画質で表示中'; vSpin(false); } })
+      .catch(() => { vSpin(false); $('#vorig').textContent = '高画質で見る'; toast('高画質の写真を読み込めませんでした'); }); };
   $('#vprev').style.visibility = V.i>0?'visible':'hidden'; $('#vnext').style.visibility = V.i<V.list.length-1?'visible':'hidden'; }
 $('#vclose').onclick = () => closeViewer();
+function vSpin(on){ let el = $('#vspin'); if (!el) { el = document.createElement('div'); el.id = 'vspin'; el.innerHTML = '<span class="ldspin"></span><small>読み込み中</small>'; $('#viewer').appendChild(el); } el.classList.toggle('hidden', !on); }
 $('#vmain').onclick = () => { const p = V.list[V.i], no = S.cur; if (!p || !canEdit()) return;
   S.photos.forEach(x => { if (x['作品番号']===no) x['メイン'] = x===p ? 'メイン' : ''; }); index();
   V.list = photoBy[no] || []; V.i = 0; showV(); if (S.pcur && S.pcur.t==='w') openWork(no, true); render(); toast('メイン画像にしました');
