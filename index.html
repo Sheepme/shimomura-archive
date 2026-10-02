@@ -1428,6 +1428,7 @@ html body #main section.cy .cage{font-size:12px!important;color:var(--sub)!impor
 .pdfcard{border:1px solid var(--line);border-radius:14px;padding:14px 14px 4px;margin:12px 0;background:var(--paper)}
 .pdfcard.off{opacity:.65}
 .pdfbox{display:inline-block;margin-right:8px;padding:1px 8px;border-radius:8px;background:var(--wash);font-size:13px;font-weight:600}
+.spinev{display:flex;gap:8px;overflow-x:auto;margin:4px 0 10px}.spinev img{max-height:60vh;max-width:100%;border-radius:6px;border:1px solid var(--line)}
 .pdfnm{font-weight:600;margin-bottom:8px;word-break:break-all}.pdfnm small{font-weight:400;color:var(--faint);margin-left:8px;font-size:12px}
 .pdfw{padding:8px 0;border-top:1px solid var(--line)}.pdfw:first-of-type{border-top:0}
 .pdfw b{display:block}.pdfw small{display:block;color:var(--sub);font-size:12.5px}
@@ -1646,7 +1647,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '4ef40d794a', APP_URL = location.origin + location.pathname;
+const BUILD = '23d95d194d', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3673,6 +3674,7 @@ function openPb(id, keepScroll, restoreSc){
     <div class="tombstone">${esc([fmtDate(x['発行年月']), x['発行元'], x['著者・編者']].filter(Boolean).join('　|　'))}</div>
     ${cover ? `<div class="cover">${thImg(x['表紙写真ファイルID'], 800)}</div>` : ''}
     ${x['PDFファイルID'] ? `<button type="button" class="act pdfopen" data-pdfopen="${esc(x['PDFファイルID'])}">📄 スキャンしたPDFを見る</button>` : ''}
+    ${x['保管番号'] ? `<button type="button" class="act pdfopen" data-spine="${esc(x['保管番号'])}">📦 ${esc(x['保管番号'])} の背表紙を見る</button>` : ''}
     <h3 class="sec">掲載作品 ${new Set(nos).size}点</h3>${linkedGrid('pb', id)}
     <h3 class="sec">資料の情報</h3>
     ${canEdit() ? recInfo('pb', id, x) : `<dl class="info">${dd2('種類', esc(x['種類']))}${dd2('発行', esc(fmtDate(x['発行年月'])))}${dd2('発行元', esc(x['発行元']))}${dd2('著者・編者', esc(x['著者・編者']))}${dd2('掲載内容', esc(x['掲載内容']))}
@@ -4570,6 +4572,7 @@ document.addEventListener('click', e => {
   if (t.id==='more'){ S.limit+=60; render(); return; }
   if (t.dataset.pdfscan){ sheetPdfScan(); return; }
   if (t.dataset.pdfopen){ openPdf(t.dataset.pdfopen); return; }
+  if (t.dataset.spine){ showSpine(t, t.dataset.spine); return; }
   if (t.dataset.rec){ if (canEdit() && !recInline(t)) sheetRec(t.dataset.rec, t.dataset.rid, t.dataset.rf); return; } // 展覧会・画集なども、鉛筆でその場で直す
   if (t.dataset.ex){ openEx(t.dataset.ex); return; }
   if (t.dataset.pb){ openPb(t.dataset.pb); return; }
@@ -4748,6 +4751,16 @@ async function sheetPdfScan(){
     if (k==='all') return pdfReadAll(); if (k==='stop') { PDFQ.stop = true; return; }
     if (k==='read') return pdfRead(+i); if (k==='again') return pdfRead(+i, true); if (k==='reg') return pdfReg(+i); if (k==='skip') { PDFQ.res[PDFQ.list[+i].id] = {skip: 1}; pdfCard(+i); pdfHead(); } };
 }
+/* 資料ファイルの背表紙（「スキャン › 35」などに一緒に入れた写真）を、その場に出す／しまう */
+const SPINE = {};
+async function showSpine(btn, box){
+  const host = btn.closest('.pdfnm') || btn, nx = host.nextElementSibling;
+  if (nx && nx.classList.contains('spinev')) { nx.remove(); return; }
+  const v = document.createElement('div'); v.className = 'spinev'; v.innerHTML = '<p class="hint">背表紙を読み込んでいます…</p>'; host.after(v);
+  try { const L = SPINE[box] || (SPINE[box] = await call('getSpine', box));
+    v.innerHTML = L.length ? L.map(u => `<img src="${u}" alt="📦 ${esc(box)} の背表紙">`).join('') : '<p class="hint">背表紙の写真が見つかりませんでした。</p>'; }
+  catch(e){ v.innerHTML = `<p class="hint">読み込めませんでした（${esc(e && e.message || e)}）</p>`; }
+}
 const pdfSnap = () => { try { SNAP.v = sheetState(); } catch(e){} }; // 読み取り結果を出しただけでは「入力中」にしない
 function pdfHead(){ const h = $('#pdfHead'); if (!h || !PDFQ) return;
   const L = PDFQ.list, R = PDFQ.res, unread = L.filter(x => !R[x.id]).length, done = L.filter(x => R[x.id] && R[x.id].done).length;
@@ -4756,7 +4769,7 @@ function pdfHead(){ const h = $('#pdfHead'); if (!h || !PDFQ) return;
       ${PDFQ.running ? `<button type="button" class="act" data-pq="stop">読み取りを止める</button>` : unread ? `<button type="button" class="act main" data-pq="all">まとめて読み取る（${unread}件）</button>` : ''}`;
   pdfSnap(); }
 function pdfCard(i){ const el = $('#pc' + i); if (!el || !PDFQ) return; const x = PDFQ.list[i], r = PDFQ.res[x.id];
-  const nm = `<div class="pdfnm">${x.box ? `<span class="pdfbox">📦 ${esc(x.box)}</span>` : ''}📄 ${esc(x.name)}<small>${Math.max(1, Math.round(x.size / 1024))}KB</small></div>`;
+  const nm = `<div class="pdfnm">${x.box ? `<span class="pdfbox">📦 ${esc(x.box)}</span>${x.spine ? `<button type="button" class="golink" data-spine="${esc(x.box)}">背表紙</button>` : ''}` : ''}📄 ${esc(x.name)}<small>${Math.max(1, Math.round(x.size / 1024))}KB</small></div>`;
   if (!r) { el.innerHTML = nm + `<button type="button" class="act" data-pq="read|${i}">読み取る</button>`; return pdfSnap(); }
   if (r.loading) { el.innerHTML = nm + '<p class="hint">AIが読み取っています…</p>'; return pdfSnap(); }
   if (r.err) { el.innerHTML = nm + `<p class="hint" style="color:var(--warn)">${esc(r.err)}</p><button type="button" class="act" data-pq="again|${i}">もう一度読み取る</button>`; return pdfSnap(); }
