@@ -1687,7 +1687,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '7bdf5d0617', APP_URL = location.origin + location.pathname;
+const BUILD = '33d2e025a1', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3952,19 +3952,21 @@ const SCR = [];
 const SCR_EASE = 'cubic-bezier(.2,.8,.2,1)', SCR_MS = 280;
 function scrZ(){ SCR.forEach((el, i) => { el.style.zIndex = 100 + i * 2; }); }
 function scrUnder(){ return SCR[SCR.length - 1] || (!$('#page').classList.contains('hidden') ? $('#page') : $('#main')); }
-function scrAnim(el, from, to){ try { el.animate([{ transform: from }, { transform: to }], { duration: SCR_MS, easing: SCR_EASE }); } catch(e){} }
+/* 動かすときは transform を使わず左の余白で動かす（iPhoneでスクロールする画面に transform をかけると、スクロールできなくなることがあるため） */
+function scrAnim(el, from, to){ if (!el) return; try { const w = el.getBoundingClientRect().width || innerWidth, px = v => Math.round(parseFloat(v) / 100 * w) + 'px';
+  const a = el.animate([{ marginLeft: px(from) }, { marginLeft: px(to) }], { duration: SCR_MS, easing: SCR_EASE }); a.onfinish = a.oncancel = () => { try { a.cancel(); } catch(e){} }; } catch(e){} }
 function scrTitle(el){ if (!el) return ''; if (el.id === 'sheet') { const h = el.querySelector('#sheetbox h3'); return h ? h.textContent.replace(/[✎]/g, '').trim() : ''; } if (el.id === 'viewer') return '写真'; if (el.classList.contains('docview')) return '書類'; return ''; }
 function scrHead(){ const on = SCR.length > 0; document.body.classList.toggle('scr', on); const b = $('#btnMenu');
   if (b) { if (on && b.dataset.scr !== '1') { b.dataset.scr = '1'; b.dataset.mh = b.innerHTML; b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>'; b.setAttribute('aria-label', '戻る'); }
     else if (!on && b.dataset.scr === '1') { b.dataset.scr = ''; b.innerHTML = b.dataset.mh || b.innerHTML; b.setAttribute('aria-label', 'メニューを開く'); } }
   try { abRender(); } catch(e){} }
 function scrPush(el){ const under = scrUnder(); const k = SCR.indexOf(el); if (k >= 0) SCR.splice(k, 1); SCR.push(el); scrZ();
-  if (under && under !== el) scrAnim(under, 'translateX(0)', 'translateX(-100%)'); scrAnim(el, 'translateX(100%)', 'translateX(0)'); setTimeout(scrHead, 0); }
+  if (under && under !== el) scrAnim(under, '0', '-100'); scrAnim(el, '100', '0'); setTimeout(scrHead, 0); }
 function scrPop(el){ const k = SCR.indexOf(el); if (k < 0) return; SCR.splice(k, 1);
   try { const r = el.getBoundingClientRect(), g = el.cloneNode(true); g.removeAttribute('id'); g.querySelectorAll('iframe,[id]').forEach(x => x.tagName === 'IFRAME' ? x.remove() : x.removeAttribute('id'));
     g.classList.remove('hidden'); Object.assign(g.style, { position: 'fixed', left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', right: 'auto', bottom: 'auto', margin: '0', zIndex: 100 + SCR.length * 2 + 1, pointerEvents: 'none' });
-    document.body.appendChild(g); scrAnim(g, 'translateX(0)', 'translateX(100%)'); setTimeout(() => g.remove(), SCR_MS - 20); } catch(e){}
-  scrAnim(scrUnder(), 'translateX(-100%)', 'translateX(0)'); scrHead(); }
+    document.body.appendChild(g); scrAnim(g, '0', '100'); setTimeout(() => g.remove(), SCR_MS - 20); } catch(e){}
+  scrAnim(scrUnder(), '-100', '0'); scrHead(); }
 /* パンくずの最後に、開いている画面の名前を足す（元のページの名前は押すと戻れる） */
 function scrCrumb(){ if (!SCR.length) return; const h = $('#abTitle'); if (!h || h.className.indexOf('st-') === 0) return;
   h.querySelectorAll('.crumb.cur').forEach(c => { c.classList.remove('cur'); c.classList.add('cpscr'); });
