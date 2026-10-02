@@ -1637,7 +1637,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '3f13771baf', APP_URL = location.origin + location.pathname;
+const BUILD = 'cd1c449975', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2452,7 +2452,7 @@ function qzSteps(no, first){
 const qzTargets = k => byBasic(S.works.filter(w => (k==='loc' ? needLoc(w) : k==='flag' ? w['要確認'] : true)).map(w => w['作品番号']).filter(no => qzSteps(no).length));
 
 /* 声：読み上げ（iPhone の読み上げ）と聞き取り（使えるときだけ） */
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const SR = (navigator.mediaDevices && navigator.mediaDevices.getUserMedia && (window.AudioContext || window.webkitAudioContext)) ? true : null; // 録音できるか（声は Google 側で文字にする）
 let QV = { tts: true, micOk: !!SR };
 try { QV.tts = localStorage.getItem('smr_qztts') !== '0'; } catch(e){}
 const ttsText = t => String(t).replace(/「([^」]*)」/g, (m, x) => x.replace(/[?？]/g, ' はてな ')).replace(/[「」『』]/g, '').replace(/No\.(\d)/g, 'ナンバー$1');
@@ -2477,25 +2477,61 @@ function stopMic(quiet){ const r = MIC.r; if (!r) return; MIC.r = null; r.__kill
 // アプリが最前面でなくなったら、マイクと読み上げを止める（切り忘れ防止）
 document.addEventListener('visibilitychange', () => { if (document.visibilityState !== 'visible') { stopMic(); sayStop(); } });
 addEventListener('pagehide', () => { stopMic(); sayStop(); });
+/* 声の聞き取り：録音して Google 側（Gemini）で文字にする。
+   （iPhone の音声入力は、アプリの置き場所を変えてから文字が返ってこなくなったため、自前で録音して送る方式にした） */
+const VR = { ac: null };
+function vrCtx(){ const A = window.AudioContext || window.webkitAudioContext; if (!A) return null; try { if (!VR.ac) VR.ac = new A(); if (VR.ac.state === 'suspended') VR.ac.resume().catch(() => {}); } catch(e){ return null; } return VR.ac; }
+['touchend','click'].forEach(ev => document.addEventListener(ev, () => { if (VR.ac && VR.ac.state === 'running') return; if (S && S.user) vrCtx(); }, {capture:true, passive:true})); // iPhoneは画面を押したときに音の準備をしておく
+function vrWav(chunks, rate){ // 16kHz・モノラルのWAVにする（送る量を小さく）
+  const out = 16000, ratio = rate / out; let len = 0; chunks.forEach(c => len += c.length);
+  const all = new Float32Array(len); let o = 0; chunks.forEach(c => { all.set(c, o); o += c.length; });
+  const n = Math.floor(len / ratio), pcm = new Int16Array(n);
+  for (let i = 0; i < n; i++) { const a = Math.floor(i * ratio), b = Math.min(len, Math.floor((i + 1) * ratio)); let s = 0; for (let j = a; j < b; j++) s += all[j]; const v = Math.max(-1, Math.min(1, s / Math.max(1, b - a))); pcm[i] = v < 0 ? v * 0x8000 : v * 0x7fff; }
+  const buf = new ArrayBuffer(44 + pcm.length * 2), dv = new DataView(buf), W = (p, t) => { for (let i = 0; i < t.length; i++) dv.setUint8(p + i, t.charCodeAt(i)); };
+  W(0, 'RIFF'); dv.setUint32(4, 36 + pcm.length * 2, true); W(8, 'WAVE'); W(12, 'fmt '); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
+  dv.setUint32(24, out, true); dv.setUint32(28, out * 2, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true); W(36, 'data'); dv.setUint32(40, pcm.length * 2, true);
+  new Int16Array(buf, 44).set(pcm);
+  const u8 = new Uint8Array(buf); let bin = ''; for (let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+  return btoa(bin); }
 function listen(onText, onDone, auto){
   if (!SR || !QV.micOk) return false;
   sayStop();
   stopMic(true);
-  // iPhone：読み上げの音声（Audio）が残っていると、マイクは動いても文字にならないことがあるので、聞き取りの前に音を完全に止める
   try { if (TTSA) { TTSA.onended = null; TTSA.pause(); TTSA.removeAttribute('src'); TTSA.load(); } } catch(e){}
-  const r = new SR(); r.lang = 'ja-JP'; r.interimResults = true; r.maxAlternatives = 1; MIC.r = r;
+  const r = { __killed: false, done: false, cleanup: null }; r.abort = () => { r.__killed = true; if (r.cleanup) r.cleanup(); }; MIC.r = r;
   const b = $('#qzMic'); if (b) b.classList.add('on');
-  let fin = false, last = '', heard = false;
-  const wd = setTimeout(() => { if (!heard && MIC.r === r) { stopMic(); toast('声が聞こえなかったよ。🎤を押して話してね'); } }, 9000);
-  r.onspeechstart = r.onsoundstart = () => { heard = true; };
   const live = t => document.querySelectorAll('.srlive').forEach(el => { el.textContent = t || '…'; el.classList.toggle('on', !!t); });
-  r.onresult = e => { heard = true; let t = ''; for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript || ''; last = t; live(t);
-    if (e.results[e.results.length - 1].isFinal && !fin) { fin = true; try { r.stop(); } catch(x){} onText(t); } };
-  r.onerror = e => { if (auto && (e.error==='not-allowed' || e.error==='service-not-allowed')) { if (IV) { IV.listening = false; ivDraw(); } toast('🎤ボタンを押して話してね'); return; } if (e.error==='not-allowed' || e.error==='service-not-allowed') { QV.micOk = false; if (IV) ivDraw(); else qzDraw(); toast('マイクが使えません。ボタンか、キーボードのマイクで答えてください'); } else toast('聞き取れませんでした。もう一度どうぞ'); };
-  r.onend = () => { clearTimeout(wd); if (MIC.r === r) MIC.r = null; const b = $('#qzMic'); if (b) b.classList.remove('on');
-    if (!fin && last && !r.__killed) { fin = true; onText(last); } if (onDone && !r.__killed) onDone(); };
-  const go = () => { if (MIC.r !== r || r.__killed) return; try { r.start(); } catch(e){ try { setTimeout(() => { if (MIC.r === r && !r.__killed) r.start(); }, 400); } catch(x){} } };
-  if (auto) setTimeout(go, 300); else go(); // 読み上げの直後は少し待ってから聞き取りを始める（iPhone）
+  const end = () => { if (MIC.r === r) MIC.r = null; const bb = $('#qzMic'); if (bb) bb.classList.remove('on'); };
+  const quiet = IV ? 2000 : 1100, maxMs = IV ? 60000 : 10000; // 話し終わって、これだけ静かなら区切る
+  (async () => {
+    let stream;
+    try { stream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true}}); }
+    catch(e){ end(); if (r.__killed) return; if (IV) { IV.listening = false; try { ivDraw(); } catch(x){} }
+      if (auto) toast('🎤ボタンを押して話してね'); else { QV.micOk = false; if (IV) ivDraw(); else qzDraw(); toast('マイクが使えません。設定でマイクを許可するか、ボタン・キーボードで答えてください'); } return; }
+    if (r.__killed) { stream.getTracks().forEach(t => t.stop()); return; }
+    const ac = vrCtx(); if (!ac) { stream.getTracks().forEach(t => t.stop()); end(); QV.micOk = false; return; }
+    try { await ac.resume(); } catch(e){}
+    const src = ac.createMediaStreamSource(stream), proc = ac.createScriptProcessor(4096, 1, 1), chunks = [];
+    let heard = false, lastLoud = 0, floor = 0, nf = 0; const t0 = performance.now();
+    r.cleanup = () => { try { proc.onaudioprocess = null; proc.disconnect(); src.disconnect(); } catch(e){} try { stream.getTracks().forEach(t => t.stop()); } catch(e){} };
+    const finish = () => { if (r.done || r.__killed) return; r.done = true; r.cleanup();
+      if (!heard) { end(); stopMic(); toast('声が聞こえなかったよ。🎤を押して話してね'); return; }
+      live('文字にしています…');
+      let b64 = ''; try { b64 = vrWav(chunks, ac.sampleRate); } catch(e){}
+      call('transcribe', b64, 'audio/wav', '').then(text => { end(); if (r.__killed) return; text = String(text || '').trim();
+          if (text) { live(text); onText(text); } else toast('うまく聞き取れなかったよ。もう一度話してね');
+          if (onDone) onDone(); })
+        .catch(err => { end(); if (r.__killed) return; toast(String(err && err.message || err).slice(0, 60) || '声を文字にできませんでした'); if (onDone) onDone(); }); };
+    proc.onaudioprocess = ev => { if (r.__killed || r.done) return; const d = ev.inputBuffer.getChannelData(0); chunks.push(new Float32Array(d));
+      let s = 0; for (let i = 0; i < d.length; i += 4) s += d[i] * d[i]; const rms = Math.sqrt(s / (d.length / 4)), now = performance.now();
+      if (now - t0 < 400) { floor += rms; nf++; return; } // 最初は周りの音の大きさを測る
+      const thr = Math.max(0.012, (nf ? floor / nf : 0) * 3);
+      if (rms > thr) { if (!heard) { heard = true; live('🎤 聞いています…'); } lastLoud = now; }
+      if (heard && now - lastLoud > quiet) finish();
+      else if (!heard && now - t0 > 9000) finish();
+      else if (now - t0 > maxMs) finish(); };
+    src.connect(proc); proc.connect(ac.destination);
+  })();
   return true;
 }
 const YES = /^(はい|ok|オッケー|おっけー|そう|そうです|合って|あって|正解|うん|ええ|イエス)/i, NO = /(いいえ|違う|ちがう|違います|ノー|^no|間違|まちが)/i, UNK = /(分から|わから|知らない|しらない|不明)/, SKIP = /(あとで|後で|スキップ|とばす|飛ばす)/;
@@ -2730,12 +2766,10 @@ function ivMicGate(list){
     const fin = ok => { if (done) return; done = true; QV.micAsked = true; QV.micOk = ok; closeSheet();
       if (!ok) alert('マイクが使えませんでした' + (why ? '（' + why + '）' : '') + '。\n\n文字で答えるモードで始めます。\nキーボードの🎤ボタンを押せば、声で入力できます。');
       ivBegin(list); };
-    // 押した瞬間に音声認識を1回だけ起動して、iPhoneの「マイクを許可しますか？」を出す
-    try { const r = new SR(); r.lang = 'ja-JP'; r.interimResults = false;
-      r.onstart = r.onaudiostart = () => { try { r.abort(); } catch(e){} fin(true); };
-      r.onerror = e => { why = e.error || ''; if (e.error === 'aborted' || e.error === 'no-speech') return fin(true); fin(false); };
-      r.onend = () => setTimeout(() => fin(!why || why === 'aborted' || why === 'no-speech'), 300);
-      r.start(); setTimeout(() => fin(true), 15000);
+    // 押した瞬間にマイクを1回だけ使って、iPhoneの「マイクを許可しますか？」を出す（音の準備もここで）
+    vrCtx();
+    try { navigator.mediaDevices.getUserMedia({audio: true}).then(st => { st.getTracks().forEach(t => t.stop()); fin(true); }, e => { why = String(e && e.name || ''); fin(false); });
+      setTimeout(() => fin(true), 15000);
     } catch(e){ why = String(e && e.name || ''); fin(false); } };
   $('#mgTx').onclick = () => { QV.micAsked = true; QV.micOk = false; closeSheet(); ivBegin(list); };
 }
