@@ -1408,6 +1408,11 @@ html body #main section.cy .cage{font-size:12px!important;color:var(--sub)!impor
 #main section.cy>ul.ce{margin:0!important;min-width:0}
 #main section.cy .ce>li:first-child{padding-top:2px!important}
 #main section.cy .ce>li:last-child{border-bottom:0!important;padding-bottom:0!important}
+/* 年表・展覧会：日付・種類・場所は薄く、タイトルを目立たせる */
+#main .ce .cm,#main .ce .cm span{color:var(--faint)!important}
+#main .ce .cm b{color:var(--faint)!important;font-weight:500!important}
+#main .ce .sub{color:var(--faint)!important}
+#main .ce .ct{color:var(--ink)!important;font-weight:700!important}
 /* PC：年表・展覧会などの日付とタイトルを大きく */
 @media(min-width:900px){
   #main .ce .cm{font-size:17px!important;gap:12px!important}
@@ -1631,7 +1636,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'b22d54e4b3', APP_URL = location.origin + location.pathname;
+const BUILD = '865b337879', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
