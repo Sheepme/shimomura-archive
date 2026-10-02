@@ -1451,17 +1451,19 @@ body:has(.docview) #top,body.vopen #top,body.vopen .appbar{visibility:hidden!imp
 .vmenu{position:absolute;top:66px;right:16px;z-index:6;display:none;flex-direction:column;align-items:stretch;gap:8px;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:10px;box-shadow:0 8px 28px rgba(0,0,0,.25);min-width:220px}
 .vmenu.open{display:flex}.vmenu > button,.vmenu .vrot{position:static!important;top:auto!important;right:auto!important;margin:0}.vmenu > button.hidden,.vmenu .vrot.hidden{display:none}.vmenu .vrot button{flex:1}.vmenu > button{text-align:left}
 html.sa .vedit{top:calc(12px + var(--cap))}html.sa .vmenu{top:calc(66px + var(--cap))}html.sa.tb .vedit{top:calc(12px + var(--cap) - var(--tb))}html.sa.tb .vmenu{top:calc(66px + var(--cap) - var(--tb))}
-/* 編集の画面：モーダルではなく右のカラム（スマホは全画面で右からスライド）2026/10/02 */
-#sheet.sheet{z-index:119;background:rgba(20,20,19,.12)!important;align-items:stretch!important;justify-content:flex-end!important}
-html[data-theme=dark] #sheet.sheet{background:rgba(0,0,0,.35)!important}
-#sheet .box{max-width:none!important;width:100%;height:100%;max-height:none!important;border-radius:0!important;box-shadow:-10px 0 30px rgba(0,0,0,.14);padding:18px 18px calc(30px + env(safe-area-inset-bottom))!important;animation:shin .24s ease-out}
-@keyframes shin{from{transform:translateX(100%)}to{transform:none}}
-@media(min-width:700px){ #sheet .box{width:min(580px,100%);padding:26px 32px 40px!important;border-left:1px solid var(--line)} }
-#sheet #sheetbox.split{width:min(1500px,100%)!important;height:100%!important;border-radius:0!important}
+/* 画面の重なりを1つにそろえる（2026/10/02）：編集・写真の拡大・書類の拡大は、どれも全画面で右から入り、戻ると右へ抜ける。重なり順は開いた順 */
+#sheet.sheet{background:var(--bg)!important;align-items:stretch!important;justify-content:stretch!important}
+#sheet .box{max-width:none!important;width:100%;height:100%;max-height:none!important;border-radius:0!important;box-shadow:none;padding:0 max(18px, calc((100% - 760px) / 2)) calc(30px + env(safe-area-inset-bottom))!important;border:0!important}
+#sheet #sheetbox.split{width:100%!important;height:100%!important;border-radius:0!important;padding:0 24px 24px!important}
 body.kbopen #sheet .box{max-height:none!important}
-#confirm.sheet{z-index:125!important}
-.docview{z-index:122!important} /* 書類の拡大は右のカラムより上に */
-#sheet .shx{margin-right:0}
+body.wide #sheet.sheet,body.wide #viewer,body.wide .docview{left:264px}
+.scrbar{position:sticky;top:0;z-index:4;display:flex;align-items:center;gap:10px;margin:0 -2px 10px;padding:10px 0 8px;background:var(--paper)}
+#sheetbox.split .scrbar{grid-column:1 / -1;margin:0;padding:12px 0}
+.scrback{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:8px 16px 8px 12px;font-size:16px;line-height:1.2;display:inline-flex;align-items:center;gap:6px}
+.scr-in{animation:scrIn .26s cubic-bezier(.2,.8,.2,1)}@keyframes scrIn{from{transform:translateX(100%)}to{transform:none}}
+.scr-back{animation:scrBack .26s cubic-bezier(.2,.8,.2,1)}@keyframes scrBack{from{transform:translateX(-22%);opacity:.6}to{transform:none;opacity:1}}
+.scr-ghost{position:fixed!important;pointer-events:none!important;animation:scrOut .24s ease-in forwards}@keyframes scrOut{to{transform:translateX(100%)}}
+#confirm.sheet{z-index:9000!important}
 .lrspin{position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;border:2.5px solid rgba(255,255,255,.7);border-top-color:#444;box-shadow:0 0 0 1px rgba(0,0,0,.12);animation:ldrot .8s linear infinite;pointer-events:none;z-index:2}
 .ldwrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;height:100%;min-height:200px;color:var(--sub);font-size:15px}
 .ldspin{width:36px;height:36px;border-radius:50%;border:3px solid var(--wash2);border-top-color:var(--sub);animation:ldrot .8s linear infinite}@keyframes ldrot{to{transform:rotate(360deg)}}
@@ -1666,7 +1668,7 @@ body .decs button:hover{color:var(--ink)!important}
 <div id="page" class="page hidden"></div>
 <div id="sheet" class="sheet hidden"><div class="box" id="sheetbox"></div></div>
 <div id="confirm" class="sheet hidden" style="z-index:100"><div class="box" id="confirmbox"></div></div>
-<div id="viewer" class="viewer hidden"><button class="vclose" id="vclose">✕ 閉じる</button><button id="vedit" class="vedit hidden" type="button" aria-label="この写真を編集">✎</button><div id="vmenu" class="vmenu"><button id="vmain" class="hidden">★ メイン画像にする</button><button id="vcopy" class="hidden">© 著作物の設定</button><div id="vrot" class="vrot hidden"><button type="button" data-rot="-90">↺ 左に回す</button><button type="button" data-rot="90">↻ 右に回す</button></div><button id="vrep" class="hidden">この写真を差し替える</button><button id="vdel" class="hidden">削除</button></div><img id="vimg" alt=""><span id="vwm" class="wm vwm"></span><div class="vbar"><button id="vprev">‹ 前</button><span id="vcount"></span><p id="vcredit" class="credit"></p><button id="vnext">次 ›</button></div><button id="vorig" type="button">高画質で見る</button></div>
+<div id="viewer" class="viewer hidden"><button class="vclose scrback" id="vclose">← 戻る</button><button id="vedit" class="vedit hidden" type="button" aria-label="この写真を編集">✎</button><div id="vmenu" class="vmenu"><button id="vmain" class="hidden">★ メイン画像にする</button><button id="vcopy" class="hidden">© 著作物の設定</button><div id="vrot" class="vrot hidden"><button type="button" data-rot="-90">↺ 左に回す</button><button type="button" data-rot="90">↻ 右に回す</button></div><button id="vrep" class="hidden">この写真を差し替える</button><button id="vdel" class="hidden">削除</button></div><img id="vimg" alt=""><span id="vwm" class="wm vwm"></span><div class="vbar"><button id="vprev">‹ 前</button><span id="vcount"></span><p id="vcredit" class="credit"></p><button id="vnext">次 ›</button></div><button id="vorig" type="button">高画質で見る</button></div>
 <div id="loading" class="loading hidden">読み込み中…</div>
 <div id="toast" class="tmsg hidden"></div>
 
@@ -1685,7 +1687,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '6b2ee45046', APP_URL = location.origin + location.pathname;
+const BUILD = '6bbfb0509b', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2278,10 +2280,10 @@ async function pdfBlobUrl(fid){ if (DPDF[fid]) return DPDF[fid];
   return DPDF[fid] = URL.createObjectURL(b); }
 function docView(fid){
   const el = document.createElement('div'); el.className = 'docview';
-  el.innerHTML = `<div class="dvbar"><span>指で広げると拡大できます</span><button type="button" class="vclose" style="position:static">閉じる ✕</button></div><div class="dvsc">${docImg(fid, 1600)}</div>`;
-  el.querySelector('button').onclick = () => el.remove();
+  el.innerHTML = `<div class="dvbar"><button type="button" class="vclose scrback" style="position:static">← 戻る</button><span>指で広げると拡大できます</span></div><div class="dvsc">${docImg(fid, 1600)}</div>`;
+  el.querySelector('button').onclick = () => { scrPop(el); el.remove(); };
   el.querySelector('.dvsc').onclick = e => { if (e.target.tagName==='IMG') e.target.classList.toggle('big'); };
-  document.body.appendChild(el); hydrateDocs(el);
+  document.body.appendChild(el); scrPush(el); hydrateDocs(el);
 }
 function docTitle(d){ if (d['タイトル']) return d['タイトル']; const r = docRes(d), y = (String(r['日付']||'').match(/(\d{4})/) || [])[1]; return [y ? y + '年' : '', r['相手先'], r['書類の種類'] && r['書類の種類']!=='その他' ? r['書類の種類'] : ''].filter(Boolean).join(' ') || '書類 ' + (d['書類ID']||''); }
 
@@ -3789,8 +3791,8 @@ function openPb(id, keepScroll, restoreSc){
 
 /* ---------- 写真の拡大表示 ---------- */
 let V = {list:[], i:0};
-function openViewer(i){ V.list = photoBy[S.cur]||[]; V.i = i; document.body.classList.add('vopen'); showV(); if ($('#viewer').classList.contains('hidden')) hpush('v'); $('#viewer').classList.remove('hidden'); }
-function closeViewer(fromHist){ const open = !$('#viewer').classList.contains('hidden'); $('#viewer').classList.add('hidden'); setTimeout(() => document.body.classList.remove('vopen'), 400); /* 閉じた直後のタップが下のメニューに届かないよう少し待つ */ if (open && !fromHist) hback(); }
+function openViewer(i){ V.list = photoBy[S.cur]||[]; V.i = i; document.body.classList.add('vopen'); showV(); if ($('#viewer').classList.contains('hidden')) { hpush('v'); $('#viewer').classList.remove('hidden'); scrPush($('#viewer')); } }
+function closeViewer(fromHist){ const open = !$('#viewer').classList.contains('hidden'); if (open) scrPop($('#viewer')); $('#viewer').classList.add('hidden'); setTimeout(() => document.body.classList.remove('vopen'), 400); /* 閉じた直後のタップが下のメニューに届かないよう少し待つ */ if (open && !fromHist) hback(); }
 /* 美術館などから転載した画像の注意書き（写真のメモが「転載元：館名｜URL」のとき） */
 const creditHTML = ph => [...new Set((ph||[]).map(p => String(p['メモ']||'')).filter(m => /^転載元：/.test(m)).map(m => { const [mu, u] = m.slice(4).split('｜'); return (mu||'').trim() + '｜' + (u||'').trim(); }))].map(m => { // 同じ転載元は1つにまとめる
   const [mu, u] = m.split('｜');
@@ -3943,7 +3945,18 @@ $('#vprev').onclick = () => { V.i--; showV(); };
 $('#vnext').onclick = () => { V.i++; showV(); };
 
 /* ---------- 入力シート ---------- */
-function openSheet(html){ $('#sheetbox').classList.remove('split'); $('#sheetbox').innerHTML = '<button type="button" class="shx" data-close aria-label="閉じる">✕</button>' + html; if ($('#sheet').classList.contains('hidden')) hpush('s'); $('#sheet').classList.remove('hidden');
+/* 画面のスタック：開いた順に上へ積む（重なり順はここだけで決める）。入るときは右から、戻るときは右へ抜けて下の画面が少し左から戻る */
+const SCR = [];
+function scrZ(){ SCR.forEach((el, i) => { el.style.zIndex = 100 + i * 2; }); }
+function scrPush(el){ const k = SCR.indexOf(el); if (k >= 0) SCR.splice(k, 1); SCR.push(el); scrZ();
+  el.classList.remove('scr-back'); el.classList.remove('scr-in'); void el.offsetWidth; el.classList.add('scr-in'); setTimeout(() => el.classList.remove('scr-in'), 300); }
+function scrPop(el){ const k = SCR.indexOf(el); if (k < 0) return; SCR.splice(k, 1);
+  try { const r = el.getBoundingClientRect(), g = el.cloneNode(true); g.removeAttribute('id'); g.querySelectorAll('iframe,[id]').forEach(x => x.tagName === 'IFRAME' ? x.remove() : x.removeAttribute('id'));
+    g.classList.remove('hidden', 'scr-in', 'scr-back'); g.classList.add('scr-ghost'); Object.assign(g.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', right: 'auto', bottom: 'auto', zIndex: 100 + SCR.length * 2 + 1 });
+    document.body.appendChild(g); setTimeout(() => g.remove(), 260); } catch(e){}
+  const under = SCR[SCR.length - 1] || (!$('#page').classList.contains('hidden') ? $('#page') : null);
+  if (under) { under.classList.remove('scr-back'); void under.offsetWidth; under.classList.add('scr-back'); setTimeout(() => under.classList.remove('scr-back'), 300); } }
+function openSheet(html){ $('#sheetbox').classList.remove('split'); $('#sheetbox').innerHTML = '<div class="scrbar"><button type="button" class="scrback" data-close aria-label="戻る">← 戻る</button></div>' + html; if ($('#sheet').classList.contains('hidden')) { hpush('s'); $('#sheet').classList.remove('hidden'); scrPush($('#sheet')); }
   clearTimeout(SNAP.t); SNAP.v = null; SNAP.t = setTimeout(() => { SNAP.v = sheetState(); }, 250); }
 /* 入力中の内容があるか（開いたときの状態とくらべる）。写真を選んだ・項目を選んだ・文字を入れた、を見分ける */
 const SNAP = { v: null, t: 0 };
@@ -3953,7 +3966,7 @@ function sheetState(){ const b = $('#sheetbox'); if (!b) return '';
     + '|' + [...b.querySelectorAll('img.preview,.pvs img')].filter(i => !i.classList.contains('hidden') && i.getAttribute('src')).length; }
 const sheetDirty = () => !$('#sheet').classList.contains('hidden') && SNAP.v !== null && sheetState() !== SNAP.v;
 const askLeave = () => !sheetDirty() || confirm('入力した内容は、まだ保存されていません。閉じていいですか？');
-function closeSheet(fromHist){ $('#sheetbox').onclick = null; $('#sheetbox').classList.remove('split'); const open = !$('#sheet').classList.contains('hidden'); $('#sheet').classList.add('hidden'); $('#sheetbox').innerHTML=''; if (open && !fromHist) hback(); try { if (PDFQ && PDFQ.running) setTimeout(pdfBg, 0); } catch(e){} }
+function closeSheet(fromHist){ if (!$('#sheet').classList.contains('hidden')) scrPop($('#sheet')); $('#sheetbox').onclick = null; $('#sheetbox').classList.remove('split'); const open = !$('#sheet').classList.contains('hidden'); $('#sheet').classList.add('hidden'); $('#sheetbox').innerHTML=''; if (open && !fromHist) hback(); try { if (PDFQ && PDFQ.running) setTimeout(pdfBg, 0); } catch(e){} }
 
 /* ---------- スワイプで戻る（ブラウザの「戻る」と連動） ---------- */
 /* 画面を開くたびに履歴を1つ積み、戻る操作で一番上の画面を閉じる */
