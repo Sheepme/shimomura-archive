@@ -1654,7 +1654,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '8d3a0ded36', APP_URL = location.origin + location.pathname;
+const BUILD = 'dd1aeb04d8', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4779,7 +4779,7 @@ async function sheetPdfScan(){
   openSheet(`<h3>スキャンした資料を登録</h3><div id="pdfHead"></div><div id="pdfList">${list.map((x, i) => `<div class="pdfcard" id="pc${i}"></div>`).join('')}</div><div class="btns"><button type="button" data-close>閉じる</button></div>`);
   list.forEach((x, i) => pdfCard(i)); pdfHead();
   $('#sheetbox').onclick = e => { if (e.target.closest('[data-doc]')) { SNAP.v = null; return; } const b = e.target.closest('[data-pq]'); if (!b) return; const [k, i] = b.dataset.pq.split('|');
-    if (k==='all') return pdfReadAll(); if (k==='stop') { PDFQ.stop = true; return; }
+    if (k==='all') return pdfReadAll(); if (k==='stop') { PDFQ.stop = true; return; } if (k==='more') return pdfMore();
     if (k==='read') return pdfRead(+i); if (k==='again') return pdfRead(+i, true); if (k==='reg') return pdfReg(+i); if (k==='skip') { PDFQ.res[PDFQ.list[+i].id] = {skip: 1}; pdfCard(+i); pdfHead(); } };
 }
 /* 資料ファイルの背表紙（「スキャン › 35」などに一緒に入れた写真）を、その場に出す／しまう */
@@ -4796,8 +4796,8 @@ const pdfSnap = () => { try { SNAP.v = sheetState(); } catch(e){} }; // 読み�
 function pdfHead(){ const h = $('#pdfHead'); if (!h || !PDFQ) return;
   const L = PDFQ.list, R = PDFQ.res, unread = L.filter(x => !R[x.id]).length, done = L.filter(x => R[x.id] && R[x.id].done).length;
   h.innerHTML = !L.length ? '<p class="hint">「資料 › スキャン」フォルダに、まだPDFがありません。ScanSnapで1書類ずつスキャンして、このフォルダに保存してください。</p>'
-    : `<p class="hint">${L.length}件のPDF（登録済み ${done}件）。読み取ると、そのまま登録まで進めます。食い違いなどは、あとで「書類」の「⚠ 要確認」で確かめてください。読み取りは1件1円以下です。</p>
-      ${PDFQ.running ? `<button type="button" class="act" data-pq="stop">読み取りを止める</button>` : unread ? `<button type="button" class="act main" data-pq="all">まとめて読み取る（${unread}件）</button>` : ''}
+    : `<p class="hint">${L.length}件のPDF（登録済み ${done}件）。読み取ると、そのまま登録まで進めます。食い違いなどは、あとで「書類」の「⚠ 要確認」で確かめてください。費用の目安は1ページ0.1〜0.3円ほどです。</p>
+      ${PDFQ.capped && !PDFQ.running ? `<p class="hint" style="color:var(--warn)">⚠ 使いすぎ防止のため、今日の読み取りの上限で止まりました（あと${unread}件）。</p><button type="button" class="act main" data-pq="more">このまま続ける（今日だけ50件ふやす）</button>` : PDFQ.running ? `<button type="button" class="act" data-pq="stop">読み取りを止める</button>` : unread ? `<button type="button" class="act main" data-pq="all">まとめて読み取る（${unread}件）</button>` : ''}
       ${PDFQ.running || unread > 1 ? '<p class="hint">読み取り中は、この画面を閉じてほかの作業をしていても大丈夫です。終わったらお知らせします（アプリは開いたままにしてください）。</p>' : ''}`;
   pdfSnap(); }
 function pdfCard(i){ const el = $('#pc' + i); if (!el || !PDFQ) return; const x = PDFQ.list[i], r = PDFQ.res[x.id];
@@ -4829,15 +4829,22 @@ async function pdfRead(i, again){ const x = PDFQ.list[i]; PDFQ.res[x.id] = {load
   try { const d = await call('readPdf', x.id, !!again); PDFQ.res[x.id] = {d}; } catch(e){ PDFQ.res[x.id] = {err: String(e && e.message || e)}; }
   pdfCard(i); pdfHead();
   const rr = PDFQ.res[x.id]; if (rr && rr.d && !again && !(rr.d.dup && rr.d.dup.length)) await pdfReg(i, true); } // 読み取ったら、そのまま登録まで進める（同じ書類がありそうなときだけ手で）
+/* 上限で止まったとき「続ける」：今日だけ50件ふやして、続きから読む */
+async function pdfMore(){ try { await call('aiMore', 'pdf'); } catch(e){ return alert(e && e.message || e); } PDFQ.capped = false; pdfHead(); pdfReadAll(); }
 /* まとめて読み取り：画面を閉じても裏で続け、終わったら知らせる */
 async function pdfReadAll(){ if (PDFQ.running) return; PDFQ.running = true; PDFQ.stop = false; pdfHead(); pdfBg();
-  for (let i = 0; i < PDFQ.list.length && !PDFQ.stop; i++) { if (!PDFQ.res[PDFQ.list[i].id]) { await pdfRead(i); pdfBg(); } }
+  PDFQ.capped = false;
+  for (let i = 0; i < PDFQ.list.length && !PDFQ.stop; i++) { if (!PDFQ.res[PDFQ.list[i].id]) { await pdfRead(i);
+    const e = PDFQ.res[PDFQ.list[i].id]; if (e && e.err && /上限/.test(e.err)) { delete PDFQ.res[PDFQ.list[i].id]; PDFQ.capped = true; pdfCard(i); break; } // 使いすぎ防止で止まった
+    pdfBg(); } }
   PDFQ.running = false; pdfHead(); pdfBg(true); }
 function pdfBg(fin){ let el = $('#pdfbg'); const L = PDFQ ? PDFQ.list : [], R = PDFQ ? PDFQ.res : {};
   const read = L.filter(x => R[x.id] && !R[x.id].loading).length, err = L.filter(x => R[x.id] && R[x.id].err).length, open = !!$('#pdfList');
   if (!el) { el = document.createElement('button'); el.type = 'button'; el.id = 'pdfbg'; el.onclick = () => { el.remove(); sheetPdfScan(); }; document.body.appendChild(el); }
   if (fin) {
     if (PDFQ.stop) { el.remove(); return; }
+    if (PDFQ.capped) { if (open) { el.remove(); return; } el.className = 'done'; el.textContent = '⚠ 上限で止まりました　続ける ›';
+      if ($('#sheet').classList.contains('hidden')) setTimeout(() => { if (confirm('使いすぎ防止のため、今日の読み取りの上限で止まりました。\nこのまま続けますか？（今日だけ50件ふやします）')) { el.remove(); pdfMore(); } }, 50); return; }
     const reg = L.filter(x => R[x.id] && R[x.id].done).length, left = read - reg - err;
     const msg = `スキャンした資料の読み取りと登録が終わりました（登録 ${reg}件${left > 0 ? '、確認が必要 ' + left + '件' : ''}${err ? '、読み取れず ' + err + '件' : ''}）。`;
     if (open) { el.remove(); toast('読み取りが終わりました'); return; }
