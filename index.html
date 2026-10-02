@@ -1687,7 +1687,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '33d2e025a1', APP_URL = location.origin + location.pathname;
+const BUILD = '3c8a1fd57b', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3967,6 +3967,16 @@ function scrPop(el){ const k = SCR.indexOf(el); if (k < 0) return; SCR.splice(k,
     g.classList.remove('hidden'); Object.assign(g.style, { position: 'fixed', left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', right: 'auto', bottom: 'auto', margin: '0', zIndex: 100 + SCR.length * 2 + 1, pointerEvents: 'none' });
     document.body.appendChild(g); scrAnim(g, '0', '100'); setTimeout(() => g.remove(), SCR_MS - 20); } catch(e){}
   scrAnim(scrUnder(), '-100', '0'); scrHead(); }
+/* 左端から右へスワイプ：戻れる画面があれば戻る（ホーム画面に追加したアプリのとき）、これ以上戻れないときはメニューを開く */
+(function(){ let sx = null, sy = 0, dx = 0, dy = 0;
+  const busyUI = () => document.body.classList.contains('wide') || $('#drawer').classList.contains('open') || !$('#confirm').classList.contains('hidden') || !!document.querySelector('#quiz:not(.hidden), .brief, #tour') || (typeof VZ !== 'undefined' && VZ.s > 1);
+  addEventListener('touchstart', e => { const t = e.touches[0]; sx = (e.touches.length === 1 && t.clientX <= 24 && !busyUI()) ? t.clientX : null; sy = t.clientY; dx = dy = 0; }, {passive: true});
+  addEventListener('touchmove', e => { if (sx === null) return; const t = e.touches[0]; dx = t.clientX - sx; dy = t.clientY - sy; }, {passive: true});
+  addEventListener('touchend', () => { if (sx === null) return; const ok = dx > 70 && Math.abs(dy) < 60; sx = null; if (!ok) return;
+    const canBack = SCR.length > 0 || !$('#page').classList.contains('hidden');
+    if (!canBack) { openDrawer(); return; }
+    if (document.documentElement.classList.contains('sa')) { if (SCR.length) scrBack(); else if (typeof closeWork === 'function') closeWork(); } }, {passive: true});
+})();
 /* パンくずの最後に、開いている画面の名前を足す（元のページの名前は押すと戻れる） */
 function scrCrumb(){ if (!SCR.length) return; const h = $('#abTitle'); if (!h || h.className.indexOf('st-') === 0) return;
   h.querySelectorAll('.crumb.cur').forEach(c => { c.classList.remove('cur'); c.classList.add('cpscr'); });
