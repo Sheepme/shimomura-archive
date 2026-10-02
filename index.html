@@ -1431,6 +1431,7 @@ html body #main section.cy .cage{font-size:12px!important;color:var(--sub)!impor
 .doclinks .golink{display:block;margin:8px 0;text-align:left;font-size:16px}
 #pdfbg{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(112px + env(safe-area-inset-bottom));z-index:60;max-width:calc(100% - 32px);white-space:nowrap;padding:10px 16px;border-radius:22px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,.15)}#pdfbg.done{background:var(--ink);color:var(--bg);font-weight:600}
 .dchk{border:1px solid var(--warn);border-radius:10px;padding:10px 12px;margin:10px 0;font-size:15px}.dchk b{display:block;color:var(--warn)}.dchk .act{width:100%;margin-top:8px}
+.mmic{display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:var(--sub);background:var(--wash)}
 .spinev{display:flex;gap:8px;overflow-x:auto;margin:4px 0 10px}.spinev img{max-height:60vh;max-width:100%;border-radius:6px;border:1px solid var(--line)}
 .pdfnm{font-weight:600;margin-bottom:8px;word-break:break-all}.pdfnm small{font-weight:400;color:var(--faint);margin-left:8px;font-size:12px}
 .pdfw{padding:8px 0;border-top:1px solid var(--line)}.pdfw:first-of-type{border-top:0}
@@ -1650,7 +1651,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '303b9fe10c', APP_URL = location.origin + location.pathname;
+const BUILD = 'fc6c847781', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3672,13 +3673,13 @@ function openEx(id, keepScroll, restoreSc){
     <h2 class="title">${PRM(x['名称'])}${esc(x['名称']||'（名称未入力）')}</h2>
     <div class="tombstone">${esc([fmtDate(x['開始日'], x['終了日']), x['会場'], x['都市']].filter(Boolean).join('　|　'))}</div>
     ${venueSec(id)}
-    <h3 class="sec">出品作品 ${new Set(nos).size}点</h3>${linkedGrid('ex', id)}${docLinks('展覧会ID', id)}
+    <h3 class="sec">出品作品 ${new Set(nos).size}点</h3>${linkedGrid('ex', id)}${docLinks('展覧会ID', id)}${memosFor(id)}
     <h3 class="sec">展覧会の情報</h3>
     ${canEdit() ? recInfo('ex', id, x) : `<dl class="info">${dd2('会期', esc(fmtDate(x['開始日'], x['終了日'])))}${dd2('会場', esc(x['会場']))}${dd2('場所', esc([x['都市'], x['国']].filter(Boolean).join('・')))}${dd2('主催', esc(x['主催']))}
       ${cat ? dd2('図録', `<button class="golink" data-pb="${esc(cat['資料ID'])}">${esc(cat['タイトル']||'図録')} ›</button>`) : ''}
       ${rel.length ? dd2('関連資料', rel.map(p => `<button class="golink" data-pb="${esc(p['資料ID'])}">${esc(p['タイトル']||p['資料ID'])} ›</button>`).join('')) : ''}
       ${dd2('メモ', escU(x['メモ']))}${srcDD(x)}</dl>`}
-    ${canEdit() ? `<h3 class="sec">記録を更新する</h3><div class="actions bottomacts one"><button class="act main" data-link="ex|${esc(id)}">＋ 出品作品をひも付け</button><button class="act vadd" data-venue="${esc(id)}|">＋ 巡回先（会場）を追加</button>${delBtn('ex', id, 'この展覧会')}</div>` : ''}</div>`;
+    ${canEdit() ? `<h3 class="sec">記録を更新する</h3><div class="actions bottomacts one"><button class="act main" data-link="ex|${esc(id)}">＋ 出品作品をひも付け</button><button class="act vadd" data-venue="${esc(id)}|">＋ 巡回先（会場）を追加</button><button class="act" data-mmadd="1">📝 お母さんへの確認メモを書く</button>${delBtn('ex', id, 'この展覧会')}</div>` : ''}</div>`;
   showPage({t:'ex', id}, html, keepScroll, restoreSc);
 }
 function openPb(id, keepScroll, restoreSc){
@@ -3690,13 +3691,13 @@ function openPb(id, keepScroll, restoreSc){
     <h2 class="title">${esc(x['タイトル']||'（書名未入力）')}</h2>
     <div class="tombstone">${esc([fmtDate(x['発行年月']), x['発行元'], x['著者・編者']].filter(Boolean).join('　|　'))}</div>
     ${cover ? `<div class="cover">${thImg(x['表紙写真ファイルID'], 800)}</div>` : ''}
-    <h3 class="sec">掲載作品 ${new Set(nos).size}点</h3>${linkedGrid('pb', id)}${docLinks('資料ID', id)}
+    <h3 class="sec">掲載作品 ${new Set(nos).size}点</h3>${linkedGrid('pb', id)}${docLinks('資料ID', id)}${memosFor(id)}
     <h3 class="sec">資料の情報</h3>
     ${canEdit() ? recInfo('pb', id, x) : `<dl class="info">${dd2('種類', esc(x['種類']))}${dd2('発行', esc(fmtDate(x['発行年月'])))}${dd2('発行元', esc(x['発行元']))}${dd2('著者・編者', esc(x['著者・編者']))}${dd2('掲載内容', esc(x['掲載内容']))}
       ${dd2('家にある冊数', x['家にある冊数'] ? esc(x['家にある冊数']) + '冊' : '')}
       ${ex ? dd2('関連する展覧会', `<button class="golink" data-ex="${esc(ex['展覧会ID'])}">${PRM(ex['名称'])}${esc(ex['名称'])} ›</button>`) : ''}
       ${dd2('メモ', escU(x['メモ']))}${srcDD(x)}</dl>`}
-    ${canEdit() ? `<h3 class="sec">記録を更新する</h3><div class="actions bottomacts one"><button class="act main" data-link="pb|${esc(id)}">＋ 掲載作品をひも付け</button><button class="act" data-cover="${esc(id)}">${cover ? '表紙の写真を差し替える' : '表紙の写真を登録（カメラ・写真）'}</button>${delBtn('pb', id, 'この資料')}</div>` : ''}</div>`;
+    ${canEdit() ? `<h3 class="sec">記録を更新する</h3><div class="actions bottomacts one"><button class="act main" data-link="pb|${esc(id)}">＋ 掲載作品をひも付け</button><button class="act" data-cover="${esc(id)}">${cover ? '表紙の写真を差し替える' : '表紙の写真を登録（カメラ・写真）'}</button><button class="act" data-mmadd="1">📝 お母さんへの確認メモを書く</button>${delBtn('pb', id, 'この資料')}</div>` : ''}</div>`;
   showPage({t:'pb', id}, html, keepScroll, restoreSc);
 }
 
@@ -5053,11 +5054,31 @@ const isChecker = () => !!(S.user && S.user.name === (S.memoChecker||'直美'));
 function memoCard(m){
   const nos = String(m['作品番号']||'').split(',').filter(Boolean), done = !!m['確認済み'], ok = isChecker();
   const ws = nos.map(no => { const w = workOf(no); return `<button type="button" class="mmw" data-mmw="${esc(no)}"><span class="mmth">${(photoBy[no]||[]).length ? thumbHTML(no, 200) : esc(nol(no))}</span><span class="t">${esc(nol(no))}　${esc(w ? (w['作品名']||'無題') : '（見つかりません）')}</span></button>`; }).join('');
-  return `<div class="mmnote ${done?'done':''}"><p class="mmtxt">${escU(m['内容'])}</p>${ws ? `<div class="mmws">${ws}</div>` : ''}
+  const rs = memoRel(m).map(relOf).filter(Boolean).map(r => `<button type="button" class="mmw" data-${r.k}="${esc(r.id)}"><span class="mmth mmic">${r.ic}</span><span class="t">${esc(r.label)}</span></button>`).join('');
+  return `<div class="mmnote ${done?'done':''}"><p class="mmtxt">${escU(m['内容'])}</p>${ws || rs ? `<div class="mmws">${ws}${rs}</div>` : ''}
     <div class="mmft"><label class="mmck ${ok?'':'dis'}" ${ok?'':`title="${esc(S.memoChecker||'直美')}さんだけが押せます"`}><input type="checkbox" data-mmck="${esc(m['メモID'])}" ${done?'checked':''} ${ok?'':'disabled'}><span class="bx">✓</span>確認しました</label>
     <span class="mmmeta">${done ? esc(m['確認者']||'') + ' ' + esc(String(m['確認日時']||'').slice(0,10)) + ' 確認' : esc(m['作成者']||'') + ' ' + esc(String(m['作成日時']||'').slice(0,10))}</span>
     <button type="button" class="mmedit" data-mmedit="${esc(m['メモID'])}">✎ 直す</button></div></div>`;
 }
+/* メモには作品のほか、展覧会・画集（本）・書類もつなげる（「関連ID」に入れる） */
+const memoRel = m => String(m['関連ID']||'').split(',').filter(Boolean);
+function relOf(id){ let x;
+  if ((x = (S.exhibits||[]).find(e => e['展覧会ID']===id))) { const y = (String(x['開始日']||'').match(/(\d{4})/)||[])[1]; return {k:'ex', id, ic:'展', label:'展覧会：' + (x['名称']||id) + (y ? '（' + y + '）' : '')}; }
+  if ((x = (S.pubs||[]).find(p => p['資料ID']===id))) return {k:'pb', id, ic:'本', label:'画集・本：' + (x['タイトル']||id)};
+  if ((x = docById(id))) return {k:'doc', id, ic:'書', label:'書類：' + docTitle(x)};
+  return null; }
+function relHits(v){ const q = String(v||'').normalize('NFKC').trim().toLowerCase(); if (!q) return [];
+  const all = [].concat((S.exhibits||[]).map(e => e['展覧会ID']), (S.pubs||[]).map(p => p['資料ID']), (S.docs||[]).map(d => d['書類ID'])).map(relOf).filter(Boolean);
+  return all.filter(r => (r.id + ' ' + r.label).normalize('NFKC').toLowerCase().includes(q)).slice(0, 8); }
+document.addEventListener('input', e => { const el = e.target; if (!el.matches || !el.matches('.mmrin')) return;
+  const row = el.closest('.mmwrow') || el; let box = row.nextElementSibling;
+  if (!box || !box.classList.contains('wsug')) { box = document.createElement('div'); box.className = 'wsug'; row.after(box); }
+  box.innerHTML = relHits(el.value).map(r => `<button type="button" data-rid="${esc(r.id)}"><span class="th mmic">${r.ic}</span><span>${esc(r.label)}</span></button>`).join('');
+  box.onclick = ev => { const b = ev.target.closest('[data-rid]'); if (!b) return; el.value = relOf(b.dataset.rid).label; el.dataset.rid = b.dataset.rid; box.innerHTML = ''; el.blur(); };
+});
+/* 展覧会・画集・作品のページに、つながっているメモを出す */
+function memosFor(id){ if (!canEdit()) return ''; const L = (S.memos||[]).filter(m => !m['確認済み'] && (memoRel(m).includes(String(id)) || String(m['作品番号']||'').split(',').includes(String(id))));
+  return L.length ? `<h3 class="sec">お母さんへの確認メモ（${L.length}件）</h3><div class="mmlist">${L.map(memoCard).join('')}</div>` : ''; }
 function memoHTML(){
   if (!canEdit()) return '';
   const M = (S.memos||[]).slice().sort((a, b) => String(b['作成日時']).localeCompare(String(a['作成日時'])));
@@ -5068,15 +5089,21 @@ function memoHTML(){
 }
 function sheetMemo(id){
   const m = id ? (S.memos||[]).find(x => x['メモID']===id) : null;
-  const nos = m ? String(m['作品番号']||'').split(',').filter(Boolean) : (S.pcur && S.pcur.t==='w' ? [S.pcur.id] : []);
+  const nos = m ? String(m['作品番号']||'').split(',').filter(Boolean) : (S.pcur && (S.pcur.t==='w' || S.pcur.t==='ot') && !$('#page').classList.contains('hidden') ? [S.pcur.id] : []);
+  const rels = m ? memoRel(m) : (S.pcur && (S.pcur.t==='ex' || S.pcur.t==='pb') && !$('#page').classList.contains('hidden') ? [S.pcur.id] : []);
+  const rrow = id => { const r = id ? relOf(id) : null; return `<div class="mmwrow"><input class="mmrin" autocomplete="off" value="${esc(r ? r.label : '')}" data-rid="${esc(r ? id : '')}" placeholder="展覧会名・本の名前などを入れる"><button type="button" data-mmrm="1" aria-label="外す">×</button></div>`; };
   const row = no => `<div class="mmwrow"><input class="mmwin" autocomplete="off" value="${esc(no ? wLabel(no) : '')}" placeholder="番号か作品名を入れる"><button type="button" data-mmrm="1" aria-label="外す">×</button></div>`;
   openSheet(`<h3>${m ? 'お母さんへの確認メモを直す' : 'お母さんへの確認メモを書く'}</h3><p class="hint">${esc(S.memoChecker||'直美')}さんに確認してほしいことを書きます。ホームのいちばん上に付箋で出ます。</p>
     ${F('確認してほしいこと', `<textarea id="mmText" placeholder="例：この屏風は京都市美術館にありますか？">${esc(m ? m['内容'] : '')}</textarea>`)}
     <div class="field"><label>関係する作品（いくつでも）</label><div id="mmWs">${(nos.length ? nos : ['']).map(row).join('')}</div>
       <button type="button" class="act" id="mmWAdd" style="width:100%">＋ 作品を追加</button></div>
+    <div class="field"><label>関係する展覧会・画集（本）・書類（いくつでも）</label><div id="mmRs">${(rels.length ? rels : ['']).map(rrow).join('')}</div>
+      <button type="button" class="act" id="mmRAdd" style="width:100%">＋ 展覧会・画集・書類を追加</button></div>
     <datalist id="dlWorksM">${S.works.concat(S.others||[]).map(w => `<option value="${esc(wLabel(w['作品番号']))}">`).join('')}</datalist>
     <div class="btns">${m ? `<button type="button" class="danger" id="mmDel">削除</button>` : ''}<button type="button" data-close>やめる</button><button type="button" class="primary" id="ok">保存</button></div>`);
   $('#mmWAdd').onclick = () => { const t = document.createElement('div'); t.innerHTML = row(''); $('#mmWs').appendChild(t.firstElementChild); $('#mmWs').lastElementChild.querySelector('input').focus(); };
+  $('#mmRAdd').onclick = () => { const t = document.createElement('div'); t.innerHTML = rrow(''); $('#mmRs').appendChild(t.firstElementChild); $('#mmRs').lastElementChild.querySelector('input').focus(); };
+  $('#mmRs').addEventListener('click', e => { if (e.target.closest('[data-mmrm]')) { const r = e.target.closest('.mmwrow'); if ($('#mmRs').children.length > 1) r.remove(); else { const i = r.querySelector('input'); i.value = ''; i.dataset.rid = ''; } } });
   $('#mmWs').addEventListener('click', e => { if (e.target.closest('[data-mmrm]')) { const r = e.target.closest('.mmwrow'); if ($('#mmWs').children.length > 1) r.remove(); else r.querySelector('input').value = ''; } });
   if (m) $('#mmDel').onclick = () => { closeSheet(); setTimeout(() => sheetDelete('m', m['メモID'], 'このお母さんへの確認メモ'), 300); };
   $('#ok').onclick = () => {
@@ -5084,7 +5111,12 @@ function sheetMemo(id){
     const bad = [], list = [];
     document.querySelectorAll('#mmWs .mmwin').forEach(i => { const v = i.value.trim(); if (!v) return; const no = noOf(v); if (no) list.push(no); else bad.push(v); });
     if (bad.length) return alert('見つからない作品があります：' + bad.join('、') + '\n番号か作品名を候補から選んでください');
-    save('saveMemo', [m ? m['メモID'] : '', text, list], m ? 'メモを直しました' : 'メモを追加しました');
+    const rl = [], rbad = [];
+    document.querySelectorAll('#mmRs .mmrin').forEach(i => { const v = i.value.trim(); if (!v) return; let id = i.dataset.rid && relOf(i.dataset.rid) && relOf(i.dataset.rid).label === v ? i.dataset.rid : '';
+      if (!id) { const h = relHits(v); const ex = h.find(r => r.label === v || r.id === v); id = ex ? ex.id : (h.length === 1 ? h[0].id : ''); }
+      if (id) { if (!rl.includes(id)) rl.push(id); } else rbad.push(v); });
+    if (rbad.length) return alert('見つからない展覧会・画集・書類があります：' + rbad.join('、') + '\n名前を入れて、出てくる候補から選んでください');
+    save('saveMemo', [m ? m['メモID'] : '', text, list, rl], m ? 'メモを直しました' : 'メモを追加しました');
   };
 }
 document.addEventListener('click', e => {
