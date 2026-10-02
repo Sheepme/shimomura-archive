@@ -1592,7 +1592,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '8e12410aa6', APP_URL = location.origin + location.pathname;
+const BUILD = '66a88cd551', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3230,6 +3230,7 @@ function openWork(no, keepScroll, restoreSc){
         <button class="act" data-act="flag">${w['要確認']?'要確認を外す':'要確認にする'}</button>
         <button class="act" data-linkw="${esc(no)}">＋ 展覧会・画集にひも付け</button>
         <button class="act" data-mmadd="1">📝 お母さんへの確認メモを書く</button>
+        ${ot ? '' : `<button class="act" data-toot="${esc(no)}">→ その他の作品（やけもの・版画など）に移す</button>`}
         ${delBtn('w', no, 'この作品')}
       </div>` : ''}
       <p style="color:var(--faint);font-size:14px;margin-top:40px;letter-spacing:.04em">最終更新：${esc(w['最終更新日時'])}（${esc(w['最終更新者'])}）</p>
@@ -3959,6 +3960,21 @@ function sheetOtUrlForm(r){
     if (d && d.newId) { openWork(d.newId); if (d.photoNg) setTimeout(() => alert('写真のうち ' + d.photoNg + '枚は取り込めませんでした。'), 400); }
   };
 }
+/* 本画の一覧にある作品を、その他の作品に移す */
+function sheetToOther(no){
+  const w = workOf(no); if (!w || !canEdit()) return;
+  const g = /版画|エッチング|リトグラフ|木版|銅版/.test([w['作品名'], w['画材'], w['補足']].join(' ')) ? '版画' : /陶|焼|やけもの|やきもの|茶碗|皿|壺/.test([w['作品名'], w['画材'], w['補足']].join(' ')) ? 'やけもの' : '';
+  openSheet(`<h3>その他の作品に移す</h3><p class="hint">${esc(nol(no))}「${esc(w['作品名'] || '無題')}」を、本画の一覧から「その他」に移します。番号は新しく付け直します（例：版画なら H002）。写真・あゆみ・書類も一緒に移ります。</p>
+    ${F('種類', pick('tot', OT_T, g))}
+    <p class="hint" style="margin-top:-6px">やけもの＝陶芸　版画＝エッチング・木版画・年賀状　その他＝グッズ・落書きなど</p>
+    ${BTNS('移す')}`);
+  $('#ok').onclick = async () => {
+    if (!val('tot')) return alert('種類を選んでください');
+    const d = await save('moveToOther', [no, val('tot')], 'その他の作品に移しました');
+    if (d && d.newId) openWork(d.newId);
+  };
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-toot]'); if (b && canEdit()) sheetToOther(b.dataset.toot); });
 function openOt(id, keepScroll, restoreSc){ return openWork(id, keepScroll, restoreSc); } // その他の作品も本作と同じページ
 /* ---------- 統合（同じ作品の2つの番号を1つにまとめる） ---------- */
 const MF = ['作品名','作品名メモ','幅cm','高さcm','制作年','画材','種別','シリーズ','所在区分','所在','自宅エリア','状態メモ','補足','所蔵者・連絡先','管理メモ'];
