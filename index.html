@@ -1594,7 +1594,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '227f71718e', APP_URL = location.origin + location.pathname;
+const BUILD = '5a8462c29a', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3708,7 +3708,16 @@ $('#vprev').onclick = () => { V.i--; showV(); };
 $('#vnext').onclick = () => { V.i++; showV(); };
 
 /* ---------- 入力シート ---------- */
-function openSheet(html){ $('#sheetbox').innerHTML = html; if ($('#sheet').classList.contains('hidden')) hpush('s'); $('#sheet').classList.remove('hidden'); }
+function openSheet(html){ $('#sheetbox').innerHTML = html; if ($('#sheet').classList.contains('hidden')) hpush('s'); $('#sheet').classList.remove('hidden');
+  clearTimeout(SNAP.t); SNAP.v = null; SNAP.t = setTimeout(() => { SNAP.v = sheetState(); }, 250); }
+/* 入力中の内容があるか（開いたときの状態とくらべる）。写真を選んだ・項目を選んだ・文字を入れた、を見分ける */
+const SNAP = { v: null, t: 0 };
+function sheetState(){ const b = $('#sheetbox'); if (!b) return '';
+  return [...b.querySelectorAll('input:not([type=file]),textarea,select')].map(e => (e.type==='checkbox' || e.type==='radio') ? e.checked : e.value).join('\u0001')
+    + '|' + [...b.querySelectorAll('.pick')].map(p => p.dataset.v).join('\u0001') + '|' + b.querySelectorAll('.on').length
+    + '|' + [...b.querySelectorAll('img.preview,.pvs img')].filter(i => !i.classList.contains('hidden') && i.getAttribute('src')).length; }
+const sheetDirty = () => !$('#sheet').classList.contains('hidden') && SNAP.v !== null && sheetState() !== SNAP.v;
+const askLeave = () => !sheetDirty() || confirm('入力した内容は、まだ保存されていません。閉じていいですか？');
 function closeSheet(fromHist){ $('#sheetbox').onclick = null; const open = !$('#sheet').classList.contains('hidden'); $('#sheet').classList.add('hidden'); $('#sheetbox').innerHTML=''; if (open && !fromHist) hback(); }
 
 /* ---------- スワイプで戻る（ブラウザの「戻る」と連動） ---------- */
@@ -3720,7 +3729,7 @@ function hback(){ if (!hist_()) return; HIST.skip++; try { history.back(); } cat
 function closeTop(){
   if (!$('#confirm').classList.contains('hidden')) return closeConfirm(true), true;
   if (!$('#viewer').classList.contains('hidden')) return closeViewer(true), true;
-  if (!$('#sheet').classList.contains('hidden')) return closeSheet(true), true;
+  if (!$('#sheet').classList.contains('hidden')) { if (!askLeave()) { hpush('s'); return true; } return closeSheet(true), true; }
   if (!$('#page').classList.contains('hidden')) return closeWork(true), true;
   return false;
 }
@@ -4404,7 +4413,7 @@ document.addEventListener('click', e => {
   if (t.id==='chatReset'){ S.chat=[]; S.conv = newConv(); renderAI(); return; }
   if (t.id==='aiClose'){ closeAI(); return; }
 });
-$('#sheet').addEventListener('click', e => { if (e.target.id==='sheet') closeSheet(); });
+$('#sheet').addEventListener('click', e => { if (e.target.id==='sheet' && askLeave()) closeSheet(); }); // 外側を押したとき：入力中なら確認
 $('#confirm').addEventListener('click', e => { if (e.target.id==='confirm') closeConfirm(); });
 $('#page').addEventListener('change', async e => {
   if (e.target.id !== 'locOk' || !S.cur) return;
