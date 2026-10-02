@@ -1405,7 +1405,24 @@ html body #main section.cy .cage{font-size:12px!important;color:var(--sub)!impor
 #main section.cy .ce>li:first-child{padding-top:2px!important}
 #main section.cy .ce>li:last-child{border-bottom:0!important;padding-bottom:0!important}
 #yfix{display:none!important}
+/* その場で直す入力欄 */
+dl.info dd.iedit{padding-right:0!important}
+dl.info dd.iedit .iein{display:block;width:100%;box-sizing:border-box;font:400 16px/1.4 var(--sans);color:var(--ink);background:var(--paper);border:1.5px solid var(--ink);border-radius:10px;padding:9px 12px;margin:0;outline:none}
+dl.info dd.iedit textarea.iein{min-height:84px;resize:vertical}
+dl.info dd.iedit .iesz{display:flex;align-items:center;gap:8px}
+dl.info dd.iedit .iesz .iein{flex:1;min-width:0}
+dl.info dd.iedit .iesz span{flex:none;color:var(--sub)}
+dl.info dd.iedit .ieb{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+dl.info dd.iedit .ieb button{height:40px;padding:0 18px;border-radius:20px;font:600 15px/1 var(--sans);cursor:pointer}
+dl.info dd.iedit .ieno{background:none;border:1px solid var(--line);color:var(--ink)}
+dl.info dd.iedit .ieok{background:var(--ink);border:1px solid var(--ink);color:var(--bg)}
 #finder>.chips.stk,#chronobar>.chips.stk{margin-left:0!important;margin-right:0!important}
+/* iPhone：写真がタブの上に描かれて透けて見えるのを防ぐ（タブを別の層にして、いちばん上に描く） */
+.chips.stk{background:var(--bg)!important;-webkit-transform:translateZ(0);transform:translateZ(0);will-change:transform;isolation:isolate}
+#wthd{-webkit-transform:translateZ(0);transform:translateZ(0)}
+/* iPhone：角丸の写真が上に重なって、タブの行が透けて見えるのを防ぐ（タブの行を独立した層にし、中身はその下の層に） */
+.chips.stk{-webkit-transform:translateZ(0);transform:translateZ(0)}
+body main#main{position:relative;z-index:0}
 
 /* ===== 上のヘッダー（2026-10）：左にアイコン＋「下村良之介作品目録 › …」、右にメニュー。メニューは右から出る ===== */
 #top .appbar,#top .brand.appbar{top:0!important;left:0!important;right:0!important;translate:none!important;gap:10px!important;padding:calc(var(--tb,0px) + var(--cap,0px) + 6px) 12px 6px calc(var(--gx) - 11px)!important;background:var(--bg)!important;border-bottom:1px solid var(--line);pointer-events:auto!important;box-sizing:border-box;align-items:center!important}
@@ -1601,7 +1618,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '0c7d419117', APP_URL = location.origin + location.pathname;
+const BUILD = '5648541e9c', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3825,6 +3842,32 @@ function sheetEdit(no, focusId){
     confirmSave((isOtNo(no) ? '' : 'No.')+no+' の情報を直す', Object.keys(patch).map(k => [(isOtNo(no) && k==='種別' ? '種類' : label[k]||k), w[k]||'', patch[k]]), 'updateWork', [no, patch]).then(d => { if (d && d.newId) { closeAllPages(); openWork(d.newId); toast('番号が ' + d.newId + ' になりました'); } });
   };
 }
+/* ---------- 作品の情報を、その場で直す（鉛筆を押した行が入力欄に変わる） ---------- */
+const IE = {w1:[['作品名']], w3:[['幅cm','幅'],['高さcm','高さ']], w5:[['制作年','例：1961年 / 1960年代']], w6:[['画材','例：顔料/紙/紙粘土']], w7:[['種別']], w8:[['シリーズ','例：青鷺の森、闘鶏']], w9:[['状態メモ']], w10:[['補足']], w11:[['所蔵者・連絡先','例：〇〇様（電話番号など）']], w12:[['管理メモ']]};
+const IE_AREA = {w9:1, w10:1, w12:1};
+function inlineCancel(){ const dd = document.querySelector('#page dd.iedit'); if (dd) { dd.innerHTML = dd.dataset.orig; dd.classList.remove('iedit'); } }
+function inlineEdit(btn, no, f){
+  const spec = IE[f], dd = btn.closest('dd'); if (!spec || !dd) return false;
+  if (f === 'w7' && isOtNo(no)) return false; // その他の作品の「種類」は番号の付け直しがあるので、これまでの画面で
+  inlineCancel();
+  const w = workOf(no); dd.dataset.orig = dd.innerHTML; dd.classList.add('iedit');
+  let body;
+  if (f === 'w7') body = `<select class="iein" data-k="種別">${['', ...KINDS, ...(w['種別'] && !KINDS.includes(w['種別']) ? [w['種別']] : [])].map(k => `<option value="${esc(k)}" ${(w['種別']||'')===k?'selected':''}>${k ? esc(k) : '（未入力）'}</option>`).join('')}</select>`;
+  else if (f === 'w3') body = `<div class="iesz"><input class="iein" data-k="幅cm" inputmode="decimal" value="${esc(w['幅cm']||'')}" placeholder="幅"><span>×</span><input class="iein" data-k="高さcm" inputmode="decimal" value="${esc(w['高さcm']||'')}" placeholder="高さ"><span>cm</span></div>`;
+  else if (IE_AREA[f]) body = `<textarea class="iein" data-k="${spec[0][0]}" rows="3">${esc(w[spec[0][0]]||'')}</textarea>`;
+  else body = `<input class="iein" data-k="${spec[0][0]}" value="${esc(w[spec[0][0]]||'')}" placeholder="${esc(spec[0][1]||'')}" enterkeyhint="done">`;
+  dd.innerHTML = body + `<div class="ieb"><button type="button" class="ieno" data-ie="no">やめる</button><button type="button" class="ieok" data-ie="ok">保存</button></div>`;
+  const first = dd.querySelector('.iein'); setTimeout(() => { first.focus(); if (first.select && first.tagName === 'INPUT') first.select(); }, 30);
+  const go = () => { const patch = {}; dd.querySelectorAll('.iein').forEach(i => { const v = i.value.trim(); if (v !== String(w[i.dataset.k]||'')) patch[i.dataset.k] = v; });
+    if (!Object.keys(patch).length) { inlineCancel(); return; }
+    dd.querySelectorAll('button,.iein').forEach(x => x.disabled = true); save('updateWork', [no, patch], '保存しました'); };
+  dd.querySelector('[data-ie="ok"]').onclick = e => { e.stopPropagation(); go(); };
+  dd.querySelector('[data-ie="no"]').onclick = e => { e.stopPropagation(); inlineCancel(); };
+  dd.querySelectorAll('.iein').forEach(i => i.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); inlineCancel(); }
+    else if (e.key === 'Enter' && !e.isComposing && i.tagName !== 'TEXTAREA') { e.preventDefault(); go(); } }));
+  return true;
+}
 function sheetEventEdit(id){
   const e = S.events.find(x => x['出来事ID']===id); if (!e) return;
   openSheet(`<h3>できごとを直す</h3><p class="hint">${esc(nol(e['作品番号']))}　${e['確かさ']&&e['確かさ'].includes('自動')?'旧リストから自動で読み取った内容です。正しく直してください。':''}</p>
@@ -4430,7 +4473,7 @@ document.addEventListener('click', e => {
   if (t.dataset.dec){ jumpDec(t.dataset.dec); return; }
   if (t.dataset.no){ if (t.closest('#sheetbox')) closeSheet(); if (t.closest('#aip') && !aiCol()) closeAI(); openWork(t.dataset.no); return; } // PCはチャットを右に残したまま、左に作品を開く
   if (t.id==='back'){ closeWork(); return; }
-  if (t.dataset.fill !== undefined && S.cur){ sheetEdit(S.cur, t.dataset.fill); return; }
+  if (t.dataset.fill !== undefined && S.cur){ if (!inlineEdit(t, S.cur, t.dataset.fill)) sheetEdit(S.cur, t.dataset.fill); return; } // 鉛筆を押すと、その場で直せる
   if (t.dataset.evedit){ sheetEventEdit(t.dataset.evedit); return; }
   if (t.dataset.act){ const no=S.cur; ({move:sheetMove,event:sheetEvent,photo:sheetPhoto,edit:sheetEdit,flag:sheetFlag,merge:sheetMerge,doc:sheetDoc})[t.dataset.act](no); return; }
   if (t.hasAttribute('data-close')){ closeSheet(); return; }
