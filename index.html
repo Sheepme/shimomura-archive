@@ -1592,7 +1592,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '5ac8b32375', APP_URL = location.origin + location.pathname;
+const BUILD = '8e12410aa6', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3914,8 +3914,17 @@ function otUrlDup(u, dup){
   $('#ouForce').onclick = () => otUrlRead(u, true);
 }
 function sheetOtUrlForm(r){
-  const f = r.f || {}, imgs = r.imgs || [], on = new Set(imgs.length ? [0] : []);
-  openSheet(`<h3>読み取った内容</h3><p class="hint">${r.ai ? 'まちがっているところは直してから登録してください。' : 'AIが使えなかったので、分かる項目を入れてください。'}</p>
+  const f = Object.assign({}, r.f || {}), imgs = r.imgs || [], on = new Set(imgs.length ? [0] : []);
+  if (!r.ai) { // AIが読めなかったときは、ページのタイトルから分かる分だけ入れておく（例：「夜道」・銅版画）
+    const t = String(r.title || ''), m = /[「『]([^」』]+)[」』]/.exec(t), tech = (/(銅版画|木版画|リトグラフ|エッチング|シルクスクリーン|版画|陶器|陶芸|茶碗|皿|壺|花瓶)/.exec(t) || [])[1] || '';
+    if (!f['作品名'] && m) f['作品名'] = m[1];
+    if (!f['画材'] && tech) f['画材'] = tech;
+    if (!f['種類'] && tech) f['種類'] = /版画|リトグラフ|エッチング|シルク/.test(tech) ? '版画' : 'やけもの';
+  }
+  const busyAI = /429|503/.test(r.aiErr || '');
+  openSheet(`<h3>読み取った内容</h3><p class="hint">${r.ai ? 'まちがっているところは直してから登録してください。'
+      : (busyAI ? 'AIが混み合っていて、くわしく読み取れませんでした。' : 'AIでくわしく読み取れませんでした。') + 'ページのタイトルから分かる分だけ入れてあります。少し待って「もう一度読み取る」を押すか、分かる項目を入れてください。'}</p>
+    ${r.ai ? '' : '<button type="button" class="act candbtn" id="ouRetry">↻ もう一度読み取る</button>'}
     <p class="hint">出典：<a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title || r.url)}</a></p>
     ${imgs.length ? `<label class="oulbl">取り込む写真を選ぶ <span id="ouN"></span></label>
       <div class="candgrid">${imgs.map((u, i) => `<button type="button" class="candp ${on.has(i) ? 'on' : ''}" data-oi="${i}"><img src="${esc(u)}" referrerpolicy="no-referrer" loading="lazy" alt="" onerror="this.closest('.candp').remove()"></button>`).join('')}</div>`
@@ -3937,6 +3946,7 @@ function sheetOtUrlForm(r){
     if (on.has(i)) on.delete(i); else { if (on.size >= 10) return alert('写真は10枚までです'); on.add(i); }
     b.classList.toggle('on', on.has(i)); cnt(); });
   cnt();
+  if ($('#ouRetry')) $('#ouRetry').onclick = () => otUrlRead(r.url, true);
   $('#ouSite').oninput = e => { const h = e.target.closest('.field').nextElementSibling; if (h) h.textContent = '写真には「@' + (e.target.value.trim() || 'サイト名') + '」のように表示されます'; };
   $('#ok').onclick = async () => {
     if (!val('ou1')) return alert('種類を選んでください');
