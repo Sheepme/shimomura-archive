@@ -1422,7 +1422,15 @@ html body #main section.cy .cage{font-size:12px!important;color:var(--sub)!impor
   #main .ce .n{font-size:16px!important;margin-top:8px!important}
 }
 #yfix{display:none!important}
-#sheetbox .wm{display:none!important} /* ひも付けなどの選ぶ画面の小さい写真には「©」を出さない */
+#sheetbox .wm{display:none!important}
+.pdfscanbtn{width:100%;margin:0 0 18px}
+.pdfopen{width:100%;margin:6px 0 4px}
+.pdfcard{border:1px solid var(--line);border-radius:14px;padding:14px 14px 4px;margin:12px 0;background:var(--paper)}
+.pdfcard.off{opacity:.65}
+.pdfnm{font-weight:600;margin-bottom:8px;word-break:break-all}.pdfnm small{font-weight:400;color:var(--faint);margin-left:8px;font-size:12px}
+.pdfw{padding:8px 0;border-top:1px solid var(--line)}.pdfw:first-of-type{border-top:0}
+.pdfw b{display:block}.pdfw small{display:block;color:var(--sub);font-size:12.5px}
+.pdfck{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:15px}.pdfck input{width:20px;height:20px;flex:none} /* ひも付けなどの選ぶ画面の小さい写真には「©」を出さない */
 /* その場で直す入力欄 */
 dl.info dd.iedit{padding-right:0!important}
 dl.info dd.iedit .iein{display:block;width:100%;box-sizing:border-box;font:400 16px/1.4 var(--sans);color:var(--ink);background:var(--paper);border:1.5px solid var(--ink);border-radius:10px;padding:9px 12px;margin:0;outline:none}
@@ -1637,7 +1645,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'cd1c449975', APP_URL = location.origin + location.pathname;
+const BUILD = '7e039882a2', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3402,6 +3410,7 @@ function drawPbList(){
   const list = S.pubs.filter(p => (S.pt==='すべて' || p['種類']===S.pt) && (!S.pnl || !(worksByPb[p['資料ID']]||[]).length) && (!q || [p['タイトル'], p['発行元'], p['著者・編者'], p['発行年月'], p['掲載内容'], p['メモ']].join(' ').toLowerCase().includes(q)))
     .sort((a,b) => dateKey(a['発行年月'])-dateKey(b['発行年月']) || String(a['タイトル']).localeCompare(String(b['タイトル']),'ja'));
   let html = `<div class="chead"><h2>画集・資料</h2><p class="csub">${list.length}件${list.length!==S.pubs.length ? '（全' + S.pubs.length + '件）' : ''}</p></div>`;
+  if (canEdit()) html += '<button type="button" class="act main pdfscanbtn" data-pdfscan="1">📄 スキャンした資料（PDF）を読み取る</button>';
   html += '<div class="grid">' + list.map(p => { const n = new Set(worksByPb[p['資料ID']]||[]).size;
     return `<button class="tile" data-pb="${esc(p['資料ID'])}"><div class="ph pbph">${hasCover(p) ? thImg(p['表紙写真ファイルID'], 400) : `<span class="pbt">${esc(p['タイトル']||'（書名未入力）')}</span>`}</div>
       <div class="cap"><div class="no">${esc([p['種類'], yr(p['発行年月'])].filter(Boolean).join('・'))}</div><div class="tt">${esc(p['タイトル']||'（書名未入力）')}</div>${n ? `<div class="yr">掲載作品 ${n}点</div>` : ''}</div></button>`; }).join('')
@@ -3575,7 +3584,7 @@ const escU = v => esc(v).replace(/https?:\/\/(?:(?!&quot;|&#39;|&lt;|&gt;)[^\s<>
 const dd2 = (k, v) => v ? `<dt>${k}</dt><dd>${v}</dd>` : '';
 /* ---------- 展覧会・画集の編集 ---------- */
 const EX_T = ['個展','グループ展','パンリアル展','公募展','回顧展・遺作展','収蔵品展','その他'];
-const PB_T = ['画集','図録','書籍','雑誌','新聞','案内状・チラシ','映像','その他'];
+const PB_T = ['出品目録','画集','図録','書籍','雑誌','新聞','案内状・チラシ','映像','その他'];
 const SURE_T = ['確認済み','公式サイト（要確認）','旧リストから（要確認）','家族の記憶','不明'];
 const EYE = '<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
 const PEN = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.6"/></svg>';
@@ -3662,6 +3671,7 @@ function openPb(id, keepScroll, restoreSc){
     <h2 class="title">${esc(x['タイトル']||'（書名未入力）')}</h2>
     <div class="tombstone">${esc([fmtDate(x['発行年月']), x['発行元'], x['著者・編者']].filter(Boolean).join('　|　'))}</div>
     ${cover ? `<div class="cover">${thImg(x['表紙写真ファイルID'], 800)}</div>` : ''}
+    ${x['PDFファイルID'] ? `<button type="button" class="act pdfopen" data-pdfopen="${esc(x['PDFファイルID'])}">📄 スキャンしたPDFを見る</button>` : ''}
     <h3 class="sec">掲載作品 ${new Set(nos).size}点</h3>${linkedGrid('pb', id)}
     <h3 class="sec">資料の情報</h3>
     ${canEdit() ? recInfo('pb', id, x) : `<dl class="info">${dd2('種類', esc(x['種類']))}${dd2('発行', esc(fmtDate(x['発行年月'])))}${dd2('発行元', esc(x['発行元']))}${dd2('著者・編者', esc(x['著者・編者']))}${dd2('掲載内容', esc(x['掲載内容']))}
@@ -4557,6 +4567,8 @@ document.addEventListener('click', e => {
   if (t.dataset.f){ S.filter=t.dataset.f; S.mus=''; S.limit=60; render(); return; }
   if (t.dataset.mus !== undefined){ S.mus=t.dataset.mus; S.limit=60; render(); return; }
   if (t.id==='more'){ S.limit+=60; render(); return; }
+  if (t.dataset.pdfscan){ sheetPdfScan(); return; }
+  if (t.dataset.pdfopen){ openPdf(t.dataset.pdfopen); return; }
   if (t.dataset.rec){ if (canEdit() && !recInline(t)) sheetRec(t.dataset.rec, t.dataset.rid, t.dataset.rf); return; } // 展覧会・画集なども、鉛筆でその場で直す
   if (t.dataset.ex){ openEx(t.dataset.ex); return; }
   if (t.dataset.pb){ openPb(t.dataset.pb); return; }
@@ -4713,6 +4725,75 @@ $('#askq').addEventListener('keydown', e => { if (e.key==='Enter' && !e.shiftKey
   dq.addEventListener('input', () => { if (!SQ[S.view]) return; const f = $('#fsq'); f.value = dq.value; f.dispatchEvent(new Event('input', {bubbles: true})); });
   dq.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) dq.blur(); });
 })();
+
+/* ---------- スキャンした資料（PDF）：資料 › スキャン のPDFを読み取り、確かめてから登録 ---------- */
+let PDFQ = null;
+async function openPdf(fid){
+  const w = window.open('', '_blank'); busy(true, 'PDFを開いています…');
+  try { const u = await call('getPdf', fid); const b = await (await fetch(u)).blob(), url = URL.createObjectURL(b);
+    if (w) w.location = url; else location.href = url; }
+  catch(e){ if (w) w.close(); alert('PDFを開けませんでした（' + (e && e.message || e) + '）'); }
+  finally { busy(false); }
+}
+async function sheetPdfScan(){
+  if (!canEdit()) return;
+  busy(true, 'スキャンした資料を確かめています…');
+  let list = []; try { list = await call('pendingPdfs'); } catch(e){ busy(false); return alert('読み込めませんでした（' + (e && e.message || e) + '）'); }
+  busy(false);
+  PDFQ = { list, res: {}, stop: false, running: false };
+  openSheet(`<h3>スキャンした資料を登録</h3><div id="pdfHead"></div><div id="pdfList">${list.map((x, i) => `<div class="pdfcard" id="pc${i}"></div>`).join('')}</div><div class="btns"><button type="button" data-close>閉じる</button></div>`);
+  list.forEach((x, i) => pdfCard(i)); pdfHead();
+  $('#sheetbox').onclick = e => { if (e.target.closest('[data-pb]')) { SNAP.v = null; closeSheet(); return; } const b = e.target.closest('[data-pq]'); if (!b) return; const [k, i] = b.dataset.pq.split('|');
+    if (k==='all') return pdfReadAll(); if (k==='stop') { PDFQ.stop = true; return; }
+    if (k==='read') return pdfRead(+i); if (k==='again') return pdfRead(+i, true); if (k==='reg') return pdfReg(+i); if (k==='skip') { PDFQ.res[PDFQ.list[+i].id] = {skip: 1}; pdfCard(+i); pdfHead(); } };
+}
+const pdfSnap = () => { try { SNAP.v = sheetState(); } catch(e){} }; // 読み取り結果を出しただけでは「入力中」にしない
+function pdfHead(){ const h = $('#pdfHead'); if (!h || !PDFQ) return;
+  const L = PDFQ.list, R = PDFQ.res, unread = L.filter(x => !R[x.id]).length, done = L.filter(x => R[x.id] && R[x.id].done).length;
+  h.innerHTML = !L.length ? '<p class="hint">「資料 › スキャン」フォルダに、まだPDFがありません。ScanSnapで1書類ずつスキャンして、このフォルダに保存してください。</p>'
+    : `<p class="hint">${L.length}件のPDF（登録済み ${done}件）。AIが読み取った内容を確かめて「登録する」を押してください。読み取りは1件1円以下です。</p>
+      ${PDFQ.running ? `<button type="button" class="act" data-pq="stop">読み取りを止める</button>` : unread ? `<button type="button" class="act main" data-pq="all">まとめて読み取る（${unread}件）</button>` : ''}`;
+  pdfSnap(); }
+function pdfCard(i){ const el = $('#pc' + i); if (!el || !PDFQ) return; const x = PDFQ.list[i], r = PDFQ.res[x.id];
+  const nm = `<div class="pdfnm">📄 ${esc(x.name)}<small>${Math.max(1, Math.round(x.size / 1024))}KB</small></div>`;
+  if (!r) { el.innerHTML = nm + `<button type="button" class="act" data-pq="read|${i}">読み取る</button>`; return pdfSnap(); }
+  if (r.loading) { el.innerHTML = nm + '<p class="hint">AIが読み取っています…</p>'; return pdfSnap(); }
+  if (r.err) { el.innerHTML = nm + `<p class="hint" style="color:var(--warn)">${esc(r.err)}</p><button type="button" class="act" data-pq="again|${i}">もう一度読み取る</button>`; return pdfSnap(); }
+  if (r.skip) { el.innerHTML = nm + '<p class="hint">あとで登録する（このPDFはフォルダに残ります）</p>'; el.classList.add('off'); return pdfSnap(); }
+  if (r.done) { el.innerHTML = nm + `<p class="hint">✓ 登録しました　<button type="button" class="golink" data-pb="${esc(r.done)}">資料のページ ›</button></p>`; el.classList.add('off'); return pdfSnap(); }
+  const a = r.d.r || {}, ex = a['展覧会'] || null, m = r.d.ex;
+  const exOpts = (m ? `<option value="${esc(m.id)}" selected>台帳の展覧会：${esc(m['名称'])}（${esc(fmtDate(m['開始日']))}）</option>` : '')
+    + (ex && ex['名称'] ? `<option value="new" ${m ? '' : 'selected'}>新しく作る：${esc(ex['名称'])}（${esc([ex['開始日'], ex['会場']].filter(Boolean).join('・'))}）</option>` : '')
+    + `<option value="" ${!m && !(ex && ex['名称']) ? 'selected' : ''}>展覧会につながない</option>`;
+  const kinds = PB_T.includes(a['種類']) ? PB_T : [a['種類'], ...PB_T].filter(Boolean);
+  el.innerHTML = nm + (r.d.dup && r.d.dup.length ? `<p class="hint" style="color:var(--warn)">⚠ 同じ名前の資料がすでにあります：${r.d.dup.map(d => esc(d['タイトル'] + '（' + d.id + '）')).join('、')}</p>` : '')
+    + `<div class="field"><label>資料名</label><input data-k="タイトル" value="${esc(a['資料名']||'')}"></div>
+      <div class="two"><div class="field"><label>種類</label><select data-k="種類">${kinds.map(k => `<option ${k===a['種類']?'selected':''}>${esc(k)}</option>`).join('')}</select></div>
+      <div class="field"><label>発行年月</label><input data-k="発行年月" value="${esc(a['発行年月']||'')}"></div></div>
+      <div class="field"><label>発行元・主催</label><input data-k="発行元" value="${esc(a['発行元']||'')}"></div>
+      <div class="field"><label>どんな資料か</label><textarea data-k="掲載内容" rows="2">${esc(a['掲載内容']||'')}</textarea></div>
+      <div class="field"><label>展覧会</label><select data-k="exId">${exOpts}</select></div>
+      <div class="field"><label>下村良之介の作品（ひも付ける作品にチェック）</label>${(r.d.works||[]).length ? r.d.works.map(w => `<div class="pdfw"><b>${esc(w['作品名'])}</b>${w['メモ'] ? `<small>${esc(w['メモ'])}</small>` : ''}
+        ${w.cands.length ? w.cands.map((c, j) => `<label class="pdfck"><input type="checkbox" data-no="${esc(c.no)}" ${j===0 && c.s >= 0.8 ? 'checked' : ''}> No.${esc(c.no)} ${esc(c['作品名'])}${c['制作年'] ? '（' + esc(c['制作年']) + '）' : ''}</label>`).join('') : '<small class="muted">台帳に同じ名前の作品が見つかりません（あとで作品ページからひも付けできます）</small>'}</div>`).join('') : '<p class="hint">下村良之介の作品は見つかりませんでした</p>'}</div>
+      <div class="btns"><button type="button" data-pq="skip|${i}">あとで</button><button type="button" data-pq="again|${i}">読み直す</button><button type="button" class="primary" data-pq="reg|${i}">登録する</button></div>`;
+  pdfSnap(); }
+async function pdfRead(i, again){ const x = PDFQ.list[i]; PDFQ.res[x.id] = {loading: 1}; pdfCard(i);
+  try { const d = await call('readPdf', x.id, !!again); PDFQ.res[x.id] = {d}; } catch(e){ PDFQ.res[x.id] = {err: String(e && e.message || e)}; }
+  pdfCard(i); pdfHead(); }
+async function pdfReadAll(){ if (PDFQ.running) return; PDFQ.running = true; PDFQ.stop = false; pdfHead();
+  for (let i = 0; i < PDFQ.list.length && !PDFQ.stop; i++) { if (!PDFQ.res[PDFQ.list[i].id]) await pdfRead(i); if (!$('#pdfList')) break; }
+  PDFQ.running = false; pdfHead(); }
+async function pdfReg(i){ const x = PDFQ.list[i], r = PDFQ.res[x.id], el = $('#pc' + i); if (!r || !r.d || !el) return;
+  const v = k => { const f = el.querySelector(`[data-k="${k}"]`); return f ? f.value.trim() : ''; };
+  if (!v('タイトル')) return alert('資料名を入れてください');
+  const a = r.d.r || {}, ex = a['展覧会'] || {};
+  const rec = { pub: {'タイトル': v('タイトル'), '種類': v('種類'), '発行年月': v('発行年月'), '発行元': v('発行元'), '掲載内容': v('掲載内容')},
+    exId: v('exId'), ex: {'名称': ex['名称'] || '', '種類': ex['種類'] || '', '開始日': ex['開始日'] || '', '終了日': ex['終了日'] || '', '会場': ex['会場'] || '', '都市': ex['都市'] || ''},
+    nos: [...new Set([...el.querySelectorAll('input[data-no]:checked')].map(c => c.dataset.no))] };
+  busy(true, '登録しています…');
+  try { const d = await call('registerPdf', x.id, rec); setData(d); render(); PDFQ.res[x.id] = {done: d.newId}; toast('登録しました'); }
+  catch(e){ alert('登録できませんでした（' + (e && e.message || e) + '）'); }
+  finally { busy(false); pdfCard(i); pdfHead(); } }
 /* ---------- 起動 ---------- */
 busy(true, '作品を読み込んでいます…');
 renderUser();
