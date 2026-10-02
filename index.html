@@ -1428,6 +1428,7 @@ html body #main section.cy .cage{font-size:12px!important;color:var(--sub)!impor
 .pdfcard{border:1px solid var(--line);border-radius:14px;padding:14px 14px 4px;margin:12px 0;background:var(--paper)}
 .pdfcard.off{opacity:.65}
 .pdfbox{display:inline-block;margin-right:8px;padding:1px 8px;border-radius:8px;background:var(--wash);font-size:13px;font-weight:600}
+.doclinks .golink{display:block;margin:8px 0;text-align:left;font-size:16px}
 .spinev{display:flex;gap:8px;overflow-x:auto;margin:4px 0 10px}.spinev img{max-height:60vh;max-width:100%;border-radius:6px;border:1px solid var(--line)}
 .pdfnm{font-weight:600;margin-bottom:8px;word-break:break-all}.pdfnm small{font-weight:400;color:var(--faint);margin-left:8px;font-size:12px}
 .pdfw{padding:8px 0;border-top:1px solid var(--line)}.pdfw:first-of-type{border-top:0}
@@ -1647,7 +1648,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'b9dded4c1e', APP_URL = location.origin + location.pathname;
+const BUILD = '885ccccedf', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2197,6 +2198,9 @@ async function sheetCand(no){
 const docsOf = st => (S.docs||[]).filter(d => d['状態']===st);
 const docPages = d => String(d['ファイルID']||'').split(',').filter(Boolean);
 const docRes = d => { try { return JSON.parse(d['読取結果']||'{}'); } catch(e){ return {}; } };
+/* 読み取った書類が、展覧会・画集につながっていたら、そのページに出す */
+const docLinks = (k, id) => { const L = (S.docs||[]).filter(d => d['状態']==='登録済み' && String(docRes(d)[k]||'').split(',').includes(String(id)));
+  return L.length ? `<h3 class="sec">関係する書類 ${L.length}件</h3><div class="doclinks">${L.map(d => `<button type="button" class="golink" data-doc="${esc(d['書類ID'])}">📄 ${esc(docTitle(d))} ›</button>`).join('')}</div>` : ''; };
 const docById = id => (S.docs||[]).find(d => d['書類ID']===id);
 const DTH = {};
 const docImg = (fid, w) => `<img data-did="${esc(fid)}" data-dw="${w||400}" alt="書類の写真">`;
@@ -2324,10 +2328,12 @@ function sheetDocReview(id){
       ${r.PDF ? `<button type="button" class="act pdfopen" data-pdfopen="${esc(pg[0]||'')}">📄 PDFを見る</button>` : ''}
       ${d['保管番号'] ? `<button type="button" class="act pdfopen" data-spine="${esc(d['保管番号'])}">📦 ${esc(d['保管番号'])} の背表紙を見る</button>` : ''}
       ${r['展覧会ID'] && (S.exhibits||[]).some(e => e['展覧会ID']===r['展覧会ID']) ? `<p><button type="button" class="golink" data-ex="${esc(r['展覧会ID'])}">展覧会：${esc((S.exhibits.find(e => e['展覧会ID']===r['展覧会ID'])||{})['名称']||'')} ›</button></p>` : ''}
+      ${String(r['資料ID']||'').split(',').filter(x => (S.pubs||[]).some(p => p['資料ID']===x)).map(x => `<p><button type="button" class="golink" data-pb="${esc(x)}">画集・本：${esc((S.pubs.find(p => p['資料ID']===x)||{})['タイトル']||x)} ›</button></p>`).join('')}
       ${st==='登録済み' && r.PDF && !nos.length ? '<p class="hint">作品のひも付けはありません</p>' : st==='登録済み' ? `<h3 class="sec" style="font-size:18px">登録した作品</h3><div class="wl2">${nos.map(no => `<button class="wchip" data-no="${esc(no)}">${esc(wLabel(no) || nol(no))}</button>`).join('')}</div>`
         : '<p class="hint">この書類は「登録しない」にしました。</p><button class="act" id="dvAgain" style="width:100%">やっぱり登録する</button>'}
       <div class="btns"><button type="button" data-close>閉じる</button></div>`);
     wireDocImgs(); hydrateDocs($('#sheetbox'));
+    document.querySelectorAll('#sheetbox [data-ex],#sheetbox [data-pb]').forEach(b => b.addEventListener('click', () => { SNAP.v = null; closeSheet(); }));
     if ($('#dvAgain')) $('#dvAgain').onclick = () => docState(id, '確認待ち', () => sheetDocReview(id));
     $('#dvTtl').onclick = () => { const t = prompt('この書類のタイトル', docTitle(d)); if (t==null || !t.trim() || t.trim()===docTitle(d)) return;
       busy(true, '保存しています…'); call('setDocTitle', id, t.trim()).then(x => { setData(x); busy(false); render(); sheetDocReview(id); toast('タイトルを変えました'); }).catch(e => { busy(false); alert('保存できませんでした：' + (e.message || e)); }); };
@@ -3658,7 +3664,7 @@ function openEx(id, keepScroll, restoreSc){
     <h2 class="title">${PRM(x['名称'])}${esc(x['名称']||'（名称未入力）')}</h2>
     <div class="tombstone">${esc([fmtDate(x['開始日'], x['終了日']), x['会場'], x['都市']].filter(Boolean).join('　|　'))}</div>
     ${venueSec(id)}
-    <h3 class="sec">出品作品 ${new Set(nos).size}点</h3>${linkedGrid('ex', id)}
+    <h3 class="sec">出品作品 ${new Set(nos).size}点</h3>${linkedGrid('ex', id)}${docLinks('展覧会ID', id)}
     <h3 class="sec">展覧会の情報</h3>
     ${canEdit() ? recInfo('ex', id, x) : `<dl class="info">${dd2('会期', esc(fmtDate(x['開始日'], x['終了日'])))}${dd2('会場', esc(x['会場']))}${dd2('場所', esc([x['都市'], x['国']].filter(Boolean).join('・')))}${dd2('主催', esc(x['主催']))}
       ${cat ? dd2('図録', `<button class="golink" data-pb="${esc(cat['資料ID'])}">${esc(cat['タイトル']||'図録')} ›</button>`) : ''}
@@ -3676,7 +3682,7 @@ function openPb(id, keepScroll, restoreSc){
     <h2 class="title">${esc(x['タイトル']||'（書名未入力）')}</h2>
     <div class="tombstone">${esc([fmtDate(x['発行年月']), x['発行元'], x['著者・編者']].filter(Boolean).join('　|　'))}</div>
     ${cover ? `<div class="cover">${thImg(x['表紙写真ファイルID'], 800)}</div>` : ''}
-    <h3 class="sec">掲載作品 ${new Set(nos).size}点</h3>${linkedGrid('pb', id)}
+    <h3 class="sec">掲載作品 ${new Set(nos).size}点</h3>${linkedGrid('pb', id)}${docLinks('資料ID', id)}
     <h3 class="sec">資料の情報</h3>
     ${canEdit() ? recInfo('pb', id, x) : `<dl class="info">${dd2('種類', esc(x['種類']))}${dd2('発行', esc(fmtDate(x['発行年月'])))}${dd2('発行元', esc(x['発行元']))}${dd2('著者・編者', esc(x['著者・編者']))}${dd2('掲載内容', esc(x['掲載内容']))}
       ${dd2('家にある冊数', x['家にある冊数'] ? esc(x['家にある冊数']) + '冊' : '')}
@@ -4790,6 +4796,7 @@ function pdfCard(i){ const el = $('#pc' + i); if (!el || !PDFQ) return; const x 
       <div class="field"><label>保管番号</label><input data-k="保管番号" value="${esc(x.box||'')}" placeholder="例：35"></div></div>
       <div class="field"><label>どんな資料か</label><textarea data-k="掲載内容" rows="2">${esc(a['掲載内容']||'')}</textarea></div>
       <div class="field"><label>展覧会</label><select data-k="exId">${exOpts}</select></div>
+      ${(r.d.pbs||[]).length ? `<div class="field"><label>関係する画集・本（チェックしたものにつなぐ）</label>${r.d.pbs.map(b => `<label class="pdfck"><input type="checkbox" data-pbid="${esc(b.id)}" ${b.s >= 0.8 ? 'checked' : ''}> ${esc(b['タイトル'])}${b['発行年月'] ? '（' + esc(fmtDate(b['発行年月'])) + '）' : ''}</label>`).join('')}</div>` : ''}
       <div class="field"><label>下村良之介の作品（ひも付ける作品にチェック）</label>${(r.d.works||[]).length ? r.d.works.map(w => `<div class="pdfw"><b>${esc(w['作品名'])}</b>${w['メモ'] ? `<small>${esc(w['メモ'])}</small>` : ''}
         ${w.cands.length ? w.cands.map((c, j) => `<label class="pdfck"><input type="checkbox" data-no="${esc(c.no)}" ${j===0 && c.s >= 0.8 ? 'checked' : ''}> No.${esc(c.no)} ${esc(c['作品名'])}${c['制作年'] ? '（' + esc(c['制作年']) + '）' : ''}</label>`).join('') : '<small class="muted">台帳に同じ名前の作品が見つかりません（あとで作品ページからひも付けできます）</small>'}</div>`).join('') : '<p class="hint">下村良之介の作品は見つかりませんでした</p>'}</div>
       <div class="btns"><button type="button" data-pq="skip|${i}">あとで</button><button type="button" data-pq="again|${i}">読み直す</button><button type="button" class="primary" data-pq="reg|${i}">登録する</button></div>`;
@@ -4806,6 +4813,7 @@ async function pdfReg(i){ const x = PDFQ.list[i], r = PDFQ.res[x.id], el = $('#p
   const a = r.d.r || {}, ex = a['展覧会'] || {};
   const rec = { box: x.box || '', pub: {'タイトル': v('タイトル'), '種類': v('種類'), '発行年月': v('発行年月'), '発行元': v('発行元'), '掲載内容': v('掲載内容'), '保管番号': v('保管番号')},
     exId: v('exId'), ex: {'名称': ex['名称'] || '', '種類': ex['種類'] || '', '開始日': ex['開始日'] || '', '終了日': ex['終了日'] || '', '会場': ex['会場'] || '', '都市': ex['都市'] || ''},
+    pbIds: [...el.querySelectorAll('input[data-pbid]:checked')].map(c => c.dataset.pbid),
     nos: [...new Set([...el.querySelectorAll('input[data-no]:checked')].map(c => c.dataset.no))] };
   busy(true, '登録しています…');
   try { const d = await call('registerPdf', x.id, rec); setData(d); render(); PDFQ.res[x.id] = {done: d.newId}; toast('登録しました'); }
