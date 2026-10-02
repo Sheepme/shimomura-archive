@@ -1654,7 +1654,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'e37a872999', APP_URL = location.origin + location.pathname;
+const BUILD = '0f254413bf', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4872,7 +4872,7 @@ async function refreshData(){
   catch(e){ if (isLoginErr(e)) { setToken(''); S.user = null; render(); } else alert('読み込めませんでした。\n' + (e.message||e)); }
   finally { busy(false); }
 }
-(() => {
+(() => { return; // 引っぱって更新は使わない（2026/10/02 藤本さん）
   const ind = document.createElement('div'); ind.id = 'ptr';
   ind.innerHTML = '<span class="ptr-ic">↻</span><span class="ptr-t">引っぱって更新</span>'; document.body.appendChild(ind);
   const PULL = 110; let y0 = null, dy = 0;
