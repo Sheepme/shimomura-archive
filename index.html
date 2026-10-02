@@ -1440,6 +1440,12 @@ html body #main section.cy .cage{font-size:12px!important;color:var(--sub)!impor
 #sheetbox.split .dsv{overflow:auto;min-height:0;background:var(--wash);border-radius:10px}#sheetbox.split .dsv img{display:block;width:100%;height:auto;margin:0 0 8px}
 #sheetbox.split .dsvpdf{width:100%;height:100%;border:0;display:block}#sheetbox.split .dsr{overflow-y:auto;min-height:0;padding-right:6px}
 #sheetbox.split .dsr .dpages.rv,#sheetbox.split .dsr .dpages.rv + .hint{display:none}
+img[data-tid]:not([src]),img[data-did]:not([src]){background:linear-gradient(100deg,var(--wash) 35%,var(--wash2) 50%,var(--wash) 65%) 0 0/300% 100%;animation:ldshim 1.1s linear infinite;min-height:120px;width:100%}
+.tile .ph img[data-tid]:not([src]),.dth img:not([src]),.mmth img:not([src]),.wsug img:not([src]){min-height:0;height:100%}
+@keyframes ldshim{from{background-position:100% 0}to{background-position:0 0}}
+img.lowres{filter:blur(4px);transition:filter .3s}
+.ldwrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;height:100%;min-height:200px;color:var(--sub);font-size:15px}
+.ldspin{width:36px;height:36px;border-radius:50%;border:3px solid var(--wash2);border-top-color:var(--sub);animation:ldrot .8s linear infinite}@keyframes ldrot{to{transform:rotate(360deg)}}
 .spinev{display:flex;gap:8px;overflow-x:auto;margin:4px 0 10px}.spinev img{max-height:60vh;max-width:100%;border-radius:6px;border:1px solid var(--line)}
 .pdfnm{font-weight:600;margin-bottom:8px;word-break:break-all}.pdfnm small{font-weight:400;color:var(--faint);margin-left:8px;font-size:12px}
 .pdfw{padding:8px 0;border-top:1px solid var(--line)}.pdfw:first-of-type{border-top:0}
@@ -1659,7 +1665,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '5d29152313', APP_URL = location.origin + location.pathname;
+const BUILD = 'e0ebe66858', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1856,6 +1862,7 @@ function hydrate(root){ (root||document).querySelectorAll('img[data-tid]:not([sr
 function queueThumb(el){
   const key = el.dataset.w + '_' + el.dataset.tid;
   if (TH[key]) { el.src = TH[key]; return; }
+  const lo = ['800', '400', '200'].find(x => +x < +el.dataset.w && TH[x + '_' + el.dataset.tid]); if (lo) { el.src = TH[lo + '_' + el.dataset.tid]; el.classList.add('lowres'); } // 先に小さい写真を出しておく
   if (!thQueue.has(key)) thQueue.set(key, []); thQueue.get(key).push(el);
   clearTimeout(thTimer); thTimer = setTimeout(flushThumbs, 60);
 }
@@ -1863,11 +1870,14 @@ function queueThumb(el){
 const THDB = (() => { let p = null; return () => p || (p = new Promise(ok => { try { const r = indexedDB.open('smr_th', 1); r.onupgradeneeded = () => r.result.createObjectStore('th'); r.onsuccess = () => ok(r.result); r.onerror = () => ok(null); } catch(e){ ok(null); } })); })();
 async function thGet(keys){ const db = await THDB(); if (!db) return {}; return new Promise(ok => { const out = {}; try { const st = db.transaction('th').objectStore('th'); let n = keys.length; if (!n) return ok(out); keys.forEach(k => { const q = st.get(k); q.onsuccess = () => { if (q.result) out[k] = q.result; if (!--n) ok(out); }; q.onerror = () => { if (!--n) ok(out); }; }); } catch(e){ ok(out); } }); }
 async function thPut(map){ const db = await THDB(); if (!db) return; try { const st = db.transaction('th', 'readwrite').objectStore('th'); Object.keys(map).forEach(k => st.put(map[k], k)); } catch(e){} }
-function thSet(q, k, src){ TH[k] = src; (q.get(k)||[]).forEach(el => el.src = src); }
+function thSet(q, k, src){ TH[k] = src; (q.get(k)||[]).forEach(el => { el.src = src; el.classList.remove('lowres'); }); }
 async function flushThumbs(){
   const q = thQueue; thQueue = new Map();
   const saved = await thGet([...q.keys()]);
   const byW = {};
+  const miss = [...q.keys()].filter(k => !saved[k]), alt = {}; miss.forEach(k => { const [w, ...r] = k.split('_'), id = r.join('_'); ['800', '400', '200'].forEach(x => { if (+x < +w) alt[k] = (alt[k] || []).concat(x + '_' + id); }); });
+  const lows = await thGet([].concat(...Object.values(alt)));
+  miss.forEach(k => { const a = (alt[k] || []).find(x => lows[x]); if (a) (q.get(k)||[]).forEach(el => { if (!el.src || el.classList.contains('lowres')) { el.src = lows[a]; el.classList.add('lowres'); } }); }); // 大きい写真が届くまで、保存してある小さい写真をぼかして出す
   [...q.keys()].forEach(k => { if (saved[k]) return thSet(q, k, saved[k]); const [w, ...r] = k.split('_'); (byW[w] = byW[w] || []).push(r.join('_')); });
   Object.keys(byW).forEach(w => { for (let i = 0; i < byW[w].length; i += 24) {
     const ids = byW[w].slice(i, i + 24);
@@ -2218,12 +2228,27 @@ const docWarn = d => [docRes(d)['要確認'], docDiffN(d) ? '台帳と食い違�
 const docById = id => (S.docs||[]).find(d => d['書類ID']===id);
 const DTH = {};
 const docImg = (fid, w) => `<img data-did="${esc(fid)}" data-dw="${w||400}" alt="書類の写真">`;
-function hydrateDocs(root){
+/* 書類の写真：スマホの中（IndexedDB）に保存して次からすぐ出す。大きい写真は、先に小さい写真をぼかして出しておく */
+async function hydrateDocs(root){
   const els = [...(root||document).querySelectorAll('img[data-did]:not([src])')]; if (!els.length) return;
-  const by = {}; els.forEach(el => { const k = el.dataset.dw + '_' + el.dataset.did; if (DTH[k]) el.src = DTH[k]; else (by[el.dataset.dw] = by[el.dataset.dw] || new Set()).add(el.dataset.did); });
+  const need = {}; els.forEach(el => { const k = el.dataset.dw + '_' + el.dataset.did; if (DTH[k]) el.src = DTH[k]; else (need[k] = need[k] || []).push(el); });
+  const keys = Object.keys(need); if (!keys.length) return;
+  const saved = await thGet(keys.map(k => 'd' + k)), by = {};
+  keys.forEach(k => { const v = saved['d' + k], [w, ...r] = k.split('_'), id = r.join('_');
+    if (v) { DTH[k] = v; need[k].forEach(el => el.src = v); return; }
+    const lo = ['400', '200'].find(x => +x < +w && DTH[x + '_' + id]); if (lo) need[k].forEach(el => { if (!el.src) { el.src = DTH[lo + '_' + id]; el.classList.add('lowres'); } });
+    (by[w] = by[w] || new Set()).add(id); });
   Object.keys(by).forEach(w => { const ids = [...by[w]];
-    for (let i = 0; i < ids.length; i += 12) call('getDocThumbs', ids.slice(i, i + 12), +w).then(m => Object.keys(m).forEach(id => { DTH[w + '_' + id] = m[id]; document.querySelectorAll(`img[data-did="${id}"][data-dw="${w}"]`).forEach(el => el.src = m[id]); })).catch(() => {}); });
+    for (let i = 0; i < ids.length; i += 12) call('getDocThumbs', ids.slice(i, i + 12), +w).then(m => { const keep = {};
+      Object.keys(m).forEach(id => { DTH[w + '_' + id] = m[id]; keep['d' + w + '_' + id] = m[id]; document.querySelectorAll(`img[data-did="${id}"][data-dw="${w}"]`).forEach(el => { el.src = m[id]; el.classList.remove('lowres'); }); });
+      thPut(keep); }).catch(() => {}); });
 }
+/* PDF：一度開いたものはスマホ・パソコンの中に保存して、次からすぐ開く */
+const DPDF = {};
+async function pdfBlobUrl(fid){ if (DPDF[fid]) return DPDF[fid];
+  let b = (await thGet(['pdf_' + fid]))['pdf_' + fid];
+  if (!b) { b = await (await fetch(await call('getPdf', fid))).blob(); thPut({['pdf_' + fid]: b}); }
+  return DPDF[fid] = URL.createObjectURL(b); }
 function docView(fid){
   const el = document.createElement('div'); el.className = 'docview';
   el.innerHTML = `<div class="dvbar"><span>指で広げると拡大できます</span><button type="button" class="vclose" style="position:static">閉じる ✕</button></div><div class="dvsc">${docImg(fid, 1600)}</div>`;
@@ -3229,13 +3254,12 @@ document.addEventListener('click', async e => {
 });
 (function(){ const _o = sheetDocReview; sheetDocReview = function(id){ _o(id); const bx = $('#sheetbox .btns'); if (bx && canEdit() && !$('#sheetbox [data-del]')) bx.insertAdjacentHTML('beforebegin', delBtn('doc', id, 'この書類')); docSplit(id); }; })();
 /* 画面が広いときは、左に書類（PDF・写真）、右に確認・修正の画面を並べる */
-const DPDF = {};
 async function docSplit(id){ const d = docById(id), box = $('#sheetbox'); if (!d || window.innerWidth < 1000 || !box || box.classList.contains('split')) return;
   const r = docRes(d), pg = docPages(d); if (!pg.length) return;
   const L = document.createElement('div'), R = document.createElement('div'); L.className = 'dsv'; R.className = 'dsr';
   while (box.firstChild) R.appendChild(box.firstChild); box.classList.add('split'); box.append(L, R);
-  if (r.PDF) { L.innerHTML = '<p class="hint" style="padding:16px">PDFを読み込んでいます…</p>';
-    try { const u = DPDF[pg[0]] || (DPDF[pg[0]] = URL.createObjectURL(await (await fetch(await call('getPdf', pg[0]))).blob())); if (box.contains(L)) L.innerHTML = `<iframe class="dsvpdf" src="${u}" title="書類のPDF"></iframe>`; }
+  if (r.PDF) { L.innerHTML = '<div class="ldwrap"><span class="ldspin"></span>PDFを読み込んでいます…</div>';
+    try { const u = await pdfBlobUrl(pg[0]); if (box.contains(L)) L.innerHTML = `<iframe class="dsvpdf" src="${u}" title="書類のPDF"></iframe>`; }
     catch(e){ if (box.contains(L)) L.innerHTML = '<p class="hint" style="padding:16px">PDFを表示できませんでした</p>'; } }
   else { L.innerHTML = pg.map(f => docImg(f, 1600)).join(''); hydrateDocs(L); }
 }
@@ -4777,7 +4801,7 @@ let PDFQ = null;
 const DOC_PT = ['出品目録','案内状・チラシ','図録','画集','書籍','雑誌','新聞','その他'];
 async function openPdf(fid){
   const w = window.open('', '_blank'); busy(true, 'PDFを開いています…');
-  try { const u = await call('getPdf', fid); const b = await (await fetch(u)).blob(), url = URL.createObjectURL(b);
+  try { const url = await pdfBlobUrl(fid);
     if (w) w.location = url; else location.href = url; }
   catch(e){ if (w) w.close(); alert('PDFを開けませんでした（' + (e && e.message || e) + '）'); }
   finally { busy(false); }
@@ -4803,7 +4827,7 @@ const SPINE = {};
 async function showSpine(btn, box){
   const host = btn.closest('.pdfnm') || btn, nx = host.nextElementSibling;
   if (nx && nx.classList.contains('spinev')) { nx.remove(); return; }
-  const v = document.createElement('div'); v.className = 'spinev'; v.innerHTML = '<p class="hint">背表紙を読み込んでいます…</p>'; host.after(v);
+  const v = document.createElement('div'); v.className = 'spinev'; v.innerHTML = '<div class="ldwrap" style="min-height:120px"><span class="ldspin"></span>背表紙を読み込んでいます…</div>'; host.after(v);
   try { const L = SPINE[box] || (SPINE[box] = await call('getSpine', box));
     v.innerHTML = L.length ? L.map(u => `<img src="${u}" alt="📦 ${esc(box)} の背表紙">`).join('') : '<p class="hint">背表紙の写真が見つかりませんでした。</p>'; }
   catch(e){ v.innerHTML = `<p class="hint">読み込めませんでした（${esc(e && e.message || e)}）</p>`; }
