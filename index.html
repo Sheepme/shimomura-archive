@@ -1221,7 +1221,11 @@ html.sa .dwpanel{padding-top:calc(var(--cap) + 8px)}
 .dwnav .pic svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}
 .dwnav button.on{background:var(--wash2);font-weight:600}.dwnav button.on .pic{color:var(--ink)}
 .dwnav button:active{background:var(--hov)}
-.dwfoot{border-top:1px solid var(--line);padding-top:8px}
+.dwfoot{border-top:1px solid var(--line);padding-top:8px;display:flex;align-items:center;gap:4px}
+.dwfoot .dwme{flex:1;min-width:0}
+.dwtheme{flex:none;width:42px;height:42px;display:flex;align-items:center;justify-content:center;border:0;border-radius:50%;background:none;color:var(--sub);cursor:pointer}
+.dwtheme:hover{background:var(--hov);color:var(--ink)}
+.dwtheme svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .dwme{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;padding:8px 10px;border-radius:12px;text-align:left;color:var(--ink);font-size:15px}
 .dwme small{display:block;color:var(--sub);font-size:12px;font-weight:400}
 /* 文字の雰囲気：見出しは明朝、やわらかい角丸 */
@@ -1619,7 +1623,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '8bf808eddc', APP_URL = location.origin + location.pathname;
+const BUILD = '0a3b237960', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1707,7 +1711,7 @@ function renderUser(){
   const on = canEdit();
   $('#userbox').innerHTML = S.user ? `<button class="avatar" id="btnMe" aria-label="${esc(S.user.name||'')}さんのメニュー"><span class="avi">${esc(String(S.user.name||'？').trim().charAt(0))}</span><span class="avn">${esc(S.user.name||'')}</span></button>` : '';
   setTimeout(pinDrawer, 0);
-  const f = $('#dwFoot'); if (f) f.innerHTML = S.user ? `<button type="button" class="dwme" id="btnMe2"><span class="avatar sm">${esc(String(S.user.name||'？').trim().charAt(0))}</span><span><b>${esc(S.user.name||'')}</b><small>${esc(S.user.role||'')}</small></span></button>` : '';
+  const f = $('#dwFoot'); if (f) f.innerHTML = S.user ? `<button type="button" class="dwme" id="btnMe2"><span class="avatar sm">${esc(String(S.user.name||'？').trim().charAt(0))}</span><span><b>${esc(S.user.name||'')}</b><small>${esc(S.user.role||'')}</small></span></button><button type="button" class="dwtheme" id="dwTheme" aria-label="明るい表示・暗い表示を切り替える">${themeIcon()}</button>` : '';
   document.body.classList.remove('editing'); document.body.classList.toggle('canedit', on);
 }
 function addByContext(){
@@ -1997,6 +2001,10 @@ function renderHome(){
 /* 開いたときの最初の画面（卓也さんだけ作品アルバムから始める） */
 function applyStart(){ if (applyStart.done || !S.user) return; applyStart.done = 1;
   if (S.user.name === '卓也' && S.view === 'home') { S.view = 'album'; S.wmode = 'album'; S.filter = 'all'; S.mus = ''; S.limit = 60; } }
+/* メニューの下（名前の右）：明るい表示／暗い表示の切り替え（いまの表示と反対のアイコン） */
+function themeIcon(){ return document.documentElement.getAttribute('data-theme')==='dark'
+  ? '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/></svg>'
+  : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>'; }
 function goHome(){ hidePop(); closeAllPages(); S.view = 'home'; render(); window.scrollTo(0, 0); }
 function goTodo(k){
   closeAllPages();
@@ -4319,7 +4327,7 @@ function openLogin(why){
 function openMe(){
   openSheet(`<h3>${esc(S.user.name||'')}</h3><p class="hint">権限：${esc(S.user.role)}</p>
     <p style="font-size:16px;color:var(--sub)">このスマホ・パソコンでは、ログアウトするまでログインしたままになります。共用のパソコンでは使い終わったらログアウトしてください。</p>
-    <button type="button" class="act" id="btnTheme" style="width:100%;margin-top:6px">${document.documentElement.getAttribute('data-theme')==='dark' ? '☀️ 明るい表示にする' : '🌙 暗い表示にする'}</button>
+
     <button type="button" class="act" id="meUpd" style="width:100%;margin-top:6px">最新版に更新</button>
     <button type="button" class="act" id="meLog" style="width:100%;margin-top:6px">変更記録を見る</button>
     ${canEdit() && S.ai ? '<button type="button" class="act" id="meRot" style="width:100%;margin-top:6px">写真の向きをAIでそろえる</button>' : ''}
@@ -4465,6 +4473,7 @@ document.addEventListener('click', e => {
   if (t.id==='btnAdd'){ addByContext(); return; }
   if (t.dataset.v){ if (t.dataset.v==='new') return canEdit() ? sheetNew() : (S.user ? alert('登録には「編集」の権限が必要です') : openLogin('新しく登録するにはログインしてください'));
     if (t.dataset.v==='ai') return S.user ? openAI() : openLogin('質問するにはログインしてください'); S.view=t.dataset.v; S.limit=60; render(); window.scrollTo(0,0); return; }
+  if (t.id==='dwTheme'){ const d = document.documentElement, n = d.getAttribute('data-theme')==='dark' ? 'light' : 'dark'; d.setAttribute('data-theme', n); try { localStorage.setItem('smr_theme', n); } catch(e){} t.innerHTML = themeIcon(); try { syncThemeColor(); } catch(e){} return; }
   if (t.id==='btnTheme'){ const d = document.documentElement, n = d.getAttribute('data-theme')==='dark' ? 'light' : 'dark'; d.setAttribute('data-theme', n); try { localStorage.setItem('smr_theme', n); } catch(e){} if (t.closest('#sheetbox')) t.textContent = n==='dark' ? '☀️ 明るい表示にする' : '🌙 暗い表示にする'; toast(n==='dark' ? '暗い表示にしました' : '明るい表示にしました'); return; }
   if (t.dataset.f){ S.filter=t.dataset.f; S.mus=''; S.limit=60; render(); return; }
   if (t.dataset.mus !== undefined){ S.mus=t.dataset.mus; S.limit=60; render(); return; }
