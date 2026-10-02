@@ -1687,7 +1687,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '3c8a1fd57b', APP_URL = location.origin + location.pathname;
+const BUILD = '135304d4fb', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4668,9 +4668,11 @@ function openSearch(){
   $('#fsq').placeholder = s[1]; $('#fsq').value = S[s[0]] || '';
   box.classList.remove('hidden'); setTimeout(() => $('#fsq').focus(), 30);
 }
-let fsqT; $('#fsq').addEventListener('input', e => { clearTimeout(fsqT); fsqT = setTimeout(() => {
-  const s = SQ[S.view]; if (!s) return; S[s[0]] = e.target.value;
-  if (s[0]==='q'){ $('#q').value = e.target.value; S.limit = 60; render(); }
+let fsqT; $('#fsq').addEventListener('input', e => { const v = e.target.value;
+  if (!$('#page').classList.contains('hidden') && !SCR.length) { closeAllPages(); e.target.value = v; } // 作品ページを開いたまま打ち直したら、新しい検索結果に戻る
+  clearTimeout(fsqT); fsqT = setTimeout(() => {
+  const s = SQ[S.view]; if (!s) return; S[s[0]] = v;
+  if (s[0]==='q'){ $('#q').value = v; S.limit = 60; render(); }
   else if (S.view==='ex') drawExList(); else if (S.view==='pb') drawPbList(); else if (S.view==='ot') drawOtList();
 }, 250); });
 $('#fsq').addEventListener('keydown', e => { if (e.key==='Enter' && !e.isComposing) e.target.blur(); });
