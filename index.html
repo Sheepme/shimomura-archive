@@ -1223,9 +1223,9 @@ html.sa .dwpanel{padding-top:calc(var(--cap) + 8px)}
 .dwnav button:active{background:var(--hov)}
 .dwfoot{border-top:1px solid var(--line);padding-top:8px;display:flex;align-items:center;gap:4px}
 .dwfoot .dwme{flex:1;min-width:0}
-.dwtheme{flex:none;width:42px;height:42px;display:flex;align-items:center;justify-content:center;border:0;border-radius:50%;background:none;color:var(--sub);cursor:pointer}
+.dwtheme{flex:none;width:32px;height:32px;margin-right:10px;padding:0;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--faint);border-radius:50%;background:none;color:var(--sub);cursor:pointer;box-sizing:border-box}
 .dwtheme:hover{background:var(--hov);color:var(--ink)}
-.dwtheme svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.dwtheme svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .dwme{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;padding:8px 10px;border-radius:12px;text-align:left;color:var(--ink);font-size:15px}
 .dwme small{display:block;color:var(--sub);font-size:12px;font-weight:400}
 /* 文字の雰囲気：見出しは明朝、やわらかい角丸 */
@@ -1623,7 +1623,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '0a3b237960', APP_URL = location.origin + location.pathname;
+const BUILD = 'c031ff7df3', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
