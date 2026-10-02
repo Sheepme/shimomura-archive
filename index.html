@@ -1600,7 +1600,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'b70292d113', APP_URL = location.origin + location.pathname;
+const BUILD = 'edb7f1cabb', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2365,6 +2365,8 @@ const qzLast = (no, item) => QZI[no + '|' + item];
 const qzDone = (no, item, v) => { const r = qzLast(no, item); return !!r && ((r['答え']==='はい' && r['値']===String(v||'')) || (r['答え']==='不明' && r['値']===String(v||''))); };
 const qzUnknown = (no, item) => { const r = qzLast(no, item); return !!r && r['答え']==='不明'; };
 const sizeOf = w => (w['幅cm']||w['高さcm']) ? `幅${w['幅cm']||'?'}センチ、高さ${w['高さcm']||'?'}センチ${w['奥行きcm'] ? '、奥行き' + w['奥行きcm'] + 'センチ' : ''}` : '';
+/* 版画かどうか（エディションの欄を出す） */
+const isPrint = w => !!w && (w['種別']==='版画' || !!w['エディション'] || /版画|エッチング|リトグラフ|木版|銅版|シルクスクリーン/.test(String(w['画材']||'')));
 /* サイズの表示（立体物は奥行きも）：long＝「幅 × 高さ × 奥行き cm」、短い形＝「幅 × 高さ × 奥行き」 */
 const dimTxt = (w, long, unit) => (w['幅cm']||w['高さcm']||w['奥行きcm']) ? (long ? `幅 ${w['幅cm']||'?'} × 高さ ${w['高さcm']||'?'}${w['奥行きcm'] ? ' × 奥行き ' + w['奥行きcm'] : ''} cm` : `${w['幅cm']||'?'} × ${w['高さcm']||'?'}${w['奥行きcm'] ? ' × ' + w['奥行きcm'] : ''}${unit || ''}`) : '';
 const evText = e => { const y = yr(e['日付']); return [y ? y + '年' : '年は分からない', (e['相手先・場所']||'') + (e['相手先・場所'] ? 'に' : ''), e['種類']].filter(Boolean).join('、'); };
@@ -3212,6 +3214,7 @@ function openWork(no, keepScroll, restoreSc){
       <dl class="info">
         ${dd('作品名', w['作品名'], 'w1')}
         ${dd('サイズ', dimTxt(w, true), 'w3')}
+        ${isPrint(w) ? dd('エディション', w['エディション'], 'w4e') : ''}
         ${dd('制作年', w['制作年'], 'w5')}${dd('画材', w['画材'], 'w6')}${dd(ot ? '種類' : '種別', w['種別'], 'w7')}${dd('シリーズ', w['シリーズ'], 'w8')}
         ${dd('状態', w['状態メモ'], 'w9')}${dd('メモ', w['補足'], 'w10')}
         ${dd('所蔵者・連絡先', w['所蔵者・連絡先'], 'w11')}${dd('管理メモ', w['管理メモ'], 'w12')}
@@ -3804,6 +3807,7 @@ function sheetEdit(no, focusId){
     ${F('別名・仮題など', inp('w2', w['作品名メモ']))}
     <div class="two">${F('幅（cm）', inp('w3', w['幅cm'], '', 'text'))}${F('高さ（cm）', inp('w4', w['高さcm'], '', 'text'))}</div>
     ${isOtNo(no) || w['奥行きcm'] ? F('奥行き（cm）', inp('w4d', w['奥行きcm'], 'やきものなど立体のとき', 'text')) : ''}
+    ${isPrint(w) ? F('エディション', inp('w4e', w['エディション'], '例：3/30（30部のうち3番）、AP', 'text')) : ''}
     ${F('制作年', inp('w5', w['制作年'], '例：1961年 / 1960年代'))}
     ${F('画材', inp('w6', w['画材'], '例：顔料/紙/紙粘土'))}
     ${isOtNo(no) ? F('種類（変えると番号も付け直します）', pick('w7', OT_T, w['種別'])) : F('種別', pick('w7', KINDS, w['種別']))}
@@ -3815,8 +3819,8 @@ function sheetEdit(no, focusId){
     ${BTNS()}`);
   if (focusId) setTimeout(() => { const el = $('#'+focusId); if (el) { el.scrollIntoView({block:'center'}); if (el.focus && el.tagName!=='DIV') el.focus(); } }, 80);
   $('#ok').onclick = () => {
-    const patch = {'作品名':val('w1'),'作品名メモ':val('w2'),'幅cm':val('w3'),'高さcm':val('w4'),...($('#w4d') ? {'奥行きcm':val('w4d')} : {}),'制作年':val('w5'),'画材':val('w6'),'種別':val('w7'),'シリーズ':val('w8'),'状態メモ':val('w9'),'補足':val('w10'),'所蔵者・連絡先':val('w11'),'管理メモ':val('w12')};
-    const label = {'作品名メモ':'別名・仮題','幅cm':'幅（cm）','高さcm':'高さ（cm）','奥行きcm':'奥行き（cm）','状態メモ':'状態','補足':'メモ','所蔵者・連絡先':'所蔵者・連絡先','管理メモ':'管理メモ'};
+    const patch = {'作品名':val('w1'),'作品名メモ':val('w2'),'幅cm':val('w3'),'高さcm':val('w4'),...($('#w4d') ? {'奥行きcm':val('w4d')} : {}),...($('#w4e') ? {'エディション':val('w4e')} : {}),'制作年':val('w5'),'画材':val('w6'),'種別':val('w7'),'シリーズ':val('w8'),'状態メモ':val('w9'),'補足':val('w10'),'所蔵者・連絡先':val('w11'),'管理メモ':val('w12')};
+    const label = {'作品名メモ':'別名・仮題','幅cm':'幅（cm）','高さcm':'高さ（cm）','奥行きcm':'奥行き（cm）','エディション':'エディション','状態メモ':'状態','補足':'メモ','所蔵者・連絡先':'所蔵者・連絡先','管理メモ':'管理メモ'};
     confirmSave((isOtNo(no) ? '' : 'No.')+no+' の情報を直す', Object.keys(patch).map(k => [(isOtNo(no) && k==='種別' ? '種類' : label[k]||k), w[k]||'', patch[k]]), 'updateWork', [no, patch]).then(d => { if (d && d.newId) { closeAllPages(); openWork(d.newId); toast('番号が ' + d.newId + ' になりました'); } });
   };
 }
@@ -3975,6 +3979,7 @@ function sheetOtUrlForm(r){
     ${F('幅（cm）', inp('ou4', f['幅cm'] || '', '例：27.5'))}
     ${F('高さ（cm）', inp('ou5', f['高さcm'] || '', '例：26'))}
     ${F('奥行き（cm）', inp('ou5d', f['奥行きcm'] || '', 'やきものなど立体のとき'))}
+    ${F('エディション', inp('ou5e', f['エディション'] || '', '版画のとき 例：3/30'))}
     ${F('画材・技法', inp('ou6', f['画材'] || '', '例：銅版画'))}
     ${F('メモ', `<textarea id="ou7" rows="5">${esc(f['補足'] || '')}</textarea>`)}
     ${F('保管場所（必ず選ぶ）', pick('ou8', LOC_KINDS.filter(k => !['廃棄','統合済み'].includes(k)), '不明'))}
@@ -3992,7 +3997,7 @@ function sheetOtUrlForm(r){
     if (!val('ou1')) return alert('種類を選んでください');
     if (!val('ou8')) return alert('保管場所を選んでください（分からなければ「不明」）');
     const k = val('ou8');
-    const nf = {'種類': val('ou1'), '作品名': val('ou2'), '制作年': val('ou3'), '幅cm': val('ou4'), '高さcm': val('ou5'), '奥行きcm': val('ou5d'), '画材': val('ou6'), '補足': val('ou7'),
+    const nf = {'種類': val('ou1'), '作品名': val('ou2'), '制作年': val('ou3'), '幅cm': val('ou4'), '高さcm': val('ou5'), '奥行きcm': val('ou5d'), 'エディション': val('ou5e'), '画材': val('ou6'), '補足': val('ou7'),
       '所在区分': k === '貸出中' ? 'その他' : k, '所在': val('ou9') || (k === '自宅' ? '自宅' : k === '不明' ? '' : k)};
     const sel = imgs.filter((u, i) => on.has(i) && document.querySelector(`[data-oi="${i}"]`));
     const d = await save('newOtherFromUrl', [nf, {url: r.url, site: val('ouSite')}, sel, upl], sel.length || upl.length ? '登録しました（写真を取り込みました）' : '登録しました');
@@ -4062,7 +4067,7 @@ function sheetToOther(no){
 document.addEventListener('click', e => { const b = e.target.closest('[data-toot]'); if (b && canEdit()) sheetToOther(b.dataset.toot); });
 function openOt(id, keepScroll, restoreSc){ return openWork(id, keepScroll, restoreSc); } // その他の作品も本作と同じページ
 /* ---------- 統合（同じ作品の2つの番号を1つにまとめる） ---------- */
-const MF = ['作品名','作品名メモ','幅cm','高さcm','奥行きcm','制作年','画材','種別','シリーズ','所在区分','所在','自宅エリア','状態メモ','補足','所蔵者・連絡先','管理メモ'];
+const MF = ['作品名','作品名メモ','幅cm','高さcm','奥行きcm','エディション','制作年','画材','種別','シリーズ','所在区分','所在','自宅エリア','状態メモ','補足','所蔵者・連絡先','管理メモ'];
 const MFN = {'作品名メモ':'作品名の補足','幅cm':'幅（cm）','高さcm':'高さ（cm）','奥行きcm':'奥行き（cm）','所在区分':'場所の区分','所在':'いまの場所','状態メモ':'状態','補足':'メモ'};
 const padNo = v => { v = String(v||'').trim().replace(/^No\.?\s*/i,''); return /^\d{1,2}(-\d+)?$/.test(v) ? v.replace(/^\d+/, m => m.padStart(3,'0')) : v; };
 const mgCnt = n => '写真' + (photoBy[n]||[]).length + '枚・来歴' + S.events.filter(e => e['作品番号']===n).length + '件';
