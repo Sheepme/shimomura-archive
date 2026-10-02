@@ -1444,6 +1444,7 @@ img[data-tid]:not([src]),img[data-did]:not([src]){background:linear-gradient(100
 .tile .ph img[data-tid]:not([src]),.dth img:not([src]),.mmth img:not([src]),.wsug img:not([src]){min-height:0;height:100%}
 @keyframes ldshim{from{background-position:100% 0}to{background-position:0 0}}
 img.lowres{filter:blur(4px);transition:filter .3s}
+.lrspin{position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;border:2.5px solid rgba(255,255,255,.7);border-top-color:#444;box-shadow:0 0 0 1px rgba(0,0,0,.12);animation:ldrot .8s linear infinite;pointer-events:none;z-index:2}
 .ldwrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;height:100%;min-height:200px;color:var(--sub);font-size:15px}
 .ldspin{width:36px;height:36px;border-radius:50%;border:3px solid var(--wash2);border-top-color:var(--sub);animation:ldrot .8s linear infinite}@keyframes ldrot{to{transform:rotate(360deg)}}
 .spinev{display:flex;gap:8px;overflow-x:auto;margin:4px 0 10px}.spinev img{max-height:60vh;max-width:100%;border-radius:6px;border:1px solid var(--line)}
@@ -1665,7 +1666,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'bde7c608ee', APP_URL = location.origin + location.pathname;
+const BUILD = '2cc375131a', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1862,7 +1863,7 @@ function hydrate(root){ (root||document).querySelectorAll('img[data-tid]:not([sr
 function queueThumb(el){
   const key = el.dataset.w + '_' + el.dataset.tid;
   if (TH[key]) { el.src = TH[key]; return; }
-  const lo = ['800', '400', '200'].find(x => +x < +el.dataset.w && TH[x + '_' + el.dataset.tid]); if (lo) { el.src = TH[lo + '_' + el.dataset.tid]; el.classList.add('lowres'); } // 先に小さい写真を出しておく
+  const lo = ['800', '400', '200'].find(x => +x < +el.dataset.w && TH[x + '_' + el.dataset.tid]); if (lo) lowOn(el, TH[lo + '_' + el.dataset.tid]); // 先に小さい写真を出しておく
   if (!thQueue.has(key)) thQueue.set(key, []); thQueue.get(key).push(el);
   clearTimeout(thTimer); thTimer = setTimeout(flushThumbs, 60);
 }
@@ -1871,14 +1872,18 @@ const THDB = (() => { let p = null; return () => p || (p = new Promise(ok => { t
 async function thGet(keys){ const db = await THDB(); if (!db) return {}; return new Promise(ok => { const out = {}; try { const st = db.transaction('th').objectStore('th'); let n = keys.length; if (!n) return ok(out); keys.forEach(k => { const q = st.get(k); q.onsuccess = () => { if (q.result) out[k] = q.result; if (!--n) ok(out); }; q.onerror = () => { if (!--n) ok(out); }; }); } catch(e){ ok(out); } }); }
 async function thDel(keys){ const db = await THDB(); if (!db) return; try { const st = db.transaction('th', 'readwrite').objectStore('th'); keys.forEach(k => st.delete(k)); } catch(e){} }
 async function thPut(map){ const db = await THDB(); if (!db) return; try { const st = db.transaction('th', 'readwrite').objectStore('th'); Object.keys(map).forEach(k => st.put(map[k], k)); } catch(e){} }
-function thSet(q, k, src){ TH[k] = src; (q.get(k)||[]).forEach(el => { el.src = src; el.classList.remove('lowres'); }); }
+function thSet(q, k, src){ TH[k] = src; (q.get(k)||[]).forEach(el => { el.src = src; lowOff(el); }); }
+/* 大きい写真を待つ間：小さい写真をぼかして出し、右上に小さく読み込み中のマーク */
+function lowOn(el, src){ el.src = src; if (el.classList.contains('lowres')) return; el.classList.add('lowres'); const p = el.parentElement; if (!p) return;
+  if (getComputedStyle(p).position === 'static') p.style.position = 'relative'; const sp = document.createElement('span'); sp.className = 'lrspin'; sp.title = '高画質を読み込んでいます'; el.after(sp); }
+function lowOff(el){ if (!el.classList.contains('lowres')) return; el.classList.remove('lowres'); const sp = el.nextElementSibling; if (sp && sp.classList.contains('lrspin')) sp.remove(); }
 async function flushThumbs(){
   const q = thQueue; thQueue = new Map();
   const saved = await thGet([...q.keys()]);
   const byW = {};
   const miss = [...q.keys()].filter(k => !saved[k]), alt = {}; miss.forEach(k => { const [w, ...r] = k.split('_'), id = r.join('_'); ['800', '400', '200'].forEach(x => { if (+x < +w) alt[k] = (alt[k] || []).concat(x + '_' + id); }); });
   const lows = await thGet([].concat(...Object.values(alt)));
-  miss.forEach(k => { const a = (alt[k] || []).find(x => lows[x]); if (a) (q.get(k)||[]).forEach(el => { if (!el.src || el.classList.contains('lowres')) { el.src = lows[a]; el.classList.add('lowres'); } }); }); // 大きい写真が届くまで、保存してある小さい写真をぼかして出す
+  miss.forEach(k => { const a = (alt[k] || []).find(x => lows[x]); if (a) (q.get(k)||[]).forEach(el => { if (!el.src || el.classList.contains('lowres')) lowOn(el, lows[a]); }); }); // 大きい写真が届くまで、保存してある小さい写真をぼかして出す
   [...q.keys()].forEach(k => { if (saved[k]) return thSet(q, k, saved[k]); const [w, ...r] = k.split('_'); (byW[w] = byW[w] || []).push(r.join('_')); });
   Object.keys(byW).forEach(w => { for (let i = 0; i < byW[w].length; i += 24) {
     const ids = byW[w].slice(i, i + 24);
@@ -2237,11 +2242,11 @@ async function hydrateDocs(root){
   const saved = await thGet(keys.map(k => 'd' + k)), by = {};
   keys.forEach(k => { const v = saved['d' + k], [w, ...r] = k.split('_'), id = r.join('_');
     if (v) { DTH[k] = v; need[k].forEach(el => el.src = v); return; }
-    const lo = ['400', '200'].find(x => +x < +w && DTH[x + '_' + id]); if (lo) need[k].forEach(el => { if (!el.src) { el.src = DTH[lo + '_' + id]; el.classList.add('lowres'); } });
+    const lo = ['400', '200'].find(x => +x < +w && DTH[x + '_' + id]); if (lo) need[k].forEach(el => { if (!el.src) lowOn(el, DTH[lo + '_' + id]); });
     (by[w] = by[w] || new Set()).add(id); });
   Object.keys(by).forEach(w => { const ids = [...by[w]];
     for (let i = 0; i < ids.length; i += 12) call('getDocThumbs', ids.slice(i, i + 12), +w).then(m => { const keep = {};
-      Object.keys(m).forEach(id => { DTH[w + '_' + id] = m[id]; if (+w <= 400) keep['d' + w + '_' + id] = m[id]; /* 大きい写真は保存しない（容量を使いすぎない） */ document.querySelectorAll(`img[data-did="${id}"][data-dw="${w}"]`).forEach(el => { el.src = m[id]; el.classList.remove('lowres'); }); });
+      Object.keys(m).forEach(id => { DTH[w + '_' + id] = m[id]; if (+w <= 400) keep['d' + w + '_' + id] = m[id]; /* 大きい写真は保存しない（容量を使いすぎない） */ document.querySelectorAll(`img[data-did="${id}"][data-dw="${w}"]`).forEach(el => { el.src = m[id]; lowOff(el); }); });
       thPut(keep); }).catch(() => {}); });
 }
 /* PDF：一度開いたものはスマホ・パソコンの中に保存して、次からすぐ開く */
