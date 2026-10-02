@@ -1455,7 +1455,7 @@ html.sa .vedit{top:calc(12px + var(--cap))}html.sa .vmenu{top:calc(66px + var(--
 #sheet .box{max-width:none!important;width:100%;height:100%;max-height:none!important;border-radius:0!important;box-shadow:none;border:0!important;background:var(--bg)!important;
   padding:calc(var(--cap,0px) + var(--edge,0px) + 72px) max(18px, calc((100% - 760px) / 2)) calc(30px + env(safe-area-inset-bottom))!important}
 #sheet #sheetbox.split{width:100%!important;height:100%!important;border-radius:0!important;padding:calc(var(--cap,0px) + var(--edge,0px) + 72px) 24px 24px!important}
-body.kbopen #sheet .box{max-height:none!important}
+body.kbopen #sheet .box{max-height:none!important}#sheet .box{padding-bottom:0!important}#sheet .box>:last-child:not(.btns){margin-bottom:calc(24px + env(safe-area-inset-bottom))}#sheet .btns{background:inherit;padding-bottom:calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
 body.wide #sheet.sheet,body.wide #viewer,body.wide .docview{left:264px}
 body.scr .appbar,body.scr #top{z-index:400!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}
 body.scr #top .appbar{transform:none!important}
@@ -1703,7 +1703,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '086ad2b766', APP_URL = location.origin + location.pathname;
+const BUILD = '135f2ad4cd', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
