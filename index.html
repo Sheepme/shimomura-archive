@@ -1454,7 +1454,11 @@ header,header.tuck{padding-top:calc(var(--tb,0px) + var(--cap,0px) + 58px)!impor
 .chips.stk{box-shadow:0 calc(-1 * var(--rowtop,0px)) 0 0 var(--bg),0 calc(-.66 * var(--rowtop,0px)) 0 0 var(--bg),0 calc(-.33 * var(--rowtop,0px)) 0 0 var(--bg)}
 @media(max-width:899px){ .chips.stk{box-shadow:0 -150px 0 150px var(--bg)} } /* スマホ：動いている途中でもすき間が出ないよう、上を大きめに地の色で埋める */ /* 上のバーとの動きのずれで、すき間から後ろが見えないように上を地の色で埋める */
 #top .appbar{transition:transform .25s ease,top .25s ease,left .22s ease,translate .22s ease!important}
-body:not(.pgopen):not(.searching):not(.dwopen) #top.tuck .appbar{transform:translateY(calc(-1 * var(--abb,0px) - 4px))} /* 隠すときは画面の外まで上げる（切り欠きの部分はカテゴリの上の地の色で埋まる） */
+body:not(.pgopen):not(.searching):not(.dwopen) #top.tuck .appbar{transform:translateY(calc(var(--safe,0px) - var(--abb,0px)))} /* 上のバーとカテゴリを同じ距離・同じ速さで一緒に動かす（ひとつのヘッダーとして） */
+body:not(.pgopen):not(.searching):not(.dwopen) #top.tuck .chips.stk{transform:translateY(calc(var(--safe,0px) - var(--abb,0px)))}
+.chips.stk{top:var(--abb,0px)!important;transition:transform .25s ease!important;will-change:transform}
+#safeCover{display:none;position:fixed;left:0;right:0;top:0;height:var(--safe,0px);background:var(--bg);z-index:97;pointer-events:none}
+body:not(.pgopen):not(.searching):not(.dwopen):not(.loggedout) #safeCover{display:block} /* 画面上の切り欠きの部分は地の色（上のバーはこの下にもぐる） */
 html[data-theme=dark]{--bg:#1c1c1b}
 /* サブメニュー（すべて・自宅・美術館…など）は Pinterest と同じ：文字だけ、選んでいるものは太字＋下線 */
 body .chips{gap:22px!important;padding:4px 0 2px!important}
@@ -1582,7 +1586,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '9b9900f241', APP_URL = location.origin + location.pathname;
+const BUILD = '2424ad370d', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4718,7 +4722,8 @@ function hdStick(){ const hd = document.getElementById('top'), ab = hd && hd.que
   let pr = document.getElementById('safeProbe'); if (!pr) { pr = document.createElement('div'); pr.id = 'safeProbe'; pr.style.cssText = 'position:fixed;left:0;top:0;width:0;visibility:hidden;pointer-events:none;height:calc(var(--tb,0px) + var(--cap,0px))'; document.body.appendChild(pr); }
   const safe = pr.offsetHeight; // 画面上の切り欠きの高さ（実際の長さで測る）
   const abb = ab.offsetTop + ab.offsetHeight, top = tuck ? safe : abb;
-  document.documentElement.style.setProperty('--abb', abb + 'px');
+  document.documentElement.style.setProperty('--abb', abb + 'px'); document.documentElement.style.setProperty('--safe', safe + 'px');
+  if (!document.getElementById('safeCover')) { const sc = document.createElement('div'); sc.id = 'safeCover'; document.body.appendChild(sc); }
   document.documentElement.style.setProperty('--rowtop', top + 'px'); document.documentElement.style.setProperty('--rowh', (last ? last.offsetHeight : 0) + 'px');
   return last ? top + last.offsetHeight : top; }
 function stkTop(){ let hb = 0; try { hb = hdStick() || 0; } catch(e){} const ab = document.querySelector('#top .appbar'); const b = hb ? hb + 6 : (ab ? Math.max(0, ab.getBoundingClientRect().bottom + 6) : 0); document.documentElement.style.setProperty('--stk', b + 'px'); document.documentElement.style.setProperty('--stkx', '0px');  markStuck(); }
