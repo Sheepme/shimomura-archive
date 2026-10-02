@@ -1435,7 +1435,7 @@ html body #main section.cy .cage{font-size:12px!important;color:var(--sub)!impor
 .mmic{display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:var(--sub);background:var(--wash)}
 .dfx{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:8px 0}.dfx.done{opacity:.6}.dfx b{display:block;font-size:15px}
 .dfrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0}.dfrow span{background:var(--wash);border-radius:8px;padding:6px 8px;font-size:16px;word-break:break-all}.dfrow small{display:block;font-size:12px;color:var(--sub)}
-.dfbtn{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dfbtn .act{margin:0}.dfill{margin:8px 0;font-size:14px;color:var(--sub)}.dfill p{margin:4px 0}.dtoc{display:flex;flex-direction:column;gap:2px;margin:6px 0 10px}.dtr{display:flex;gap:10px;align-items:flex-start;text-align:left;padding:8px 10px;border-radius:10px;background:var(--card,#fff);border:1px solid rgba(0,0,0,.06);font:inherit;color:var(--ink,inherit);font-size:14px;line-height:1.5}button.dtr{cursor:pointer;width:100%}.dtp{flex:0 0 auto;min-width:3.6em;color:var(--sub);font-variant-numeric:tabular-nums}#bgsave{position:fixed;left:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:9500;display:flex;align-items:center;gap:8px;background:rgba(30,30,30,.88);color:#fff;font-size:13px;padding:8px 12px;border-radius:20px;box-shadow:0 2px 10px rgba(0,0,0,.2);pointer-events:none}#bgsave.hidden{display:none}#bgsave .ldspin{width:14px;height:14px;border-width:2px;border-color:rgba(255,255,255,.3);border-top-color:#fff}.nobadge{display:inline-block;background:#e6f4ea;color:#1e7a3c;border-radius:6px;padding:0 6px;font-size:11px;margin-left:4px}.nvtoc{margin:8px 0 0;font-size:13px;color:var(--sub)}.dmemo{white-space:pre-wrap}
+.dfbtn{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dfbtn .act{margin:0}.dfill{margin:8px 0;font-size:14px;color:var(--sub)}.dfill p{margin:4px 0}.dtoc{display:flex;flex-direction:column;gap:2px;margin:6px 0 10px}.dtr{display:flex;gap:10px;align-items:flex-start;text-align:left;padding:8px 10px;border-radius:10px;background:var(--card,#fff);border:1px solid rgba(0,0,0,.06);font:inherit;color:var(--ink,inherit);font-size:14px;line-height:1.5}button.dtr{cursor:pointer;width:100%}.dtp{flex:0 0 auto;min-width:3.6em;color:var(--sub);font-variant-numeric:tabular-nums}#bgsave{position:fixed;left:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:9500;display:flex;align-items:center;gap:8px;background:rgba(30,30,30,.88);color:#fff;font-size:13px;padding:8px 12px;border-radius:20px;box-shadow:0 2px 10px rgba(0,0,0,.2);pointer-events:none}#bgsave.hidden{display:none}#bgsave .ldspin{width:14px;height:14px;border-width:2px;border-color:rgba(255,255,255,.3);border-top-color:#fff}.dmodes{display:flex;gap:0;margin:4px 0 14px;border:1px solid var(--line);border-radius:10px;overflow:hidden}.dmodes button{flex:1;padding:10px;font:inherit;font-size:15px;background:transparent;color:var(--sub);border:0}.dmodes button.on{background:var(--ink);color:var(--inv)}.dfolders{display:flex;flex-direction:column;gap:6px;margin:10px 0 16px}.dfold{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--paper);color:inherit;font:inherit;cursor:pointer}.dfic{font-size:26px;line-height:1}.dfnm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.dfnm b{font-size:16px;overflow-wrap:anywhere}.dfnm small{color:var(--sub);font-size:13px}.dfw{font-style:normal;color:#d9822b}.dfgo{color:var(--sub);font-size:22px}.nobadge{display:inline-block;background:#e6f4ea;color:#1e7a3c;border-radius:6px;padding:0 6px;font-size:11px;margin-left:4px}.nvtoc{margin:8px 0 0;font-size:13px;color:var(--sub)}.dmemo{white-space:pre-wrap}
 .shx{position:sticky;top:0;float:right;width:40px;height:40px;margin:-10px -8px 0 12px;border-radius:50%;border:1px solid var(--line);background:var(--paper);color:var(--ink);font-size:17px;line-height:1;padding:0;z-index:3;display:flex;align-items:center;justify-content:center}
 #sheetbox.split{max-width:min(1500px,96vw);width:96vw;height:min(92vh, calc(var(--vvh,100vh) - 12px - var(--tb)));max-height:none;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(380px,1fr);gap:28px;overflow:hidden;padding:24px}
 #sheetbox.split .dsv{overflow:auto;min-height:0;background:var(--wash);border-radius:10px}#sheetbox.split .dsv img{display:block;width:100%;height:auto;margin:0 0 8px}
@@ -1703,7 +1703,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '135f2ad4cd', APP_URL = location.origin + location.pathname;
+const BUILD = '41ffc6eff2', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1756,6 +1756,7 @@ function abRender0(){ const h = $('#abTitle'); if (!h) return;
   // 一覧の段：作品アルバム › 美術館 › 館名
   const base = [S.view === 'home' ? {nm:'ホーム', ic:ROOT.match(/<svg[\s\S]*?<\/svg>/)[0], at:'data-home="1"'} : {nm: VIEW_NM[S.view] || tx, ic: icOf({album:'works', list:'list', ex:'ex', pb:'pb', ot:'ot', chrono:'chrono', doc:'doc'}[S.view]), at:'data-bc="view"'}];
   if (isW && S.filter === '美術館') { base.push({nm:'美術館', ic:MUS_IC, at:'data-bc="flt"'}); if (S.mus) base.push({nm:S.mus, ic:icOf('loc'), at:'data-bc="mus"'}); }
+  if (S.view === 'doc' && S.dmode === 'files') { base.push({nm:'資料ファイル', ic:'🗂', at:'data-bc="df0"'}); (S.dpath || []).forEach((x, i) => base.push({nm:x, ic:'📁', at:`data-bc="df${i + 1}"`})); }
   const bc = (items, cur, cnt) => { const one = (x, last) => `<span class="crumb cp${last ? ' cplast' : ''}" ${x.at} aria-label="${esc(x.nm)}"><span class="hmtx">${esc(x.nm)}</span>${x.ic ? `<span class="hmic">${x.ic}</span>` : ''}</span>` + SEP;
     h.innerHTML = '<span class="crumb cdots" data-bc="view" aria-label="最初の階層">…</span>' + SEP + items.map((x, i) => one(x, i === items.length - 1)).join('') + `<span class="crumb cur">${esc(cur)}</span>` + (cnt == null ? '' : `<span class="abcn">${cnt}</span>`); };
   if (pgOpen && S.pcur) {
@@ -1763,6 +1764,7 @@ function abRender0(){ const h = $('#abTitle'); if (!h) return;
     bc(base.concat((S.stack || []).map((x, i) => ({nm: pcName(x.t, x.id), ic: icOf(TK[x.t] || 'works'), at:`data-ci="${i + 1}"`}))), pcName(S.pcur.t, S.pcur.id));
     return; }
   const vcn = () => { const n = ({album: (S.works||[]).length, list: (S.works||[]).length, ex: (S.exhibits||[]).length, pb: (S.pubs||[]).length, ot: (S.others||[]).length, doc: (S.docs||[]).length})[S.view]; return n === undefined ? '' : `<span class="abcn">${n}</span>`; }; // 題名の後ろに件数
+  if (S.view === 'doc' && S.dmode === 'files') { const t = docTreeAt(S.dpath || []); bc(base.slice(0, -1), base[base.length - 1].nm, t ? t.n : 0); return; }
   if (isW && S.filter === '美術館') { // 作品アルバム › 美術館 › 館名
     const ms = (S.works||[]).filter(w => w['所在区分']==='美術館' && (!S.mus || (w['所在']||'（館名なし）') === S.mus)).length;
     bc(base.slice(0, -1), base[base.length - 1].nm, ms);
@@ -2375,7 +2377,40 @@ const docCard = (d, btn) => { const pg = docPages(d), r = docRes(d);
 let SAMECHK = false; // 表記ゆれで同じとみなせる食い違いを、まとめて自動で確認済みにする（1回だけ）
 function sameChk(){ if (SAMECHK || !canEdit() || !(S.docs||[]).some(d => docDiffN(d))) return; SAMECHK = true;
   call('resolveSameDiffs').then(r => { if (r && r.n) { if (r.data) setData(r.data); if (S.view==='doc') render(); toast('表記ゆれの食い違い ' + r.n + '件を、自動で確認済みにしました'); } }).catch(() => { SAMECHK = false; }); }
+/* ---------- 資料ファイル：ドライブのフォルダ（＝実物のバインダー）と同じ並びで見る ---------- */
+const DF_NONE = '未整理（バインダーなし）';
+function docTree(){ const root = { name: '', k: {}, docs: [], n: 0 };
+  (S.docs || []).forEach(d => { if (d['状態'] === 'まだ' || d['状態'] === '確認待ち') return;
+    let p = String(d['保管番号'] || '').split('/').map(x => x.trim()).filter(Boolean); if (!p.length) p = [DF_NONE];
+    let t = root; t.n++; p.forEach(x => { t = t.k[x] = t.k[x] || { name: x, k: {}, docs: [], n: 0 }; t.n++; }); t.docs.push(d); });
+  return root; }
+function docTreeAt(path){ let t = docTree(); for (const x of path) { t = t.k[x]; if (!t) return null; } return t; }
+const dfSort = (a, b) => (a === DF_NONE) - (b === DF_NONE) || a.localeCompare(b, 'ja', { numeric: true });
+function dfWarnN(t){ let n = t.docs.filter(d => docWarn(d)).length; Object.values(t.k).forEach(c => n += dfWarnN(c)); return n; }
+function renderDocFiles(){
+  let path = S.dpath || [], t = docTreeAt(path); if (!t) { path = S.dpath = []; t = docTree(); }
+  const q = (S.dfq || '').trim(), k = q.normalize('NFKC').toLowerCase();
+  const tabs = `<div class="dmodes"><button type="button" data-dmode="">一覧</button><button type="button" class="on" data-dmode="files">📁 資料ファイル</button></div>`;
+  let h = `<div class="chead"><h2>${esc(path.length ? path[path.length - 1] : '資料ファイル')}</h2><p class="csub">${path.length ? esc(path.slice(0, -1).join(' › ') || 'バインダー') : 'スキャンしたフォルダ（＝実物のバインダー）ごとに並べています'}</p></div>${tabs}
+    <div class="dsearch"><input id="dfq" type="search" placeholder="${path.length ? 'このフォルダの中から' : '資料の名前で'}しぼり込む" value="${esc(q)}" enterkeyhint="search"></div>`;
+  if (k) { const all = []; const walk = (x, pp) => { x.docs.forEach(d => all.push([d, pp])); Object.keys(x.k).forEach(n => walk(x.k[n], pp.concat(n))); }; walk(t, path);
+    const hit = all.filter(([d]) => [docTitle(d), docRes(d)['要約'], docRes(d)['相手先'], docRes(d)['日付']].join(' ').normalize('NFKC').toLowerCase().indexOf(k) >= 0);
+    h += `<h3 class="sec">「${esc(q)}」${hit.length}件</h3>` + (hit.length ? `<div class="dlist">${hit.map(([d, pp]) => docCard(d, '📁 ' + esc(pp.join(' › ')))).join('')}</div>` : '<p class="hint">見つかりませんでした。中身の文字から探すときは「一覧」の全文検索を使ってください。</p>'); }
+  else {
+    if (path.length && path[0] !== DF_NONE) h += `<button type="button" class="act pdfopen" data-spine="${esc(path.join('/'))}">📦 このフォルダの背表紙を見る</button>`;
+    const subs = Object.keys(t.k).sort(dfSort);
+    if (subs.length) h += `<div class="dfolders">${subs.map(n => { const c = t.k[n], w = dfWarnN(c), sub = Object.keys(c.k).length;
+      return `<button type="button" class="dfold" data-dfo="${esc(n)}"><span class="dfic">${!path.length ? (n === DF_NONE ? '🗃' : '🗂') : '📁'}</span><span class="dfnm"><b>${esc(n)}</b><small>${c.n}通${sub ? '・フォルダ' + sub : ''}${w ? '　<em class="dfw">⚠ ' + w + '</em>' : ''}</small></span><span class="dfgo">›</span></button>`; }).join('')}</div>`;
+    const ds = t.docs.slice().sort((a, b) => String(a['書類ID']).localeCompare(String(b['書類ID']), 'ja', { numeric: true }));
+    if (ds.length) h += `<h3 class="sec">${subs.length ? 'このフォルダの資料' : '資料'}（${ds.length}通）</h3><div class="dlist">${ds.map(d => docCard(d, docWarn(d) ? '⚠ ' + docWarn(d) : (d['全文あり'] ? '📖 全文あり' : ''))).join('')}</div>`;
+    if (!subs.length && !ds.length) h += '<p class="muted" style="text-align:center;padding:30px 0">登録済みの資料はまだありません。</p>';
+    if (path.length) h += `<button type="button" class="act" data-dfup="1">‹ ひとつ上のフォルダへ</button>`;
+  }
+  $('#main').innerHTML = '<div class="docs">' + h + '</div>'; hydrateDocs($('#main'));
+  const inp = $('#dfq'); inp.oninput = () => { S.dfq = inp.value; clearTimeout(inp._t); inp._t = setTimeout(() => { const pos = inp.selectionStart; renderDocFiles(); const n = $('#dfq'); n.focus(); try { n.setSelectionRange(pos, pos); } catch(e){} }, 250); };
+}
 function renderDocs(){ setTimeout(sameChk, 500);
+  if (S.dmode === 'files') return renderDocFiles();
   const nNew = docsOf('まだ').length, rev = docsOf('確認待ち'), done = (S.docs||[]).filter(d => ['登録済み','登録しない'].includes(d['状態']));
   const step = (n, t, c, on) => `<div class="dstep ${on?'on':''}"><b>${n}</b><span>${t}</span><small>${c}</small></div>`;
   const card = docCard;
@@ -2394,6 +2429,7 @@ function renderDocs(){ setTimeout(sameChk, 500);
   const tools = `<div class="dsearch"><input id="dsq" type="search" placeholder="資料の中身（全文）から探す" enterkeyhint="search"><button type="button" class="act" id="dsqGo">探す</button></div><div id="dsres"></div>`
     + (noTxt && !(PJ.j && PJ.j.on) ? `<button type="button" class="act dbig" id="txtJob">📝 全文がまだの資料 ${noTxt}通を書き起こす（サーバーで）</button>` : '');
   h = h.replace('<button class="act main dbig" data-docnew="">', tools + '<button class="act main dbig" data-docnew="">');
+  if (done.length) h = h.replace('<div class="dsteps">', `<div class="dmodes"><button type="button" class="on" data-dmode="">一覧</button><button type="button" data-dmode="files">📁 資料ファイル</button></div><div class="dsteps">`);
   $('#main').innerHTML = '<div class="docs">' + h + '</div>'; hydrateDocs($('#main'));
   const go = async () => { const q = $('#dsq').value.trim(), out = $('#dsres'); NOTEQ = q; if (!q) { out.innerHTML = ''; return; } out.innerHTML = '<div class="ldwrap" style="min-height:80px"><span class="ldspin"></span>探しています…</div>';
     try { const L = await call('searchDocs', q); out.innerHTML = L.length ? `<h3 class="sec">「${esc(q)}」が出てくる資料 ${L.length}件</h3><div class="dlist">${L.map(x => { const d = docById(x.id); return d ? docCard(d, '…' + x.s + '…') : ''; }).join('')}</div>` : '<p class="hint">見つかりませんでした</p>'; hydrateDocs(out); }
@@ -2497,7 +2533,7 @@ function sheetDocReview(id){
       ${d['メモ'] ? `<p class="hint dmemo">📝 ${esc(d['メモ'])}</p>` : ''}
       ${d['全文あり'] && !noteMode ? `<button type="button" class="act main pdfopen dvnote" data-note="${esc(id)}">📖 ノートで読む（資料の文字）</button>` : ''}
       ${r.PDF ? `<button type="button" class="act pdfopen" data-pdfopen="${esc(pg[0]||'')}">📄 PDFを見る</button>` : ''}
-      ${d['保管番号'] ? `<button type="button" class="act pdfopen" data-spine="${esc(d['保管番号'])}">📦 ${esc(d['保管番号'])} の背表紙を見る</button>` : ''}
+      ${d['保管番号'] ? `<button type="button" class="act pdfopen" data-spine="${esc(d['保管番号'])}">📦 ${esc(d['保管番号'])} の背表紙を見る</button><button type="button" class="act pdfopen" data-dfgo="${esc(d['保管番号'])}">📁 このファイルを開く（同じフォルダの資料）</button>` : ''}
       ${r['展覧会ID'] && (S.exhibits||[]).some(e => e['展覧会ID']===r['展覧会ID']) ? `<p><button type="button" class="golink" data-ex="${esc(r['展覧会ID'])}">展覧会：${esc((S.exhibits.find(e => e['展覧会ID']===r['展覧会ID'])||{})['名称']||'')} ›</button></p>` : ''}
       ${String(r['資料ID']||'').split(',').filter(x => (S.pubs||[]).some(p => p['資料ID']===x)).map(x => `<p><button type="button" class="golink" data-pb="${esc(x)}">画集・本：${esc((S.pubs.find(p => p['資料ID']===x)||{})['タイトル']||x)} ›</button></p>`).join('')}
       ${st==='登録済み' && r.PDF && !nos.length ? '<p class="hint">作品のひも付けはありません</p>' : st==='登録済み' ? `<h3 class="sec" style="font-size:18px">登録した作品</h3><div class="wl2">${nos.map(no => `<button class="wchip" data-no="${esc(no)}">${esc(wLabel(no) || nol(no))}</button>`).join('')}</div>`
@@ -4793,7 +4829,7 @@ $('#abTitle').addEventListener('click', e => {
   if (SCR.length && e.target.closest('.crumb') && !e.target.closest('.cscr')) { // パンくずを押したら、開いている編集などの画面を閉じてから移る
     for (let n = 0; n < 6 && SCR.length; n++) { const top = SCR[SCR.length - 1]; scrBack(); if (SCR[SCR.length - 1] === top) break; }
     if (SCR.length || e.target.closest('.cpscr')) return; } if (e.target.closest('.crumb[data-home]')) { goHome(); return; }
-  const bk = e.target.closest('.crumb[data-bc]'); if (bk && !bk.classList.contains('cur')) { const v = bk.dataset.bc; closeAllPages(); if (v === 'view') { S.filter = 'all'; S.mus = ''; } else if (v === 'flt') S.mus = ''; S.limit = 60; render(); window.scrollTo(0, 0); return; } if (e.target.closest('.crumb[data-flt]')) { S.filter = 'all'; S.mus = ''; S.limit = 60; render(); window.scrollTo(0, 0); return; } const c = e.target.closest('.crumb[data-ci]');
+  const bk = e.target.closest('.crumb[data-bc]'); if (bk && !bk.classList.contains('cur')) { const v = bk.dataset.bc; closeAllPages(); if (/^df\d+$/.test(v)) { S.dmode = 'files'; S.dpath = (S.dpath || []).slice(0, +v.slice(2)); render(); window.scrollTo(0, 0); return; } if (v === 'view') { S.filter = 'all'; S.mus = ''; S.dmode = ''; } else if (v === 'flt') S.mus = ''; S.limit = 60; render(); window.scrollTo(0, 0); return; } if (e.target.closest('.crumb[data-flt]')) { S.filter = 'all'; S.mus = ''; S.limit = 60; render(); window.scrollTo(0, 0); return; } const c = e.target.closest('.crumb[data-ci]');
   if (c && !c.classList.contains('cur')) { const k = +c.dataset.ci; if (k === 0) { closeAllPages(); return; } let n = (S.stack || []).length - (k - 1); while (n-- > 0 && S.stack.length) closeWork(); return; }
   const up = $('#updBar'); if (up && $('#abTitle').classList.contains('st-upd')) { up.click(); abRender(); return; } const pg = $('#page');
   if (!pg.classList.contains('hidden')) pg.scrollTo({top:0, behavior:'smooth'}); else window.scrollTo({top:0, behavior:'smooth'}); });
@@ -4854,6 +4890,10 @@ document.addEventListener('click', e => {
   if (t.dataset.mus !== undefined){ S.mus=t.dataset.mus; S.limit=60; render(); return; }
   if (t.id==='more'){ S.limit+=60; render(); return; }
   if (t.dataset.pdfscan){ sheetPdfScan(); return; }
+  if (t.dataset.dmode !== undefined){ S.dmode = t.dataset.dmode; S.dfq = ''; render(); window.scrollTo(0, 0); return; }
+  if (t.dataset.dfo !== undefined){ S.dpath = (S.dpath || []).concat(t.dataset.dfo); S.dfq = ''; render(); window.scrollTo(0, 0); return; }
+  if (t.dataset.dfup){ S.dpath = (S.dpath || []).slice(0, -1); render(); window.scrollTo(0, 0); return; }
+  if (t.dataset.dfgo !== undefined){ closeSheet(); closeAllPages(); S.view = 'doc'; S.dmode = 'files'; S.dfq = ''; S.dpath = t.dataset.dfgo ? t.dataset.dfgo.split('/') : [DF_NONE]; render(); window.scrollTo(0, 0); return; }
   if (t.dataset.pdfopen){ openPdf(t.dataset.pdfopen); return; }
   if (t.dataset.spine){ showSpine(t, t.dataset.spine); return; }
   if (t.dataset.rec){ if (canEdit() && !recInline(t)) sheetRec(t.dataset.rec, t.dataset.rid, t.dataset.rf); return; } // 展覧会・画集なども、鉛筆でその場で直す
