@@ -1654,7 +1654,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '94d323c770', APP_URL = location.origin + location.pathname;
+const BUILD = '8d3a0ded36', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1740,7 +1740,7 @@ function setToken(t){ S.token = t; try { t ? localStorage.setItem('smr_token', t
 try { S.token = localStorage.getItem('smr_token') || ''; } catch(e){ S.token = ''; }
 function renderUser(){
   const on = canEdit();
-  $('#userbox').innerHTML = S.user ? `<button class="avatar" id="btnMe" aria-label="${esc(S.user.name||'')}さんのメニュー"><span class="avi">${esc(String(S.user.name||'？').trim().charAt(0))}</span><span class="avn">${esc(S.user.name||'')}</span></button>` : '';
+  $('#userbox').innerHTML = ''; // 上のバーの名前ボタンは使わない（名前のメニューはサイドメニューの下から開く）
   setTimeout(pinDrawer, 0);
   const f = $('#dwFoot'); if (f) f.innerHTML = S.user ? `<button type="button" class="dwme" id="btnMe2"><span class="avatar sm">${esc(String(S.user.name||'？').trim().charAt(0))}</span><span><b>${esc(S.user.name||'')}</b><small>${esc(S.user.role||'')}</small></span></button><button type="button" class="dwtheme" id="dwTheme" aria-label="明るい表示・暗い表示を切り替える">${themeIcon()}</button>` : '';
   document.body.classList.remove('editing'); document.body.classList.toggle('canedit', on);
@@ -4620,7 +4620,6 @@ document.addEventListener('click', e => {
   if (t.id==='askgo'){ ask($('#askq').value); return; }
   if (t.id==='btnLog'){ showLog(); return; }
   if (t.id==='btnLogin' || t.hasAttribute('data-login')){ openLogin(); return; }
-  if (t.id==='btnMe'){ openMe(); return; }
   if (t.id==='btnAsk'){ openAI(); return; }
   if (t.id==='chatReset'){ S.chat=[]; S.conv = newConv(); renderAI(); return; }
   if (t.id==='aiClose'){ closeAI(); return; }
@@ -4797,7 +4796,7 @@ const pdfSnap = () => { try { SNAP.v = sheetState(); } catch(e){} }; // 読み�
 function pdfHead(){ const h = $('#pdfHead'); if (!h || !PDFQ) return;
   const L = PDFQ.list, R = PDFQ.res, unread = L.filter(x => !R[x.id]).length, done = L.filter(x => R[x.id] && R[x.id].done).length;
   h.innerHTML = !L.length ? '<p class="hint">「資料 › スキャン」フォルダに、まだPDFがありません。ScanSnapで1書類ずつスキャンして、このフォルダに保存してください。</p>'
-    : `<p class="hint">${L.length}件のPDF（登録済み ${done}件）。AIが読み取った内容を確かめて「登録する」を押してください。読み取りは1件1円以下です。</p>
+    : `<p class="hint">${L.length}件のPDF（登録済み ${done}件）。読み取ると、そのまま登録まで進めます。食い違いなどは、あとで「書類」の「⚠ 要確認」で確かめてください。読み取りは1件1円以下です。</p>
       ${PDFQ.running ? `<button type="button" class="act" data-pq="stop">読み取りを止める</button>` : unread ? `<button type="button" class="act main" data-pq="all">まとめて読み取る（${unread}件）</button>` : ''}
       ${PDFQ.running || unread > 1 ? '<p class="hint">読み取り中は、この画面を閉じてほかの作業をしていても大丈夫です。終わったらお知らせします（アプリは開いたままにしてください）。</p>' : ''}`;
   pdfSnap(); }
@@ -4807,13 +4806,13 @@ function pdfCard(i){ const el = $('#pc' + i); if (!el || !PDFQ) return; const x 
   if (r.loading) { el.innerHTML = nm + '<p class="hint">AIが読み取っています…</p>'; return pdfSnap(); }
   if (r.err) { el.innerHTML = nm + `<p class="hint" style="color:var(--warn)">${esc(r.err)}</p><button type="button" class="act" data-pq="again|${i}">もう一度読み取る</button>`; return pdfSnap(); }
   if (r.skip) { el.innerHTML = nm + '<p class="hint">あとで登録する（このPDFはフォルダに残ります）</p>'; el.classList.add('off'); return pdfSnap(); }
-  if (r.done) { el.innerHTML = nm + `<p class="hint">✓ 登録しました　<button type="button" class="golink" data-doc="${esc(r.done)}">書類を見る ›</button></p>`; el.classList.add('off'); return pdfSnap(); }
+  if (r.done) { el.innerHTML = nm + `<p class="hint">✓ 登録しました${r.fill ? '・補完' + r.fill + '件' : ''}${r.diff ? '・食い違い' + r.diff + '件' : ''}　<button type="button" class="golink" data-doc="${esc(r.done)}">書類を見る ›</button></p>`; el.classList.add('off'); return pdfSnap(); }
   const a = r.d.r || {}, ex = a['展覧会'] || null, m = r.d.ex;
   const exOpts = (m ? `<option value="${esc(m.id)}" selected>台帳の展覧会：${esc(m['名称'])}（${esc(fmtDate(m['開始日']))}）</option>` : '')
     + (ex && ex['名称'] ? `<option value="new" ${m ? '' : 'selected'}>新しく作る：${esc(ex['名称'])}（${esc([ex['開始日'], ex['会場']].filter(Boolean).join('・'))}）</option>` : '')
     + `<option value="" ${!m && !(ex && ex['名称']) ? 'selected' : ''}>展覧会につながない</option>`;
   const kinds = DOC_PT.includes(a['種類']) ? DOC_PT : [a['種類'], ...DOC_PT].filter(Boolean);
-  el.innerHTML = nm + (r.d.dup && r.d.dup.length ? `<p class="hint" style="color:var(--warn)">⚠ 同じ書類がすでにあります：${r.d.dup.map(d => esc(d['タイトル'] + '（' + d.id + '）')).join('、')}</p>` : '')
+  el.innerHTML = nm + (r.regErr ? `<p class="hint" style="color:var(--warn)">⚠ 自動で登録できませんでした（${esc(r.regErr)}）。確かめて「登録する」を押してください</p>` : '') + (r.d.dup && r.d.dup.length ? `<p class="hint" style="color:var(--warn)">⚠ 同じ書類がすでにあります：${r.d.dup.map(d => esc(d['タイトル'] + '（' + d.id + '）')).join('、')}</p>` : '')
     + `<div class="field"><label>資料名</label><input data-k="タイトル" value="${esc(a['資料名']||'')}"></div>
       <div class="two"><div class="field"><label>種類</label><select data-k="種類">${kinds.map(k => `<option ${k===a['種類']?'selected':''}>${esc(k)}</option>`).join('')}</select></div>
       <div class="field"><label>発行年月</label><input data-k="発行年月" value="${esc(a['発行年月']||'')}"></div></div>
@@ -4828,7 +4827,8 @@ function pdfCard(i){ const el = $('#pc' + i); if (!el || !PDFQ) return; const x 
   pdfSnap(); }
 async function pdfRead(i, again){ const x = PDFQ.list[i]; PDFQ.res[x.id] = {loading: 1}; pdfCard(i);
   try { const d = await call('readPdf', x.id, !!again); PDFQ.res[x.id] = {d}; } catch(e){ PDFQ.res[x.id] = {err: String(e && e.message || e)}; }
-  pdfCard(i); pdfHead(); }
+  pdfCard(i); pdfHead();
+  const rr = PDFQ.res[x.id]; if (rr && rr.d && !again && !(rr.d.dup && rr.d.dup.length)) await pdfReg(i, true); } // 読み取ったら、そのまま登録まで進める（同じ書類がありそうなときだけ手で）
 /* まとめて読み取り：画面を閉じても裏で続け、終わったら知らせる */
 async function pdfReadAll(){ if (PDFQ.running) return; PDFQ.running = true; PDFQ.stop = false; pdfHead(); pdfBg();
   for (let i = 0; i < PDFQ.list.length && !PDFQ.stop; i++) { if (!PDFQ.res[PDFQ.list[i].id]) { await pdfRead(i); pdfBg(); } }
@@ -4838,30 +4838,37 @@ function pdfBg(fin){ let el = $('#pdfbg'); const L = PDFQ ? PDFQ.list : [], R = 
   if (!el) { el = document.createElement('button'); el.type = 'button'; el.id = 'pdfbg'; el.onclick = () => { el.remove(); sheetPdfScan(); }; document.body.appendChild(el); }
   if (fin) {
     if (PDFQ.stop) { el.remove(); return; }
-    const msg = `スキャンした資料の読み取りが終わりました（${read}件${err ? '、うち' + err + '件は読み取れず' : ''}）。`;
+    const reg = L.filter(x => R[x.id] && R[x.id].done).length, left = read - reg - err;
+    const msg = `スキャンした資料の読み取りと登録が終わりました（登録 ${reg}件${left > 0 ? '、確認が必要 ' + left + '件' : ''}${err ? '、読み取れず ' + err + '件' : ''}）。`;
     if (open) { el.remove(); toast('読み取りが終わりました'); return; }
-    el.className = 'done'; el.textContent = `✓ 読み取り完了（${read}件）確かめる ›`;
+    el.className = 'done'; el.textContent = `✓ 読み取り・登録完了（${reg}件）確かめる ›`;
     if (!$('#sheet').classList.contains('hidden')) return; // ほかの入力中はじゃましない
-    setTimeout(() => { if (confirm(msg + '\n今すぐ確かめて登録しますか？')) { el.remove(); sheetPdfScan(); } }, 50);
+    setTimeout(() => { if (confirm(msg + '\n今すぐ確かめますか？')) { el.remove(); if (left > 0 || err) sheetPdfScan(); else { closeAllPages(); S.view = 'doc'; render(); window.scrollTo(0, 0); } } }, 50);
     return;
   }
   if (open) { el.style.display = 'none'; return; }
   el.style.display = ''; el.className = ''; el.textContent = `📄 読み取り中 ${read}／${L.length}件 ›`;
 }
-async function pdfReg(i){ const x = PDFQ.list[i], r = PDFQ.res[x.id], el = $('#pc' + i); if (!r || !r.d || !el) return;
-  const v = k => { const f = el.querySelector(`[data-k="${k}"]`); return f ? f.value.trim() : ''; };
-  if (!v('タイトル')) return alert('資料名を入れてください');
-  const a = r.d.r || {}, ex = a['展覧会'] || {};
+/* 登録：画面のカードがあればその内容で、なければ（裏で読み取ったとき）読み取った内容のまま登録する */
+async function pdfReg(i, auto){ const x = PDFQ.list[i], r = PDFQ.res[x.id], el = auto ? null : $('#pc' + i); if (!r || !r.d || (!auto && !el)) return;
+  const a = r.d.r || {}, ex = a['展覧会'] || {}, m = r.d.ex, W = r.d.works || [];
+  const dflt = {'タイトル': a['資料名'] || String(x.name).replace(/\.pdf$/i, ''), '種類': a['種類'] || '', '発行年月': a['発行年月'] || '', '発行元': a['発行元'] || '', '掲載内容': a['掲載内容'] || '', '保管番号': x.box || '', 'exId': m ? m.id : (ex['名称'] ? 'new' : '')};
+  const v = k => { const f = el && el.querySelector(`[data-k="${k}"]`); return f ? f.value.trim() : String(dflt[k] || '').trim(); };
+  if (!v('タイトル')) return auto ? null : alert('資料名を入れてください');
+  const picks = el ? [...el.querySelectorAll('input[data-no]:checked')].map(c => ({no: c.dataset.no, wi: +c.dataset.wi}))
+    : W.map((w, wi) => w.cands.length ? {no: w.cands[0].no, wi} : null).filter(Boolean);
+  const nf = W.filter(w => !w.cands.length).map(w => w['作品名']);
   const rec = { box: x.box || '', pub: {'タイトル': v('タイトル'), '種類': v('種類'), '発行年月': v('発行年月'), '発行元': v('発行元'), '掲載内容': v('掲載内容'), '保管番号': v('保管番号')},
     exId: v('exId'), ex: {'名称': ex['名称'] || '', '種類': ex['種類'] || '', '開始日': ex['開始日'] || '', '終了日': ex['終了日'] || '', '会場': ex['会場'] || '', '都市': ex['都市'] || ''},
-    pbIds: [...el.querySelectorAll('input[data-pbid]:checked')].map(c => c.dataset.pbid),
-    works: [...el.querySelectorAll('input[data-no]:checked')].map(c => { const w = (r.d.works||[])[+c.dataset.wi] || {}; return {no: c.dataset.no, '作品名': w['作品名']||'', '制作年': w['制作年']||'', '高さcm': w['高さcm']||'', '幅cm': w['幅cm']||'', '画材': w['画材']||''}; }).filter((w, i, a) => a.findIndex(x => x.no===w.no)===i),
-    check: (r.d.works||[]).length ? '紐付け作品を確認' + ((r.d.works||[]).filter(w => !w.cands.length).length ? '（台帳で見つからない作品：' + r.d.works.filter(w => !w.cands.length).map(w => w['作品名']).join('、') + '）' : '') : '',
-    nos: [...new Set([...el.querySelectorAll('input[data-no]:checked')].map(c => c.dataset.no))] };
-  busy(true, '登録しています…');
-  try { const d = await call('registerPdf', x.id, rec); setData(d); render(); PDFQ.res[x.id] = {done: d.newId}; toast(['登録しました', d.fill ? '補完' + d.fill + '件' : '', d.diff ? '食い違い' + d.diff + '件' : ''].filter(Boolean).join('・')); }
-  catch(e){ alert('登録できませんでした（' + (e && e.message || e) + '）'); }
-  finally { busy(false); pdfCard(i); pdfHead(); } }
+    pbIds: el ? [...el.querySelectorAll('input[data-pbid]:checked')].map(c => c.dataset.pbid) : (r.d.pbs || []).filter(b => b.s >= 0.8).map(b => b.id),
+    works: picks.map(pk => { const w = W[pk.wi] || {}; return {no: pk.no, '作品名': w['作品名']||'', '制作年': w['制作年']||'', '高さcm': w['高さcm']||'', '幅cm': w['幅cm']||'', '画材': w['画材']||''}; }).filter((w, i, a) => a.findIndex(y => y.no===w.no)===i),
+    check: [auto ? '自動で登録（内容を確認）' : '', W.length ? '紐付け作品を確認' + (nf.length ? '（台帳で見つからない作品：' + nf.join('、') + '）' : '') : ''].filter(Boolean).join('・'),
+    nos: [...new Set(picks.map(pk => pk.no))] };
+  if (!auto) busy(true, '登録しています…');
+  try { const d = await call('registerPdf', x.id, rec); setData(d); if (!auto || S.view==='doc') render(); PDFQ.res[x.id] = {done: d.newId, fill: d.fill, diff: d.diff};
+    if (!auto) toast(['登録しました', d.fill ? '補完' + d.fill + '件' : '', d.diff ? '食い違い' + d.diff + '件' : ''].filter(Boolean).join('・')); }
+  catch(e){ if (auto) PDFQ.res[x.id] = {d: r.d, regErr: String(e && e.message || e)}; else alert('登録できませんでした（' + (e && e.message || e) + '）'); }
+  finally { if (!auto) busy(false); pdfCard(i); pdfHead(); } }
 /* ---------- 起動 ---------- */
 busy(true, '作品を読み込んでいます…');
 renderUser();
