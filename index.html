@@ -1474,6 +1474,11 @@ body.scr .cbar,body.scr #pdfbg,body.scr #pjbg{display:none!important}
 .dfal{width:100%;margin:8px 0 0;font-size:14px}.dfsame .dfbtn .act{font-size:14px;word-break:break-all}
 .dsearch{display:flex;gap:8px;margin:0 0 10px}.dsearch input{flex:1;min-width:0}.dsearch .act{margin:0;flex:none}
 .dtext{white-space:pre-wrap;font-size:15px;line-height:1.8;background:var(--wash);border-radius:10px;padding:12px 14px;margin:6px 0 12px;max-height:60vh;overflow:auto;word-break:break-all}
+.note{color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin:8px 0 14px;font-size:16px;line-height:1.75}
+.npg{font-size:12px;color:var(--faint);letter-spacing:.1em;border-top:1px dashed var(--line);margin:14px 0 6px;padding-top:6px}.note .npg:first-child{border-top:0;margin-top:0;padding-top:0}
+.nsec{font-size:15px;margin:14px 0 4px;color:var(--sub)}.nart{font-weight:700;margin:10px 0 2px}.nart.me{color:var(--warn)}
+.nit{display:flex;gap:10px;padding:1px 0 1px 6px}.nit.me{background:var(--warn-soft);border-radius:6px}.nno{flex:none;min-width:1.6em;text-align:right;color:var(--faint);font-variant-numeric:tabular-nums}
+.nrow{display:flex;flex-wrap:wrap;gap:4px 14px;padding:2px 0;border-bottom:1px solid var(--line)}.npara{margin:4px 0}.nme{color:var(--warn)}.note mark{background:#ffe08a;color:inherit;border-radius:3px}
 .spinev{display:flex;gap:8px;overflow-x:auto;margin:4px 0 10px}.spinev img{max-height:60vh;max-width:100%;border-radius:6px;border:1px solid var(--line)}
 .pdfnm{font-weight:600;margin-bottom:8px;word-break:break-all}.pdfnm small{font-weight:400;color:var(--faint);margin-left:8px;font-size:12px}
 .pdfw{padding:8px 0;border-top:1px solid var(--line)}.pdfw:first-of-type{border-top:0}
@@ -1693,7 +1698,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'e24e84a9b6', APP_URL = location.origin + location.pathname;
+const BUILD = 'd6db97d592', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2261,6 +2266,24 @@ const docWarn = d => [docRes(d)['要確認'], docDiffN(d) ? '台帳と食い違�
 const docById = id => (S.docs||[]).find(d => d['書類ID']===id);
 const DTH = {};
 const docImg = (fid, w) => `<img data-did="${esc(fid)}" data-dw="${w||400}" alt="書類の写真">`;
+/* 資料のノート：書き起こした全文を、読みやすく整えて出す（画像を読み込まなくても中身が読める）。ノートは開いたときだけ受け取る */
+const DTEXT = {};
+async function docNote(id){ const t = DTEXT[id] != null ? DTEXT[id] : (DTEXT[id] = await call('getDocText', id)); return t ? noteHTML(t, NOTEQ) : '<p class="hint">ノートがありません</p>'; }
+let NOTEQ = '';
+function noteHTML(t, q){
+  const L = String(t).replace(/\r/g, '').split('\n'), out = []; let me = false;
+  const mark = s => { let h = esc(s); h = h.replace(/下村\s*良之介/g, m => `<b class="nme">${m}</b>`); if (q) { const k = esc(q).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); try { h = h.replace(new RegExp(k, 'g'), m => `<mark>${m}</mark>`); } catch(e){} } return h; };
+  const isItem = s => /^\s*\d+\s*[.．、)）]?\s*\S/.test(s) && !/^\s*\d{4}\s*年/.test(s);
+  for (let i = 0; i < L.length; i++) { const s = L[i].trim(); if (!s) continue; let m;
+    if ((m = s.match(/^【\s*p\.?\s*(\d+)\s*】$/i))) { out.push(`<div class="npg">${m[1]}ページ</div>`); me = false; continue; }
+    if (/^[［\[].+[］\]]$/.test(s) || /^第[一二三四五六七八九十\d]+室$/.test(s) || /^[0-9０-９]+\s*階$/.test(s)) { out.push(`<h4 class="nsec">${mark(s.replace(/^[［\[]|[］\]]$/g, ''))}</h4>`); me = false; continue; }
+    const next = (L[i + 1] || '').trim();
+    if ((m = s.match(/^[〇○◯●◎]\s*(.+)/)) || (!isItem(s) && s.length <= 12 && isItem(next) && !/[：:｜|。]/.test(s))) { const nm = m ? m[1] : s; me = /下村\s*良之介/.test(nm); out.push(`<div class="nart${me ? ' me' : ''}">${mark(nm)}</div>`); continue; }
+    if (isItem(s)) { const mm = s.match(/^\s*(\d+)\s*[.．、)）]?\s*(.*)$/); out.push(`<div class="nit${me ? ' me' : ''}"><span class="nno">${esc(mm[1])}</span><span>${mark(mm[2])}</span></div>`); continue; }
+    if (s.indexOf('｜') >= 0) { out.push(`<div class="nrow">${s.split('｜').map(c => `<span>${mark(c.trim())}</span>`).join('')}</div>`); continue; }
+    out.push(`<p class="npara">${mark(s)}</p>`); }
+  return out.join('') + '<p class="hint" style="margin-top:12px">※AIが資料の文字を書き起こしたものです。読めなかった字は〓になっています。</p>';
+}
 /* 書類の写真：スマホの中（IndexedDB）に保存して次からすぐ出す。大きい写真は、先に小さい写真をぼかして出しておく */
 async function hydrateDocs(root){
   const els = [...(root||document).querySelectorAll('img[data-did]:not([src])')]; if (!els.length) return;
@@ -2323,7 +2346,7 @@ function renderDocs(){ setTimeout(sameChk, 500);
     + (noTxt && !(PJ.j && PJ.j.on) ? `<button type="button" class="act dbig" id="txtJob">📝 全文がまだの資料 ${noTxt}通を書き起こす（サーバーで）</button>` : '');
   h = h.replace('<button class="act main dbig" data-docnew="">', tools + '<button class="act main dbig" data-docnew="">');
   $('#main').innerHTML = '<div class="docs">' + h + '</div>'; hydrateDocs($('#main'));
-  const go = async () => { const q = $('#dsq').value.trim(), out = $('#dsres'); if (!q) { out.innerHTML = ''; return; } out.innerHTML = '<div class="ldwrap" style="min-height:80px"><span class="ldspin"></span>探しています…</div>';
+  const go = async () => { const q = $('#dsq').value.trim(), out = $('#dsres'); NOTEQ = q; if (!q) { out.innerHTML = ''; return; } out.innerHTML = '<div class="ldwrap" style="min-height:80px"><span class="ldspin"></span>探しています…</div>';
     try { const L = await call('searchDocs', q); out.innerHTML = L.length ? `<h3 class="sec">「${esc(q)}」が出てくる資料 ${L.length}件</h3><div class="dlist">${L.map(x => { const d = docById(x.id); return d ? docCard(d, '…' + x.s + '…') : ''; }).join('')}</div>` : '<p class="hint">見つかりませんでした</p>'; hydrateDocs(out); }
     catch(e){ out.innerHTML = `<p class="hint">探せませんでした（${esc(e.message || e)}）</p>`; } };
   $('#dsqGo').onclick = go; $('#dsq').onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); go(); } };
@@ -2415,13 +2438,14 @@ function sheetDocReview(id){
   const imgs = `<div class="dpages rv">${pg.map((f, i) => `<span class="dpgi" data-dv="${esc(f)}">${docImg(f, 400)}<b>${i+1}</b></span>`).join('')}</div><p class="hint" style="margin-top:4px">写真を押すと大きく見られます</p>`;
   if (st==='登録済み' || st==='登録しない') {
     const nos = String(d['作品番号']||'').split(',').filter(Boolean);
-    openSheet(`<h3 class="dttl">${esc(docTitle(d))}<button type="button" class="edbtn" id="dvTtl" aria-label="タイトルを直す">✎</button></h3>${imgs}
+    const noteMode = !!d['全文あり'] && window.innerWidth < 1000; // ノートがあるスマホでは、原本の画像は押したときだけ読み込む
+    openSheet(`<h3 class="dttl">${esc(docTitle(d))}<button type="button" class="edbtn" id="dvTtl" aria-label="タイトルを直す">✎</button></h3>${noteMode ? `<div class="note" id="dvNote"><div class="ldwrap" style="min-height:120px"><span class="ldspin"></span>ノートを読み込んでいます…</div></div><button type="button" class="act pdfopen" id="dvImgs">🖼 原本の画像を見る（${pg.length}枚）</button><div id="dvImgsBox"></div>` : imgs}
       <p class="hint">${esc([r['日付'], r['相手先'] && r.PDF ? r['相手先'] : '', r['要約']].filter(Boolean).join('　'))}</p>
       ${r['要確認'] ? `<div class="dchk"><b>⚠ 要確認</b>${esc(r['要確認'])}<button type="button" class="act" id="dvChk">確認した</button></div>` : ''}
       ${(r['食い違い']||[]).length ? `<h3 class="sec" style="font-size:18px">台帳との食い違い</h3><p class="hint">どちらが正しいか選んでください。台帳を直すときも、元の値は変更履歴に残ります。</p>${r['食い違い'].map((x, i) => `<div class="dfx ${x.r?'done':''}"><b>${esc(x.name)}：${esc(x.f)}</b><div class="dfrow"><span><small>台帳</small>${esc(x.cur)}</span><span><small>この書類</small>${esc(x.doc)}</span></div>${x.r ? `<p class="hint">${({doc:'✓ 書類が正しい（台帳を直しました）', ledger:'✓ 台帳が正しい（書類の誤りとしてメモしました）', same:'✓ 同じもの（表記ゆれ）' + (x.auto ? '：自動で判定' : 'として覚えました'), alias:'✓ 作品の別名' + (x.auto ? '（登録済みの別名と同じ）' : 'として登録しました')})[x.r] || '✓'}</p>` : `<div class="dfbtn"><button type="button" class="act" data-dfx="${i}|ledger">台帳が正しい</button><button type="button" class="act main" data-dfx="${i}|doc">書類が正しい</button></div>${x.t==='w' && x.f==='作品名' ? `<button type="button" class="act dfal" data-dfal="${i}|alias">「${esc(x.doc)}」をこの作品の別名として登録</button>` : /日$|制作年|cm$/.test(x.f) ? '' : `<div class="dfsame" id="dfs${i}"><button type="button" class="act dfal" data-dfsame="${i}">同じもの（表記ゆれ）として覚える</button></div>`}`}</div>`).join('')}` : ''}
       ${(r['補完']||[]).length ? `<details class="dfill"><summary>この書類から自動で埋めた項目（${r['補完'].length}件）</summary>${r['補完'].map(x => `<p>${esc(x.name)}：${esc(x.f)}　→　${esc(x.v)}</p>`).join('')}</details>` : ''}
       ${d['メモ'] ? `<p class="hint dmemo">📝 ${esc(d['メモ'])}</p>` : ''}
-      ${d['全文あり'] ? `<button type="button" class="act pdfopen" id="dvTxt">📝 全文を見る</button><div id="dvTxtBox"></div>` : ''}
+      ${d['全文あり'] && !noteMode ? `<h3 class="sec" style="font-size:18px">ノート（資料の文字）</h3><div class="note" id="dvNote"><div class="ldwrap" style="min-height:120px"><span class="ldspin"></span>ノートを読み込んでいます…</div></div>` : ''}
       ${r.PDF ? `<button type="button" class="act pdfopen" data-pdfopen="${esc(pg[0]||'')}">📄 PDFを見る</button>` : ''}
       ${d['保管番号'] ? `<button type="button" class="act pdfopen" data-spine="${esc(d['保管番号'])}">📦 ${esc(d['保管番号'])} の背表紙を見る</button>` : ''}
       ${r['展覧会ID'] && (S.exhibits||[]).some(e => e['展覧会ID']===r['展覧会ID']) ? `<p><button type="button" class="golink" data-ex="${esc(r['展覧会ID'])}">展覧会：${esc((S.exhibits.find(e => e['展覧会ID']===r['展覧会ID'])||{})['名称']||'')} ›</button></p>` : ''}
@@ -2438,8 +2462,8 @@ function sheetDocReview(id){
       $('#dfs' + i).querySelectorAll('[data-dfo]').forEach(o => o.onclick = () => { const [j, pk] = o.dataset.dfo.split('|'); alGo(j, pk); }); });
     document.querySelectorAll('#sheetbox [data-dfx]').forEach(b => b.onclick = () => { const [i, pk] = b.dataset.dfx.split('|'); busy(true, '保存しています…');
       call('resolveDiff', id, +i, pk).then(x => { setData(x); busy(false); render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); sheetDocReview(id); toast(pk==='doc' ? '台帳を直しました' : '書類の誤りとしてメモしました'); }).catch(e => { busy(false); alert('保存できませんでした：' + (e.message || e)); }); });
-    if ($('#dvTxt')) $('#dvTxt').onclick = async () => { const bx = $('#dvTxtBox'); if (bx.innerHTML) { bx.innerHTML = ''; return; } bx.innerHTML = '<div class="ldwrap" style="min-height:80px"><span class="ldspin"></span>読み込んでいます…</div>';
-      try { const t = await call('getDocText', id); bx.innerHTML = t ? `<div class="dtext">${esc(t)}</div>` : '<p class="hint">全文がありません</p>'; } catch(e){ bx.innerHTML = `<p class="hint">読み込めませんでした（${esc(e.message || e)}）</p>`; } };
+    if ($('#dvNote')) docNote(id).then(h => { const n = $('#dvNote'); if (n) n.innerHTML = h; }).catch(e => { const n = $('#dvNote'); if (n) n.innerHTML = `<p class="hint">ノートを読み込めませんでした（${esc(e.message || e)}）</p>`; });
+    if ($('#dvImgs')) $('#dvImgs').onclick = () => { const bx = $('#dvImgsBox'); if (bx.innerHTML) { bx.innerHTML = ''; return; } bx.innerHTML = imgs; wireDocImgs(); hydrateDocs(bx); };
     if ($('#dvChk')) $('#dvChk').onclick = () => { busy(true, '保存しています…'); call('setDocCheck', id, '').then(x => { setData(x); busy(false); render(); sheetDocReview(id); toast('確認済みにしました'); }).catch(e => { busy(false); alert('保存できませんでした：' + (e.message || e)); }); };
     if ($('#dvAgain')) $('#dvAgain').onclick = () => docState(id, '確認待ち', () => sheetDocReview(id));
     $('#dvTtl').onclick = () => { const t = prompt('この書類のタイトル', docTitle(d)); if (t==null || !t.trim() || t.trim()===docTitle(d)) return;
