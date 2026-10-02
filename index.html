@@ -1451,6 +1451,16 @@ body:has(.docview) #top,body.vopen #top,body.vopen .appbar{visibility:hidden!imp
 .vmenu{position:absolute;top:66px;right:16px;z-index:6;display:none;flex-direction:column;align-items:stretch;gap:8px;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:10px;box-shadow:0 8px 28px rgba(0,0,0,.25);min-width:220px}
 .vmenu.open{display:flex}.vmenu > button,.vmenu .vrot{position:static!important;top:auto!important;right:auto!important;margin:0}.vmenu > button.hidden,.vmenu .vrot.hidden{display:none}.vmenu .vrot button{flex:1}.vmenu > button{text-align:left}
 html.sa .vedit{top:calc(12px + var(--cap))}html.sa .vmenu{top:calc(66px + var(--cap))}html.sa.tb .vedit{top:calc(12px + var(--cap) - var(--tb))}html.sa.tb .vmenu{top:calc(66px + var(--cap) - var(--tb))}
+/* 編集の画面：モーダルではなく右のカラム（スマホは全画面で右からスライド）2026/10/02 */
+#sheet.sheet{z-index:119;background:rgba(20,20,19,.12)!important;align-items:stretch!important;justify-content:flex-end!important}
+html[data-theme=dark] #sheet.sheet{background:rgba(0,0,0,.35)!important}
+#sheet .box{max-width:none!important;width:100%;height:100%;max-height:none!important;border-radius:0!important;box-shadow:-10px 0 30px rgba(0,0,0,.14);padding:18px 18px calc(30px + env(safe-area-inset-bottom))!important;animation:shin .24s ease-out}
+@keyframes shin{from{transform:translateX(100%)}to{transform:none}}
+@media(min-width:700px){ #sheet .box{width:min(580px,100%);padding:26px 32px 40px!important;border-left:1px solid var(--line)} }
+#sheet #sheetbox.split{width:min(1500px,100%)!important;height:100%!important;border-radius:0!important}
+body.kbopen #sheet .box{max-height:none!important}
+#confirm.sheet{z-index:125!important}
+#sheet .shx{margin-right:0}
 .lrspin{position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;border:2.5px solid rgba(255,255,255,.7);border-top-color:#444;box-shadow:0 0 0 1px rgba(0,0,0,.12);animation:ldrot .8s linear infinite;pointer-events:none;z-index:2}
 .ldwrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;height:100%;min-height:200px;color:var(--sub);font-size:15px}
 .ldspin{width:36px;height:36px;border-radius:50%;border:3px solid var(--wash2);border-top-color:var(--sub);animation:ldrot .8s linear infinite}@keyframes ldrot{to{transform:rotate(360deg)}}
@@ -1673,7 +1683,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '3048d9f2a2', APP_URL = location.origin + location.pathname;
+const BUILD = '93395eaaba', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
