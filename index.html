@@ -1636,7 +1636,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '865b337879', APP_URL = location.origin + location.pathname;
+const BUILD = '0b9e5157d0', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3890,6 +3890,33 @@ function inlineEdit(btn, no, f){
     else if (e.key === 'Enter' && !e.isComposing && i.tagName !== 'TEXTAREA') { e.preventDefault(); go(); } }));
   return true;
 }
+/* 展覧会・画集・その他の作品の情報も、鉛筆を押した行をその場で入力欄にする */
+function recInline(btn){
+  const kind = btn.dataset.rec, id = btn.dataset.rid, i = +String(btn.dataset.rf||'').replace(/\D/g, ''), K = RK[kind], dd = btn.closest('dd');
+  if (!K || !id || !dd || !K.F[i]) return false;
+  const d = K.F[i], x = K.get(id); if (!x) return false;
+  if (kind === 'ot' && d[1] === '種別') return false; // 種類を変えると番号を付け直すので、これまでの画面で
+  const cur = String(x[d[1]]||''); inlineCancel();
+  dd.dataset.orig = dd.innerHTML; dd.classList.add('iedit');
+  const opt = (v, t, on) => `<option value="${esc(v)}" ${on?'selected':''}>${esc(t)}</option>`;
+  let body;
+  if (d[2]==='pick') body = `<select class="iein">${opt('', '（未入力）', !cur)}${[...d[3], ...(cur && !d[3].includes(cur) ? [cur] : [])].map(v => opt(v, v, v===cur)).join('')}</select>`;
+  else if (d[2]==='main') body = `<select class="iein">${opt('主要', '主要', !!cur)}${opt('', 'ふつう', !cur)}</select>`;
+  else if (d[2]==='pb') body = `<select class="iein">${opt('', 'なし', !cur)}${S.pubs.map(p => opt(p['資料ID'], (p['タイトル']||'') + '（' + p['資料ID'] + '）', p['資料ID']===cur)).join('')}</select>`;
+  else if (d[2]==='ex') body = `<select class="iein">${opt('', 'なし', !cur)}${S.exhibits.map(e => opt(e['展覧会ID'], [yr(e['開始日']), e['名称']].filter(Boolean).join(' '), e['展覧会ID']===cur)).join('')}</select>`;
+  else if (d[2]==='area') body = `<textarea class="iein" rows="3">${esc(cur)}</textarea>`;
+  else body = `<input class="iein" id="iexf" type="${d[2]==='url' ? 'url' : 'text'}" value="${esc(cur)}" placeholder="${esc(d[3]||'')}" enterkeyhint="done">`;
+  dd.innerHTML = body + `<div class="ieb"><button type="button" class="ieno" data-ie="no">やめる</button><button type="button" class="ieok" data-ie="ok">保存</button></div>`;
+  const el = dd.querySelector('.iein');
+  if (el.id === 'iexf' && (SUG[kind]||[]).includes(d[1])) { const src = kind==='ex' ? S.exhibits : kind==='pb' ? S.pubs : (S.others||[]); suggestList(el, usedVals(src, d[1])); }
+  setTimeout(() => { el.focus(); if (el.select && el.tagName === 'INPUT') el.select(); }, 30);
+  const go = () => { const v = el.value.trim(); if (v === cur) { inlineCancel(); return; }
+    dd.querySelectorAll('button,.iein').forEach(z => z.disabled = true); const patch = {}; patch[d[1]] = v; save(K.up, [id, patch], '保存しました'); };
+  dd.querySelector('[data-ie="ok"]').onclick = e => { e.stopPropagation(); go(); };
+  dd.querySelector('[data-ie="no"]').onclick = e => { e.stopPropagation(); inlineCancel(); };
+  el.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); inlineCancel(); } else if (e.key === 'Enter' && !e.isComposing && el.tagName === 'INPUT') { e.preventDefault(); go(); } });
+  return true;
+}
 function sheetEventEdit(id){
   const e = S.events.find(x => x['出来事ID']===id); if (!e) return;
   openSheet(`<h3>できごとを直す</h3><p class="hint">${esc(nol(e['作品番号']))}　${e['確かさ']&&e['確かさ'].includes('自動')?'旧リストから自動で読み取った内容です。正しく直してください。':''}</p>
@@ -4491,7 +4518,7 @@ document.addEventListener('click', e => {
   if (t.dataset.f){ S.filter=t.dataset.f; S.mus=''; S.limit=60; render(); return; }
   if (t.dataset.mus !== undefined){ S.mus=t.dataset.mus; S.limit=60; render(); return; }
   if (t.id==='more'){ S.limit+=60; render(); return; }
-  if (t.dataset.rec){ if (canEdit()) sheetRec(t.dataset.rec, t.dataset.rid, t.dataset.rf); return; }
+  if (t.dataset.rec){ if (canEdit() && !recInline(t)) sheetRec(t.dataset.rec, t.dataset.rid, t.dataset.rf); return; } // 展覧会・画集なども、鉛筆でその場で直す
   if (t.dataset.ex){ openEx(t.dataset.ex); return; }
   if (t.dataset.pb){ openPb(t.dataset.pb); return; }
   if (t.dataset.otcol){ setCols(+t.dataset.otcol); return; }
