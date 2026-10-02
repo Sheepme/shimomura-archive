@@ -1464,6 +1464,10 @@ body.scr #top .appbar{transform:none!important}
 #viewer .vedit{top:calc(var(--tb,0px) + var(--cap,0px) + var(--edge,0px) + 72px)}#viewer .vmenu{top:calc(var(--tb,0px) + var(--cap,0px) + var(--edge,0px) + 126px)}
 .docview{padding-top:calc(var(--tb,0px) + var(--cap,0px) + var(--edge,0px) + 62px)}.docview .dvbar .vclose{display:none}
 #confirm.sheet{z-index:9000!important}
+#sheet.sheet{top:var(--tb,0px)!important;bottom:0!important;height:auto!important} /* 画面の下まで必ずおおう（下の画面が見えてスクロールされないように） */
+body.kbopen #sheet.sheet{top:calc(var(--vvt,0px) + var(--tb,0px))!important;bottom:auto!important;height:calc(var(--vvh,100%) - var(--tb,0px))!important}
+body.scr .cbar,body.scr #pdfbg,body.scr #pjbg{display:none!important}
+#sheet .box{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .lrspin{position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;border:2.5px solid rgba(255,255,255,.7);border-top-color:#444;box-shadow:0 0 0 1px rgba(0,0,0,.12);animation:ldrot .8s linear infinite;pointer-events:none;z-index:2}
 .ldwrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;height:100%;min-height:200px;color:var(--sub);font-size:15px}
 .ldspin{width:36px;height:36px;border-radius:50%;border:3px solid var(--wash2);border-top-color:var(--sub);animation:ldrot .8s linear infinite}@keyframes ldrot{to{transform:rotate(360deg)}}
@@ -1687,7 +1691,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '135304d4fb', APP_URL = location.origin + location.pathname;
+const BUILD = 'cf756bd293', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
