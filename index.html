@@ -1703,7 +1703,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '4af3207e06', APP_URL = location.origin + location.pathname;
+const BUILD = 'c2ad9818e2', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2203,13 +2203,12 @@ function sheetEvMerge(idA, idB){
     const confAll = evPlan(a, b, null).conf, docs = [...new Set([...evDocs(a), ...evDocs(b)])];
     openSheet(`<h3>同じ出来事を1つにまとめる</h3><p class="hint">2つの記録の内容を合わせて1つにします。書類はすべて残ります。まとめた方は「アーカイブ」に残るので、あとで戻せます。</p>
       ${Object.keys(confAll).length ? `<div class="evconf"><b>食い違っているところがあります。正しい方を選んでください</b>${Object.keys(confAll).map(k => `<div class="evcf"><small>${k}</small>${[['a', confAll[k][0]], ['b', confAll[k][1]]].concat(k === '内容' ? [['ab', '両方残す']] : []).map(([v, t]) => { const src = v === 'a' ? a : v === 'b' ? b : null, dd = src ? evDocs(src).map(docById).find(x => x && docRes(x).PDF) : null;
-        return dd ? `<div class="dfx evx"><button class="evopt ${pick[k]===v?'on':''}" data-evpick="${k}|${v}">${esc(t)}</button><button type="button" class="act dfal dfhl evhl" data-dfhl="${k}|${v}" data-evhl="${esc(dd['書類ID'])}|${esc(k)}|${esc(t)}">書類をハイライト</button></div>` : `<button class="evopt ${pick[k]===v?'on':''}" data-evpick="${k}|${v}">${esc(t)}</button>`; }).join('')}</div>`).join('')}</div>` : ''}
+        return dd ? `<div class="dfx evx"><button class="evopt ${pick[k]===v?'on':''}" data-evpick="${k}|${v}">${esc(t)}</button><button type="button" class="act dfal dfhl evhl" data-dfhl="${k}|${v}" data-evhl2="${esc(src['出来事ID'])}" data-evq="${esc(t)}">書類をハイライト</button></div>` : `<button class="evopt ${pick[k]===v?'on':''}" data-evpick="${k}|${v}">${esc(t)}</button>`; }).join('')}</div>`).join('')}</div>` : ''}
       <h4 style="margin:14px 0 6px">まとめた結果</h4><dl class="info">${EV_F.filter(k => k !== '根拠・出典').map(k => { const v = confAll[k] && !pick[k] ? '（選んでください）' : p.m[k]; return v ? `<dt>${k}</dt><dd>${esc(v)}</dd>` : ''; }).join('')}
         ${docs.length ? `<dt>書類</dt><dd>${docs.length}通（${docs.map(esc).join('、')}）</dd>` : ''}</dl>
       ${sibs.length ? `<label class="evsib"><input type="checkbox" id="evSib" ${withSibs?'checked':''}> 同じ書類がひも付いたほかの作品（${sibs.length}点：${sibs.map(([x]) => esc(nol(x['作品番号']))).join('、')}）も、同じようにまとめる</label>` : ''}
       <div class="btns"><button type="button" data-close>やめる</button><button type="button" class="primary" id="evmGo" ${left.length ? 'disabled' : ''}>${left.length ? 'あと' + left.length + 'か所選んでください' : '1つにまとめる'}</button></div>`);
     document.querySelectorAll('[data-evpick]').forEach(x => x.onclick = () => { const [k, v] = x.dataset.evpick.split('|'); pick[k] = v; draw(); });
-    document.querySelectorAll('[data-evhl]').forEach(x => x.onclick = () => { const [did, f, ...vv] = x.dataset.evhl.split('|'), dd = docById(did); if (dd) dfPreview(x.closest('.dfx'), dd, { doc: vv.join('|'), name: '', f }); });
     if ($('#evSib')) $('#evSib').onchange = e => { withSibs = e.target.checked; };
     const go = $('#evmGo'); if (go && !left.length) go.onclick = () => evMergeRun([[a, b]].concat(withSibs ? sibs : []), pick);
   };
@@ -2296,11 +2295,16 @@ function docTocHTML(d){ const pgs = docRes(d)['ページ'] || []; if (pgs.length
   const nt = !!d['全文あり'];
   return `<details class="dfill" ${pgs.length <= 15 ? 'open' : ''}><summary>ページの目次（${pgs.length}ページ）</summary><div class="dtoc">${pgs.map(g => `<${nt ? `button type="button" data-note="${esc(d['書類ID'])}" data-np="${esc(g.p)}"` : 'div'} class="dtr"><span class="dtp">p.${esc(g.p)}</span><span><b>${esc(g['種類']||'')}</b>　${esc(g['説明']||'')}</span></${nt ? 'button' : 'div'}>`).join('')}</div></details>`; }
 /* 食い違いの枠を押す：その場に書類の該当ページを出して、書いてある部分を光らせる（パソコンで左にPDFがあるときは、そちらも動かす） */
-function dfBtnSync(){ document.querySelectorAll('#sheetbox [data-dfhl]').forEach(b => { const on = b.closest('.dfx') && b.closest('.dfx').classList.contains('dfopen'); b.textContent = on ? '閉じる' : '書類をハイライト'; b.classList.toggle('on', !!on); }); }
+/* 出来事の根拠の書類を、その場で開いて光らせる（保存してある位置があれば赤いマーカー） */
+function evHighlight(btn){ const e = (S.events || []).find(x => x['出来事ID'] === btn.dataset.evhl2); if (!e) return;
+  const d = evDocs(e).map(docById).find(x => x && docRes(x).PDF); if (!d) return toast('この出来事にはPDFの書類がありません');
+  let at = null; try { at = JSON.parse(e['位置'] || 'null'); } catch(x){}
+  dfPreview(btn.closest('.dfx'), d, { doc: btn.dataset.evq || e['日付'] || e['相手先・場所'] || '', name: '', f: '', at: at && at.p ? at : null }); }
+function dfBtnSync(){ document.querySelectorAll('[data-dfhl]').forEach(b => { const on = b.closest('.dfx') && b.closest('.dfx').classList.contains('dfopen'); b.textContent = on ? '閉じる' : '書類をハイライト'; b.classList.toggle('on', !!on); }); }
 async function dfPreview(card, d, x){
   if (card.classList.contains('dfopen')) { const o = card.querySelector('.dfprev'); if (o) { try { o.style.overflow = 'hidden'; const an = o.animate([{ height: o.offsetHeight + 'px', opacity: 1 }, { height: '0px', opacity: 0 }], { duration: 200, easing: 'ease-in' }); an.onfinish = () => o.remove(); } catch(e){ o.remove(); } } card.classList.remove('dfopen'); const L0 = document.querySelector('#sheetbox.split .dsv'); if (L0 && L0._clear) L0._clear(); dfBtnSync(); return; } /* ハイライト中に押す＝閉じる */
-  document.querySelectorAll('#sheetbox .dfx.dfopen').forEach(e => e.classList.remove('dfopen'));
-  document.querySelectorAll('#sheetbox .dfprev').forEach(e => { e.closest('.dfx') && e.closest('.dfx').classList.remove('dfopen'); e.remove(); });
+  document.querySelectorAll('.dfx.dfopen').forEach(e => e.classList.remove('dfopen'));
+  document.querySelectorAll('.dfprev').forEach(e => { e.closest('.dfx') && e.closest('.dfx').classList.remove('dfopen'); e.remove(); });
   const fid = docPages(d)[0], r = docRes(d); if (!fid || !r.PDF) return toast('この書類はPDFではないので、位置を出せません');
   card.classList.add('dfopen'); dfBtnSync(); const v = document.createElement('div'); v.className = 'dfprev'; v.innerHTML = '<div class="ldwrap" style="min-height:120px"><span class="ldspin"></span>書類を開いています…</div>'; const hb = card.querySelector('[data-dfhl]'); if (hb) hb.after(v); else card.appendChild(v); /* ハイライトボタンのすぐ下に伸びて出てくる */
   try { v.animate([{ height: '0px', opacity: 0 }, { height: v.offsetHeight + 'px', opacity: 1 }], { duration: 260, easing: 'cubic-bezier(.2,.7,.3,1)' }); } catch(e){}
@@ -3646,7 +3650,7 @@ function openWork(no, keepScroll, restoreSc){
           ${e['展覧会ID'] && exById[e['展覧会ID']] ? `<button class="golink" data-ex="${esc(e['展覧会ID'])}">展覧会のページ ›</button>` : ''}${e['資料ID'] && pbById[e['資料ID']] ? `<button class="golink" data-pb="${esc(e['資料ID'])}">${esc(pbById[e['資料ID']]['種類']||'資料')}のページ ›</button>` : ''}
           ${e['内容'] && e['内容']!==e['相手先・場所'] && e['内容']!=='制作' ? `<div class="pl">${escU(e['内容'])}</div>`:''}
           ${e['担当者・連絡先'] ? `<div class="pl">担当者：${esc(e['担当者・連絡先'])}</div>` : ''}
-          ${canEdit() ? evDocs(e).map((id, n, all) => `<button class="golink" data-doc="${esc(id)}">書類${all.length > 1 ? (n + 1) : ''}を見る ›</button>`).join('') : ''}<div class="src">${escU([evDocs(e).length ? (evDocs(e).length > 1 ? '書類' + evDocs(e).length + '通より' : '書類より') : e['根拠・出典'], e['確かさ'], e['登録者']!=='旧リストから移行'?e['登録者']:''].filter(Boolean).join(' · '))}</div>
+          ${canEdit() ? evDocs(e).map((id, n, all) => `<button class="golink" data-doc="${esc(id)}">書類${all.length > 1 ? (n + 1) : ''}を見る ›</button>`).join('') : ''}${canEdit() && evDocs(e).some(id => docById(id) && docRes(docById(id)).PDF) ? `<div class="dfx evx"><button type="button" class="act dfal dfhl evhl" data-dfhl="ev" data-evhl2="${esc(e['出来事ID'])}">書類をハイライト</button></div>` : ''}<div class="src">${escU([evDocs(e).length ? (evDocs(e).length > 1 ? '書類' + evDocs(e).length + '通より' : '書類より') : e['根拠・出典'], e['確かさ'], e['登録者']!=='旧リストから移行'?e['登録者']:''].filter(Boolean).join(' · '))}</div>
           ${canEdit()?`<button class="pen" data-evedit="${esc(e['出来事ID'])}" aria-label="このできごとを直す"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.6"/></svg></button>`:''}
         </div></li>`; }).join('')}</ul>` : '<p style="color:var(--sub)">まだ記録がありません</p>'}
       ${canEdit() ? workDocsHTML(no) : ''}
@@ -4977,6 +4981,7 @@ document.addEventListener('click', e => {
   if (t.dataset.mus !== undefined){ S.mus=t.dataset.mus; S.limit=60; render(); return; }
   if (t.id==='more'){ S.limit+=60; render(); return; }
   if (t.dataset.pdfscan){ sheetPdfScan(); return; }
+  if (t.dataset.evhl2){ evHighlight(t); return; }
   if (t.dataset.dmode !== undefined){ S.dmode = t.dataset.dmode; S.dfq = ''; render(); window.scrollTo(0, 0); return; }
   if (t.dataset.dfo !== undefined){ dfNav((S.dpath || []).concat(t.dataset.dfo)); return; }
   if (t.dataset.dfp !== undefined){ S.dmode = 'files'; dfNav(t.dataset.dfp ? t.dataset.dfp.split('/') : []); return; }
