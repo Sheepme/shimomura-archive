@@ -1637,7 +1637,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '4f7f650203', APP_URL = location.origin + location.pathname;
+const BUILD = '3f13771baf', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2481,6 +2481,8 @@ function listen(onText, onDone, auto){
   if (!SR || !QV.micOk) return false;
   sayStop();
   stopMic(true);
+  // iPhone：読み上げの音声（Audio）が残っていると、マイクは動いても文字にならないことがあるので、聞き取りの前に音を完全に止める
+  try { if (TTSA) { TTSA.onended = null; TTSA.pause(); TTSA.removeAttribute('src'); TTSA.load(); } } catch(e){}
   const r = new SR(); r.lang = 'ja-JP'; r.interimResults = true; r.maxAlternatives = 1; MIC.r = r;
   const b = $('#qzMic'); if (b) b.classList.add('on');
   let fin = false, last = '', heard = false;
@@ -2492,7 +2494,8 @@ function listen(onText, onDone, auto){
   r.onerror = e => { if (auto && (e.error==='not-allowed' || e.error==='service-not-allowed')) { if (IV) { IV.listening = false; ivDraw(); } toast('🎤ボタンを押して話してね'); return; } if (e.error==='not-allowed' || e.error==='service-not-allowed') { QV.micOk = false; if (IV) ivDraw(); else qzDraw(); toast('マイクが使えません。ボタンか、キーボードのマイクで答えてください'); } else toast('聞き取れませんでした。もう一度どうぞ'); };
   r.onend = () => { clearTimeout(wd); if (MIC.r === r) MIC.r = null; const b = $('#qzMic'); if (b) b.classList.remove('on');
     if (!fin && last && !r.__killed) { fin = true; onText(last); } if (onDone && !r.__killed) onDone(); };
-  try { r.start(); } catch(e){ return false; }
+  const go = () => { if (MIC.r !== r || r.__killed) return; try { r.start(); } catch(e){ try { setTimeout(() => { if (MIC.r === r && !r.__killed) r.start(); }, 400); } catch(x){} } };
+  if (auto) setTimeout(go, 300); else go(); // 読み上げの直後は少し待ってから聞き取りを始める（iPhone）
   return true;
 }
 const YES = /^(はい|ok|オッケー|おっけー|そう|そうです|合って|あって|正解|うん|ええ|イエス)/i, NO = /(いいえ|違う|ちがう|違います|ノー|^no|間違|まちが)/i, UNK = /(分から|わから|知らない|しらない|不明)/, SKIP = /(あとで|後で|スキップ|とばす|飛ばす)/;
