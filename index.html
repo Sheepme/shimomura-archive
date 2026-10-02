@@ -973,6 +973,7 @@ body.briefing nav.fmenu{display:none}
 #vcopy{position:absolute;top:190px;right:14px;z-index:2;border:1px solid var(--line);background:var(--paper);padding:8px 14px;font-size:14px;border-radius:999px;color:var(--warn)}
 .wsug{display:flex;flex-direction:column;gap:4px;margin:6px 0 8px}.wsug button{display:flex;align-items:center;gap:10px;text-align:left;padding:8px 10px;border-radius:10px;background:var(--wash);color:var(--ink);font-size:15px;border:0}.wsug .th{flex:none;width:40px;height:40px;border-radius:6px;overflow:hidden;background:var(--line)}.wsug .th img{width:100%;height:100%;object-fit:cover}.wsug .th .wm{display:none}
 .oulbl{display:block;font-size:15px;color:var(--sub);margin:14px 0 2px}
+.oustep{margin:8px 0 10px;padding-left:1.4em;font-size:16px;line-height:1.7}.oustep small{color:var(--sub);font-size:13px}
 .candbtn{width:100%;margin:8px 0 4px}.candgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;max-height:46vh;overflow-y:auto;margin:6px 0 12px}.candp{display:flex;flex-direction:column;gap:4px;padding:4px;border:2px solid transparent;border-radius:10px;background:var(--wash);color:var(--ink)}.candp img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;background:var(--line)}.candp small{font-size:11px;color:var(--sub);word-break:break-all}.candp.on{border-color:var(--ink);box-shadow:0 0 0 2px var(--ink) inset}
 .phhid{display:flex;align-items:center;justify-content:center;text-align:center;width:100%;height:100%;min-height:80px;background:var(--wash);color:var(--sub);font-size:12px;line-height:1.5}
 #vmain{position:absolute;top:146px;right:14px;z-index:2;border:1px solid var(--line);background:var(--paper);padding:8px 14px;font-size:14px;border-radius:999px;color:#b07a10}
@@ -1592,7 +1593,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '66a88cd551', APP_URL = location.origin + location.pathname;
+const BUILD = 'e34eb16544', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3895,16 +3896,30 @@ function sheetOtUrl(u){
     <div class="btns"><button type="button" data-close>やめる</button><button type="button" class="primary" id="ouGo">読み取る</button></div>`);
   $('#ouGo').onclick = () => otUrlRead(val('ouU'), false);
 }
-async function otUrlRead(u, force){
+async function otUrlRead(u, force, pasted){
   u = String(u || '').trim();
   if (!/^https?:\/\/\S+\.\S+/.test(u)) { if ($('#ouErr')) $('#ouErr').textContent = 'https:// から始まるURLを貼ってください'; return; }
-  busy(true, 'ページを読み取っています…（10秒ほど）');
+  if (pasted !== undefined && String(pasted).trim().length < 10) { if ($('#ouErr')) $('#ouErr').textContent = 'ページの文章を貼り付けてください'; return; }
+  busy(true, pasted ? 'AIが読み取っています…（10秒ほど）' : 'ページを読み取っています…（10秒ほど）');
   let r;
-  try { r = await call('importFromUrl', u, !!force); }
+  try { r = await call('importFromUrl', u, !!force, pasted || ''); }
   catch(e){ busy(false); const m = String(e && e.message || e); if ($('#ouErr')) $('#ouErr').textContent = m; else alert(m); return; }
   busy(false);
   if (r.dup && r.dup.length && !force) return otUrlDup(u, r.dup);
+  if (r.blocked) return sheetOtPaste(u, r.blocked);
+  if (pasted) r.pasted = pasted;
   sheetOtUrlForm(r);
+}
+/* サイトが外から読めないとき：ページの文章をコピーして貼ってもらう */
+function sheetOtPaste(u, why){
+  openSheet(`<h3>このサイトは自動で読めません</h3><p class="hint">このお店のサイトは、外から自動で読み取れないようになっています。代わりに、ページの文章を貼り付けて登録できます。</p>
+    <ol class="oustep"><li>「ページを開く」を押して、作品のページを開く</li><li>ページの文章を全部選んでコピーする<br><small>スマホ：文字を長押し →「すべてを選択」→「コピー」／パソコン：⌘A → ⌘C</small></li><li>この画面に戻って、下の欄に貼り付ける</li></ol>
+    <a class="act candbtn" href="${esc(u)}" target="_blank" rel="noopener">↗ ページを開く</a>
+    ${F('ページの文章', '<textarea id="ouP" rows="6" placeholder="ここに貼り付け"></textarea>')}
+    <p class="hint">写真は、次の画面で、保存した写真やスクリーンショットから選べます。</p>
+    <div class="err" id="ouErr"></div>
+    <div class="btns"><button type="button" data-close>やめる</button><button type="button" class="primary" id="ouGo">貼った文章から読み取る</button></div>`);
+  $('#ouGo').onclick = () => otUrlRead(u, true, val('ouP'));
 }
 function otUrlDup(u, dup){
   openSheet(`<h3>このURLは登録済みです</h3><p class="hint">同じページから、すでに次の作品が登録されています。</p>
@@ -3929,7 +3944,9 @@ function sheetOtUrlForm(r){
     <p class="hint">出典：<a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title || r.url)}</a></p>
     ${imgs.length ? `<label class="oulbl">取り込む写真を選ぶ <span id="ouN"></span></label>
       <div class="candgrid">${imgs.map((u, i) => `<button type="button" class="candp ${on.has(i) ? 'on' : ''}" data-oi="${i}"><img src="${esc(u)}" referrerpolicy="no-referrer" loading="lazy" alt="" onerror="this.closest('.candp').remove()"></button>`).join('')}</div>`
-      : '<p class="hint">このページから写真は見つかりませんでした。写真はあとから追加できます。</p>'}
+      : '<p class="hint">このページから写真は取り込めませんでした。</p>'}
+    <label class="oulbl">${imgs.length ? 'ほかに、保存した写真から選ぶ（スクリーンショットなど）' : '保存した写真から選ぶ（ページの写真を保存したもの・スクリーンショットなど）'}</label>
+    ${photoInputs(true)}
     ${F('写真に出す名前', inp('ouSite', r.site || '', '例：仙遊洞'))}
     <p class="hint" style="margin-top:-6px">写真には「@${esc(r.site || 'サイト名')}」のように表示されます</p>
     ${F('種類', pick('ou1', OT_T, OT_T.includes(f['種類']) ? f['種類'] : ''))}
@@ -3947,7 +3964,8 @@ function sheetOtUrlForm(r){
     if (on.has(i)) on.delete(i); else { if (on.size >= 10) return alert('写真は10枚までです'); on.add(i); }
     b.classList.toggle('on', on.has(i)); cnt(); });
   cnt();
-  if ($('#ouRetry')) $('#ouRetry').onclick = () => otUrlRead(r.url, true);
+  let upl = []; bindPhoto((b64, cam, list) => { upl = (list || []).slice(-10); });
+  if ($('#ouRetry')) $('#ouRetry').onclick = () => otUrlRead(r.url, true, r.pasted);
   $('#ouSite').oninput = e => { const h = e.target.closest('.field').nextElementSibling; if (h) h.textContent = '写真には「@' + (e.target.value.trim() || 'サイト名') + '」のように表示されます'; };
   $('#ok').onclick = async () => {
     if (!val('ou1')) return alert('種類を選んでください');
@@ -3956,7 +3974,7 @@ function sheetOtUrlForm(r){
     const nf = {'種類': val('ou1'), '作品名': val('ou2'), '制作年': val('ou3'), '幅cm': val('ou4'), '高さcm': val('ou5'), '画材': val('ou6'), '補足': val('ou7'),
       '所在区分': k === '貸出中' ? 'その他' : k, '所在': val('ou9') || (k === '自宅' ? '自宅' : k === '不明' ? '' : k)};
     const sel = imgs.filter((u, i) => on.has(i) && document.querySelector(`[data-oi="${i}"]`));
-    const d = await save('newOtherFromUrl', [nf, {url: r.url, site: val('ouSite')}, sel], sel.length ? '登録しました（写真を取り込みました）' : '登録しました');
+    const d = await save('newOtherFromUrl', [nf, {url: r.url, site: val('ouSite')}, sel, upl], sel.length || upl.length ? '登録しました（写真を取り込みました）' : '登録しました');
     if (d && d.newId) { openWork(d.newId); if (d.photoNg) setTimeout(() => alert('写真のうち ' + d.photoNg + '枚は取り込めませんでした。'), 400); }
   };
 }
