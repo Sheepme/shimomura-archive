@@ -1445,24 +1445,24 @@ img[data-tid]:not([src]),img[data-did]:not([src]){background:linear-gradient(100
 .tile .ph img[data-tid]:not([src]),.dth img:not([src]),.mmth img:not([src]),.wsug img:not([src]){min-height:0;height:100%}
 @keyframes ldshim{from{background-position:100% 0}to{background-position:0 0}}
 img.lowres{filter:blur(4px);transition:filter .3s}
-body:has(.docview) #top,body.vopen #top,body.vopen .appbar{visibility:hidden!important;pointer-events:none!important} /* 写真を大きく見ている間は、上のバーを押せないようにする */
 #vspin{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 16px;border-radius:14px;background:rgba(0,0,0,.45);color:#fff;z-index:4;pointer-events:none}#vspin.hidden{display:none}#vspin .ldspin{border-color:rgba(255,255,255,.35);border-top-color:#fff}#vspin small{font-size:12px}
 .vedit{position:absolute;top:12px;right:16px;z-index:6;width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--paper);color:var(--ink);font-size:20px;padding:0;display:flex;align-items:center;justify-content:center}
 .vmenu{position:absolute;top:66px;right:16px;z-index:6;display:none;flex-direction:column;align-items:stretch;gap:8px;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:10px;box-shadow:0 8px 28px rgba(0,0,0,.25);min-width:220px}
 .vmenu.open{display:flex}.vmenu > button,.vmenu .vrot{position:static!important;top:auto!important;right:auto!important;margin:0}.vmenu > button.hidden,.vmenu .vrot.hidden{display:none}.vmenu .vrot button{flex:1}.vmenu > button{text-align:left}
 html.sa .vedit{top:calc(12px + var(--cap))}html.sa .vmenu{top:calc(66px + var(--cap))}html.sa.tb .vedit{top:calc(12px + var(--cap) - var(--tb))}html.sa.tb .vmenu{top:calc(66px + var(--cap) - var(--tb))}
-/* 画面の重なりを1つにそろえる（2026/10/02）：編集・写真の拡大・書類の拡大は、どれも全画面で右から入り、戻ると右へ抜ける。重なり順は開いた順 */
+/* 画面の重なりを1つにそろえる（2026/10/02）：上のバーはそのまま、その下の画面が入れ替わる（新しい画面は右から、元の画面は左へ） */
 #sheet.sheet{background:var(--bg)!important;align-items:stretch!important;justify-content:stretch!important}
-#sheet .box{max-width:none!important;width:100%;height:100%;max-height:none!important;border-radius:0!important;box-shadow:none;padding:0 max(18px, calc((100% - 760px) / 2)) calc(30px + env(safe-area-inset-bottom))!important;border:0!important}
-#sheet #sheetbox.split{width:100%!important;height:100%!important;border-radius:0!important;padding:0 24px 24px!important}
+#sheet .box{max-width:none!important;width:100%;height:100%;max-height:none!important;border-radius:0!important;box-shadow:none;border:0!important;background:var(--bg)!important;
+  padding:calc(var(--cap,0px) + var(--edge,0px) + 72px) max(18px, calc((100% - 760px) / 2)) calc(30px + env(safe-area-inset-bottom))!important}
+#sheet #sheetbox.split{width:100%!important;height:100%!important;border-radius:0!important;padding:calc(var(--cap,0px) + var(--edge,0px) + 72px) 24px 24px!important}
 body.kbopen #sheet .box{max-height:none!important}
 body.wide #sheet.sheet,body.wide #viewer,body.wide .docview{left:264px}
-.scrbar{position:sticky;top:0;z-index:4;display:flex;align-items:center;gap:10px;margin:0 -2px 10px;padding:10px 0 8px;background:var(--paper)}
-#sheetbox.split .scrbar{grid-column:1 / -1;margin:0;padding:12px 0}
-.scrback{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:8px 16px 8px 12px;font-size:16px;line-height:1.2;display:inline-flex;align-items:center;gap:6px}
-.scr-in{animation:scrIn .26s cubic-bezier(.2,.8,.2,1)}@keyframes scrIn{from{transform:translateX(100%)}to{transform:none}}
-.scr-back{animation:scrBack .26s cubic-bezier(.2,.8,.2,1)}@keyframes scrBack{from{transform:translateX(-22%);opacity:.6}to{transform:none;opacity:1}}
-.scr-ghost{position:fixed!important;pointer-events:none!important;animation:scrOut .24s ease-in forwards}@keyframes scrOut{to{transform:translateX(100%)}}
+body.scr .appbar,body.scr #top{z-index:400!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+body.scr #top .appbar{transform:none!important}
+#viewer.viewer{padding-top:calc(var(--tb,0px) + var(--cap,0px) + var(--edge,0px) + 72px)}
+#viewer .vclose{display:none}
+#viewer .vedit{top:calc(var(--tb,0px) + var(--cap,0px) + var(--edge,0px) + 72px)}#viewer .vmenu{top:calc(var(--tb,0px) + var(--cap,0px) + var(--edge,0px) + 126px)}
+.docview{padding-top:calc(var(--tb,0px) + var(--cap,0px) + var(--edge,0px) + 62px)}.docview .dvbar .vclose{display:none}
 #confirm.sheet{z-index:9000!important}
 .lrspin{position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;border:2.5px solid rgba(255,255,255,.7);border-top-color:#444;box-shadow:0 0 0 1px rgba(0,0,0,.12);animation:ldrot .8s linear infinite;pointer-events:none;z-index:2}
 .ldwrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;height:100%;min-height:200px;color:var(--sub);font-size:15px}
@@ -1687,7 +1687,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '6bbfb0509b', APP_URL = location.origin + location.pathname;
+const BUILD = '7bdf5d0617', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1715,7 +1715,7 @@ function syncThemeColor(){ let m = document.querySelector('meta[name="theme-colo
 setTimeout(syncThemeColor, 0); new MutationObserver(syncThemeColor).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
 /* お知らせ（読み込み中・保存しました・新しい版）は、上のページ名のところに色を変えて出す */
 function setTitle(t){ const h = $('#abTitle'); if (!h) return; h.dataset.t = t; abRender(); }
-function abRender(){ abRender0(); if (typeof capFit === 'function') capFit(); abFit(); }
+function abRender(){ abRender0(); try { scrCrumb(); } catch(e){} if (typeof capFit === 'function') capFit(); abFit(); }
 /* パンくず：入りきれば文字で → 入らなければアイコンで → それでも入らなければ「… › ひとつ前のアイコン › 名前」 */
 function abFit(){ const h = document.getElementById('abTitle'); if (!h) return; h.classList.remove('bcI', 'bcD');
   if (!h.querySelector('.cp') || !h.clientWidth) return;
@@ -2281,10 +2281,11 @@ async function pdfBlobUrl(fid){ if (DPDF[fid]) return DPDF[fid];
 function docView(fid){
   const el = document.createElement('div'); el.className = 'docview';
   el.innerHTML = `<div class="dvbar"><button type="button" class="vclose scrback" style="position:static">← 戻る</button><span>指で広げると拡大できます</span></div><div class="dvsc">${docImg(fid, 1600)}</div>`;
-  el.querySelector('button').onclick = () => { scrPop(el); el.remove(); };
+  el.querySelector('button').onclick = () => docClose(el);
   el.querySelector('.dvsc').onclick = e => { if (e.target.tagName==='IMG') e.target.classList.toggle('big'); };
-  document.body.appendChild(el); scrPush(el); hydrateDocs(el);
+  document.body.appendChild(el); hpush('d'); scrPush(el); hydrateDocs(el);
 }
+function docClose(el, fromHist){ if (!el || !el.isConnected) return; scrPop(el); el.remove(); if (!fromHist) hback(); }
 function docTitle(d){ if (d['タイトル']) return d['タイトル']; const r = docRes(d), y = (String(r['日付']||'').match(/(\d{4})/) || [])[1]; return [y ? y + '年' : '', r['相手先'], r['書類の種類'] && r['書類の種類']!=='その他' ? r['書類の種類'] : ''].filter(Boolean).join(' ') || '書類 ' + (d['書類ID']||''); }
 
 /* 書類のカード（書類ページ・作品・展覧会・画集のページで同じ形） */
@@ -3945,18 +3946,36 @@ $('#vprev').onclick = () => { V.i--; showV(); };
 $('#vnext').onclick = () => { V.i++; showV(); };
 
 /* ---------- 入力シート ---------- */
-/* 画面のスタック：開いた順に上へ積む（重なり順はここだけで決める）。入るときは右から、戻るときは右へ抜けて下の画面が少し左から戻る */
+/* 画面のスタック：開いた順に上へ積む（重なり順はここだけで決める）。上のバーはそのまま残し、その下の画面が入れ替わる。
+   進む：新しい画面が右から入り、元の画面は左へ押し出される。戻る：その逆 */
 const SCR = [];
+const SCR_EASE = 'cubic-bezier(.2,.8,.2,1)', SCR_MS = 280;
 function scrZ(){ SCR.forEach((el, i) => { el.style.zIndex = 100 + i * 2; }); }
-function scrPush(el){ const k = SCR.indexOf(el); if (k >= 0) SCR.splice(k, 1); SCR.push(el); scrZ();
-  el.classList.remove('scr-back'); el.classList.remove('scr-in'); void el.offsetWidth; el.classList.add('scr-in'); setTimeout(() => el.classList.remove('scr-in'), 300); }
+function scrUnder(){ return SCR[SCR.length - 1] || (!$('#page').classList.contains('hidden') ? $('#page') : $('#main')); }
+function scrAnim(el, from, to){ try { el.animate([{ transform: from }, { transform: to }], { duration: SCR_MS, easing: SCR_EASE }); } catch(e){} }
+function scrTitle(el){ if (!el) return ''; if (el.id === 'sheet') { const h = el.querySelector('#sheetbox h3'); return h ? h.textContent.replace(/[✎]/g, '').trim() : ''; } if (el.id === 'viewer') return '写真'; if (el.classList.contains('docview')) return '書類'; return ''; }
+function scrHead(){ const on = SCR.length > 0; document.body.classList.toggle('scr', on); const b = $('#btnMenu');
+  if (b) { if (on && b.dataset.scr !== '1') { b.dataset.scr = '1'; b.dataset.mh = b.innerHTML; b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>'; b.setAttribute('aria-label', '戻る'); }
+    else if (!on && b.dataset.scr === '1') { b.dataset.scr = ''; b.innerHTML = b.dataset.mh || b.innerHTML; b.setAttribute('aria-label', 'メニューを開く'); } }
+  try { abRender(); } catch(e){} }
+function scrPush(el){ const under = scrUnder(); const k = SCR.indexOf(el); if (k >= 0) SCR.splice(k, 1); SCR.push(el); scrZ();
+  if (under && under !== el) scrAnim(under, 'translateX(0)', 'translateX(-100%)'); scrAnim(el, 'translateX(100%)', 'translateX(0)'); setTimeout(scrHead, 0); }
 function scrPop(el){ const k = SCR.indexOf(el); if (k < 0) return; SCR.splice(k, 1);
   try { const r = el.getBoundingClientRect(), g = el.cloneNode(true); g.removeAttribute('id'); g.querySelectorAll('iframe,[id]').forEach(x => x.tagName === 'IFRAME' ? x.remove() : x.removeAttribute('id'));
-    g.classList.remove('hidden', 'scr-in', 'scr-back'); g.classList.add('scr-ghost'); Object.assign(g.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', right: 'auto', bottom: 'auto', zIndex: 100 + SCR.length * 2 + 1 });
-    document.body.appendChild(g); setTimeout(() => g.remove(), 260); } catch(e){}
-  const under = SCR[SCR.length - 1] || (!$('#page').classList.contains('hidden') ? $('#page') : null);
-  if (under) { under.classList.remove('scr-back'); void under.offsetWidth; under.classList.add('scr-back'); setTimeout(() => under.classList.remove('scr-back'), 300); } }
-function openSheet(html){ $('#sheetbox').classList.remove('split'); $('#sheetbox').innerHTML = '<div class="scrbar"><button type="button" class="scrback" data-close aria-label="戻る">← 戻る</button></div>' + html; if ($('#sheet').classList.contains('hidden')) { hpush('s'); $('#sheet').classList.remove('hidden'); scrPush($('#sheet')); }
+    g.classList.remove('hidden'); Object.assign(g.style, { position: 'fixed', left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', right: 'auto', bottom: 'auto', margin: '0', zIndex: 100 + SCR.length * 2 + 1, pointerEvents: 'none' });
+    document.body.appendChild(g); scrAnim(g, 'translateX(0)', 'translateX(100%)'); setTimeout(() => g.remove(), SCR_MS - 20); } catch(e){}
+  scrAnim(scrUnder(), 'translateX(-100%)', 'translateX(0)'); scrHead(); }
+/* パンくずの最後に、開いている画面の名前を足す（元のページの名前は押すと戻れる） */
+function scrCrumb(){ if (!SCR.length) return; const h = $('#abTitle'); if (!h || h.className.indexOf('st-') === 0) return;
+  h.querySelectorAll('.crumb.cur').forEach(c => { c.classList.remove('cur'); c.classList.add('cpscr'); });
+  h.insertAdjacentHTML('beforeend', '<span class="absep">›</span><span class="crumb cur cscr">' + esc(scrTitle(SCR[SCR.length - 1]) || '編集') + '</span>'); }
+/* 上のバーの「←」：いちばん上の画面を閉じる */
+function scrBack(fromHist){ const top = SCR[SCR.length - 1]; if (!top) return false;
+  if (top.id === 'sheet') { if (!askLeave()) { if (fromHist) hpush('s'); return true; } closeSheet(fromHist); return true; }
+  if (top.id === 'viewer') { closeViewer(fromHist); return true; }
+  if (top.classList.contains('docview')) { docClose(top, fromHist); return true; }
+  return false; }
+function openSheet(html){ $('#sheetbox').classList.remove('split'); $('#sheetbox').innerHTML = html; if ($('#sheet').classList.contains('hidden')) { hpush('s'); $('#sheet').classList.remove('hidden'); scrPush($('#sheet')); }
   clearTimeout(SNAP.t); SNAP.v = null; SNAP.t = setTimeout(() => { SNAP.v = sheetState(); }, 250); }
 /* 入力中の内容があるか（開いたときの状態とくらべる）。写真を選んだ・項目を選んだ・文字を入れた、を見分ける */
 const SNAP = { v: null, t: 0 };
@@ -3976,8 +3995,7 @@ function hpush(tag){ const h = hist_(); if (h) try { h.push({ o: tag, t: Date.no
 function hback(){ if (!hist_()) return; HIST.skip++; try { history.back(); } catch(e){ HIST.skip--; } setTimeout(() => { if (HIST.skip > 0) HIST.skip = Math.max(0, HIST.skip - 1); }, 1500); }
 function closeTop(){
   if (!$('#confirm').classList.contains('hidden')) return closeConfirm(true), true;
-  if (!$('#viewer').classList.contains('hidden')) return closeViewer(true), true;
-  if (!$('#sheet').classList.contains('hidden')) { if (!askLeave()) { hpush('s'); return true; } return closeSheet(true), true; }
+  if (SCR.length) return scrBack(true); // 開いた順に1枚ずつ戻る
   if (!$('#page').classList.contains('hidden')) return closeWork(true), true;
   return false;
 }
@@ -4656,7 +4674,10 @@ $('.cbin').addEventListener('click', e => { if (!matchMedia('(pointer:coarse)').
 function srchReset(){ scrollLock(false); document.body.classList.remove('searching', 'kbopen'); }
 document.addEventListener('visibilitychange', () => { if (document.hidden && document.activeElement !== $('#fsq')) srchReset(); });
 /* 上のページ名を押すと、いちばん上までスクロール */
-$('#abTitle').addEventListener('click', e => { if (e.target.closest('.crumb[data-home]')) { goHome(); return; }
+$('#abTitle').addEventListener('click', e => {
+  if (SCR.length && e.target.closest('.crumb') && !e.target.closest('.cscr')) { // パンくずを押したら、開いている編集などの画面を閉じてから移る
+    for (let n = 0; n < 6 && SCR.length; n++) { const top = SCR[SCR.length - 1]; scrBack(); if (SCR[SCR.length - 1] === top) break; }
+    if (SCR.length || e.target.closest('.cpscr')) return; } if (e.target.closest('.crumb[data-home]')) { goHome(); return; }
   const bk = e.target.closest('.crumb[data-bc]'); if (bk && !bk.classList.contains('cur')) { const v = bk.dataset.bc; closeAllPages(); if (v === 'view') { S.filter = 'all'; S.mus = ''; } else if (v === 'flt') S.mus = ''; S.limit = 60; render(); window.scrollTo(0, 0); return; } if (e.target.closest('.crumb[data-flt]')) { S.filter = 'all'; S.mus = ''; S.limit = 60; render(); window.scrollTo(0, 0); return; } const c = e.target.closest('.crumb[data-ci]');
   if (c && !c.classList.contains('cur')) { const k = +c.dataset.ci; if (k === 0) { closeAllPages(); return; } let n = (S.stack || []).length - (k - 1); while (n-- > 0 && S.stack.length) closeWork(); return; }
   const up = $('#updBar'); if (up && $('#abTitle').classList.contains('st-upd')) { up.click(); abRender(); return; } const pg = $('#page');
@@ -4673,7 +4694,7 @@ document.addEventListener('click', e => {
   if (!$('#fmPop').classList.contains('hidden') && !e.target.closest('#fmPop, #fmPage')) hidePop();
   const t = e.target.closest('button, [data-close]'); if (!t) return;
   if (t.id==='fmPage'){ $('#fmPop').classList.toggle('hidden'); $('#fmSearch').classList.add('hidden'); return; }
-  if (t.id==='btnMenu'){ openDrawer(); return; }
+  if (t.id==='btnMenu'){ if (SCR.length) { scrBack(); return; } openDrawer(); return; }
   if (t.id==='dwX'){ if (isWide()) openDrawer(); else closeDrawer(); return; }
   if (t.dataset.dwclose){ closeDrawer(); return; }
   if (t.id==='btnMe2'){ closeDrawer(); openMe(); return; }
@@ -4751,7 +4772,7 @@ document.addEventListener('click', e => {
   if (e.target.closest && e.target.closest('#confirm')) return;
   const sh = $('#sheet');
   if (!sh.classList.contains('hidden') && !e.target.closest('#sheetbox')) {
-    if (e.target.closest('.docview, #viewer, #loading, #toast, #itemTip')) return; // 写真の拡大などは使える
+    if (e.target.closest('.docview, #viewer, #loading, #toast, #itemTip, #top, .appbar')) return; // 写真の拡大・上のバー（戻る・パンくず）は使える
     e.preventDefault(); e.stopPropagation(); return; } // 画面のほかの所を押しても閉じない
   const ie = document.querySelector('#page dd.iedit');
   if (ie && !ie.contains(e.target)) {
