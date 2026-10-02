@@ -1650,7 +1650,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '92d19c110c', APP_URL = location.origin + location.pathname;
+const BUILD = '303b9fe10c', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2058,7 +2058,7 @@ function workDocsHTML(no){
   const ds = (S.docs||[]).filter(d => String(d['作品番号']||'').split(',').includes(String(no)));
   if (!ds.length) return '';
   const st = d => ({'まだ':'まだ読んでいない','確認待ち':'確認待ち','登録済み':'登録済み','登録しない':'登録しない'})[d['状態']] || d['状態'] || '';
-  return `<h3 class="sec">この作品の書類（${ds.length}通）</h3><div class="wdocs">${ds.map(d => `<button class="wdoc" ${d['状態']==='まだ' ? 'data-docnew-read="' + esc(d['書類ID']) + '"' : 'data-doc="' + esc(d['書類ID']) + '"'}><b>${esc(docTitle(d))}</b><small>${esc(st(d))}</small><span class="tg">›</span></button>`).join('')}</div>`;
+  return `<h3 class="sec">この作品の書類（${ds.length}通）</h3><div class="dlist">${ds.map(d => docCard(d, docRes(d)['要確認'] ? '⚠ ' + docRes(d)['要確認'] : st(d))).join('')}</div>`;
 }
 /* ---- 同じ出来事（制作・出品・掲載・貸出・委託・寄贈・販売・贈与・廃棄など）が重なっていたら1つにまとめる ----
    同じ種類・同じ相手・同じ時期なら候補。内容は補い合い、書類はすべて残す。食い違う項目は選んでもらう。
@@ -2202,7 +2202,7 @@ const docPages = d => String(d['ファイルID']||'').split(',').filter(Boolean)
 const docRes = d => { try { return JSON.parse(d['読取結果']||'{}'); } catch(e){ return {}; } };
 /* 読み取った書類が、展覧会・画集につながっていたら、そのページに出す */
 const docLinks = (k, id) => { const L = (S.docs||[]).filter(d => d['状態']==='登録済み' && String(docRes(d)[k]||'').split(',').includes(String(id)));
-  return L.length ? `<h3 class="sec">関係する書類 ${L.length}件</h3><div class="doclinks">${L.map(d => `<button type="button" class="golink" data-doc="${esc(d['書類ID'])}">📄 ${esc(docTitle(d))} ›</button>`).join('')}</div>` : ''; };
+  return L.length ? `<h3 class="sec">関係する書類 ${L.length}件</h3><div class="dlist">${L.map(d => docCard(d, docRes(d)['要確認'] ? '⚠ ' + docRes(d)['要確認'] : '')).join('')}</div>` : ''; };
 const docById = id => (S.docs||[]).find(d => d['書類ID']===id);
 const DTH = {};
 const docImg = (fid, w) => `<img data-did="${esc(fid)}" data-dw="${w||400}" alt="書類の写真">`;
@@ -2221,14 +2221,16 @@ function docView(fid){
 }
 function docTitle(d){ if (d['タイトル']) return d['タイトル']; const r = docRes(d), y = (String(r['日付']||'').match(/(\d{4})/) || [])[1]; return [y ? y + '年' : '', r['相手先'], r['書類の種類'] && r['書類の種類']!=='その他' ? r['書類の種類'] : ''].filter(Boolean).join(' ') || '書類 ' + (d['書類ID']||''); }
 
-function renderDocs(){
-  const nNew = docsOf('まだ').length, rev = docsOf('確認待ち'), done = (S.docs||[]).filter(d => ['登録済み','登録しない'].includes(d['状態']));
-  const step = (n, t, c, on) => `<div class="dstep ${on?'on':''}"><b>${n}</b><span>${t}</span><small>${c}</small></div>`;
-  const card = (d, btn) => { const pg = docPages(d), r = docRes(d);
+/* 書類のカード（書類ページ・作品・展覧会・画集のページで同じ形） */
+const docCard = (d, btn) => { const pg = docPages(d), r = docRes(d);
     return `<button class="dcard" data-doc="${esc(d['書類ID'])}"><span class="dth">${pg[0] ? docImg(pg[0], 200) : ''}${pg.length > 1 ? `<i>${pg.length}枚</i>` : ''}</span>
       <span class="dtx"><b>${esc(d['状態']==='まだ' && !d['タイトル'] ? '撮影 ' + String(d['登録日時']||'').slice(0,10) : docTitle(d))}</b>
       <small>${esc(d['状態']==='まだ' ? 'まだ読み取っていません' : [r['日付'], r['要約']].filter(Boolean).join('　') || '')}</small>
       ${btn ? `<em>${btn}</em>` : ''}</span></button>`; };
+function renderDocs(){
+  const nNew = docsOf('まだ').length, rev = docsOf('確認待ち'), done = (S.docs||[]).filter(d => ['登録済み','登録しない'].includes(d['状態']));
+  const step = (n, t, c, on) => `<div class="dstep ${on?'on':''}"><b>${n}</b><span>${t}</span><small>${c}</small></div>`;
+  const card = docCard;
   let h = `<div class="chead"><h2>書類</h2><p class="csub">預かり書・寄贈書などを撮って、作品の来歴に登録します</p></div>
     <div class="dsteps">${step('1','撮る','', true)}${step('2','AIが読む', nNew ? 'あと' + nNew + '通' : '', nNew)}${step('3','確かめて登録', rev.length ? 'あと' + rev.length + '通' : '', rev.length)}</div>
     <button class="act main dbig" data-docnew="">${ico('photo')}書類を撮る</button>
@@ -3364,7 +3366,7 @@ function showPage(st, html, keepScroll, restoreSc){
   if (!open) { S.stack = []; hpush('w'); }
   else if (!keepScroll && S.pcur && !(S.pcur.t===st.t && S.pcur.id===st.id)) { S.stack.push({t:S.pcur.t, id:S.pcur.id, sc}); hpush('w'); }
   S.pcur = st; S.cur = (st.t==='w' || st.t==='ot') ? st.id : null;
-  pg.innerHTML = html; hydrate(pg);
+  pg.innerHTML = html; hydrate(pg); try { hydrateDocs(pg); } catch(e){}
   pg.classList.remove('hidden'); document.body.style.overflow='hidden';
   pg.scrollTop = keepScroll ? sc : (restoreSc || 0);
   abSync();
