@@ -1429,6 +1429,7 @@ html body #main section.cy .cage{font-size:12px!important;color:var(--sub)!impor
 .pdfcard.off{opacity:.65}
 .pdfbox{display:inline-block;margin-right:8px;padding:1px 8px;border-radius:8px;background:var(--wash);font-size:13px;font-weight:600}
 .doclinks .golink{display:block;margin:8px 0;text-align:left;font-size:16px}
+#pjbg{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(112px + env(safe-area-inset-bottom));z-index:60;max-width:calc(100% - 32px);white-space:nowrap;padding:10px 16px;border-radius:22px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,.15)}
 #pdfbg{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(112px + env(safe-area-inset-bottom));z-index:60;max-width:calc(100% - 32px);white-space:nowrap;padding:10px 16px;border-radius:22px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,.15)}#pdfbg.done{background:var(--ink);color:var(--bg);font-weight:600}
 .dchk{border:1px solid var(--warn);border-radius:10px;padding:10px 12px;margin:10px 0;font-size:15px}.dchk b{display:block;color:var(--warn)}.dchk .act{width:100%;margin-top:8px}
 .mmic{display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:var(--sub);background:var(--wash)}
@@ -1665,7 +1666,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '683314dc87', APP_URL = location.origin + location.pathname;
+const BUILD = 'e048d81112', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4822,7 +4823,7 @@ async function sheetPdfScan(){
   openSheet(`<h3>スキャンした資料を登録</h3><div id="pdfHead"></div><div id="pdfList">${list.map((x, i) => `<div class="pdfcard" id="pc${i}"></div>`).join('')}</div><div class="btns"><button type="button" data-close>閉じる</button></div>`);
   list.forEach((x, i) => pdfCard(i)); pdfHead();
   $('#sheetbox').onclick = e => { if (e.target.closest('[data-doc]')) { SNAP.v = null; return; } const b = e.target.closest('[data-pq]'); if (!b) return; const [k, i] = b.dataset.pq.split('|');
-    if (k==='all') return pdfReadAll(); if (k==='stop') { PDFQ.stop = true; return; } if (k==='more') return pdfMore();
+    if (k==='srv') return pjStart(); if (k==='pjstop') return pjStop(); if (k==='all') return pdfReadAll(); if (k==='stop') { PDFQ.stop = true; return; } if (k==='more') return pdfMore();
     if (k==='read') return pdfRead(+i); if (k==='again') return pdfRead(+i, true); if (k==='reg') return pdfReg(+i); if (k==='skip') { PDFQ.res[PDFQ.list[+i].id] = {skip: 1}; pdfCard(+i); pdfHead(); } };
 }
 /* 資料ファイルの背表紙（「スキャン › 35」などに一緒に入れた写真）を、その場に出す／しまう */
@@ -4840,7 +4841,8 @@ function pdfHead(){ const h = $('#pdfHead'); if (!h || !PDFQ) return;
   const L = PDFQ.list, R = PDFQ.res, unread = L.filter(x => !R[x.id]).length, done = L.filter(x => R[x.id] && R[x.id].done).length;
   h.innerHTML = !L.length ? '<p class="hint">「資料 › スキャン」フォルダに、まだPDFがありません。ScanSnapで1書類ずつスキャンして、このフォルダに保存してください。</p>'
     : `<p class="hint">${L.length}件のPDF（登録済み ${done}件）。読み取ると、そのまま登録まで進めます。食い違いなどは、あとで「書類」の「⚠ 要確認」で確かめてください。費用の目安は1ページ0.1〜0.3円ほどです。</p>
-      ${PDFQ.capped && !PDFQ.running ? `<p class="hint" style="color:var(--warn)">⚠ 使いすぎ防止のため、今日の読み取りの上限で止まりました（あと${unread}件）。</p><button type="button" class="act main" data-pq="more">このまま続ける（今日だけ50件ふやす）</button>` : PDFQ.running ? `<button type="button" class="act" data-pq="stop">読み取りを止める</button>` : unread ? `<button type="button" class="act main" data-pq="all">まとめて読み取る（${unread}件）</button>` : ''}
+      ${PJ.j && PJ.j.on ? `<p class="hint">☁ サーバーで読み取り・登録をしています（登録 ${PJ.j.done}件${PJ.j.left != null ? '・残り ' + PJ.j.left + '件' : ''}）。アプリを閉じても進みます。</p><button type="button" class="act" data-pq="pjstop">サーバーの読み取りを止める</button>` : unread && !PDFQ.running ? `<button type="button" class="act main" data-pq="srv">☁ サーバーでまとめて読み取り・登録（${unread}件）</button><p class="hint">サーバーが最後まで進めるので、アプリを閉じても、スマホが眠っても大丈夫です。終わったら、次にアプリを開いたときにお知らせします。</p>` : ''}
+      ${PJ.j && PJ.j.on ? '' : PDFQ.capped && !PDFQ.running ? `<p class="hint" style="color:var(--warn)">⚠ 使いすぎ防止のため、今日の読み取りの上限で止まりました（あと${unread}件）。</p><button type="button" class="act main" data-pq="more">このまま続ける（今日だけ50件ふやす）</button>` : PDFQ.running ? `<button type="button" class="act" data-pq="stop">読み取りを止める</button>` : unread ? `<button type="button" class="act main" data-pq="all">まとめて読み取る（${unread}件）</button>` : ''}
       ${PDFQ.running || unread > 1 ? '<p class="hint">読み取り中は、この画面を閉じてほかの作業をしていても大丈夫です。終わったらお知らせします（アプリは開いたままにしてください）。</p>' : ''}`;
   pdfSnap(); }
 function pdfCard(i){ const el = $('#pc' + i); if (!el || !PDFQ) return; const x = PDFQ.list[i], r = PDFQ.res[x.id];
@@ -4872,6 +4874,33 @@ async function pdfRead(i, again){ const x = PDFQ.list[i]; PDFQ.res[x.id] = {load
   try { const d = await call('readPdf', x.id, !!again); PDFQ.res[x.id] = {d}; } catch(e){ PDFQ.res[x.id] = {err: String(e && e.message || e)}; }
   pdfCard(i); pdfHead();
   const rr = PDFQ.res[x.id]; if (rr && rr.d && !again && !(rr.d.dup && rr.d.dup.length)) await pdfReg(i, true); } // 読み取ったら、そのまま登録まで進める（同じ書類がありそうなときだけ手で）
+/* サーバーで読み取り・登録：始める・止める・進み具合（アプリを閉じても進む） */
+const PJ = { t: 0, j: null };
+async function pjStart(){ busy(true, 'サーバーに頼んでいます…');
+  try { const j = await call('startPdfJob'); pjShow(j); clearTimeout(PJ.t); PJ.t = setTimeout(pjPoll, 15000); toast('サーバーで読み取りを始めました'); }
+  catch(e){ alert('始められませんでした（' + (e && e.message || e) + '）' + (/権限|permission|ScriptApp|authoriz/i.test(String(e && e.message || e)) ? '\n最初に一度だけ、Apps Scriptで「authorizeServerRead」を実行して許可してください。' : '')); }
+  finally { busy(false); pdfHead(); } }
+async function pjStop(){ if (!confirm('サーバーでの読み取りを止めますか？（登録済みのものはそのまま残ります）')) return; try { pjShow(await call('stopPdfJob')); } catch(e){ alert(e && e.message || e); } pdfHead(); }
+async function pjMore(){ try { await call('aiMore', 'pdf'); } catch(e){ return alert(e && e.message || e); } pjStart(); }
+async function pjPoll(){ clearTimeout(PJ.t); if (!S.user) { PJ.t = setTimeout(pjPoll, 10000); return; } if (!canEdit()) return;
+  let j = null; try { j = await call('pdfJobStatus'); } catch(e){ PJ.t = setTimeout(pjPoll, 60000); return; }
+  pjShow(j); if (j && j.on) PJ.t = setTimeout(pjPoll, 20000); }
+function pjShow(j){ const was = PJ.j && PJ.j.on; PJ.j = j; let el = $('#pjbg');
+  if (j && j.on) { if (!el) { el = document.createElement('button'); el.type = 'button'; el.id = 'pjbg'; el.onclick = () => sheetPdfScan(); document.body.appendChild(el); }
+    el.textContent = `☁ サーバーで読み取り中　登録 ${j.done}件${j.left != null ? '・残り ' + j.left + '件' : ''} ›`; if ($('#pdfHead')) pdfHead(); return; }
+  if (el) el.remove(); if ($('#pdfHead')) pdfHead();
+  if (!j || !j.end) return;
+  let seen = ''; try { seen = localStorage.getItem('smr_pjseen') || ''; } catch(e){}
+  if (seen === j.end) return; try { localStorage.setItem('smr_pjseen', j.end); } catch(e){}
+  if (j.done) refreshData();
+  const msg = j.msg ? `サーバーでの読み取りが止まりました：${j.msg}（登録 ${j.done}件）` : j.capped ? `使いすぎ防止の上限で、サーバーでの読み取りが止まりました（登録 ${j.done}件）。` : j.stopped ? `サーバーでの読み取りを止めました（登録 ${j.done}件）。`
+    : `サーバーでの読み取りと登録が終わりました（登録 ${j.done}件${j.diff ? '・食い違い ' + j.diff + '件' : ''}${j.dupN ? '・同じ書類がありそうで保留 ' + j.dupN + '件' : ''}${j.fail ? '・読めなかった ' + j.fail + '件' : ''}）。`;
+  setTimeout(() => { if (!$('#sheet').classList.contains('hidden') && !$('#pdfHead')) { toast(msg); return; }
+    if (j.capped) { if (confirm(msg + '\nこのまま続けますか？（今日だけ50件ふやします）')) pjMore(); }
+    else if (j.stopped && !was) {}
+    else if (confirm(msg + '\n書類を確かめますか？')) { closeSheet(); closeAllPages(); S.view = 'doc'; render(); window.scrollTo(0, 0); } }, 400);
+}
+setTimeout(pjPoll, 4000);
 /* 上限で止まったとき「続ける」：今日だけ50件ふやして、続きから読む */
 async function pdfMore(){ try { await call('aiMore', 'pdf'); } catch(e){ return alert(e && e.message || e); } PDFQ.capped = false; pdfHead(); pdfReadAll(); }
 /* まとめて読み取り：画面を閉じても裏で続け、終わったら知らせる */
