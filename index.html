@@ -1654,7 +1654,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '0f254413bf', APP_URL = location.origin + location.pathname;
+const BUILD = '94d323c770', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4866,11 +4866,9 @@ async function pdfReg(i){ const x = PDFQ.list[i], r = PDFQ.res[x.id], el = $('#p
 busy(true, '作品を読み込んでいます…');
 renderUser();
 /* ---------- 画面のいちばん上で下に引っぱると最新の情報に更新（Chromeなどと同じ操作） ---------- */
-async function refreshData(){
-  busy(true, '最新の情報を読み込んでいます…');
-  try { const d = await call('getData'); setData(d); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); toast('最新の情報にしました'); }
-  catch(e){ if (isLoginErr(e)) { setToken(''); S.user = null; render(); } else alert('読み込めませんでした。\n' + (e.message||e)); }
-  finally { busy(false); }
+async function refreshData(){ // 保存のあとなどに裏で最新にする（画面には何も出さない）
+  try { const d = await call('getData'); setData(d); render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); }
+  catch(e){ if (isLoginErr(e)) { setToken(''); S.user = null; render(); } }
 }
 (() => { return; // 引っぱって更新は使わない（2026/10/02 藤本さん）
   const ind = document.createElement('div'); ind.id = 'ptr';
