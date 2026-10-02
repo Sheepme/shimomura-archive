@@ -1427,6 +1427,7 @@ html body #main section.cy .cage{font-size:12px!important;color:var(--sub)!impor
 .pdfopen{width:100%;margin:6px 0 4px}
 .pdfcard{border:1px solid var(--line);border-radius:14px;padding:14px 14px 4px;margin:12px 0;background:var(--paper)}
 .pdfcard.off{opacity:.65}
+.pdfbox{display:inline-block;margin-right:8px;padding:1px 8px;border-radius:8px;background:var(--wash);font-size:13px;font-weight:600}
 .pdfnm{font-weight:600;margin-bottom:8px;word-break:break-all}.pdfnm small{font-weight:400;color:var(--faint);margin-left:8px;font-size:12px}
 .pdfw{padding:8px 0;border-top:1px solid var(--line)}.pdfw:first-of-type{border-top:0}
 .pdfw b{display:block}.pdfw small{display:block;color:var(--sub);font-size:12.5px}
@@ -1645,7 +1646,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '7e039882a2', APP_URL = location.origin + location.pathname;
+const BUILD = '4ef40d794a', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3589,7 +3590,7 @@ const SURE_T = ['確認済み','公式サイト（要確認）','旧リストか
 const EYE = '<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
 const PEN = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.6"/></svg>';
 const EXF = [['名称','名称','text'],['種類','種類','pick',EX_T],['開始日','開始日','text','例：1964/08/31 または 1964'],['終了日','終了日','text','例：1964/09/06'],['会場','会場','text'],['都市','都市','text'],['国','国','text'],['主催','主催','text'],['図録','図録の資料ID','pb'],['主要','主要','main'],['出典','出典','text'],['出典のURL','出典URL','url','https:\/\/… （なくても大丈夫）'],['確かさ','確かさ','pick',SURE_T],['メモ','メモ','area']];
-const PBF = [['種類','種類','pick',PB_T],['書名','タイトル','text'],['発行年月','発行年月','text','例：2000/02/03 または 1990'],['発行元','発行元','text'],['著者・編者','著者・編者','text'],['関連する展覧会','関連展覧会ID','ex'],['掲載内容','掲載内容','area'],['家にある冊数','家にある冊数','text','例：2'],['主要','主要','main'],['出典','出典','text'],['出典のURL','出典URL','url','https:\/\/… （なくても大丈夫）'],['確かさ','確かさ','pick',SURE_T],['メモ','メモ','area']];
+const PBF = [['種類','種類','pick',PB_T],['書名','タイトル','text'],['発行年月','発行年月','text','例：2000/02/03 または 1990'],['発行元','発行元','text'],['著者・編者','著者・編者','text'],['関連する展覧会','関連展覧会ID','ex'],['掲載内容','掲載内容','area'],['家にある冊数','家にある冊数','text','例：2'],['保管番号','保管番号','text','例：35（資料の箱・棚の番号）'],['主要','主要','main'],['出典','出典','text'],['出典のURL','出典URL','url','https:\/\/… （なくても大丈夫）'],['確かさ','確かさ','pick',SURE_T],['メモ','メモ','area']];
 function fInput(d, i, v){
   const id = 'xf' + i;
   if (d[2]==='url') return inp(id, v, d[3] || '', 'url');
@@ -4755,7 +4756,7 @@ function pdfHead(){ const h = $('#pdfHead'); if (!h || !PDFQ) return;
       ${PDFQ.running ? `<button type="button" class="act" data-pq="stop">読み取りを止める</button>` : unread ? `<button type="button" class="act main" data-pq="all">まとめて読み取る（${unread}件）</button>` : ''}`;
   pdfSnap(); }
 function pdfCard(i){ const el = $('#pc' + i); if (!el || !PDFQ) return; const x = PDFQ.list[i], r = PDFQ.res[x.id];
-  const nm = `<div class="pdfnm">📄 ${esc(x.name)}<small>${Math.max(1, Math.round(x.size / 1024))}KB</small></div>`;
+  const nm = `<div class="pdfnm">${x.box ? `<span class="pdfbox">📦 ${esc(x.box)}</span>` : ''}📄 ${esc(x.name)}<small>${Math.max(1, Math.round(x.size / 1024))}KB</small></div>`;
   if (!r) { el.innerHTML = nm + `<button type="button" class="act" data-pq="read|${i}">読み取る</button>`; return pdfSnap(); }
   if (r.loading) { el.innerHTML = nm + '<p class="hint">AIが読み取っています…</p>'; return pdfSnap(); }
   if (r.err) { el.innerHTML = nm + `<p class="hint" style="color:var(--warn)">${esc(r.err)}</p><button type="button" class="act" data-pq="again|${i}">もう一度読み取る</button>`; return pdfSnap(); }
@@ -4770,7 +4771,8 @@ function pdfCard(i){ const el = $('#pc' + i); if (!el || !PDFQ) return; const x 
     + `<div class="field"><label>資料名</label><input data-k="タイトル" value="${esc(a['資料名']||'')}"></div>
       <div class="two"><div class="field"><label>種類</label><select data-k="種類">${kinds.map(k => `<option ${k===a['種類']?'selected':''}>${esc(k)}</option>`).join('')}</select></div>
       <div class="field"><label>発行年月</label><input data-k="発行年月" value="${esc(a['発行年月']||'')}"></div></div>
-      <div class="field"><label>発行元・主催</label><input data-k="発行元" value="${esc(a['発行元']||'')}"></div>
+      <div class="two"><div class="field"><label>発行元・主催</label><input data-k="発行元" value="${esc(a['発行元']||'')}"></div>
+      <div class="field"><label>保管番号</label><input data-k="保管番号" value="${esc(x.box||'')}" placeholder="例：35"></div></div>
       <div class="field"><label>どんな資料か</label><textarea data-k="掲載内容" rows="2">${esc(a['掲載内容']||'')}</textarea></div>
       <div class="field"><label>展覧会</label><select data-k="exId">${exOpts}</select></div>
       <div class="field"><label>下村良之介の作品（ひも付ける作品にチェック）</label>${(r.d.works||[]).length ? r.d.works.map(w => `<div class="pdfw"><b>${esc(w['作品名'])}</b>${w['メモ'] ? `<small>${esc(w['メモ'])}</small>` : ''}
@@ -4787,7 +4789,7 @@ async function pdfReg(i){ const x = PDFQ.list[i], r = PDFQ.res[x.id], el = $('#p
   const v = k => { const f = el.querySelector(`[data-k="${k}"]`); return f ? f.value.trim() : ''; };
   if (!v('タイトル')) return alert('資料名を入れてください');
   const a = r.d.r || {}, ex = a['展覧会'] || {};
-  const rec = { pub: {'タイトル': v('タイトル'), '種類': v('種類'), '発行年月': v('発行年月'), '発行元': v('発行元'), '掲載内容': v('掲載内容')},
+  const rec = { box: x.box || '', pub: {'タイトル': v('タイトル'), '種類': v('種類'), '発行年月': v('発行年月'), '発行元': v('発行元'), '掲載内容': v('掲載内容'), '保管番号': v('保管番号')},
     exId: v('exId'), ex: {'名称': ex['名称'] || '', '種類': ex['種類'] || '', '開始日': ex['開始日'] || '', '終了日': ex['終了日'] || '', '会場': ex['会場'] || '', '都市': ex['都市'] || ''},
     nos: [...new Set([...el.querySelectorAll('input[data-no]:checked')].map(c => c.dataset.no))] };
   busy(true, '登録しています…');
