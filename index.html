@@ -215,7 +215,8 @@ dl.info dd{position:relative;padding-right:44px}
 }
 .viewer{position:fixed;inset:0;z-index:95;background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 12px 110px}
 .viewer img{max-width:100%;max-height:100%;object-fit:contain;touch-action:pinch-zoom}
-html,body{touch-action:pan-x pan-y}.viewer,.viewer *,.docview,.docview *{touch-action:auto}
+html,body{touch-action:pan-x pan-y}.docview,.docview *{touch-action:auto}.viewer,.viewer img{touch-action:none}.viewer button{touch-action:manipulation}
+.viewer{overflow:hidden;overscroll-behavior:contain}.viewer img{will-change:transform;cursor:zoom-in}.viewer img.zoomed{cursor:grab}
 .vclose{position:absolute;top:12px;left:16px;z-index:3;border:1px solid var(--line);background:var(--paper);padding:8px 16px;font-size:16px;border-radius:999px}
 .vbar{position:absolute;bottom:52px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:24px;font-size:16px;color:var(--sub)}
 .vbar button{border:1px solid var(--line);background:var(--paper);padding:8px 18px;font-size:17px;border-radius:999px}
@@ -1668,7 +1669,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '4345f8f80e', APP_URL = location.origin + location.pathname;
+const BUILD = 'bc8e3b0484', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3771,7 +3772,7 @@ const creditHTML = ph => [...new Set((ph||[]).map(p => String(p['メモ']||'')).
   const [mu, u] = m.split('｜');
   return `<p class="credit">＊この画像は${/^[@＠]/.test(mu) ? 'Webサイト「' + esc(mu.slice(1)) + '」' : esc(mu)}から転載したものです。家族用の資料としての利用に限定します。転載したり誰かに渡す場合は、撮影元に確認を取ってください。${u ? `（<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u)}</a>）` : ''}</p>`; }).join('');
 function showV(){ const p = V.list[V.i]; if (!p) return;
-  const k = (TH['3200_' + p['ファイルID']] ? '3200_' : '1600_') + p['ファイルID']; $('#vimg').removeAttribute('src'); $('#vimg').style.transform = ''; $('#vimg').classList.remove('lowres');
+  const k = (TH['3200_' + p['ファイルID']] ? '3200_' : '1600_') + p['ファイルID']; $('#vimg').removeAttribute('src'); vzReset(); $('#vimg').classList.remove('lowres');
   const lo = ['1200', '800', '400', '200'].find(x => TH[x + '_' + p['ファイルID']]);
   if (TH[k]) { $('#vimg').src = TH[k]; vSpin(false); }
   else { if (lo) { $('#vimg').src = TH[lo + '_' + p['ファイルID']]; $('#vimg').classList.add('lowres'); } vSpin(true); // 大きい写真が届くまで、小さい写真＋読み込み中のマーク
@@ -3788,6 +3789,31 @@ function showV(){ const p = V.list[V.i]; if (!p) return;
       .catch(() => { vSpin(false); $('#vorig').textContent = '高画質で見る'; toast('高画質の写真を読み込めませんでした'); }); };
   $('#vprev').style.visibility = V.i>0?'visible':'hidden'; $('#vnext').style.visibility = V.i<V.list.length-1?'visible':'hidden'; }
 $('#vclose').onclick = () => closeViewer();
+/* 写真の拡大画面：指2本で拡大・縮小、拡大中は指1本で動かす、2回タップで拡大／元に戻す、拡大していないときは左右にスワイプで前後の写真 */
+const VZ = { s: 1, x: 0, y: 0 };
+function vzApply(){ const im = $('#vimg'); im.style.transform = VZ.s === 1 ? '' : `translate(${VZ.x}px,${VZ.y}px) scale(${VZ.s})`; im.classList.toggle('zoomed', VZ.s > 1); }
+function vzReset(){ VZ.s = 1; VZ.x = 0; VZ.y = 0; vzApply(); }
+function vzToggle(){ if (VZ.s > 1) vzReset(); else { VZ.s = 2.5; vzApply(); } }
+(function(){ const v = $('#viewer'); let st = null, lastTap = 0;
+  const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+  v.addEventListener('touchstart', e => { if (e.target.closest('button')) { st = null; return; } const t = e.touches;
+    if (t.length === 2) st = { m: 'pinch', d0: dist(t) || 1, s0: VZ.s, x0: VZ.x, y0: VZ.y };
+    else if (t.length === 1) st = { m: 'pan', px: t[0].clientX, py: t[0].clientY, x0: VZ.x, y0: VZ.y, dx: 0, dy: 0, moved: false }; }, {passive: true});
+  v.addEventListener('touchmove', e => { if (!st) return; e.preventDefault(); const t = e.touches;
+    if (st.m === 'pinch' && t.length === 2) { VZ.s = Math.min(6, Math.max(1, st.s0 * dist(t) / st.d0)); const k = VZ.s / st.s0; VZ.x = st.x0 * k; VZ.y = st.y0 * k; vzApply(); }
+    else if (st.m === 'pan' && t.length === 1) { st.dx = t[0].clientX - st.px; st.dy = t[0].clientY - st.py; if (Math.abs(st.dx) + Math.abs(st.dy) > 8) st.moved = true;
+      if (VZ.s > 1) { VZ.x = st.x0 + st.dx; VZ.y = st.y0 + st.dy; vzApply(); } } }, {passive: false});
+  v.addEventListener('touchend', e => { if (!st) return;
+    if (st.m === 'pan' && !e.touches.length) {
+      if (!st.moved && e.target.id === 'vimg') { const n = Date.now(); if (n - lastTap < 320) { vzToggle(); lastTap = 0; } else lastTap = n; }
+      else if (st.moved && VZ.s === 1 && Math.abs(st.dx) > 60 && Math.abs(st.dx) > Math.abs(st.dy) * 1.5) { if (st.dx < 0 && V.i < V.list.length - 1) { V.i++; showV(); } else if (st.dx > 0 && V.i > 0) { V.i--; showV(); } } }
+    if (VZ.s < 1.05) vzReset();
+    st = e.touches.length === 1 ? { m: 'pan', px: e.touches[0].clientX, py: e.touches[0].clientY, x0: VZ.x, y0: VZ.y, dx: 0, dy: 0, moved: true } : null; });
+  v.addEventListener('wheel', e => { e.preventDefault(); VZ.s = Math.min(6, Math.max(1, VZ.s * (e.deltaY < 0 ? 1.12 : 0.89))); if (VZ.s < 1.02) vzReset(); else vzApply(); }, {passive: false});
+  let md = null; v.addEventListener('mousedown', e => { if (VZ.s > 1 && e.target.id === 'vimg') { md = { px: e.clientX, py: e.clientY, x0: VZ.x, y0: VZ.y }; e.preventDefault(); } });
+  addEventListener('mousemove', e => { if (!md) return; VZ.x = md.x0 + e.clientX - md.px; VZ.y = md.y0 + e.clientY - md.py; vzApply(); }); addEventListener('mouseup', () => { md = null; });
+  v.addEventListener('dblclick', e => { if (e.target.id === 'vimg') vzToggle(); });
+})();
 function vSpin(on){ let el = $('#vspin'); if (!el) { el = document.createElement('div'); el.id = 'vspin'; el.innerHTML = '<span class="ldspin"></span><small>読み込み中</small>'; $('#viewer').appendChild(el); } el.classList.toggle('hidden', !on); }
 $('#vmain').onclick = () => { const p = V.list[V.i], no = S.cur; if (!p || !canEdit()) return;
   S.photos.forEach(x => { if (x['作品番号']===no) x['メイン'] = x===p ? 'メイン' : ''; }); index();
@@ -4735,7 +4761,7 @@ function setCols(d){
   }, {passive:false});
   document.addEventListener('touchend', e => { if (e.touches.length < 2) d0 = 0; }, {passive:true});
   /* 画面全体の拡大・縮小（ピンチ）は止める。写真・書類を大きく見る画面の中だけは指で拡大できる */
-  const zoomOk = e => !!(e.target && e.target.closest && e.target.closest('.viewer, .docview'));
+  const zoomOk = e => !!(e.target && e.target.closest && e.target.closest('.docview')); // 写真の拡大画面は自前で拡大する
   document.addEventListener('gesturestart', e => { if (!zoomOk(e)) e.preventDefault(); });
   document.addEventListener('gesturechange', e => { if (!zoomOk(e)) e.preventDefault(); });
   document.addEventListener('touchmove', e => { if (e.touches.length > 1 && !zoomOk(e) && !onAlbum()) e.preventDefault(); }, {passive:false});
