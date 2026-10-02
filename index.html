@@ -1703,7 +1703,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'b1ce05906d', APP_URL = location.origin + location.pathname;
+const BUILD = '925a76dbb3', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1811,12 +1811,18 @@ async function saveRecover(fn){
     const d = await call('getData'); setData(d); closeSheet(); render();
     if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
     if (/^newOther/.test(fn)) { d.newId = (S.others||[]).map(x => x['作品番号']).find(n => !before.has(n)); if (d.newId) { busy(false); toast('登録しました'); return d; } }
-    busy(false); alert('通信が途中で切れました。最新の状態に読み直したので、保存されているか画面で確かめてください。');
+    busy(false); alert('通信が途中で切れました。最新の状態に読み直したので、保存されているか画面で確かめてください。' + (IDEM.includes(fn) ? '\n（写真は、もう一度保存しても二重には登録されません）' : ''));
   } catch(x){ busy(false); alert('通信が切れました。電波の良い所で、画面を読み直して保存されているか確かめてください。'); }
 }
+/* 写真の保存は、通信が切れたら自動でもう一度送る（サーバー側で同じ写真は二重に登録しない） */
+const IDEM = ['addPhoto', 'addPhotos'];
+const netErr = e => /通信が切れました|通信に失敗|load failed|failed to fetch|network/i.test(String(e && e.message || e));
+async function callRetry(fn, ...args){
+  for (let k = 0; ; k++) { try { return await call(fn, ...args); }
+    catch(e){ if (k < 3 && IDEM.includes(fn) && netErr(e)) { busy(true, '通信が切れたので、もう一度送っています…（' + (k + 1) + '回目）'); await new Promise(r => setTimeout(r, 2500 * (k + 1))); continue; } throw e; } } }
 async function save(fn, args, msg){
   busy(true,'保存しています…');
-  try { const d = await call(fn, ...args); setData(d); toast(msg||'保存しました'); closeSheet(); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); return d; }
+  try { const d = await callRetry(fn, ...args); setData(d); toast(d && d.dup ? '保存済みでした（同じ写真は二重に登録しません）' : (msg||'保存しました')); closeSheet(); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); return d; }
   catch(e){ if (/通信が切れました|load failed|failed to fetch/i.test(String(e && e.message || e))) { busy(false); return await saveRecover(fn); } if (isLoginErr(e)) { setToken(''); S.user=null; renderUser(); alert('ログインの有効期限が切れました。もう一度ログインしてください。'); openLogin(); } else alert('保存できませんでした。\n' + (e.message||e)); }
   finally { busy(false); }
 }
@@ -4585,13 +4591,13 @@ async function savePhotos(no, list, kind, memo){
   try {
     for (let i = 0; i < list.length; i += 3) {
       busy(true, '写真を保存しています（' + Math.min(i+3, list.length) + '/' + list.length + '）');
-      await call('addPhotos', no, list.slice(i, i+3), kind, memo); done = Math.min(i+3, list.length);
+      await callRetry('addPhotos', no, list.slice(i, i+3), kind, memo); done = Math.min(i+3, list.length);
     }
     const d = await call('getData'); setData(d); toast(list.length + '枚の写真を保存しました'); closeSheet(); render();
     if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
   } catch(e){
     if (isLoginErr(e)) { setToken(''); S.user=null; renderUser(); alert('ログインの有効期限が切れました。もう一度ログインしてください。'); openLogin(); }
-    else alert('保存できませんでした（' + done + '枚まで保存済み）。\n' + (e.message||e));
+    else alert('保存できませんでした（' + done + '枚まで保存済み）。\nもう一度保存しても、保存済みの写真が二重に登録されることはありません。\n' + (e.message||e));
   } finally { busy(false); }
 }
 function shrink(file){ /* 長い辺を1800pxに縮めてJPEGに（透明な部分があるPNGはPNGのまま） */
