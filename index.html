@@ -1593,7 +1593,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'e34eb16544', APP_URL = location.origin + location.pathname;
+const BUILD = '9752ab54d0', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3907,7 +3907,7 @@ async function otUrlRead(u, force, pasted){
   busy(false);
   if (r.dup && r.dup.length && !force) return otUrlDup(u, r.dup);
   if (r.blocked) return sheetOtPaste(u, r.blocked);
-  if (pasted) r.pasted = pasted;
+  if (pasted) { r.pasted = pasted; if (!r.title) r.title = (String(pasted).split('\n').map(s => s.trim()).find(Boolean) || '').slice(0, 80); }
   sheetOtUrlForm(r);
 }
 /* サイトが外から読めないとき：ページの文章をコピーして貼ってもらう */
@@ -3932,7 +3932,7 @@ function otUrlDup(u, dup){
 function sheetOtUrlForm(r){
   const f = Object.assign({}, r.f || {}), imgs = r.imgs || [], on = new Set(imgs.length ? [0] : []);
   if (!r.ai) { // AIが読めなかったときは、ページのタイトルから分かる分だけ入れておく（例：「夜道」・銅版画）
-    const t = String(r.title || ''), m = /[「『]([^」』]+)[」』]/.exec(t), tech = (/(銅版画|木版画|リトグラフ|エッチング|シルクスクリーン|版画|陶器|陶芸|茶碗|皿|壺|花瓶)/.exec(t) || [])[1] || '';
+    const t = String(r.title || ''), m = /[「『]([^」』]+)[」』]/.exec(t), tech = (/(銅版画|木版画|リトグラフ|エッチング|シルクスクリーン|版画|陶器|陶芸|茶碗|徳利|皿|壺|花瓶)/.exec(t + ' ' + (r.pasted || '').slice(0, 600)) || [])[1] || '';
     if (!f['作品名'] && m) f['作品名'] = m[1];
     if (!f['画材'] && tech) f['画材'] = tech;
     if (!f['種類'] && tech) f['種類'] = /版画|リトグラフ|エッチング|シルク/.test(tech) ? '版画' : 'やけもの';
