@@ -620,8 +620,8 @@ html,body{overflow-x:clip;max-width:100%}
 .otmeta{margin:-14px 0 20px}.otcount{white-space:nowrap;font-size:16px;color:var(--ink);font-weight:500;letter-spacing:.02em}.otcount b{font-size:22px;font-weight:700;margin:0 3px}.otcount small{font-size:13px;color:var(--sub);font-weight:400}
 #count{font-size:16px;color:var(--ink);font-weight:500;letter-spacing:.02em}
 #count b{font-size:22px;font-weight:700;margin:0 1px;font-variant-numeric:tabular-nums}
-.meta select#sort{border:1.5px solid var(--ink);background:var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%231d1d1b' stroke-width='1.8'/%3E%3C/svg%3E") no-repeat right 12px center;color:var(--ink);font-size:15px;font-weight:600;padding:0 32px 0 14px;height:39px;line-height:36px;box-sizing:border-box;border-radius:999px;text-align:left;cursor:pointer;width:auto;flex:none;max-width:60%}
-html[data-theme=dark] .meta select#sort{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23ebe9e4' stroke-width='1.8'/%3E%3C/svg%3E")}
+.meta select#sort,.meta select#osort{border:1.5px solid var(--ink);background:var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%231d1d1b' stroke-width='1.8'/%3E%3C/svg%3E") no-repeat right 12px center;color:var(--ink);font-size:15px;font-weight:600;padding:0 32px 0 14px;height:39px;line-height:36px;box-sizing:border-box;border-radius:999px;text-align:left;cursor:pointer;width:auto;flex:none;max-width:60%}
+html[data-theme=dark] .meta select#sort,html[data-theme=dark] .meta select#osort{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23ebe9e4' stroke-width='1.8'/%3E%3C/svg%3E")}
 .credit{font-size:12px;line-height:1.6;color:var(--sub);margin:8px 0 0;overflow-wrap:anywhere}
 .credit a{color:var(--sub);text-decoration:underline}
 .vbar .credit{flex-basis:100%;color:#bbb;text-align:center;margin:4px 12px 0}
@@ -1261,7 +1261,7 @@ html[data-theme=dark] .appbar .abtn,html[data-theme=dark] .appbar h1:not(.st-bus
 .cbin:has(#fsq:placeholder-shown):not(:focus-within){background:color-mix(in srgb,var(--paper) 42%,transparent)!important;-webkit-backdrop-filter:saturate(200%) blur(40px)!important;backdrop-filter:saturate(200%) blur(40px)!important}
 .cbin{transition:background .2s}
 /* 並び替え・列の数のボタン：細い線をやめて、年代などのサブのボタンと同じ淡い塗りに */
-#sort{border:1px solid transparent!important;background-color:var(--wash)!important;color:var(--ink)!important;font-weight:500}
+#sort,#osort{border:1px solid transparent!important;background-color:var(--wash)!important;color:var(--ink)!important;font-weight:500}
 .zoomb{border:1px solid transparent!important;background:var(--wash)!important}
 .zoomb button{background:transparent!important;color:var(--ink)!important;font-weight:500}
 .zoomb button+button{border-left:1px solid var(--line)!important}
@@ -1538,7 +1538,8 @@ body .chips .cn{margin-left:3px;opacity:.55;font-size:12px;font-weight:500}
 #finder #count{display:none!important}
 @media(min-width:900px){ body[data-pv=list] #finder .meta{display:none!important} } /* 作品リストは表の見出しで並べ替えるので、並び順の欄は出さない */ /* 件数はタブの名前の後ろに出す */
 #finder .meta{justify-content:flex-end}
-#finder .meta .mright{margin-left:auto!important;justify-content:flex-end!important}
+#finder .meta .mright,.otmeta .mright{margin-left:auto!important;justify-content:flex-end!important}
+.otmeta .mright{display:flex;align-items:center;gap:8px}
 /* 作品リスト（PCの表）：項目名の行は左右いっぱい、いちばん下のタブのすぐ下に固定 */
 #wthd{top:calc(var(--rowtop,0px) + var(--rowh,0px))!important;transition:top .25s ease!important}
 #wthd,#wtwrap{margin-left:calc(-1 * var(--gx))!important;margin-right:calc(-1 * var(--gx))!important;padding-left:var(--gx);padding-right:var(--gx)}
@@ -1618,7 +1619,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '5648541e9c', APP_URL = location.origin + location.pathname;
+const BUILD = '8bf808eddc', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3905,16 +3906,21 @@ const otName = x => x['作品名'] ? esc(x['作品名']) : '<span class="untitle
 function renderOtList(){
   S.otk = S.otk || 'すべて'; S.oq = S.oq || '';
   $('#chronobar').innerHTML = `<div class="search"><input id="oq" type="search" placeholder="番号・名前・年・場所で探す" value="${esc(S.oq)}" enterkeyhint="search"></div>
-    <div class="chips">${['すべて', ...OT_T].map(k => `<button class="chip ${S.otk===k?'on':''}" data-otk="${esc(k)}">${esc(k)}</button>`).join('')}</div>`;
+    <div class="chips">${['すべて', ...OT_T].map(k => `<button class="chip ${S.otk===k?'on':''}" data-otk="${esc(k)}">${esc(k)}<span class="cn">${k==='すべて' ? S.others.length : S.others.filter(x => (x['種別']||'その他')===k).length}</span></button>`).join('')}</div>`;
   $('#oq').oninput = e => { S.oq = e.target.value; drawOtList(); };
   drawOtList();
 }
 function drawOtList(){
   const q = S.oq.trim().toLowerCase();
   const list = S.others.filter(x => (S.otk==='すべて' || (x['種別']||'その他')===S.otk) && (!q || [x['作品名'], x['作品名メモ'], x['制作年'], x['画材'], x['所在'], x['所在区分'], x['補足'], x['作品番号']].join(' ').toLowerCase().includes(q)));
+  S.osort = S.osort || 'rand'; // 並び順（作品アルバムと同じ）
+  if (S.osort==='rand') { const R = drawOtList.rk || (drawOtList.rk = {}), k = no => R[no] === undefined ? (R[no] = Math.random()) : R[no]; list.sort((x,y) => (photoBy[x['作品番号']] ? 0 : 1) - (photoBy[y['作品番号']] ? 0 : 1) || k(x['作品番号']) - k(y['作品番号'])); }
+  else if (S.osort==='no') list.sort((x,y) => String(x['作品番号']).localeCompare(String(y['作品番号']), 'ja', {numeric:true}));
+  else if (S.osort==='year') list.sort((x,y) => yearOf(x['制作年']) - yearOf(y['制作年']));
+  else if (S.osort==='upd') list.sort((x,y) => String(y['最終更新日時']||'').localeCompare(String(x['最終更新日時']||'')));
   const N0 = masN(), [ca, cb] = colRange();
-  let html = `<div class="meta otmeta"><span class="otcount">${list.length!==S.others.length ? S.others.length + '件中 <b>' + list.length + '</b> 件' : '全 <b>' + list.length + '</b> 件'}${S.otk!=='すべて' && OT_NOTE[S.otk] ? '<small>　' + esc(OT_NOTE[S.otk]) + '</small>' : ''}</span>
-    <span class="mright"><span class="zoomb"><button type="button" data-otcol="1" aria-label="小さく（列を増やす）" ${N0 >= cb ? 'disabled' : ''}>−</button><button type="button" data-otcol="-1" aria-label="大きく（列を減らす）" ${N0 <= ca ? 'disabled' : ''}>＋</button></span></span></div>`;
+  let html = `<div class="meta otmeta"><span class="otcount">${S.otk!=='すべて' && OT_NOTE[S.otk] ? '<small>' + esc(OT_NOTE[S.otk]) + '</small>' : ''}</span>
+    <span class="mright"><select id="osort" aria-label="並び順">${[['rand','ランダム'],['no','番号順'],['year','制作年順'],['upd','更新が新しい順']].map(([v,t]) => `<option value="${v}" ${S.osort===v?'selected':''}>${t}</option>`).join('')}</select><span class="zoomb"><button type="button" data-otcol="1" aria-label="小さく（列を増やす）" ${N0 >= cb ? 'disabled' : ''}>−</button><button type="button" data-otcol="-1" aria-label="大きく（列を減らす）" ${N0 <= ca ? 'disabled' : ''}>＋</button></span></span></div>`;
   { // 作品アルバムと同じ並べ方（縦に積む）
     const N = masN(); S.masN = N; const cols = Array.from({length:N}, () => []);
     list.forEach((x, i) => { const no = x['作品番号']; cols[i % N].push(`
@@ -3928,6 +3934,7 @@ function drawOtList(){
   }
   if (!list.length && !canEdit()) html += `<p class="muted" style="text-align:center;padding:40px 0">${S.others.length ? '見つかりませんでした' : 'まだ登録がありません'}</p>`;
   $('#main').innerHTML = html; hydrate($('#main'));
+  const os = $('#osort'); if (os) os.onchange = e => { S.osort = e.target.value; drawOtList(); };
 }
 function sheetOtNew(){
   if (!canEdit()) return;
