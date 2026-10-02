@@ -1429,6 +1429,7 @@ html body #main section.cy .cage{font-size:12px!important;color:var(--sub)!impor
 .pdfcard.off{opacity:.65}
 .pdfbox{display:inline-block;margin-right:8px;padding:1px 8px;border-radius:8px;background:var(--wash);font-size:13px;font-weight:600}
 .doclinks .golink{display:block;margin:8px 0;text-align:left;font-size:16px}
+#pdfbg{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(112px + env(safe-area-inset-bottom));z-index:60;max-width:calc(100% - 32px);white-space:nowrap;padding:10px 16px;border-radius:22px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,.15)}#pdfbg.done{background:var(--ink);color:var(--bg);font-weight:600}
 .spinev{display:flex;gap:8px;overflow-x:auto;margin:4px 0 10px}.spinev img{max-height:60vh;max-width:100%;border-radius:6px;border:1px solid var(--line)}
 .pdfnm{font-weight:600;margin-bottom:8px;word-break:break-all}.pdfnm small{font-weight:400;color:var(--faint);margin-left:8px;font-size:12px}
 .pdfw{padding:8px 0;border-top:1px solid var(--line)}.pdfw:first-of-type{border-top:0}
@@ -1648,7 +1649,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '885ccccedf', APP_URL = location.origin + location.pathname;
+const BUILD = 'd1a7a2468b', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3826,7 +3827,7 @@ function sheetState(){ const b = $('#sheetbox'); if (!b) return '';
     + '|' + [...b.querySelectorAll('img.preview,.pvs img')].filter(i => !i.classList.contains('hidden') && i.getAttribute('src')).length; }
 const sheetDirty = () => !$('#sheet').classList.contains('hidden') && SNAP.v !== null && sheetState() !== SNAP.v;
 const askLeave = () => !sheetDirty() || confirm('入力した内容は、まだ保存されていません。閉じていいですか？');
-function closeSheet(fromHist){ $('#sheetbox').onclick = null; const open = !$('#sheet').classList.contains('hidden'); $('#sheet').classList.add('hidden'); $('#sheetbox').innerHTML=''; if (open && !fromHist) hback(); }
+function closeSheet(fromHist){ $('#sheetbox').onclick = null; const open = !$('#sheet').classList.contains('hidden'); $('#sheet').classList.add('hidden'); $('#sheetbox').innerHTML=''; if (open && !fromHist) hback(); try { if (PDFQ && PDFQ.running) setTimeout(pdfBg, 0); } catch(e){} }
 
 /* ---------- スワイプで戻る（ブラウザの「戻る」と連動） ---------- */
 /* 画面を開くたびに履歴を1つ積み、戻る操作で一番上の画面を閉じる */
@@ -4749,10 +4750,14 @@ async function openPdf(fid){
 }
 async function sheetPdfScan(){
   if (!canEdit()) return;
-  busy(true, 'スキャンした資料を確かめています…');
-  let list = []; try { list = await call('pendingPdfs'); } catch(e){ busy(false); return alert('読み込めませんでした（' + (e && e.message || e) + '）'); }
-  busy(false);
-  PDFQ = { list, res: {}, stop: false, running: false };
+  if (!(PDFQ && PDFQ.running)) { // 裏で読み取り中なら、そのままの一覧を出す
+    busy(true, 'スキャンした資料を確かめています…');
+    let list = []; try { list = await call('pendingPdfs'); } catch(e){ busy(false); return alert('読み込めませんでした（' + (e && e.message || e) + '）'); }
+    busy(false);
+    const old = PDFQ ? PDFQ.res : {}, res = {}; list.forEach(x => { if (old[x.id] && !old[x.id].loading) res[x.id] = old[x.id]; });
+    PDFQ = { list, res, stop: false, running: false };
+  }
+  const list = PDFQ.list;
   openSheet(`<h3>スキャンした資料を登録</h3><div id="pdfHead"></div><div id="pdfList">${list.map((x, i) => `<div class="pdfcard" id="pc${i}"></div>`).join('')}</div><div class="btns"><button type="button" data-close>閉じる</button></div>`);
   list.forEach((x, i) => pdfCard(i)); pdfHead();
   $('#sheetbox').onclick = e => { if (e.target.closest('[data-doc]')) { SNAP.v = null; return; } const b = e.target.closest('[data-pq]'); if (!b) return; const [k, i] = b.dataset.pq.split('|');
@@ -4774,7 +4779,8 @@ function pdfHead(){ const h = $('#pdfHead'); if (!h || !PDFQ) return;
   const L = PDFQ.list, R = PDFQ.res, unread = L.filter(x => !R[x.id]).length, done = L.filter(x => R[x.id] && R[x.id].done).length;
   h.innerHTML = !L.length ? '<p class="hint">「資料 › スキャン」フォルダに、まだPDFがありません。ScanSnapで1書類ずつスキャンして、このフォルダに保存してください。</p>'
     : `<p class="hint">${L.length}件のPDF（登録済み ${done}件）。AIが読み取った内容を確かめて「登録する」を押してください。読み取りは1件1円以下です。</p>
-      ${PDFQ.running ? `<button type="button" class="act" data-pq="stop">読み取りを止める</button>` : unread ? `<button type="button" class="act main" data-pq="all">まとめて読み取る（${unread}件）</button>` : ''}`;
+      ${PDFQ.running ? `<button type="button" class="act" data-pq="stop">読み取りを止める</button>` : unread ? `<button type="button" class="act main" data-pq="all">まとめて読み取る（${unread}件）</button>` : ''}
+      ${PDFQ.running || unread > 1 ? '<p class="hint">読み取り中は、この画面を閉じてほかの作業をしていても大丈夫です。終わったらお知らせします（アプリは開いたままにしてください）。</p>' : ''}`;
   pdfSnap(); }
 function pdfCard(i){ const el = $('#pc' + i); if (!el || !PDFQ) return; const x = PDFQ.list[i], r = PDFQ.res[x.id];
   const nm = `<div class="pdfnm">${x.box ? `<span class="pdfbox">📦 ${esc(x.box)}</span>${x.spine ? `<button type="button" class="golink" data-spine="${esc(x.box)}">背表紙</button>` : ''}` : ''}📄 ${esc(x.name)}<small>${Math.max(1, Math.round(x.size / 1024))}KB</small></div>`;
@@ -4804,9 +4810,25 @@ function pdfCard(i){ const el = $('#pc' + i); if (!el || !PDFQ) return; const x 
 async function pdfRead(i, again){ const x = PDFQ.list[i]; PDFQ.res[x.id] = {loading: 1}; pdfCard(i);
   try { const d = await call('readPdf', x.id, !!again); PDFQ.res[x.id] = {d}; } catch(e){ PDFQ.res[x.id] = {err: String(e && e.message || e)}; }
   pdfCard(i); pdfHead(); }
-async function pdfReadAll(){ if (PDFQ.running) return; PDFQ.running = true; PDFQ.stop = false; pdfHead();
-  for (let i = 0; i < PDFQ.list.length && !PDFQ.stop; i++) { if (!PDFQ.res[PDFQ.list[i].id]) await pdfRead(i); if (!$('#pdfList')) break; }
-  PDFQ.running = false; pdfHead(); }
+/* まとめて読み取り：画面を閉じても裏で続け、終わったら知らせる */
+async function pdfReadAll(){ if (PDFQ.running) return; PDFQ.running = true; PDFQ.stop = false; pdfHead(); pdfBg();
+  for (let i = 0; i < PDFQ.list.length && !PDFQ.stop; i++) { if (!PDFQ.res[PDFQ.list[i].id]) { await pdfRead(i); pdfBg(); } }
+  PDFQ.running = false; pdfHead(); pdfBg(true); }
+function pdfBg(fin){ let el = $('#pdfbg'); const L = PDFQ ? PDFQ.list : [], R = PDFQ ? PDFQ.res : {};
+  const read = L.filter(x => R[x.id] && !R[x.id].loading).length, err = L.filter(x => R[x.id] && R[x.id].err).length, open = !!$('#pdfList');
+  if (!el) { el = document.createElement('button'); el.type = 'button'; el.id = 'pdfbg'; el.onclick = () => { el.remove(); sheetPdfScan(); }; document.body.appendChild(el); }
+  if (fin) {
+    if (PDFQ.stop) { el.remove(); return; }
+    const msg = `スキャンした資料の読み取りが終わりました（${read}件${err ? '、うち' + err + '件は読み取れず' : ''}）。`;
+    if (open) { el.remove(); toast('読み取りが終わりました'); return; }
+    el.className = 'done'; el.textContent = `✓ 読み取り完了（${read}件）確かめる ›`;
+    if (!$('#sheet').classList.contains('hidden')) return; // ほかの入力中はじゃましない
+    setTimeout(() => { if (confirm(msg + '\n今すぐ確かめて登録しますか？')) { el.remove(); sheetPdfScan(); } }, 50);
+    return;
+  }
+  if (open) { el.style.display = 'none'; return; }
+  el.style.display = ''; el.className = ''; el.textContent = `📄 読み取り中 ${read}／${L.length}件 ›`;
+}
 async function pdfReg(i){ const x = PDFQ.list[i], r = PDFQ.res[x.id], el = $('#pc' + i); if (!r || !r.d || !el) return;
   const v = k => { const f = el.querySelector(`[data-k="${k}"]`); return f ? f.value.trim() : ''; };
   if (!v('タイトル')) return alert('資料名を入れてください');
