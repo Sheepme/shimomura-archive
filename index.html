@@ -1665,7 +1665,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'e0ebe66858', APP_URL = location.origin + location.pathname;
+const BUILD = '683314dc87', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1869,6 +1869,7 @@ function queueThumb(el){
 /* 一度見た写真はスマホの中（IndexedDB）に保存して、次からすぐ出す */
 const THDB = (() => { let p = null; return () => p || (p = new Promise(ok => { try { const r = indexedDB.open('smr_th', 1); r.onupgradeneeded = () => r.result.createObjectStore('th'); r.onsuccess = () => ok(r.result); r.onerror = () => ok(null); } catch(e){ ok(null); } })); })();
 async function thGet(keys){ const db = await THDB(); if (!db) return {}; return new Promise(ok => { const out = {}; try { const st = db.transaction('th').objectStore('th'); let n = keys.length; if (!n) return ok(out); keys.forEach(k => { const q = st.get(k); q.onsuccess = () => { if (q.result) out[k] = q.result; if (!--n) ok(out); }; q.onerror = () => { if (!--n) ok(out); }; }); } catch(e){ ok(out); } }); }
+async function thDel(keys){ const db = await THDB(); if (!db) return; try { const st = db.transaction('th', 'readwrite').objectStore('th'); keys.forEach(k => st.delete(k)); } catch(e){} }
 async function thPut(map){ const db = await THDB(); if (!db) return; try { const st = db.transaction('th', 'readwrite').objectStore('th'); Object.keys(map).forEach(k => st.put(map[k], k)); } catch(e){} }
 function thSet(q, k, src){ TH[k] = src; (q.get(k)||[]).forEach(el => { el.src = src; el.classList.remove('lowres'); }); }
 async function flushThumbs(){
@@ -2240,7 +2241,7 @@ async function hydrateDocs(root){
     (by[w] = by[w] || new Set()).add(id); });
   Object.keys(by).forEach(w => { const ids = [...by[w]];
     for (let i = 0; i < ids.length; i += 12) call('getDocThumbs', ids.slice(i, i + 12), +w).then(m => { const keep = {};
-      Object.keys(m).forEach(id => { DTH[w + '_' + id] = m[id]; keep['d' + w + '_' + id] = m[id]; document.querySelectorAll(`img[data-did="${id}"][data-dw="${w}"]`).forEach(el => { el.src = m[id]; el.classList.remove('lowres'); }); });
+      Object.keys(m).forEach(id => { DTH[w + '_' + id] = m[id]; if (+w <= 400) keep['d' + w + '_' + id] = m[id]; /* 大きい写真は保存しない（容量を使いすぎない） */ document.querySelectorAll(`img[data-did="${id}"][data-dw="${w}"]`).forEach(el => { el.src = m[id]; el.classList.remove('lowres'); }); });
       thPut(keep); }).catch(() => {}); });
 }
 /* PDF：一度開いたものはスマホ・パソコンの中に保存して、次からすぐ開く */
@@ -2248,6 +2249,8 @@ const DPDF = {};
 async function pdfBlobUrl(fid){ if (DPDF[fid]) return DPDF[fid];
   let b = (await thGet(['pdf_' + fid]))['pdf_' + fid];
   if (!b) { b = await (await fetch(await call('getPdf', fid))).blob(); thPut({['pdf_' + fid]: b}); }
+  try { let L = JSON.parse(localStorage.getItem('smr_pdfs') || '[]').filter(x => x !== fid); L.push(fid); // PDFは最近開いた5件だけ保存（容量を使いすぎない）
+    const old = L.slice(0, Math.max(0, L.length - 5)); L = L.slice(-5); localStorage.setItem('smr_pdfs', JSON.stringify(L)); if (old.length) thDel(old.map(x => 'pdf_' + x)); } catch(e){}
   return DPDF[fid] = URL.createObjectURL(b); }
 function docView(fid){
   const el = document.createElement('div'); el.className = 'docview';
