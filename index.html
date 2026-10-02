@@ -1703,7 +1703,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '405a298a64', APP_URL = location.origin + location.pathname;
+const BUILD = '0f3e081c8c', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2296,11 +2296,12 @@ function docTocHTML(d){ const pgs = docRes(d)['ページ'] || []; if (pgs.length
 /* 食い違いの枠を押す：その場に書類の該当ページを出して、書いてある部分を光らせる（パソコンで左にPDFがあるときは、そちらも動かす） */
 function dfBtnSync(){ document.querySelectorAll('#sheetbox [data-dfhl]').forEach(b => { const on = b.closest('.dfx') && b.closest('.dfx').classList.contains('dfopen'); b.textContent = on ? '✕ 閉じる' : '🖍 書類をハイライト'; b.classList.toggle('on', !!on); }); }
 async function dfPreview(card, d, x){
-  if (card.classList.contains('dfopen')) { const o = card.querySelector('.dfprev'); if (o) o.remove(); card.classList.remove('dfopen'); const L0 = document.querySelector('#sheetbox.split .dsv'); if (L0 && L0._clear) L0._clear(); dfBtnSync(); return; } /* ハイライト中に押す＝閉じる */
+  if (card.classList.contains('dfopen')) { const o = card.querySelector('.dfprev'); if (o) { try { o.style.overflow = 'hidden'; const an = o.animate([{ height: o.offsetHeight + 'px', opacity: 1 }, { height: '0px', opacity: 0 }], { duration: 200, easing: 'ease-in' }); an.onfinish = () => o.remove(); } catch(e){ o.remove(); } } card.classList.remove('dfopen'); const L0 = document.querySelector('#sheetbox.split .dsv'); if (L0 && L0._clear) L0._clear(); dfBtnSync(); return; } /* ハイライト中に押す＝閉じる */
   document.querySelectorAll('#sheetbox .dfx.dfopen').forEach(e => e.classList.remove('dfopen'));
   document.querySelectorAll('#sheetbox .dfprev').forEach(e => { e.closest('.dfx') && e.closest('.dfx').classList.remove('dfopen'); e.remove(); });
   const fid = docPages(d)[0], r = docRes(d); if (!fid || !r.PDF) return toast('この書類はPDFではないので、位置を出せません');
-  card.classList.add('dfopen'); dfBtnSync(); const v = document.createElement('div'); v.className = 'dfprev'; v.innerHTML = '<div class="ldwrap" style="min-height:120px"><span class="ldspin"></span>書類を開いています…</div>'; card.appendChild(v);
+  card.classList.add('dfopen'); dfBtnSync(); const v = document.createElement('div'); v.className = 'dfprev'; v.innerHTML = '<div class="ldwrap" style="min-height:120px"><span class="ldspin"></span>書類を開いています…</div>'; const hb = card.querySelector('[data-dfhl]'); if (hb) hb.after(v); else card.appendChild(v); /* ハイライトボタンのすぐ下に伸びて出てくる */
+  try { v.animate([{ height: '0px', opacity: 0 }, { height: v.offsetHeight + 'px', opacity: 1 }], { duration: 260, easing: 'cubic-bezier(.2,.7,.3,1)' }); } catch(e){}
   try { let at = x.at, line = '', q = '';
     if (!at || !at.box) { if (d['全文あり']) { const t = DTEXT[d['書類ID']] != null ? DTEXT[d['書類ID']] : (DTEXT[d['書類ID']] = await call('getDocText', d['書類ID'])); const f = dfFind(t, x.doc);
         if (f) { q = f.q; const re = fzRe(f.q); const pt = String(t).split(/【\s*p\.?\s*(\d+)\s*】/i), k = pt.indexOf(String(f.p)); line = ((k >= 0 ? pt[k + 1] : t).split('\n').find(l => re && re.test(l)) || '').trim().slice(0, 90); if (!at) at = { p: +f.p }; } } }
