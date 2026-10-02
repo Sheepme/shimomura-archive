@@ -1505,11 +1505,12 @@ body:not(.wide):not(.wideoff):not(.searching) .cbar:has(#fsq:placeholder-shown){
 body:not(.wide):not(.wideoff):not(.searching) .cbin:has(#fsq:placeholder-shown){flex:0 0 58px!important;width:58px!important;height:58px!important;padding:0!important;border-radius:50%!important;justify-content:center;cursor:pointer}
 body:not(.wide):not(.wideoff):not(.searching) .cbin:has(#fsq:placeholder-shown) input,body:not(.wide):not(.wideoff):not(.searching) .cbin:has(#fsq:placeholder-shown) #fsqClose{display:none!important}
 body:not(.wide):not(.wideoff):not(.searching) .cbin:has(#fsq:placeholder-shown) svg{width:24px;height:24px;margin:0}
-/* 検索ボタンの右の「作品検索」：スクロールで下へ進むと、上のバーと同じように消える */
+/* 検索ボタンは「虫めがね＋作品検索」のカプセル型。下へスクロールすると、検索とAIに質問のボタンは上のバーと一緒に隠れる */
 .cblbl{display:none}
-body:not(.wide):not(.wideoff):not(.searching) .cbin:has(#fsq:placeholder-shown){position:relative;overflow:visible}
-body:not(.wide):not(.wideoff):not(.searching) .cbin:has(#fsq:placeholder-shown) .cblbl{display:flex;align-items:center;position:absolute;left:calc(100% + 8px);top:50%;height:40px;padding:0 16px;border-radius:20px;white-space:nowrap;font-size:15px;font-weight:700;color:var(--ink);background:color-mix(in srgb,var(--paper) 70%,transparent);-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px);border:1px solid var(--gl-b,var(--line));box-shadow:var(--gl-s,0 6px 20px -8px rgba(0,0,0,.2));transform:translateY(-50%);opacity:1;transition:opacity .25s ease,transform .25s ease;cursor:pointer}
-body.tucked:not(.pgopen):not(.dwopen):not(.wide):not(.wideoff):not(.searching) .cbin:has(#fsq:placeholder-shown) .cblbl{opacity:0;transform:translate(-8px,-50%);pointer-events:none}
+body:not(.wide):not(.wideoff):not(.searching) .cbin:has(#fsq:placeholder-shown){flex:0 0 auto!important;width:auto!important;height:56px!important;padding:0 22px 0 18px!important;border-radius:28px!important;gap:8px!important}
+body:not(.wide):not(.wideoff):not(.searching) .cbin:has(#fsq:placeholder-shown) .cblbl{display:inline;font-size:16px;font-weight:700;color:var(--ink);white-space:nowrap;letter-spacing:.02em}
+.cbar{transition:transform .25s ease,opacity .25s ease}
+body.tucked:not(.pgopen):not(.dwopen):not(.searching) .cbar{transform:translateY(calc(100% + 24px + env(safe-area-inset-bottom)));opacity:0;pointer-events:none}
 body.wide .cbar,body.wideoff .cbar{left:auto!important;right:28px!important;max-width:none!important;justify-content:flex-end}
 body.wide .cbask,body.wideoff .cbask{width:auto!important;height:56px!important;padding:0 24px 0 18px!important;border-radius:28px!important;gap:8px!important;font-size:16px!important;font-weight:700!important;color:#fff!important}
 body.wide .cbask>span:not(.ic),body.wideoff .cbask>span:not(.ic){display:inline!important}
@@ -1600,7 +1601,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '234cca34f1', APP_URL = location.origin + location.pathname;
+const BUILD = '0c7d419117', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
