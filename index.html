@@ -1464,6 +1464,7 @@ body.kbopen #sheet .box{max-height:none!important}
 .lrspin{position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;border:2.5px solid rgba(255,255,255,.7);border-top-color:#444;box-shadow:0 0 0 1px rgba(0,0,0,.12);animation:ldrot .8s linear infinite;pointer-events:none;z-index:2}
 .ldwrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;height:100%;min-height:200px;color:var(--sub);font-size:15px}
 .ldspin{width:36px;height:36px;border-radius:50%;border:3px solid var(--wash2);border-top-color:var(--sub);animation:ldrot .8s linear infinite}@keyframes ldrot{to{transform:rotate(360deg)}}
+.dfal{width:100%;margin:8px 0 0;font-size:14px}.dfsame .dfbtn .act{font-size:14px;word-break:break-all}
 .spinev{display:flex;gap:8px;overflow-x:auto;margin:4px 0 10px}.spinev img{max-height:60vh;max-width:100%;border-radius:6px;border:1px solid var(--line)}
 .pdfnm{font-weight:600;margin-bottom:8px;word-break:break-all}.pdfnm small{font-weight:400;color:var(--faint);margin-left:8px;font-size:12px}
 .pdfw{padding:8px 0;border-top:1px solid var(--line)}.pdfw:first-of-type{border-top:0}
@@ -1683,7 +1684,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '93395eaaba', APP_URL = location.origin + location.pathname;
+const BUILD = '830fd95f4e', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2289,7 +2290,10 @@ const docCard = (d, btn) => { const pg = docPages(d), r = docRes(d);
       <span class="dtx"><b>${esc(d['状態']==='まだ' && !d['タイトル'] ? '撮影 ' + String(d['登録日時']||'').slice(0,10) : docTitle(d))}</b>
       <small>${esc(d['状態']==='まだ' ? 'まだ読み取っていません' : [r['日付'], r['要約']].filter(Boolean).join('　') || '')}</small>
       ${btn ? `<em>${btn}</em>` : ''}</span></button>`; };
-function renderDocs(){
+let SAMECHK = false; // 表記ゆれで同じとみなせる食い違いを、まとめて自動で確認済みにする（1回だけ）
+function sameChk(){ if (SAMECHK || !canEdit() || !(S.docs||[]).some(d => docDiffN(d))) return; SAMECHK = true;
+  call('resolveSameDiffs').then(r => { if (r && r.n) { if (r.data) setData(r.data); if (S.view==='doc') render(); toast('表記ゆれの食い違い ' + r.n + '件を、自動で確認済みにしました'); } }).catch(() => { SAMECHK = false; }); }
+function renderDocs(){ setTimeout(sameChk, 500);
   const nNew = docsOf('まだ').length, rev = docsOf('確認待ち'), done = (S.docs||[]).filter(d => ['登録済み','登録しない'].includes(d['状態']));
   const step = (n, t, c, on) => `<div class="dstep ${on?'on':''}"><b>${n}</b><span>${t}</span><small>${c}</small></div>`;
   const card = docCard;
@@ -2394,7 +2398,7 @@ function sheetDocReview(id){
     openSheet(`<h3 class="dttl">${esc(docTitle(d))}<button type="button" class="edbtn" id="dvTtl" aria-label="タイトルを直す">✎</button></h3>${imgs}
       <p class="hint">${esc([r['日付'], r['相手先'] && r.PDF ? r['相手先'] : '', r['要約']].filter(Boolean).join('　'))}</p>
       ${r['要確認'] ? `<div class="dchk"><b>⚠ 要確認</b>${esc(r['要確認'])}<button type="button" class="act" id="dvChk">確認した</button></div>` : ''}
-      ${(r['食い違い']||[]).length ? `<h3 class="sec" style="font-size:18px">台帳との食い違い</h3><p class="hint">どちらが正しいか選んでください。台帳を直すときも、元の値は変更履歴に残ります。</p>${r['食い違い'].map((x, i) => `<div class="dfx ${x.r?'done':''}"><b>${esc(x.name)}：${esc(x.f)}</b><div class="dfrow"><span><small>台帳</small>${esc(x.cur)}</span><span><small>この書類</small>${esc(x.doc)}</span></div>${x.r ? `<p class="hint">${x.r==='doc' ? '✓ 書類が正しい（台帳を直しました）' : '✓ 台帳が正しい（書類の誤りとしてメモしました）'}</p>` : `<div class="dfbtn"><button type="button" class="act" data-dfx="${i}|ledger">台帳が正しい</button><button type="button" class="act main" data-dfx="${i}|doc">書類が正しい</button></div>`}</div>`).join('')}` : ''}
+      ${(r['食い違い']||[]).length ? `<h3 class="sec" style="font-size:18px">台帳との食い違い</h3><p class="hint">どちらが正しいか選んでください。台帳を直すときも、元の値は変更履歴に残ります。</p>${r['食い違い'].map((x, i) => `<div class="dfx ${x.r?'done':''}"><b>${esc(x.name)}：${esc(x.f)}</b><div class="dfrow"><span><small>台帳</small>${esc(x.cur)}</span><span><small>この書類</small>${esc(x.doc)}</span></div>${x.r ? `<p class="hint">${({doc:'✓ 書類が正しい（台帳を直しました）', ledger:'✓ 台帳が正しい（書類の誤りとしてメモしました）', same:'✓ 同じもの（表記ゆれ）' + (x.auto ? '：自動で判定' : 'として覚えました'), alias:'✓ 作品の別名' + (x.auto ? '（登録済みの別名と同じ）' : 'として登録しました')})[x.r] || '✓'}</p>` : `<div class="dfbtn"><button type="button" class="act" data-dfx="${i}|ledger">台帳が正しい</button><button type="button" class="act main" data-dfx="${i}|doc">書類が正しい</button></div>${x.t==='w' && x.f==='作品名' ? `<button type="button" class="act dfal" data-dfal="${i}|alias">「${esc(x.doc)}」をこの作品の別名として登録</button>` : /日$|制作年|cm$/.test(x.f) ? '' : `<div class="dfsame" id="dfs${i}"><button type="button" class="act dfal" data-dfsame="${i}">同じもの（表記ゆれ）として覚える</button></div>`}`}</div>`).join('')}` : ''}
       ${(r['補完']||[]).length ? `<details class="dfill"><summary>この書類から自動で埋めた項目（${r['補完'].length}件）</summary>${r['補完'].map(x => `<p>${esc(x.name)}：${esc(x.f)}　→　${esc(x.v)}</p>`).join('')}</details>` : ''}
       ${d['メモ'] ? `<p class="hint dmemo">📝 ${esc(d['メモ'])}</p>` : ''}
       ${r.PDF ? `<button type="button" class="act pdfopen" data-pdfopen="${esc(pg[0]||'')}">📄 PDFを見る</button>` : ''}
@@ -2406,6 +2410,11 @@ function sheetDocReview(id){
       <div class="btns"><button type="button" data-close>閉じる</button></div>`);
     wireDocImgs(); hydrateDocs($('#sheetbox'));
     document.querySelectorAll('#sheetbox [data-ex],#sheetbox [data-pb]').forEach(b => b.addEventListener('click', () => { SNAP.v = null; closeSheet(); }));
+    const alGo = (i, pk) => { busy(true, '保存しています…'); call('learnAlias', id, +i, pk).then(x => { setData(x); busy(false); render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); sheetDocReview(id); toast(pk==='alias' ? '作品の別名として登録しました' : '表記ゆれとして覚えました'); }).catch(e => { busy(false); alert('保存できませんでした：' + (e.message || e)); }); };
+    document.querySelectorAll('#sheetbox [data-dfal]').forEach(b => b.onclick = () => { const [i, pk] = b.dataset.dfal.split('|'); alGo(i, pk); });
+    document.querySelectorAll('#sheetbox [data-dfsame]').forEach(b => b.onclick = () => { const i = +b.dataset.dfsame, x = docRes(d)['食い違い'][i];
+      $('#dfs' + i).innerHTML = `<p class="hint" style="margin:8px 0 6px">どちらの書き方を正式にしますか？（もう一方は別名として覚えます）</p><div class="dfbtn"><button type="button" class="act" data-dfo="${i}|ledger">${esc(x.cur)}</button><button type="button" class="act" data-dfo="${i}|doc">${esc(x.doc)}</button></div>`;
+      $('#dfs' + i).querySelectorAll('[data-dfo]').forEach(o => o.onclick = () => { const [j, pk] = o.dataset.dfo.split('|'); alGo(j, pk); }); });
     document.querySelectorAll('#sheetbox [data-dfx]').forEach(b => b.onclick = () => { const [i, pk] = b.dataset.dfx.split('|'); busy(true, '保存しています…');
       call('resolveDiff', id, +i, pk).then(x => { setData(x); busy(false); render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); sheetDocReview(id); toast(pk==='doc' ? '台帳を直しました' : '書類の誤りとしてメモしました'); }).catch(e => { busy(false); alert('保存できませんでした：' + (e.message || e)); }); });
     if ($('#dvChk')) $('#dvChk').onclick = () => { busy(true, '保存しています…'); call('setDocCheck', id, '').then(x => { setData(x); busy(false); render(); sheetDocReview(id); toast('確認済みにしました'); }).catch(e => { busy(false); alert('保存できませんでした：' + (e.message || e)); }); };
