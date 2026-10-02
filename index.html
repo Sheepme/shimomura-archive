@@ -1600,7 +1600,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'edb7f1cabb', APP_URL = location.origin + location.pathname;
+const BUILD = '234cca34f1', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4593,11 +4593,29 @@ async function refreshData(){
   addEventListener('touchcancel', () => { y0 = null; reset(); });
 })();
 
+/* ページを読み直しても、いま見ている画面に戻る（このタブの中だけ覚えておく） */
+const NAVKEY = 'smr_nav';
+function saveNav(){ try { sessionStorage.setItem(NAVKEY, JSON.stringify({ view: S.view, wmode: S.wmode, filter: S.filter, otk: S.otk, pcur: S.pcur ? { t: S.pcur.t, id: S.pcur.id } : null, sy: scrollY, psy: $('#page').scrollTop, at: Date.now() })); } catch(e){} }
+addEventListener('pagehide', saveNav);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveNav(); });
+function restoreNav(){
+  if (restoreNav.done) return null; restoreNav.done = 1;
+  let n = null; try { n = JSON.parse(sessionStorage.getItem(NAVKEY) || 'null'); } catch(e){}
+  if (!n || Date.now() - n.at > 12 * 3600e3 || !S.user) return null;
+  applyStart.done = 1; // いつもの最初の画面（アルバムなど）には切り替えない
+  ['view', 'wmode', 'filter', 'otk'].forEach(k => { if (n[k] !== undefined && n[k] !== null) S[k] = n[k]; });
+  return n;
+}
+function afterNav(n){
+  if (!n) return;
+  try { if (n.pcur && ({w:1, ex:1, pb:1, ot:1})[n.pcur.t]) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[n.pcur.t](n.pcur.id); } catch(e){}
+  setTimeout(() => { window.scrollTo(0, n.sy || 0); if (n.pcur && n.psy) $('#page').scrollTop = n.psy; }, 60);
+}
 /* 起動：端末に控えがあれば、まずそれをすぐ表示し、裏で最新に更新する（待ち時間をなくす） */
 (async () => {
   let shown = false;
-  try { const c = S.token && window.__smrCached ? await window.__smrCached() : null; if (c) { setData(c); applyStart(); render(); busy(false); shown = true; } } catch(e){}
-  call('getData').then(d => { setData(d); applyStart(); render(); if (shown && S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); })
+  try { const c = S.token && window.__smrCached ? await window.__smrCached() : null; if (c) { setData(c); const nv = restoreNav(); applyStart(); render(); afterNav(nv); busy(false); shown = true; } } catch(e){}
+  call('getData').then(d => { setData(d); const nv = shown ? null : restoreNav(); applyStart(); render(); if (nv) afterNav(nv); else if (shown && S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); })
     .catch(e => { if (isLoginErr(e)) { setToken(''); S.user = null; renderUser(); showLoginWall(); $('#finder').classList.add('hidden'); }
       else if (!shown) $('#main').innerHTML = '<div class="flagbox">読み込めませんでした。時間をおいてもう一度開いてください。<br>' + esc(e.message||e) + '</div>'; })
     .finally(() => busy(false));
