@@ -1703,7 +1703,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '513d505324', APP_URL = location.origin + location.pathname;
+const BUILD = 'ed5e92c969', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3458,7 +3458,7 @@ async function docSplit(id){ const d = docById(id), box = $('#sheetbox'); if (!d
 const TOUR = [
   ['works', 'ようこそ', 'はじめの画面「ホーム」には、やることと、見られるものが並んでいます。<br>迷ったら、下の［ホーム］を押せばここに戻れます。'],
   ['flag', 'やることリスト', '押すと、その作業が必要な作品だけが並んだ一覧が開きます。<br>1つずつ片付けると、残りの数が減っていきます。'],
-  ['pb', '作品を直すとき', '作品ページで、直したいところの<b>鉛筆マーク</b>を押します。<br>場所を変える・写真を追加などは、ページの<b>いちばん下</b>のボタンから。'],
+  ['pb', '作品を直すとき', '作品ページで、直したいところの<b>鉛筆マーク</b>を押します。<br>場所は「いまの場所」の鉛筆から、写真の追加などはページの<b>いちばん下</b>のボタンから。'],
   ['photo', '写真を撮る', '「写真を追加」→「カメラで撮る」で、その場で撮れます。<br>「写真を選ぶ」なら、何枚でもまとめて登録できます。'],
   ['ai', 'AIに質問', '下の［質問］を押すと、作品のことを文章で聞けます。<br>例：「京都の美術館にある作品は？」']
 ];
@@ -3584,14 +3584,11 @@ function openWork(no, keepScroll, restoreSc){
         </div></li>`; }).join('')}</ul>` : '<p style="color:var(--sub)">まだ記録がありません</p>'}
       ${canEdit() ? workDocsHTML(no) : ''}
       ${canEdit() ? `<h3 class="sec">記録を更新する</h3><div class="actions bottomacts">
-        <button class="act main" data-act="move">場所を変える</button>
         <button class="act main" data-act="event">できごとを追加</button>
         <button class="act" data-act="photo">写真を追加</button>
         <button class="act" data-act="doc">書類を撮る</button>
-        ${ot ? '' : `<button class="act main" data-qzwork="${esc(no)}">🎤 クイズモード</button>`}
         <button class="act" data-act="flag">${w['要確認']?'要確認を外す':'要確認にする'}</button>
         <button class="act" data-linkw="${esc(no)}">＋ 展覧会・画集にひも付け</button>
-        <button class="act" data-mmadd="1">📝 お母さんへの確認メモを書く</button>
         ${ot ? '' : `<button class="act" data-toot="${esc(no)}">→ その他の作品（やけもの・版画など）に移す</button>`}
         ${delBtn('w', no, 'この作品')}
       </div>` : ''}
