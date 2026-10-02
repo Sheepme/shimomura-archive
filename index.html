@@ -1422,6 +1422,7 @@ html body #main section.cy .cage{font-size:12px!important;color:var(--sub)!impor
   #main .ce .n{font-size:16px!important;margin-top:8px!important}
 }
 #yfix{display:none!important}
+#sheetbox .wm{display:none!important} /* ひも付けなどの選ぶ画面の小さい写真には「©」を出さない */
 /* その場で直す入力欄 */
 dl.info dd.iedit{padding-right:0!important}
 dl.info dd.iedit .iein{display:block;width:100%;box-sizing:border-box;font:400 16px/1.4 var(--sans);color:var(--ink);background:var(--paper);border:1.5px solid var(--ink);border-radius:10px;padding:9px 12px;margin:0;outline:none}
@@ -1636,7 +1637,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '5288946add', APP_URL = location.origin + location.pathname;
+const BUILD = '4f7f650203', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
