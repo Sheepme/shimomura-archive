@@ -1664,6 +1664,16 @@ body.cmpon #abTitle{visibility:hidden}
 .cwopts{align-items:start}.cwopt{min-height:0;height:auto;padding:10px 12px}.cwopt b{font-size:20px}.cwopt b i{font-style:normal;font-size:13px;font-weight:500;color:var(--sub);margin-left:2px}.cwopt small{font-size:12px}
 .cwdec{margin:2px 0 8px}.cwq{font-size:14.5px}
 .fico.fmk,.fico.fbadge{display:inline-flex;align-items:center;justify-content:center;border-radius:7px;overflow:hidden;background:#fff;box-shadow:0 0 0 1px var(--line);flex:0 0 auto;aspect-ratio:1/1;width:auto!important}.fico.fmk img{width:100%;height:100%;object-fit:contain;display:block}.fico.fbadge{background:hsl(var(--h) 38% 46%);color:#fff;font-weight:700;font-size:.42em;box-shadow:none;border-radius:50%;letter-spacing:-.04em;line-height:1}.fnm .fico.fmk,.fnm .fico.fbadge{height:26px}.ftth .fico.fmk,.ftth .fico.fbadge{height:60px;font-size:20px}.fsrow .fico.fmk,.fsrow .fico.fbadge{height:18px;font-size:8px}.fpath .fico.fmk,.fpath .fico.fbadge{height:14px;font-size:7px}.fnm .fico.fbadge{font-size:10.5px}@media (max-width:899px){.fnm .fico.fmk,.fnm .fico.fbadge{height:32px}.fnm .fico.fbadge{font-size:12px}.ftth .fico.fmk,.ftth .fico.fbadge{height:56px}}
+
+.cmpback{display:none}
+@media (max-width:899px){
+ body.cmpon #top,body.cmpon #top .appbar{display:none!important}
+ .noteview.cmpv{padding-top:max(env(safe-area-inset-top),var(--cap,0px))!important;z-index:200}
+ .cmpdoc{flex:0 0 34%}
+ .cmpback{display:flex;align-items:center;justify-content:center;position:absolute;left:6px;top:calc(max(env(safe-area-inset-top),var(--cap,0px)) + 2px);z-index:5;width:40px;height:36px;border:0;border-radius:10px;background:transparent;color:var(--ink);cursor:pointer}
+ .cmpback svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+ .cmpv .pqbar{padding-left:50px;min-height:40px}
+}
 </style>
 </head>
 <body>
@@ -1731,7 +1741,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '768c445bd1', APP_URL = location.origin + location.pathname;
+const BUILD = '01d4761bbd', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2521,7 +2531,7 @@ function cmpWork(d, no){ const w = workOf(no); if (!w) return '<p class="hint">�
     <div class="cwacts"><button type="button" class="act" data-cmpopen="${esc(no)}">作品ページを開く ›</button><button type="button" class="act" data-wfix="${esc(did)}|${esc(no)}">作品が違う？</button></div>`; }
 function cmpView(did, no, fi){ const d = docById(did), d0 = d; if (!d) return; const nos = String(d['作品番号'] || '').split(',').map(x => x.trim()).filter(Boolean); if (!no || !nos.includes(String(no))) no = nos[0];
   const el = document.createElement('div'); el.className = 'noteview cmpv';
-  el.innerHTML = `<div class="cmpin"><div class="cmpdoc"></div><div class="cmpside"><div class="cmpws"></div><div class="cmpw"></div></div></div>`;
+  el.innerHTML = `<button type="button" class="cmpback" aria-label="戻る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><div class="cmpin"><div class="cmpdoc"></div><div class="cmpside"><div class="cmpws"></div><div class="cmpw"></div></div></div>`;
   document.body.appendChild(el); hpush('n'); scrPush(el); document.body.classList.add('cmpon');
   const fold0 = dwFold; if (isWide() && !dwFold) { dwFold = true; pinDrawer(); } /* メニューを畳んで広く使う */
   const mo = new MutationObserver(() => { if (!el.isConnected) { mo.disconnect(); if (!document.querySelector('.noteview.cmpv')) document.body.classList.remove('cmpon'); if (dwFold !== fold0) { dwFold = fold0; pinDrawer(); } } }); mo.observe(document.body, { childList: true });
@@ -2555,6 +2565,7 @@ function cmpView(did, no, fi){ const d = docById(did), d0 = d; if (!d) return; c
     if (!at) { hint = { msg: 'この作品が書かれている場所は見つかりませんでした' }; at = { p: 1, box: null }; }
     const a = [at.p, at.box, at.box ? null : hint]; if (V._goto) V._goto(...a); else V._pend = a; };
   el.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return;
+    if (b.classList.contains('cmpback')) { e.stopPropagation(); scrBack(); return; }
     if (b.dataset.cmpw) { show(b.dataset.cmpw); return; }
     if (b.dataset.cmpmv) { e.stopPropagation(); moveDocTo(did, no, b.dataset.cmpmv); return; }
     if (b.dataset.cmpdf != null && b.classList.contains('cwdx')) { e.stopPropagation(); if (b.classList.contains('on')) { P.querySelectorAll('.cwdec').forEach(z => z.remove()); b.classList.remove('on'); } else openDec(+b.dataset.cmpdf); return; }
