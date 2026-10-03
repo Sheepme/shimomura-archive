@@ -1652,6 +1652,7 @@ body.rail .dwfoot{flex-direction:column;gap:6px}
 body.rail .dwme{justify-content:center;padding:6px 0}
 body.rail .dwme>span:not(.avatar){display:none}
 .cmpchip{position:relative}.cmpk{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#e0776b;color:#fff;font-style:normal;font-size:11px;font-weight:700;line-height:18px;text-align:center}.cwdx.on{box-shadow:0 0 0 1.5px #e0776b inset}.cwdec{margin:8px 0 6px;padding:12px;border-radius:12px;background:var(--wash);border:1px solid var(--line)}.cwq{margin:0 0 8px;font-weight:700;font-size:15px}.cwopts{display:grid;grid-template-columns:1fr 1fr;gap:8px}.cwopt{display:flex;flex-direction:column;gap:4px;text-align:left;padding:10px 12px;border-radius:12px;border:2px solid var(--line);background:var(--paper);color:var(--ink);font:inherit;cursor:pointer;min-height:76px}.cwopt small{font-size:11.5px;color:var(--sub)}.cwopt b{font-size:17px;line-height:1.35;overflow-wrap:anywhere}.cwopt em{font-style:normal;font-size:11.5px;color:var(--sub)}.cwopt.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink) inset}.cwopt.on small::before{content:'✓ ';color:var(--ink)}.cwgo{width:100%;margin:10px 0 0;font-size:15px}.cwgo:disabled{opacity:1;background:var(--wash2)!important;color:var(--sub)!important;border-color:transparent!important}.cwal{width:100%;margin:8px 0 0;font-size:13.5px}.cwlater{display:block;margin:8px auto 0;border:0;background:transparent;color:var(--sub);font:inherit;font-size:13px;cursor:pointer}
+.cwsus{margin:0 0 12px;padding:12px;border-radius:12px;background:color-mix(in srgb,#d9822b 14%,var(--paper));border:1px solid color-mix(in srgb,#d9822b 45%,transparent)}.cwsus>b{display:block;font-size:15px;color:#c56a12}.cwsus>small{display:block;margin-top:4px;font-size:13px;color:var(--ink);line-height:1.5}.cwsq{margin:10px 0 6px;font-size:12.5px;color:var(--sub)}.cwcand{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:6px 10px 6px 6px;margin-bottom:6px;border:0;border-radius:10px;background:var(--paper);color:var(--ink);font:inherit;cursor:pointer}.cwcand .dfwth{width:44px;height:44px;border-radius:8px;overflow:hidden;display:block;flex:0 0 auto}.cwcand .dfwth img{width:100%;height:100%;object-fit:cover}.cwcand>span:nth-child(2){flex:1;min-width:0;display:flex;flex-direction:column;font-size:14px}.cwcand small{color:var(--sub);font-size:12px}.cwcand em{font-style:normal;font-size:12.5px;font-weight:600;color:#c56a12;white-space:nowrap}.cwsusb{width:100%;margin:4px 0 0;font-size:13.5px}.cmpk.sus{background:#d9822b}.susw{color:#c56a12!important}.susok{color:#1e7a3c!important}
 </style>
 </head>
 <body>
@@ -1719,7 +1720,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '65bed01015', APP_URL = location.origin + location.pathname;
+const BUILD = '3d8d73b8e1', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2436,18 +2437,11 @@ function dfMoveWork(did, oldNo){ const d = docById(did), ow = workOf(oldNo); if 
   const q = el.querySelector('.wpq'), L = el.querySelector('.wplist');
   const draw = () => { const k = q.value.normalize('NFKC').trim().toLowerCase().replace(/^no\.?\s*/, '');
     const all = S.works.concat(S.others || []).filter(w => String(w['作品番号']) !== String(oldNo) && w['所在区分'] !== '統合済み');
-    const hit = (k ? all.filter(w => [w['作品番号'], w['作品名'], w['作品名メモ'], w['制作年'], w['所在']].join(' ').normalize('NFKC').toLowerCase().includes(k)) : all).slice(0, 60);
-    L.innerHTML = hit.length ? hit.map(w => { const no = w['作品番号']; return `<button type="button" class="wprow" data-wp="${esc(no)}"><span class="dfwth">${(photoBy[no]||[]).length ? thumbHTML(no, 200) : '<span class="dfwnp">写真なし</span>'}</span><span class="wpt"><b>${esc(nol(no))}　${esc(w['作品名'] || '無題')}</b><small>${esc([w['制作年'], dimTxt(w), w['画材']].filter(Boolean).join('・'))}</small></span><em>選ぶ</em></button>`; }).join('') : '<p class="hint">見つかりませんでした</p>';
+    const sug = k ? [] : wkCands(docVals(d, oldNo), oldNo, 3), hit = sug.concat((k ? all.filter(w => [w['作品番号'], w['作品名'], w['作品名メモ'], w['制作年'], w['所在']].join(' ').normalize('NFKC').toLowerCase().includes(k)) : all).filter(w => !sug.includes(w))).slice(0, 60);
+    L.innerHTML = hit.length ? hit.map(w => { const no = w['作品番号']; return `<button type="button" class="wprow" data-wp="${esc(no)}"><span class="dfwth">${(photoBy[no]||[]).length ? thumbHTML(no, 200) : '<span class="dfwnp">写真なし</span>'}</span><span class="wpt"><b>${esc(nol(no))}　${esc(w['作品名'] || '無題')}</b><small>${esc([w['制作年'], dimTxt(w), w['画材']].filter(Boolean).join('・'))}</small>${sug.includes(w) ? '<small class="susok">書類の内容に近い作品</small>' : ''}</span><em>選ぶ</em></button>`; }).join('') : '<p class="hint">見つかりませんでした</p>';
     hydrate(L); };
   q.oninput = () => { clearTimeout(q._t); q._t = setTimeout(draw, 200); }; draw(); setTimeout(() => q.focus(), 300);
-  const go = async newNo => { const nw = newNo ? workOf(newNo) : null;
-    if (!confirm(newNo ? `この書類のひも付けを\n${nol(oldNo)} ${(ow||{})['作品名'] || ''}\n　↓\n${nol(newNo)} ${(nw||{})['作品名'] || ''}\nに付け替えます。よろしいですか？` : `この書類から ${nol(oldNo)} ${(ow||{})['作品名'] || ''} のひも付けを外します。よろしいですか？`)) return;
-    busy(true, '付け替えています…');
-    try { const res = await call('moveDocWork', did, oldNo, newNo || ''); setData(res); busy(false);
-      for (let n = 0; n < 4 && SCR.length && (SCR[SCR.length - 1].classList.contains('noteview')); n++) scrBack();
-      render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
-      if (!$('#sheet').classList.contains('hidden')) sheetDocReview(did); toast(newNo ? nol(newNo) + ' に付け替えました' : 'ひも付けを外しました'); }
-    catch(e){ busy(false); alert('付け替えられませんでした：' + (e.message || e)); } };
+  const go = newNo => moveDocTo(did, oldNo, newNo);
   L.addEventListener('click', e => { const b = e.target.closest('[data-wp]'); if (b) go(b.dataset.wp); });
   el.querySelector('.wpnone').onclick = () => go('');
 }
@@ -2455,6 +2449,38 @@ function dfMoveWork(did, oldNo){ const d = docById(did), ow = workOf(oldNo); if 
 function workDiffsHTML(no){ const L = []; (S.docs || []).forEach(d => { if (d['状態'] !== '登録済み') return; (docRes(d)['食い違い'] || []).forEach((x, i) => { if (!x.r && x.t === 'w' && String(x.id) === String(no)) L.push(dfCard(d, x, i, true)); }); });
   return L.length ? `<h3 class="sec">台帳との食い違い（${L.length}件）</h3><p class="hint">書類に書かれている内容と台帳が違います。押して確かめてください。</p>${L.join('')}` : ''; }
 /* ---------- 書類と作品を見比べる：書類（左／上）と作品（右／下）を同じ画面に。作品を選ぶと、書類のその作品のところが光る ---------- */
+/* ---------- 別の作品かも？：番号が合っていても、中身（サイズ・名前・制作年）が大きく違えば疑う（AIを使わない機械的なチェック） ---------- */
+const wkN = x => { const m = String(x == null ? '' : x).normalize('NFKC').match(/\d+(\.\d+)?/); return m ? parseFloat(m[0]) : 0; };
+const wkS = x => String(x || '').normalize('NFKC').replace(/[\s"'“”「」『』・、。,.()（）\[\]〔〕]/g, '');
+function wkNameSim(a, b){ a = wkS(a); b = wkS(b); if (!a || !b) return -1; if (a.includes(b) || b.includes(a)) return 1; let h = 0; [...new Set(a)].forEach(c => { if (b.includes(c)) h++; }); return h / Math.min(new Set(a).size, new Set(b).size); }
+function wkSizeR(v, w){ const a = [wkN(v['高さcm']), wkN(v['幅cm'])].filter(Boolean).sort((x, y) => x - y), b = [wkN(w['高さcm']), wkN(w['幅cm'])].filter(Boolean).sort((x, y) => x - y); if (!a.length || !b.length) return 0;
+  const q = (x, y) => Math.max(x, y) / Math.min(x, y); return a.length === 2 && b.length === 2 ? Math.max(q(a[0], b[0]), q(a[1], b[1])) : q(a[a.length - 1], b[b.length - 1]); } /* 縦横が入れ替わっているだけなら同じとみなす */
+function wkMis(v, w){ let sc = 0; const why = [];
+  const r = wkSizeR(v, w); if (r >= 1.5) { sc += 2; why.push('サイズが大きく違う'); } else if (r >= 1.15) { sc += 1; why.push('サイズが違う'); }
+  const y1 = wkN((String(v['制作年'] || '').normalize('NFKC').match(/\d{4}/) || [''])[0]), y2 = wkN((String(w['制作年'] || '').normalize('NFKC').match(/\d{4}/) || [''])[0]); if (y1 && y2 && Math.abs(y1 - y2) >= 3) { sc += 1; why.push('制作年が違う'); }
+  const ns = wkNameSim(v['作品名'], w['作品名']); if (ns >= 0 && ns < .5) { sc += 1; why.push('作品名が違う'); }
+  return { sc, why }; }
+/* 書類に書かれている値（台帳の値に、まだ決めていない食い違いの「書類の値」を重ねたもの） */
+function docVals(d, no){ const w = workOf(no) || {}, v = { '作品名': w['作品名'], '制作年': w['制作年'], '高さcm': w['高さcm'], '幅cm': w['幅cm'] };
+  (docRes(d)['食い違い'] || []).forEach(x => { if (!x.r && x.t === 'w' && String(x.id) === String(no) && x.f in v) v[x.f] = x.doc; }); return v; }
+function docSus(d, no){ const w = workOf(no); if (!w) return null; const m = wkMis(docVals(d, no), w); return m.sc >= 2 ? m : null; }
+/* 書類の内容に近い作品の候補（サイズ・名前・制作年が合うもの） */
+function wkCands(v, skip, n){ const all = S.works.concat(S.others || []).filter(w => w['所在区分'] !== '統合済み' && String(w['作品番号']) !== String(skip));
+  return all.map(w => { const r = wkSizeR(v, w), ns = wkNameSim(v['作品名'], w['作品名']), m = wkMis(v, w); let g = 0; if (r && r < 1.06) g += 2; else if (r && r < 1.15) g += 1; if (ns >= .99) g += 2; else if (ns >= .6) g += 1; if (m.sc) g -= m.sc; return { w, g }; })
+    .filter(x => x.g >= 2).sort((a, b) => b.g - a.g).slice(0, n || 3).map(x => x.w); }
+function susList(){ const L = []; (S.docs || []).forEach(d => { if (d['状態'] !== '登録済み') return; String(d['作品番号'] || '').split(',').map(x => x.trim()).filter(Boolean).forEach(no => { const m = docSus(d, no); if (m) L.push({ d, no, m }); }); }); return L; }
+function openSusList(){ const L = susList(); const el = document.createElement('div'); el.className = 'noteview susv';
+  el.innerHTML = `<div class="nvin"><h2 class="nvt">別の作品かもしれない書類</h2><p class="hint">書類にひも付いた作品と、書類に書かれたサイズ・名前・制作年が大きく違うものです。押すと書類と作品を並べて見比べられます。</p>${L.length ? L.map(({ d, no, m }) => `<button type="button" class="wprow" data-cmp="${esc(d['書類ID'])}|${esc(no)}"><span class="dfwth">${(photoBy[no]||[]).length ? thumbHTML(no, 200) : '<span class="dfwnp">写真なし</span>'}</span><span class="wpt"><b>${esc(nol(no))}　${esc((workOf(no)||{})['作品名'] || '無題')}</b><small>📄 ${esc(docTitle(d))}</small><small class="susw">⚠ ${esc(m.why.join('・'))}</small></span><em>見比べる ›</em></button>`).join('') : '<p class="hint">見つかりませんでした</p>'}</div>`;
+  document.body.appendChild(el); hpush('n'); scrPush(el); hydrate(el); }
+/* 書類のひも付けを付け替える（確認してからサーバーへ） */
+async function moveDocTo(did, oldNo, newNo){ const ow = workOf(oldNo), nw = newNo ? workOf(newNo) : null;
+  if (!confirm(newNo ? `この書類のひも付けを\n${nol(oldNo)} ${(ow||{})['作品名'] || ''}\n　↓\n${nol(newNo)} ${(nw||{})['作品名'] || ''}\nに付け替えます。よろしいですか？` : `この書類から ${nol(oldNo)} ${(ow||{})['作品名'] || ''} のひも付けを外します。よろしいですか？`)) return false;
+  busy(true, '付け替えています…');
+  try { const res = await call('moveDocWork', did, oldNo, newNo || ''); setData(res); busy(false);
+    for (let n = 0; n < 4 && SCR.length && (SCR[SCR.length - 1].classList.contains('noteview')); n++) scrBack();
+    render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+    if (!$('#sheet').classList.contains('hidden')) sheetDocReview(did); toast(newNo ? nol(newNo) + ' に付け替えました' : 'ひも付けを外しました'); return true; }
+  catch(e){ busy(false); alert('付け替えられませんでした：' + (e.message || e)); return false; } }
 function cmpAt(d, no){ const did = d['書類ID'], r = docRes(d), mine = x => x && x.t === 'w' && String(x.id) === String(no) && x.at && x.at.box;
   const a = (r['食い違い'] || []).find(mine) || (r['補完'] || []).find(mine); if (a) return { p: a.at.p, box: a.at.box };
   for (const e of (S.events || [])) { if (String(e['作品番号']) !== String(no) || String(e['根拠・出典'] || '').indexOf(did) < 0 || !e['位置']) continue; try { const at = JSON.parse(e['位置']); if (at && at.p) return { p: at.p, box: at.box || null }; } catch(x){} }
@@ -2475,7 +2501,8 @@ function cmpWork(d, no){ const w = workOf(no); if (!w) return '<p class="hint">�
   const used = new Set(['作品名','制作年','幅cm','高さcm','画材','種別','シリーズ','所在']), extra = X.filter(([x]) => !x.r && !used.has(x.f));
   const loc = [w['所在区分'], w['所在'] && w['所在'] !== w['所在区分'] ? w['所在'] : ''].filter(Boolean).join(' ');
   const evs = (S.events || []).filter(e => String(e['作品番号']) === String(no) && String(e['根拠・出典'] || '').indexOf(did) >= 0);
-  return `<div class="cwph">${(photoBy[no]||[]).length ? thumbHTML(no, 800) : '<div class="cwnp">写真なし</div>'}</div>
+  const sus = docSus(d, no), cds = sus ? wkCands(docVals(d, no), no, 3) : [];
+  return `${sus ? `<div class="cwsus"><b>⚠ 別の作品かもしれません</b><small>書類と台帳で${esc(sus.why.join('・'))}。番号の読み違いなどで、ちがう作品にひも付いている可能性があります。</small>${cds.length ? `<p class="cwsq">書類の内容に近い作品</p>${cds.map(w => `<button type="button" class="cwcand" data-cmpmv="${esc(w['作品番号'])}"><span class="dfwth">${(photoBy[w['作品番号']]||[]).length ? thumbHTML(w['作品番号'], 200) : ''}</span><span><b>${esc(nol(w['作品番号']))} ${esc(w['作品名'] || '無題')}</b><small>${esc([w['制作年'], dimTxt(w)].filter(Boolean).join('・'))}</small></span><em>付け替える</em></button>`).join('')}` : ''}<button type="button" class="act cwsusb" data-wfix="${esc(did)}|${esc(no)}">ほかの作品を探して付け替える</button></div>` : ''}<div class="cwph">${(photoBy[no]||[]).length ? thumbHTML(no, 800) : '<div class="cwnp">写真なし</div>'}</div>
     <div class="cwno">${esc(nol(no))}</div><h3 class="cwtt">${esc(w['作品名'] || '無題')}</h3>${w['作品名メモ'] ? `<div class="cwsub">${esc(w['作品名メモ'])}</div>` : ''}
     <dl class="cwdl">${row('作品名', w['作品名'], ['作品名'])}${row('制作年', w['制作年'], ['制作年'])}${row('サイズ', dimTxt(w, false, ' cm'), ['幅cm', '高さcm'])}${row('画材', w['画材'], ['画材'])}${row('種別', w['種別'], ['種別'])}${row('シリーズ', w['シリーズ'], ['シリーズ'])}${row('いまの場所', loc, ['所在'])}${extra.map(([x, i]) => `<div class="cwr df"><dt>${esc(x.f)}</dt><dd>${x.cur ? esc(x.cur) : '<span class="cwnil">未入力</span>'}${cwDx(x, i)}</dd></div>`).join('')}</dl>
     ${evs.length ? `<h4 class="cwh">この書類からの来歴</h4>${evs.map(e => `<button type="button" class="cwev" data-cmpev="${esc(e['出来事ID'])}"><span>${esc(e['日付'] || '')}</span><b>${esc(e['種類'] || '')}</b><span>${esc(e['相手先・場所'] || '')}</span></button>`).join('')}` : ''}
@@ -2489,7 +2516,7 @@ function cmpView(did, no, fi){ const d = docById(did), d0 = d; if (!d) return; c
   const V = el.querySelector('.cmpdoc'), P = el.querySelector('.cmpw'), r = docRes(d);
   if (r.PDF) pdfMount(V, docPages(d)[0], docTitle(d)); else { V.innerHTML = `<div class="cmpimgs">${docPages(d).map(f => docImg(f, 1600)).join('')}</div>`; hydrateDocs(V); }
   el._did = did; const W = el.querySelector('.cmpws');
-  const chips = () => { const dd = docById(did) || d; W.innerHTML = nos.map(n => { const k = cmpLeft(dd, n); return `<button type="button" class="cmpchip${String(n) === String(no) ? ' on' : ''}" data-cmpw="${esc(n)}"><span class="dfwth">${(photoBy[n]||[]).length ? thumbHTML(n, 200) : ''}</span><span>${esc(nol(n))}<small>${esc((workOf(n)||{})['作品名'] || '無題')}</small></span>${k ? `<i class="cmpk">${k}</i>` : ''}</button>`; }).join(''); hydrate(W); };
+  const chips = () => { const dd = docById(did) || d; W.innerHTML = nos.map(n => { const k = cmpLeft(dd, n); return `<button type="button" class="cmpchip${String(n) === String(no) ? ' on' : ''}" data-cmpw="${esc(n)}"><span class="dfwth">${(photoBy[n]||[]).length ? thumbHTML(n, 200) : ''}</span><span>${esc(nol(n))}<small>${esc((workOf(n)||{})['作品名'] || '無題')}</small></span>${docSus(dd, n) ? '<i class="cmpk sus">⚠</i>' : k ? `<i class="cmpk">${k}</i>` : ''}</button>`; }).join(''); hydrate(W); };
   const openDec = i => { const dd = docById(did) || d, x = (docRes(dd)['食い違い'] || [])[i]; if (!x) return; P.querySelectorAll('.cwdec').forEach(e => e.remove()); P.querySelectorAll('.cwdx.on').forEach(e => e.classList.remove('on'));
     const b = P.querySelector(`[data-cmpdf="${i}"]`); if (!b) return; b.classList.add('on'); const row = b.closest('.cwr') || b; row.insertAdjacentHTML('afterend', cwDecHTML(dd, x, i)); const box = row.nextElementSibling;
     setTimeout(() => P.scrollTo({ top: Math.max(0, P.scrollTop + row.getBoundingClientRect().top - P.getBoundingClientRect().top - 8), behavior: 'smooth' }), 60);
@@ -2517,6 +2544,7 @@ function cmpView(did, no, fi){ const d = docById(did), d0 = d; if (!d) return; c
     const a = [at.p, at.box, hint]; if (V._goto) V._goto(...a); else V._pend = a; };
   el.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return;
     if (b.dataset.cmpw) { show(b.dataset.cmpw); return; }
+    if (b.dataset.cmpmv) { e.stopPropagation(); moveDocTo(did, no, b.dataset.cmpmv); return; }
     if (b.dataset.cmpdf != null && b.classList.contains('cwdx')) { e.stopPropagation(); if (b.classList.contains('on')) { P.querySelectorAll('.cwdec').forEach(z => z.remove()); b.classList.remove('on'); } else openDec(+b.dataset.cmpdf); return; }
     if (b.dataset.cmpopen) { e.stopPropagation(); openWorkAlone(b.dataset.cmpopen); return; }
     if (b.dataset.cmpev) { e.stopPropagation(); const ev = (S.events || []).find(x => x['出来事ID'] === b.dataset.cmpev); let at = null; try { at = JSON.parse(ev && ev['位置'] || 'null'); } catch(x){} if (at && at.p && V._goto) V._goto(at.p, at.box || null, { msg: [ev['日付'], ev['種類'], ev['相手先・場所']].filter(Boolean).join(' ') + ' のところ' }); return; } }, true);
@@ -2685,7 +2713,7 @@ function renderDocFiles(){
   const nNew = docsOf('まだ').length, nRev = docsOf('確認待ち').length, nChk = (S.docs||[]).filter(d => d['状態']==='登録済み' && docWarn(d)).length;
   const work = `<div class="fwork"><button type="button" class="fchip main" data-docnew="">${ico('photo')}書類を撮る</button><button type="button" class="fchip" data-pdfscan="1">📄 スキャンを読み取る</button>`
     + (nNew ? `<button type="button" class="fchip warn" data-dmode="list">まだ読んでいない ${nNew}</button>` : '') + (nRev ? `<button type="button" class="fchip warn" data-dmode="list">確かめて登録 ${nRev}</button>` : '')
-    + (nChk ? `<button type="button" class="fchip warn" data-dmode="list">⚠ 要確認 ${nChk}</button>` : '') + `<button type="button" class="fchip ghost" data-dmode="list">登録の作業・全文検索 ›</button></div>`;
+    + (nChk ? `<button type="button" class="fchip warn" data-dmode="list">⚠ 要確認 ${nChk}</button>` : '') + (() => { const n = susList().length; return n ? `<button type="button" class="fchip warn" data-suslist="1">⚠ 別の作品かも ${n}</button>` : ''; })() + `<button type="button" class="fchip ghost" data-dmode="list">登録の作業・全文検索 ›</button></div>`;
   const binders = Object.keys(root.k).sort(dfSort), sel = path[0] || '';
   const side = `<aside class="fside"><div class="fsh">場所</div><button type="button" class="fsrow ${!path.length ? 'on' : ''}" data-dfp="">${FIC.fold}<span>資料ファイル</span><small>${root.n}</small></button>
     <div class="fsh">バインダー</div>${binders.map(n => `<button type="button" class="fsrow ${sel === n ? 'on' : ''}" data-dfp="${esc(n)}">${FIC.bind}<span>${esc(n)}</span><small>${root.k[n].n}</small></button>`).join('')}</aside>`;
@@ -5247,6 +5275,7 @@ document.addEventListener('click', e => {
   if (t.dataset.print){ sheetPrint(); return; }
   if (t.dataset.evhl2){ evHighlight(t); return; }
   if (t.dataset.wfix){ const [did, no] = t.dataset.wfix.split('|'); dfMoveWork(did, no); return; }
+  if (t.dataset.suslist){ openSusList(); return; }
   if (dfAct(t)) return;
   if (t.dataset.dmode !== undefined){ S.dmode = t.dataset.dmode; S.dfq = ''; render(); window.scrollTo(0, 0); return; }
   if (t.dataset.dfo !== undefined){ dfNav((S.dpath || []).concat(t.dataset.dfo)); return; }
@@ -5545,7 +5574,7 @@ function pdfCard(i){ const el = $('#pc' + i); if (!el || !PDFQ) return; const x 
       <div class="field"><label>展覧会</label><select data-k="exId">${exOpts}</select></div>
       ${(r.d.pbs||[]).length ? `<div class="field"><label>関係する画集・本（チェックしたものにつなぐ）</label>${r.d.pbs.map(b => `<label class="pdfck"><input type="checkbox" data-pbid="${esc(b.id)}" ${b.s >= 0.8 ? 'checked' : ''}> ${esc(b['タイトル'])}${b['発行年月'] ? '（' + esc(fmtDate(b['発行年月'])) + '）' : ''}</label>`).join('')}</div>` : ''}
       <div class="field"><label>下村良之介の作品</label>${(r.d.works||[]).length ? '<p class="hint">いちばん近い作品に自動でチェックしました。登録すると、書類に「要確認（紐付け作品を確認）」が付きます。</p>' + r.d.works.map((w, wi) => `<div class="pdfw"><b>${esc(w['作品名'])}</b>${[w['制作年'], w['高さcm'] || w['幅cm'] ? (w['高さcm']||'?') + '×' + (w['幅cm']||'?') + 'cm' : '', w['画材'], w['メモ']].filter(Boolean).length ? `<small>${esc([w['制作年'], w['高さcm'] || w['幅cm'] ? (w['高さcm']||'?') + '×' + (w['幅cm']||'?') + 'cm' : '', w['画材'], w['メモ']].filter(Boolean).join('　'))}</small>` : ''}
-        ${w.cands.length ? w.cands.map((c, j) => `<label class="pdfck"><input type="checkbox" data-no="${esc(c.no)}" data-wi="${wi}" ${j===0 ? 'checked' : ''}> No.${esc(c.no)} ${esc(c['作品名'])}${c.byNo ? ' <small class="nobadge">番号一致</small>' : ''}${c['制作年'] ? '（' + esc(c['制作年']) + '）' : ''}</label>`).join('') : '<small class="muted">台帳に同じ名前の作品が見つかりません（あとで作品ページからひも付けできます）</small>'}</div>`).join('') : '<p class="hint">下村良之介の作品は見つかりませんでした</p>'}</div>
+        ${w.multi ? `<p class="hint susw" style="margin:4px 0">⚠ 番号が複数書かれています（${esc(w.multi)}）。どれが作品番号か確かめて、選んでください</p>` : ''}${w.cands.length ? w.cands.map((c, j) => { const cm = candMis(w, c); return `<label class="pdfck"><input type="checkbox" data-no="${esc(c.no)}" data-wi="${wi}" ${j===candPick(w) ? 'checked' : ''}> No.${esc(c.no)} ${esc(c['作品名'])}${c.byNo ? ' <small class="nobadge">番号一致</small>' : ''}${cm.sc >= 2 ? ` <small class="susw">⚠ ${esc(cm.why.join('・'))}</small>` : ''}${c['制作年'] ? '（' + esc(c['制作年']) + '）' : ''}</label>`; }).join('') : '<small class="muted">台帳に同じ名前の作品が見つかりません（あとで作品ページからひも付けできます）</small>'}</div>`).join('') : '<p class="hint">下村良之介の作品は見つかりませんでした</p>'}</div>
       <div class="btns"><button type="button" data-pq="skip|${i}">あとで</button><button type="button" data-pq="again|${i}">読み直す</button><button type="button" class="primary" data-pq="reg|${i}">登録する</button></div>`;
   pdfSnap(); }
 async function pdfRead(i, again){ const x = PDFQ.list[i]; PDFQ.res[x.id] = {loading: 1}; pdfCard(i);
@@ -5607,19 +5636,22 @@ function pdfBg(fin){ let el = $('#pdfbg'); const L = PDFQ ? PDFQ.list : [], R = 
   el.style.display = ''; el.className = ''; el.textContent = `📄 読み取り中 ${read}／${L.length}件 ›`;
 }
 /* 登録：画面のカードがあればその内容で、なければ（裏で読み取ったとき）読み取った内容のまま登録する */
+/* 読み取った作品と候補の中身を比べる：番号が合っていても中身が大きく違う候補は選ばない */
+const candMis = (w, c) => wkMis({ '作品名': w['作品名'], '制作年': w['制作年'], '高さcm': w['高さcm'], '幅cm': w['幅cm'] }, workOf(c.no) || c);
+const candPick = w => w.multi ? -1 : (w.cands || []).findIndex(c => candMis(w, c).sc < 2); /* 番号が複数書かれているカードは、毎回人が選ぶ */
 async function pdfReg(i, auto){ const x = PDFQ.list[i], r = PDFQ.res[x.id], el = auto ? null : $('#pc' + i); if (!r || !r.d || (!auto && !el)) return;
   const a = r.d.r || {}, ex = a['展覧会'] || {}, m = r.d.ex, W = r.d.works || [];
   const dflt = {'タイトル': a['資料名'] || String(x.name).replace(/\.pdf$/i, ''), '種類': a['種類'] || '', '発行年月': a['発行年月'] || '', '発行元': a['発行元'] || '', '掲載内容': a['掲載内容'] || '', '保管番号': x.box || '', 'exId': m ? m.id : (ex['名称'] ? 'new' : '')};
   const v = k => { const f = el && el.querySelector(`[data-k="${k}"]`); return f ? f.value.trim() : String(dflt[k] || '').trim(); };
   if (!v('タイトル')) return auto ? null : alert('資料名を入れてください');
   const picks = el ? [...el.querySelectorAll('input[data-no]:checked')].map(c => ({no: c.dataset.no, wi: +c.dataset.wi}))
-    : W.map((w, wi) => w.cands.length ? {no: w.cands[0].no, wi} : null).filter(Boolean);
-  const nf = W.filter(w => !w.cands.length).map(w => w['作品名']);
+    : W.map((w, wi) => { const k = candPick(w); return k >= 0 ? {no: w.cands[k].no, wi} : null; }).filter(Boolean);
+  const nf = W.filter(w => !w.cands.length).map(w => w['作品名']), sus = W.filter(w => w.cands.length && candPick(w) !== 0).map(w => w['作品名'] + '：' + (w.multi ? '番号が複数（' + w.multi + '）どれが作品番号か確認' : (w.cands[0].byNo ? '番号は合うが' : '') + candMis(w, w.cands[0]).why.join('・')));
   const rec = { box: x.box || '', pub: {'タイトル': v('タイトル'), '種類': v('種類'), '発行年月': v('発行年月'), '発行元': v('発行元'), '掲載内容': v('掲載内容'), '保管番号': v('保管番号')},
     exId: v('exId'), ex: {'名称': ex['名称'] || '', '種類': ex['種類'] || '', '開始日': ex['開始日'] || '', '終了日': ex['終了日'] || '', '会場': ex['会場'] || '', '都市': ex['都市'] || ''},
     pbIds: el ? [...el.querySelectorAll('input[data-pbid]:checked')].map(c => c.dataset.pbid) : (r.d.pbs || []).filter(b => b.s >= 0.8).map(b => b.id),
     works: picks.map(pk => { const w = W[pk.wi] || {}; return {no: pk.no, '作品名': w['作品名']||'', '制作年': w['制作年']||'', '高さcm': w['高さcm']||'', '幅cm': w['幅cm']||'', '画材': w['画材']||'', '位置': w['位置'] || null}; }).filter((w, i, a) => a.findIndex(y => y.no===w.no)===i),
-    check: [auto ? '自動で登録（内容を確認）' : '', W.length ? '紐付け作品を確認' + (nf.length ? '（台帳で見つからない作品：' + nf.join('、') + '）' : '') : ''].filter(Boolean).join('・'),
+    check: [auto ? '自動で登録（内容を確認）' : '', W.length ? '紐付け作品を確認' + (nf.length ? '（台帳で見つからない作品：' + nf.join('、') + '）' : '') : '', sus.length ? '別の作品かも（' + sus.join('、') + '）' : ''].filter(Boolean).join('・'),
     nos: [...new Set(picks.map(pk => pk.no))], exAt: ex['位置'] || null, evs: a['できごと'] || [], pages: a['ページ'] || [] };
   if (!auto) busy(true, '登録しています…');
   try { const d = await call('registerPdf', x.id, rec); setData(d); if (!auto || S.view==='doc') render(); PDFQ.res[x.id] = {done: d.newId, fill: d.fill, diff: d.diff};
