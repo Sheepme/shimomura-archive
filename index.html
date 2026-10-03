@@ -1780,7 +1780,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '9485a38f11', APP_URL = location.origin + location.pathname;
+const BUILD = '04ddaeb835', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5331,7 +5331,8 @@ async function ask(q){
 
 /* ---------- フローティングメニュー ---------- */
 function hidePop(){ $('#fmPop').classList.add('hidden'); }
-function closeAllPages(){ S.stack = []; if (!$('#page').classList.contains('hidden')) closeWork(); }
+function closeOverlays(){ for (let n = 0; n < 12 && SCR.length; n++) { const top = SCR.pop(); if (top.id === 'sheet') { top.classList.add('hidden'); $('#sheetbox').innerHTML = ''; $('#sheetbox').classList.remove('split'); S.sheetDoc = null; } else if (top.id === 'viewer') top.classList.add('hidden'); else top.remove(); } scrHead(); }
+function closeAllPages(){ if (SCR.length) closeOverlays(); /* 書類・見比べなど重ねた画面も閉じる（メニューから移動したとき） */ S.stack = []; if (!$('#page').classList.contains('hidden')) closeWork(); }
 const SQ = {album:['q','作品名・番号・年・美術館名で探す'], list:['q','作品名・番号・年・美術館名で探す'], ex:['xq','展覧会名・会場・年で探す'], pb:['pq','書名・発行元・年で探す'], ot:['oq','名前・年・場所で探す']};
 function openSearch(){
   hidePop(); closeAllPages();
@@ -5479,7 +5480,7 @@ document.addEventListener('click', e => {
   if (e.target.closest && e.target.closest('#confirm')) return;
   const sh = $('#sheet');
   if (!sh.classList.contains('hidden') && !e.target.closest('#sheetbox')) {
-    if (e.target.closest('.docview, .noteview, #viewer, #loading, #toast, #itemTip, #top, .appbar')) return; // 写真の拡大・上のバー（戻る・パンくず）は使える
+    if (e.target.closest('.docview, .noteview, #viewer, #loading, #toast, #itemTip, #top, .appbar, #drawer, #mepop')) return; /* サイドメニュー・名前の吹き出しも使える */ // 写真の拡大・上のバー（戻る・パンくず）は使える
     e.preventDefault(); e.stopPropagation(); return; } // 画面のほかの所を押しても閉じない
   const ie = document.querySelector('#page dd.iedit');
   if (ie && !ie.contains(e.target)) {
