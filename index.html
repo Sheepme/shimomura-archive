@@ -1697,6 +1697,10 @@ body.wide.pgopen #top .appbar #btnMenu,body.wide.scr #top .appbar #btnMenu{displ
 #confirm.sheet{z-index:1100!important}
 #loading.loading{z-index:1200!important}
 .wdoc .wdcmp{width:calc(100% - 12px);margin:4px 6px 0!important;padding:12px;font-size:15px}
+.evsrc{display:flex;align-items:center;gap:6px;width:100%;margin:10px 0 2px;padding:10px 12px;border:0;border-radius:10px;background:color-mix(in srgb,#e0776b 16%,var(--paper));color:var(--ink);font:inherit;font-size:14.5px;font-weight:600;cursor:pointer;text-align:left}.evsrc.on{background:#e0776b;color:#fff}
+.evsrcbox.open{display:block;margin:6px 0 4px!important;padding:0!important;background:transparent!important}.evsdocs{display:flex;gap:6px;overflow-x:auto;margin:0 0 6px;scrollbar-width:none}.evsdocs button{flex:0 0 auto;max-width:70%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font:inherit;font-size:13px;cursor:pointer}.evsdocs button.on{background:var(--ink);color:var(--inv);border-color:var(--ink)}.evsdt{margin:0 0 6px;font-size:13px;color:var(--sub)}
+.devs .dtr{position:relative}.devgo{font-style:normal;margin-left:auto;align-self:center;opacity:.7}.devpv{margin:2px 0 8px!important}
+.evfix{display:block;width:100%;margin:8px 0 2px;padding:10px;border:1px dashed var(--line);border-radius:10px;background:transparent;color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -1764,7 +1768,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'eb74436c4e', APP_URL = location.origin + location.pathname;
+const BUILD = '809f681493', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2406,7 +2410,7 @@ let NOTEQ = '';
 function docEvHTML(d){ const ids = String(d['出来事ID']||'').split(',').filter(Boolean); if (!ids.length) return '';
   const ev = ids.map(i => S.events.find(e => e['出来事ID']===i)).filter(Boolean).sort((a, b) => String(a['日付']).localeCompare(String(b['日付'])));
   if (!ev.length) return '';
-  return `<h3 class="sec" style="font-size:18px">この書類からわかった来歴（${ev.length}件）</h3><div class="dtoc">${ev.map(e => `<div class="dtr"><span class="dtp">${esc(e['日付']||'日付なし')}</span><span><b>${esc(e['種類'])}</b>　${esc(e['相手先・場所']||'')}<br><small class="muted">${esc(wLabel(e['作品番号']))}${e['内容'] ? '　' + esc(e['内容']) : ''}</small></span></div>`).join('')}</div>`; }
+  return `<h3 class="sec" style="font-size:18px">この書類からわかった来歴（${ev.length}件）</h3><p class="hint" style="margin:-4px 0 6px">${docRes(d).PDF ? '押すと、書類のその出来事が書かれたところが光ります。' : ''}</p><div class="dtoc devs">${ev.map(e => `<${docRes(d).PDF ? 'button type="button"' : 'div'} class="dtr" data-dev="${esc(e['出来事ID'])}"><span class="dtp">${esc(e['日付']||'日付なし')}</span><span><b>${esc(e['種類'])}</b>　${esc(e['相手先・場所']||'')}<br><small class="muted">${esc(wLabel(e['作品番号']))}${e['内容'] ? '　' + esc(e['内容']) : ''}</small></span>${docRes(d).PDF ? '<em class="devgo">🖍</em>' : ''}</${docRes(d).PDF ? 'button' : 'div'}>`).join('')}</div>`; }
 function docTocHTML(d){ const pgs = docRes(d)['ページ'] || []; if (pgs.length < 2) return '';
   const nt = !!d['全文あり'];
   return `<details class="dfill" ${pgs.length <= 15 ? 'open' : ''}><summary>ページの目次（${pgs.length}ページ）</summary><div class="dtoc">${pgs.map(g => `<${docRes(d).PDF ? `button type="button" data-tocp="${esc(g.p)}"` : 'div'} class="dtr"><span class="dtp">p.${esc(g.p)}</span><span><b>${esc(g['種類']||'')}</b>　${esc(g['説明']||'')}</span></${docRes(d).PDF ? 'button' : 'div'}>`).join('')}</div></details>`; }
@@ -2415,6 +2419,17 @@ function docTocHTML(d){ const pgs = docRes(d)['ページ'] || []; if (pgs.length
 /* 作品ページの書類：この作品が書かれているところをその場でハイライト */
 function wdHighlight(btn){ const [did, no] = btn.dataset.wdhl.split('|'), d = docById(did); if (!d) return; const at = cmpAt(d, no), w = workOf(no) || {};
   dfPreview(btn.closest('.dfx'), d, { doc: w['作品名'] || '', name: '', f: '', at: at && at.p ? at : null }); }
+/* 作品の来歴：「該当箇所を確認 ↓」で、その下に書類の該当箇所（ハイライト）を開く。書類が複数あれば切り替え */
+function evSrc(btn){ const e = (S.events || []).find(x => x['出来事ID'] === btn.dataset.evsrc), box = btn.nextElementSibling; if (!e || !box) return;
+  if (btn.classList.contains('on')) { btn.classList.remove('on'); btn.textContent = '該当箇所を確認 ↓'; box.className = 'evsrcbox'; box.innerHTML = ''; return; }
+  const docs = evDocs(e).map(docById).filter(d => d && docRes(d).PDF); if (!docs.length) return toast('この来歴にはPDFの書類がありません');
+  let at = null; try { at = JSON.parse(e['位置'] || 'null'); } catch(x){} if (!(at && at.p)) at = null;
+  btn.classList.add('on'); btn.textContent = '閉じる ↑'; box.className = 'dfx evx evsrcbox open';
+  box.innerHTML = (docs.length > 1 ? `<div class="evsdocs">${docs.map((d, i) => `<button type="button" data-evsd="${esc(d['書類ID'])}">${esc(docTitle(d))}</button>`).join('')}</div>` : `<p class="evsdt">📄 ${esc(docTitle(docs[0]))}</p>`) + '<span data-dfhl="evs" hidden></span>' + `<button type="button" class="evfix" data-evedit="${esc(e['出来事ID'])}">✎ 書類と違っていたら、この来歴を直す</button>`;
+  box._show = did => { const d = docs.find(x => x['書類ID'] === did) || docs[0]; box.querySelectorAll('[data-evsd]').forEach(b => b.classList.toggle('on', b.dataset.evsd === d['書類ID']));
+    box.classList.remove('dfopen'); box.querySelectorAll('.dfprev').forEach(x => x.remove());
+    dfPreview(box, d, { doc: e['相手先・場所'] || e['日付'] || '', at: d === docs[0] ? at : null }, true); };
+  box._show(docs[0]['書類ID']); }
 function evHighlight(btn){ const e = (S.events || []).find(x => x['出来事ID'] === btn.dataset.evhl2); if (!e) return;
   const d = evDocs(e).map(docById).find(x => x && docRes(x).PDF); if (!d) return toast('この出来事にはPDFの書類がありません');
   let at = null; try { at = JSON.parse(e['位置'] || 'null'); } catch(x){}
@@ -2991,6 +3006,13 @@ function sheetDocReview(id){ try { const d0 = docById(id); if (d0) pdfPrefetch([
       if (c) { const o = c.querySelector('.dfprev'); if (o) o.remove(); c.classList.remove('dfopen'); if (was) { c.remove(); return; } }
       else { c = document.createElement('div'); c.className = 'dfx evx tocpv'; c.innerHTML = '<span data-dfhl="toc" hidden></span>'; wrap.after(c); }
       b.classList.add('on'); dfPreview(c, d, { doc: '', at: { p: pn }, toc: 1 }, true); });
+    /* この書類からわかった来歴：押すと、その出来事が書かれたところを光らせる（パソコンは左のビューワー、スマホはその下に開く） */
+    document.querySelectorAll('#sheetbox button[data-dev]').forEach(b => b.onclick = () => { const e = (S.events || []).find(x => x['出来事ID'] === b.dataset.dev); if (!e) return;
+      let at = null; try { at = JSON.parse(e['位置'] || 'null'); } catch(x){} if (!(at && at.p)) at = null; const q = e['相手先・場所'] || e['日付'] || '', L = document.querySelector('#sheetbox.split .dsv');
+      const was = b.classList.contains('on'); document.querySelectorAll('#sheetbox .dtr.on').forEach(x => x.classList.remove('on')); document.querySelectorAll('#sheetbox .devpv').forEach(x => x.remove());
+      if (L) { b.classList.add('on'); const a = [at ? at.p : 1, at ? at.box || null : null, at && at.box ? null : { msg: [e['日付'], e['種類'], q].filter(Boolean).join(' ') + (at ? ' のところ' : '（場所の記録がないので1ページ目）') }]; if (L._goto) L._goto(...a); else L._pend = a; return; }
+      if (was) return; b.classList.add('on'); const c = document.createElement('div'); c.className = 'dfx evx devpv'; c.innerHTML = '<span data-dfhl="dev" hidden></span>'; b.after(c);
+      dfPreview(c, d, { doc: q, at }, true); });
     document.querySelectorAll('#sheetbox [data-dfsee]').forEach(b => b.onclick = async () => { const x = docRes(d)['食い違い'][+b.dataset.dfsee]; if (!x) return; const t0 = b.textContent; b.disabled = true; b.textContent = '探しています…';
       try { const t = DTEXT[id] != null ? DTEXT[id] : (DTEXT[id] = await call('getDocText', id)); const f = dfFind(t, x.doc);
         if (!f) toast('書き起こしの中に「' + x.doc + '」が見つかりませんでした'); noteView(id, f ? f.p : null, f ? f.q : x.doc); }
@@ -4004,7 +4026,7 @@ function openWork(no, keepScroll, restoreSc){
           ${e['展覧会ID'] && exById[e['展覧会ID']] ? `<button class="golink" data-ex="${esc(e['展覧会ID'])}">展覧会のページ ›</button>` : ''}${e['資料ID'] && pbById[e['資料ID']] ? `<button class="golink" data-pb="${esc(e['資料ID'])}">${esc(pbById[e['資料ID']]['種類']||'資料')}のページ ›</button>` : ''}
           ${e['内容'] && e['内容']!==e['相手先・場所'] && e['内容']!=='制作' ? `<div class="pl">${escU(e['内容'])}</div>`:''}
           ${e['担当者・連絡先'] ? `<div class="pl">担当者：${esc(e['担当者・連絡先'])}</div>` : ''}
-          ${canEdit() ? evDocs(e).filter(id => docById(id)).map((id, n, all) => `<button class="golink" data-cmpe="${esc(id)}|${esc(no)}|${esc(e['出来事ID'])}">📑 書類${all.length > 1 ? (n + 1) : ''}と見比べる ›</button>`).join('') : ''}<div class="src">${escU([evDocs(e).length ? (evDocs(e).length > 1 ? '書類' + evDocs(e).length + '通より' : '書類より') : e['根拠・出典'], e['確かさ'], e['登録者']!=='旧リストから移行'?e['登録者']:''].filter(Boolean).join(' · '))}</div>
+          ${canEdit() && evDocs(e).some(id => docById(id) && docRes(docById(id)).PDF) ? `<button type="button" class="evsrc" data-evsrc="${esc(e['出来事ID'])}">該当箇所を確認 ↓</button><div class="evsrcbox"></div>` : ''}${canEdit() ? evDocs(e).filter(id => docById(id)).map((id, n, all) => `<button class="golink" data-doc="${esc(id)}">書類${all.length > 1 ? (n + 1) : ''}を見る ›</button>`).join('') : ''}<div class="src">${escU([evDocs(e).length ? (evDocs(e).length > 1 ? '書類' + evDocs(e).length + '通より' : '書類より') : e['根拠・出典'], e['確かさ'], e['登録者']!=='旧リストから移行'?e['登録者']:''].filter(Boolean).join(' · '))}</div>
           ${canEdit()?`<button class="pen" data-evedit="${esc(e['出来事ID'])}" aria-label="このできごとを直す"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.6"/></svg></button>`:''}
         </div></li>`; }).join('')}</ul>` : '<p style="color:var(--sub)">まだ記録がありません</p>'}
       ${canEdit() ? workDiffsHTML(no) + workDocsHTML(no) : ''}
@@ -5394,6 +5416,8 @@ document.addEventListener('click', e => {
   if (t.dataset.pdfscan){ sheetPdfScan(); return; }
   if (t.dataset.print){ sheetPrint(); return; }
   if (t.dataset.wdhl){ wdHighlight(t); return; }
+  if (t.dataset.evsrc){ evSrc(t); return; }
+  if (t.dataset.evsd){ const box = t.closest('.evsrcbox'); if (box && box._show) box._show(t.dataset.evsd); return; }
   if (t.dataset.cmpe){ const [did, no, ev] = t.dataset.cmpe.split('|'); cmpView(did, no); setTimeout(() => { const b = document.querySelector(`.cmpv [data-cmpev="${ev}"]`); if (b) b.click(); }, 700); return; } /* 来歴から：書類と作品を並べて、その出来事のところを光らせる */
   if (t.dataset.evhl2){ evHighlight(t); return; }
   if (t.dataset.wfix){ const [did, no] = t.dataset.wfix.split('|'); dfMoveWork(did, no); return; }
