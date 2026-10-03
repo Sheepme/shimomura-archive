@@ -1703,7 +1703,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '4eb8cb457f', APP_URL = location.origin + location.pathname;
+const BUILD = 'f7e39f1e84', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1773,7 +1773,12 @@ function abRender0(){ const h = $('#abTitle'); if (!h) return;
 /* お知らせ（保存しました など）も、読み込み中と同じ上の帯で出す（緑） */
 function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.remove('hidden'); tbSync(); clearTimeout(toast._t); toast._t=setTimeout(()=>{ el.classList.add('hidden'); tbSync(); },2600); }
 const OTRE = /^[YHZ]\d{3,}$/;
-function setData(d){ if (S.upd) S.upd.t = 0;
+/* 書類が更新されたら（PDFの向きを直したときなど）、この端末に保存してあるPDF・サムネを捨てて読み直す */
+function docCacheSync(docs){ let V = {}; try { V = JSON.parse(localStorage.getItem('smr_dver') || '{}'); } catch(e){}
+  const first = !Object.keys(V).length, del = [], N = {};
+  (docs || []).forEach(d => { const v = String(d['更新日時'] || ''), fs = docPages(d); fs.forEach(f => { N[f] = v; if (!first && V[f] && V[f] !== v) { del.push('pdf_' + f, ...[100, 200, 300, 400, 800, 1200, 1600, 3200].map(w => 'd' + w + '_' + f)); delete DPDF[f]; if (typeof PDOC !== 'undefined') delete PDOC[f]; Object.keys(DTH).forEach(k => { if (k.endsWith('_' + f)) delete DTH[k]; }); } }); });
+  if (del.length) thDel(del); try { localStorage.setItem('smr_dver', JSON.stringify(N)); } catch(e){} }
+function setData(d){ if (S.upd) S.upd.t = 0; try { if (d && d.docs && d.docs.length) docCacheSync(d.docs); } catch(e){}
   const allW = d.works || []; d = Object.assign({}, d, {works: allW.filter(w => !OTRE.test(w['作品番号'])), others: allW.filter(w => OTRE.test(w['作品番号']))});
   Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], memoChecker:d.memoChecker||'直美', user:d.user, ai:d.ai, publicView:d.publicView}); if (S.token && !d.user) setToken(''); index(); renderUser();  if (d.user) setTimeout(prefetchThumbs, 0); }
 const canRole = () => !!(S.user && ['編集','管理'].includes(S.user.role));
