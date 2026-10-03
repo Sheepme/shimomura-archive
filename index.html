@@ -30,7 +30,7 @@
     if (!d || !d.__pk) return d;
     var o = {}; Object.keys(d).forEach(function(k){ if (k === '__pk') return; var v = d[k], old = C && C.s[k];
       if (v === 0 && old) o[k] = old.map(function(x){ return JSON.parse(x); });
-      else if (Array.isArray(v) && old) { var r = []; v.forEach(function(x){ if (Array.isArray(x)) { for (var i = 0; i < x[1]; i++) r.push(JSON.parse(old[x[0] + i])); } else r.push(x); }); o[k] = r; }
+      else if (Array.isArray(v) && old) { var r = []; v.forEach(function(x){ if (Array.isArray(x) && x.length === 2 && typeof x[0] === "number") { for (var i = 0; i < x[1]; i++) r.push(JSON.parse(old[x[0] + i])); } else r.push(x); }); o[k] = r; }
       else o[k] = v; });
     return o;
   }
@@ -1790,7 +1790,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '2a042c6ff7', APP_URL = location.origin + location.pathname;
+const BUILD = 'c03b9be25c', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
