@@ -1670,7 +1670,7 @@ body.cmpon #abTitle{visibility:hidden}
  body.cmpon #top,body.cmpon #top .appbar,body.cmpon .cbar{display:none!important}
  .noteview.cmpv{padding-top:max(env(safe-area-inset-top),var(--cap,0px))!important;z-index:200}
  .cmpdoc{flex:0 0 34%}
- .cmpback{display:flex;align-items:center;justify-content:center;position:absolute;left:6px;top:calc(max(env(safe-area-inset-top),var(--cap,0px)) + 2px);z-index:5;width:40px;height:36px;border:0;border-radius:10px;background:transparent;color:var(--ink);cursor:pointer}
+ .cmpback{display:flex;align-items:center;justify-content:center;position:absolute;left:6px;top:2px;z-index:5;width:40px;height:36px;border:0;border-radius:10px;background:transparent;color:var(--ink);cursor:pointer}
  .cmpback svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
  .cmpv .pqbar{padding-left:50px;min-height:40px}
 }
@@ -1684,6 +1684,10 @@ body.cmpon #abTitle{visibility:hidden}
 @keyframes ldpop{from{opacity:0;transform:translate(-50%,-50%) scale(.92)}to{opacity:1;transform:translate(-50%,-50%)}}
 .wprow.on{box-shadow:0 0 0 2px var(--ink) inset}.wpck{flex:0 0 26px;height:26px;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:700;color:var(--inv)!important}.wprow.on .wpck{background:var(--ink);border-color:var(--ink)}.wpbar{position:sticky;bottom:0;padding:12px 0 calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 30%)}.wpgo{width:100%}.wpgo:disabled{opacity:1;background:var(--wash2)!important;color:var(--sub)!important;border-color:transparent!important}.wpmh{margin:0 0 8px}
 .wdocs{display:flex;flex-direction:column;gap:12px}:root .dlist .dfx.evx.wdoc,:root[data-theme] .dlist .dfx.evx.wdoc{display:block!important;background:var(--paper)!important;border-radius:14px!important;padding:6px 6px 10px!important;margin:0!important;box-shadow:none!important}:root .wdoc>.dcard{width:100%}.wdoc>.dcard,.wdoc>button:first-child{margin:0;background:transparent;box-shadow:none;border:0}.wdbtns{display:grid;grid-template-columns:1.7fr 1fr;gap:8px;margin:2px 6px 0}.wdbtns .act{margin:0!important;padding:11px 8px;font-size:14.5px}.wdbtns .wdcmp{background:var(--bg);border-color:transparent}.wdbtns:has(> :only-child){grid-template-columns:1fr}.wdoc .dfprev{margin:8px 6px 2px}
+
+/* パソコンでも、重ねて開いた画面・作品ページでは左上に「←もどる」を出す */
+body.wide.pgopen #top .appbar #btnMenu,body.wide.scr #top .appbar #btnMenu{display:flex!important;visibility:visible!important}
+.cmpin{position:relative}
 </style>
 </head>
 <body>
@@ -1751,7 +1755,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '5a81856f7a', APP_URL = location.origin + location.pathname;
+const BUILD = 'e3345f3305', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2576,7 +2580,7 @@ function cmpWork(d, no){ const w = workOf(no); if (!w) return '<p class="hint">�
     <div class="cwacts"><button type="button" class="act" data-cmpopen="${esc(no)}">作品ページを開く ›</button><button type="button" class="act" data-wfix="${esc(did)}|${esc(no)}">作品が違う？</button></div>`; }
 function cmpView(did, no, fi, back){ const d = docById(did), d0 = d; if (!d) return; const nos = String(d['作品番号'] || '').split(',').map(x => x.trim()).filter(Boolean); if (!no || !nos.includes(String(no))) no = nos[0];
   const el = document.createElement('div'); el.className = 'noteview cmpv';
-  el.innerHTML = `<button type="button" class="cmpback" aria-label="戻る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><div class="cmpin"><div class="cmpdoc"></div><div class="cmpside"><div class="cmpws"></div><div class="cmpw"></div></div></div>`;
+  el.innerHTML = `<div class="cmpin"><button type="button" class="cmpback" aria-label="戻る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><div class="cmpdoc"></div><div class="cmpside"><div class="cmpws"></div><div class="cmpw"></div></div></div>`;
   document.body.appendChild(el); hpush('n'); scrPush(el); document.body.classList.add('cmpon'); if (back) { try { el.getAnimations().forEach(a => a.cancel()); } catch(e){} scrAnim(el, '-100', '0'); }
   const fold0 = dwFold; if (isWide() && !dwFold) { dwFold = true; pinDrawer(); } /* メニューを畳んで広く使う */
   const mo = new MutationObserver(() => { if (!el.isConnected) { mo.disconnect(); if (!document.querySelector('.noteview.cmpv')) document.body.classList.remove('cmpon'); if (dwFold !== fold0) { dwFold = fold0; pinDrawer(); } } }); mo.observe(document.body, { childList: true });
