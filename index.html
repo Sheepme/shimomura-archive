@@ -1777,8 +1777,8 @@ body:has(#tedbar) .cbar{display:none!important}
 /* ---------- 状態 ---------- */
 const S = { works:[], events:[], photos:[], places:[], exhibits:[], pubs:[], stack:[], pcur:null, cf:'all', cmain:false, me:'', ai:false,
   view:'home', wmode:'album', xnl:false, pnl:false, xt:'すべて', xq:'', xmain:false, pt:'すべて', pq:'', filter:'all', q:'', sort:'rand', limit:60, chat:[], cur:null };
-const FILTERS = [['all','すべて'],['自宅','自宅'],['美術館','美術館'],['個人蔵','個人蔵'],['委託中','委託中'],['flag','要確認'],['nophoto','写真なし'],['noname','作品名なし'],['noloc','保管場所不明'],['unconf','場所未確認'],['tmp','仮の写真'],['lack','情報が足りない'],['廃棄','廃棄']];
-const SUBF = { '美術館': {all:'すべての館', none:'（館名なし）'}, '委託中': {all:'すべての委託先', none:'（委託先なし）'} }; // 所在区分ごとのサブカテゴリ
+const FILTERS = [['all','すべて'],['自宅','自宅'],['美術館','美術館'],['個人蔵','個人蔵'],['委託中','思文閣'],['flag','要確認'],['nophoto','写真なし'],['noname','作品名なし'],['noloc','保管場所不明'],['unconf','場所未確認'],['tmp','仮の写真'],['lack','情報が足りない'],['廃棄','廃棄']];
+const SUBF = { '美術館': {all:'すべての館', none:'（館名なし）'} }; // 所在区分ごとのサブカテゴリ
 const LOC_KINDS = ['自宅','美術館','個人蔵','委託中','貸出中','その他','廃棄','不明'];
 const EVENT_TYPES = ['出品','掲載','画集掲載','寄贈','寄託','委託','販売','譲渡','貸出','返却','修復','移動','所在確認','廃棄','その他'];
 const KINDS = ['本画','下絵','習作','デッサン','その他'];
@@ -1789,7 +1789,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd408703cc6', APP_URL = location.origin + location.pathname;
+const BUILD = '6256e50f31', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2106,7 +2106,6 @@ function render(){ setTimeout(() => { try { tedBar(); } catch(e){} }, 0);
   $('#chips').innerHTML = FILTERS.map(([k,l]) => `<button class="chip ${S.filter===k?'on':''}" data-f="${k}">${l}<span class="cn">${fcnt(k)}</span></button>`).join('');
   if (SUBF[S.filter]) { const SF = SUBF[S.filter];
     const cnt = {}; S.works.forEach(w => { if (w['所在区分']===S.filter) { const m = w['所在']||SF.none; cnt[m] = (cnt[m]||0) + 1; } });
-    if (S.filter==='委託中' && !cnt['思文閣']) cnt['思文閣'] = 0;
     const ms = Object.keys(cnt).sort((a,b) => cnt[b]-cnt[a] || a.localeCompare(b,'ja'));
     if (S.mus && !cnt[S.mus]) S.mus = '';
     $('#subchips').innerHTML = `<button class="chip ${!S.mus?'on':''}" data-mus="">${SF.all}</button>` + ms.map(m => `<button class="chip ${S.mus===m?'on':''}" data-mus="${esc(m)}">${esc(m)}<span class="cn">${cnt[m]}</span></button>`).join('');
