@@ -1789,7 +1789,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '4ec74036c7', APP_URL = location.origin + location.pathname;
+const BUILD = 'd408703cc6', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2003,7 +2003,7 @@ function filtered(){
 }
 /* ---------- 写真（サーバー経由で読み込む） ---------- */
 const TH = {}; let thQueue = new Map(), thTimer = null;
-const HIDPH = id => !canEdit() && S.photos && /^転載元：[^｜]*｜[^｜]*｜非表示/.test((S.photos.find(p => p['ファイルID']===id) || {})['メモ'] || '');
+const HIDPH = id => !canEdit() && S.photos && /^(?:【仮】)?転載元：[^｜]*｜[^｜]*｜非表示/.test((S.photos.find(p => p['ファイルID']===id) || {})['メモ'] || '');
 const thImg = (id, w, cls) => HIDPH(id) ? '<div class="phhid">© 著作物のため<br>非表示</div>' : thImg0(id, w, cls);
 const thImg0 = (id, w, cls) => TH[w+'_'+id] ? `<img src="${TH[w+'_'+id]}" alt="" class="${cls||''}">` : `<img data-tid="${esc(id)}" data-w="${w}" alt="" class="${cls||''}">`;
 const io = ('IntersectionObserver' in window) ? new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting){ io.unobserve(en.target); queueThumb(en.target); } }), {rootMargin:'400px'}) : null;
@@ -2045,7 +2045,7 @@ function thumbHTML(no, w){
   return p ? thImg(p['ファイルID'], w) : '写真なし'; /* ルール：サムネイルには「©」「@」の権利表示を出さない（小さい枠からはみ出して崩れるため）。大きい写真と写真ビューアでだけ出す */
 }
 /* 権利のない（転載した）画像の上に、真ん中に小さく「© 権利元」を出す */
-const wm = p => { const m = /^転載元：([^｜]+)/.exec(String((p||{})['メモ']||'')); if (!m) return ''; const t = m[1].trim(); return `<span class="wm">${/^[@＠]/.test(t) ? esc(t) : '© ' + esc(t)}</span>`; }; // Webサイトから取り込んだ写真は「@サイト名」
+const wm = p => { const m = /^(?:【仮】)?転載元：([^｜]+)/.exec(String((p||{})['メモ']||'')); if (!m) return ''; const t = m[1].trim(); return `<span class="wm">${/^[@＠]/.test(t) ? esc(t) : '© ' + esc(t)}</span>`; }; // Webサイトから取り込んだ写真は「@サイト名」
 const PAGE_NM = {album:'作品アルバム', list:'作品リスト', works:'作品', ot:'その他', ex:'展覧会', pb:'画集', chrono:'年表', doc:'書類', ai:'作品', home:'作品'};
 function navOn(){ const nv = S.view;
   document.querySelectorAll('#fmPop button, #fmInline button').forEach(b => b.classList.toggle('on', b.dataset.v===nv));
@@ -2385,7 +2385,7 @@ async function evMergeRun(pairs, pick){
 }
 /* ---- 美術館などが撮影した画像（著作物）：メモ「転載元：館名｜URL｜非表示」 ----
    ・写真に「© 館名」を常に表示　・AI（写真の向きの判定など）に送らない　・「非表示」なら閲覧だけの人には出さない */
-function copyOf(p){ const m = /^転載元：(.*)$/.exec(String((p||{})['メモ']||'')); if (!m) return null; const [mu, u, h, n] = m[1].split('｜'); return { mu: mu||'', u: u||'', hide: h === '非表示', n: n||'' }; }
+function copyOf(p){ const m = /^(?:【仮】)?転載元：(.*)$/.exec(String((p||{})['メモ']||'')); if (!m) return null; const [mu, u, h, n] = m[1].split('｜'); return { mu: mu||'', u: u||'', hide: h === '非表示', n: n||'' }; }
 /* メモの形：転載元：名前｜出典URL｜非表示｜管理番号（後ろの3つは省略できる） */
 function copyMemo(mu, u, hide, n){ const cl = v => String(v||'').replace(/｜/g, ' ').trim(); mu = cl(mu); u = cl(u); n = cl(n);
   const parts = [mu, u, hide ? '非表示' : '', n]; while (parts.length > 1 && !parts[parts.length - 1]) parts.pop(); return '転載元：' + parts.join('｜'); }
@@ -4457,7 +4457,7 @@ let V = {list:[], i:0};
 function openViewer(i){ V.list = photoBy[S.cur]||[]; V.i = i; document.body.classList.add('vopen'); showV(); if ($('#viewer').classList.contains('hidden')) { hpush('v'); $('#viewer').classList.remove('hidden'); scrPush($('#viewer')); } }
 function closeViewer(fromHist){ const open = !$('#viewer').classList.contains('hidden'); if (open) scrPop($('#viewer')); $('#viewer').classList.add('hidden'); setTimeout(() => document.body.classList.remove('vopen'), 400); /* 閉じた直後のタップが下のメニューに届かないよう少し待つ */ if (open && !fromHist) hback(); }
 /* 美術館などから転載した画像の注意書き（写真のメモが「転載元：館名｜URL」のとき） */
-const creditHTML = ph => [...new Set((ph||[]).map(p => String(p['メモ']||'')).filter(m => /^転載元：/.test(m)).map(m => { const [mu, u] = m.slice(4).split('｜'); return (mu||'').trim() + '｜' + (u||'').trim(); }))].map(m => { // 同じ転載元は1つにまとめる
+const creditHTML = ph => [...new Set((ph||[]).map(p => String(p['メモ']||'')).filter(m => /^(?:【仮】)?転載元：/.test(m)).map(m => { const [mu, u] = m.replace(/^(?:【仮】)?転載元：/, '').split('｜'); return (mu||'').trim() + '｜' + (u||'').trim(); }))].map(m => { // 同じ転載元は1つにまとめる
   const [mu, u] = m.split('｜');
   return `<p class="credit">＊この画像は${/^[@＠]/.test(mu) ? 'Webサイト「' + esc(mu.slice(1)) + '」' : esc(mu)}から転載したものです。家族用の資料としての利用に限定します。転載したり誰かに渡す場合は、撮影元に確認を取ってください。${u ? `（<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u)}</a>）` : ''}</p>`; }).join('');
 function showV(){ const p = V.list[V.i]; if (!p) return;
@@ -4531,7 +4531,7 @@ async function rotatedB64(p, deg){
 }
 
 /* ---------- 写真の向きをAIでそろえる ---------- */
-const rotTarget = () => S.photos.filter(p => p['ファイルID'] && !/^転載元：/.test(p['メモ']||''));
+const rotTarget = () => S.photos.filter(p => p['ファイルID'] && !/^(?:【仮】)?転載元：/.test(p['メモ']||''));
 const rotParse = v => { const a = String(v||'').split('|'); if (a[0]==='') return null; return { deg: +a[0] || 0, conf: a[1] || '', label: a[2] || '', done: a[1]==='済', err: a[0]==='err' }; };
 function openRotTool(){
   const all = rotTarget(), R = p => rotParse(p['向き判定']);
