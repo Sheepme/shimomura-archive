@@ -1163,6 +1163,7 @@ body{background:var(--bg)}
 header{background:var(--glass);-webkit-backdrop-filter:saturate(160%) blur(16px);backdrop-filter:saturate(160%) blur(16px);border-bottom:1px solid var(--line);padding:8px 10px 0}
 .appbar{display:flex;align-items:center;gap:4px;min-height:48px;max-width:1200px;margin:0 auto;padding-bottom:6px}
 .appbar h1,.brand.appbar h1{flex:1;min-width:0;text-align:center;font:600 17px/1.2 var(--sans);letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:default}
+#top .appbar #btnBack{display:none!important}body.vhb:not(.pgopen):not(.scr) #top .appbar #btnBack{display:flex!important}
 .abtn{width:44px;height:44px;border:0;border-radius:12px;background:transparent;color:var(--ink);display:flex;align-items:center;justify-content:center;padding:0;flex:none}
 .abtn svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round}
 .abtn:active{background:var(--hov)}
@@ -1730,6 +1731,7 @@ body:has(#tedbar) .cbar{display:none!important}
   <div id="hdsp" aria-hidden="true"></div>
   <div class="brand appbar">
     <button type="button" class="abtn abmenu" id="btnMenu" aria-label="メニューを開く"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <button type="button" class="abtn" id="btnBack" aria-label="ひとつ前の画面にもどる"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
     <h1 id="abTitle">ホーム</h1>
     <div class="brandr"><div class="userbox" id="userbox"></div></div>
   </div>
@@ -1790,7 +1792,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'c03b9be25c', APP_URL = location.origin + location.pathname;
+const BUILD = 'cef0fa398e', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2083,7 +2085,22 @@ addEventListener('resize', () => pinDrawer());
 function openDrawer(){ if (isWide()) { if (dwAuto0) dwAutoOpen = !dwAutoOpen; else { dwFold = !dwFold; try { localStorage.setItem('smr_dw', dwFold ? '0' : '1'); } catch(e){} } pinDrawer(); setTimeout(() => { if (['album','ot'].includes(S.view)) render(); }, 240); return; }
   const d = $('#drawer'); document.body.classList.add('dwopen'); d.classList.remove('hidden'); d.setAttribute('aria-hidden', 'false'); requestAnimationFrame(() => d.classList.add('open')); setTimeout(markStuck, 240); }
 function closeDrawer(){ const d = $('#drawer'); if (d.classList.contains('hidden') || d.classList.contains('pin')) return; document.body.classList.remove('dwopen'); setTimeout(markStuck, 240); d.classList.remove('open'); d.setAttribute('aria-hidden', 'true'); setTimeout(() => d.classList.add('hidden'), 220); }
-function render(){ setTimeout(() => { try { tedBar(); } catch(e){} }, 0);
+/* ---------- 一覧の移動（ホーム→作品リスト→書類…）も覚えて、「戻る」で1つ前の画面に戻す ---------- */
+const VH = [], VST = { cur: null, restoring: false, page: null };
+function vsnap(){ return { view: S.view, wmode: S.wmode, filter: S.filter, mus: S.mus, dmode: S.dmode, dpath: (S.dpath || []).slice(), otk: S.otk, q: S.q || '', limit: S.limit, y: window.scrollY }; }
+const vkey = s => s ? [s.view, s.filter, s.mus, s.dmode, (s.dpath || []).join('/'), s.otk].join('|') : '';
+function vbSync(){ document.body.classList.toggle('vhb', VH.length > 0); }
+function vTrack(){ const s = vsnap(); if (VST.restoring) { VST.cur = s; return; }
+  if (VST.cur && S.user && vkey(VST.cur) !== vkey(s)) { const prev = Object.assign({}, VST.cur, VST.page ? { page: VST.page } : {}); VH.push(prev); if (VH.length > 60) VH.shift(); let n = 0; const go = () => { if (HIST.skip > 0 && n++ < 30) return setTimeout(go, 50); hpush('v'); }; go(); } /* 閉じる途中（ブラウザの戻る待ち）なら、それが終わってから履歴を積む */
+  VST.page = null; VST.cur = s; vbSync(); }
+function vBack(){ const s = VH.pop(); vbSync(); if (!s) return false; VST.restoring = true;
+  try { Object.assign(S, { view: s.view, wmode: s.wmode, filter: s.filter, mus: s.mus, dmode: s.dmode, dpath: s.dpath, otk: s.otk, q: s.q, limit: Math.max(S.limit || 60, s.limit || 60) }); if ($('#q')) $('#q').value = s.q || ''; render(); }
+  finally { VST.restoring = false; } VST.cur = vsnap(); setTimeout(() => window.scrollTo(0, s.y || 0), 30);
+  if (s.page && s.page.pcur) { const p = s.page.pcur, f = ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[p.t]; if (f) { S.stack = s.page.stack || []; f(p.id); } }
+  return true; }
+addEventListener('scroll', () => { if (VST.cur && !VST.restoring && $('#page').classList.contains('hidden') && !SCR.length) VST.cur.y = window.scrollY; }, { passive: true });
+function render(){ const r = render0.apply(this, arguments); try { vTrack(); } catch(e){} return r; }
+function render0(){ setTimeout(() => { try { tedBar(); } catch(e){} }, 0);
   document.body.classList.toggle('vhome', S.view === 'home'); document.body.dataset.pv = S.view; // （data-view は写真を開くボタンの印なので使わない）
   { const dq = document.getElementById('dwq'); if (dq && document.activeElement !== dq && typeof SQ !== 'undefined') { const s = SQ[S.view]; dq.value = s ? (S[s[0]] || '') : ''; dq.placeholder = ({ex:'展覧会を探す', pb:'画集・資料を探す', ot:'その他の作品を探す'})[S.view] || '作品を探す'; } }
   setTimeout(() => { try { stkTop(); } catch(e){} }, 0);
@@ -4670,11 +4687,11 @@ function hpush(tag){ const h = hist_(); if (h) try { h.push({ o: tag, t: Date.no
 function hback(){ if (!hist_()) return; HIST.skip++; try { history.back(); } catch(e){ HIST.skip--; } setTimeout(() => { if (HIST.skip > 0) HIST.skip = Math.max(0, HIST.skip - 1); }, 1500); }
 function closeTop(){
   if (!$('#confirm').classList.contains('hidden')) return closeConfirm(true), true;
-  if (SCR.length) return scrBack(true); // 開いた順に1枚ずつ戻る
+  if (SCR.length) { scrBack(true); return true; } // 開いた順に1枚ずつ戻る
   if (!$('#page').classList.contains('hidden')) return closeWork(true), true;
   return false;
 }
-(function(){ const h = hist_(); if (h) try { h.setChangeHandler(() => { if (HIST.skip > 0) { HIST.skip--; return; } closeTop(); }); } catch(e){} })();
+(function(){ const h = hist_(); if (h) try { h.setChangeHandler(() => { if (HIST.skip > 0) { HIST.skip--; return; } if (!closeTop()) vBack(); }); } catch(e){} })();
 /* 日付：書き方は自由（2001/01/12・H260912・2012.09.23・平成26年9月12日・20120923 など）、保存は「YYYY/MM/DD」にそろえる。読めないときはそのまま */
 const ERA = { '明治': 1867, '大正': 1911, '昭和': 1925, '平成': 1988, '令和': 2018, M: 1867, T: 1911, S: 1925, H: 1988, R: 2018 };
 function normDate(v){ const s0 = String(v == null ? '' : v).normalize('NFKC').trim(); if (!s0) return null; const s = s0.replace(/\s+/g, '').replace(/[（(][月火水木金土日祝・]+[)）]/g, '');
@@ -5367,7 +5384,7 @@ async function ask(q){
 /* ---------- フローティングメニュー ---------- */
 function hidePop(){ $('#fmPop').classList.add('hidden'); }
 function closeOverlays(){ for (let n = 0; n < 12 && SCR.length; n++) { const top = SCR.pop(); if (top.id === 'sheet') { top.classList.add('hidden'); $('#sheetbox').innerHTML = ''; $('#sheetbox').classList.remove('split'); S.sheetDoc = null; } else if (top.id === 'viewer') top.classList.add('hidden'); else top.remove(); } scrHead(); }
-function closeAllPages(){ if (SCR.length) closeOverlays(); /* 書類・見比べなど重ねた画面も閉じる（メニューから移動したとき） */ S.stack = []; if (!$('#page').classList.contains('hidden')) closeWork(); }
+function closeAllPages(){ if (S.pcur && !$('#page').classList.contains('hidden')) VST.page = { pcur: Object.assign({}, S.pcur), stack: (S.stack || []).slice() }; if (SCR.length) closeOverlays(); /* 書類・見比べなど重ねた画面も閉じる（メニューから移動したとき） */ S.stack = []; if (!$('#page').classList.contains('hidden')) closeWork(); }
 const SQ = {album:['q','作品名・番号・年・美術館名で探す'], list:['q','作品名・番号・年・美術館名で探す'], ex:['xq','展覧会名・会場・年で探す'], pb:['pq','書名・発行元・年で探す'], ot:['oq','名前・年・場所で探す']};
 function openSearch(){
   hidePop(); closeAllPages();
@@ -5417,6 +5434,7 @@ document.addEventListener('click', e => {
   if (!$('#fmPop').classList.contains('hidden') && !e.target.closest('#fmPop, #fmPage')) hidePop();
   const t = e.target.closest('button, [data-close]'); if (!t) return;
   if (t.id==='fmPage'){ $('#fmPop').classList.toggle('hidden'); $('#fmSearch').classList.add('hidden'); return; }
+  if (t.id==='btnBack'){ if (hist_()) history.back(); else vBack(); return; }
   if (t.id==='btnMenu'){ if (SCR.length) { scrBack(); return; } if (!$('#page').classList.contains('hidden')) { closeWork(); return; } openDrawer(); return; } /* いつも「←もどる」 */
   if (t.id==='dwX'){ if (isWide()) openDrawer(); else closeDrawer(); return; }
   if (t.dataset.dwclose){ closeDrawer(); return; }
