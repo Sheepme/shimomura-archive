@@ -1788,7 +1788,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '4e1c8c391a', APP_URL = location.origin + location.pathname;
+const BUILD = 'a00cda268b', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1922,6 +1922,17 @@ async function save(fn, args, msg){
 
 /* ---------- 変更内容の確認 ---------- */
 /* rows: [[項目, 変更前, 変更後], ...]  変更前が null の行は「新しく追加」 */
+/* 作品情報の速い保存：画面を先に書き換えて、保存は裏で（待たない）。失敗したら知らせて元に戻す */
+async function quickWorkSave(list, msg){ list = (list || []).filter(x => x && x.no && x.patch && Object.keys(x.patch).length); if (!list.length) return null;
+  if (list.some(x => isOtNo(x.no) && x.patch['種別'])) return list.length === 1 ? save('updateWork', [list[0].no, list[0].patch], msg) : save('updateWorks', [list], msg); /* その他の作品の種類替え（番号が変わる）は今までどおり */
+  const now = new Date(), ts = now.getFullYear() + '/' + String(now.getMonth() + 1).padStart(2, '0') + '/' + String(now.getDate()).padStart(2, '0') + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+  list.forEach(({ no, patch }) => { const w = (S.works || []).concat(S.others || []).find(x => String(x['作品番号']) === String(no)); if (w) Object.assign(w, patch, { '最終更新日時': ts, '最終更新者': (S.user || {}).name || '' }); });
+  index(); closeSheet(); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+  toast(msg || '保存しました'); BGS.n++; bgShow('保存しています…');
+  try { try { list.length === 1 ? await call('updateWorkQ', list[0].no, list[0].patch) : await call('updateWorksQ', list); }
+    catch(e){ if (!/この操作はできません/.test(e.message || e)) throw e; list.length === 1 ? await call('updateWork', list[0].no, list[0].patch) : await call('updateWorks', list); } } /* まだデプロイ前なら今までの方法で */
+  catch(e){ alert('保存できませんでした。もう一度やり直してください。\n' + (e.message || e)); refreshData().catch(() => {}); }
+  finally { BGS.n--; bgShow(); } return null; }
 function confirmSave(title, rows, fn, args, msg){
   rows = rows.filter(r => r[1] === null || String(r[1]||'') !== String(r[2]||''));
   if (!rows.length) { toast('変更はありません'); return Promise.resolve(null); }
@@ -1935,7 +1946,7 @@ function confirmSave(title, rows, fn, args, msg){
   $('#confirm').classList.remove('hidden');
   return new Promise(res => {
     $('#cfBack').onclick = () => { closeConfirm(); res(null); };
-    $('#cfOk').onclick = async () => { closeConfirm(); res(await save(fn, args, msg)); };
+    $('#cfOk').onclick = async () => { closeConfirm(); res(fn === 'updateWork' && !(isOtNo(args[0]) && args[1] && args[1]['種別']) ? await quickWorkSave([{ no: args[0], patch: args[1] }], msg) : await save(fn, args, msg)); };
   });
 }
 function closeConfirm(fromHist){ const open = !$('#confirm').classList.contains('hidden'); $('#confirm').classList.add('hidden'); $('#confirmbox').innerHTML=''; if (open && !fromHist) hback(); }
@@ -4776,7 +4787,7 @@ function inlineEdit(btn, no, f){
   const first = dd.querySelector('.iein'); setTimeout(() => { first.focus(); if (first.select && first.tagName === 'INPUT') first.select(); }, 30);
   const go = () => { const patch = {}; dd.querySelectorAll('.iein').forEach(i => { const v = i.value.trim(); if (v !== String(w[i.dataset.k]||'')) patch[i.dataset.k] = v; });
     if (!Object.keys(patch).length) { inlineCancel(); return; }
-    dd.querySelectorAll('button,.iein').forEach(x => x.disabled = true); save('updateWork', [no, patch], '保存しました'); };
+    dd.querySelectorAll('button,.iein').forEach(x => x.disabled = true); quickWorkSave([{ no, patch }], '保存しました'); };
   dd.querySelector('[data-ie="ok"]').onclick = e => { e.stopPropagation(); go(); };
   dd.querySelector('[data-ie="no"]').onclick = e => { e.stopPropagation(); inlineCancel(); };
   dd.querySelectorAll('.iein').forEach(i => i.addEventListener('keydown', e => {
@@ -6244,6 +6255,7 @@ function tedSet(inp){ const no = inp.dataset.tno, f = inp.dataset.tf, o = String
   if (v === o) { if (TED[no]) { delete TED[no][f]; if (!Object.keys(TED[no]).length) delete TED[no]; } } else (TED[no] = TED[no] || {})[f] = v;
   inp.classList.toggle('chg', v !== o); tedBar(); }
 async function tedSave(){ const list = Object.keys(TED).map(no => ({ no, patch: Object.assign({}, TED[no]) })); if (!list.length) return;
+  if (!list.some(x => isOtNo(x.no) && x.patch['種別'])) { Object.keys(TED).forEach(k => delete TED[k]); return quickWorkSave(list, list.length + '作品を保存しました'); }
   busy(true, list.length + '作品を保存しています…');
   try { let res; try { res = await call('updateWorks', list); } catch(e){ if (!/この操作はできません/.test(e.message || e)) throw e; for (const x of list) res = await call('updateWork', x.no, x.patch); } /* まだデプロイ前なら1件ずつ */
     Object.keys(TED).forEach(k => delete TED[k]); setData(res); busy(false); render(); toast(list.length + '作品を保存しました'); }
