@@ -1701,6 +1701,18 @@ body.wide.pgopen #top .appbar #btnMenu,body.wide.scr #top .appbar #btnMenu{displ
 .evsrcbox.open{display:block;margin:6px 0 4px!important;padding:0!important;background:transparent!important}.evsdocs{display:flex;gap:6px;overflow-x:auto;margin:0 0 6px;scrollbar-width:none}.evsdocs button{flex:0 0 auto;max-width:70%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font:inherit;font-size:13px;cursor:pointer}.evsdocs button.on{background:var(--ink);color:var(--inv);border-color:var(--ink)}.evsdt{margin:0 0 6px;font-size:13px;color:var(--sub)}
 .devs .dtr{position:relative}.devgo{font-style:normal;margin-left:auto;align-self:center;opacity:.7}.devpv{margin:2px 0 8px!important}
 .evfix{display:block;width:100%;margin:8px 0 2px;padding:10px;border:1px dashed var(--line);border-radius:10px;background:transparent;color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
+.eyebrow.wno{font-size:15px;font-weight:700;color:var(--sub);font-variant-numeric:tabular-nums;margin-bottom:2px}
+
+.tin{width:100%;box-sizing:border-box;height:34px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink);font:inherit;font-size:14.5px}
+.tin:focus{outline:2px solid #2f7cf6;outline-offset:-1px;border-color:transparent}
+.tin.chg{background:color-mix(in srgb,#f5c542 30%,var(--paper));border-color:#d9a514}
+.tsz,.tlc{display:flex;gap:4px;align-items:center}.tsz i{font-style:normal;color:var(--sub)}.tlc .tin:first-child{flex:0 0 38%}
+.wtwrap.ed tbody tr{cursor:default}.wtwrap.ed td{padding-top:4px;padding-bottom:4px}
+.prbtn.on{background:var(--ink);color:var(--inv);border-color:var(--ink)}.tedh{margin:0 0 8px}
+#tedbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom));z-index:450;display:flex;align-items:center;gap:10px;padding:8px 8px 8px 18px;border-radius:999px;background:var(--paper);color:var(--ink);box-shadow:0 8px 28px rgba(0,0,0,.3);border:1px solid var(--line);font-size:14.5px;white-space:nowrap}
+#tedbar button{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:8px 14px;font:inherit;font-size:14px;cursor:pointer}#tedbar button.primary{background:var(--ink);color:var(--inv);border-color:var(--ink);font-weight:700}#tedbar button:disabled{opacity:.4;cursor:default}
+body:has(#tedbar) .cbar{display:none!important}
+@media (max-width:899px){.tedx{display:none}}
 </style>
 </head>
 <body>
@@ -1768,7 +1780,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '809f681493', APP_URL = location.origin + location.pathname;
+const BUILD = '9485a38f11', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2050,7 +2062,7 @@ addEventListener('resize', () => pinDrawer());
 function openDrawer(){ if (isWide()) { if (dwAuto0) dwAutoOpen = !dwAutoOpen; else { dwFold = !dwFold; try { localStorage.setItem('smr_dw', dwFold ? '0' : '1'); } catch(e){} } pinDrawer(); setTimeout(() => { if (['album','ot'].includes(S.view)) render(); }, 240); return; }
   const d = $('#drawer'); document.body.classList.add('dwopen'); d.classList.remove('hidden'); d.setAttribute('aria-hidden', 'false'); requestAnimationFrame(() => d.classList.add('open')); setTimeout(markStuck, 240); }
 function closeDrawer(){ const d = $('#drawer'); if (d.classList.contains('hidden') || d.classList.contains('pin')) return; document.body.classList.remove('dwopen'); setTimeout(markStuck, 240); d.classList.remove('open'); d.setAttribute('aria-hidden', 'true'); setTimeout(() => d.classList.add('hidden'), 220); }
-function render(){
+function render(){ setTimeout(() => { try { tedBar(); } catch(e){} }, 0);
   document.body.classList.toggle('vhome', S.view === 'home'); document.body.dataset.pv = S.view; // （data-view は写真を開くボタンの印なので使わない）
   { const dq = document.getElementById('dwq'); if (dq && document.activeElement !== dq && typeof SQ !== 'undefined') { const s = SQ[S.view]; dq.value = s ? (S[s[0]] || '') : ''; dq.placeholder = ({ex:'展覧会を探す', pb:'画集・資料を探す', ot:'その他の作品を探す'})[S.view] || '作品を探す'; } }
   setTimeout(() => { try { stkTop(); } catch(e){} }, 0);
@@ -2096,13 +2108,13 @@ function render(){
     S.masN = N;
     { const [a1, b1] = colRange(); $('#colPlus').disabled = N <= a1; $('#colMinus').disabled = N >= b1; }
     html = '<div style="--mr:' + masR(N) + 'px" class="mas' + (N >= 4 && innerWidth < 700 ? ' dense' : N >= 3 && innerWidth < 700 ? ' mid' : '') + '">' + cols.map(c => '<div class="mcol">' + c.join('') + '</div>').join('') + '</div>';
-  } else if (wideList()) {
+  } else if (wideList() || (S.tedit && S.view === 'list')) { /* まとめて編集中は、スマホでも表で出す */
     html = worksTable(list);
   } else {
     S.wideL = false; S.tblM = true;
     html = '<div class="list mcl">' + shown.map(mcard).join('') + '</div>';
   }
-  if (S.view === 'list' && list.length) html = `<div class="prrow"><button type="button" class="prbtn" data-print="1">🖨 印刷する（A4）</button></div>` + html;
+  if (S.view === 'list' && list.length) html = `<div class="prrow">${canEdit() ? `<button type="button" class="prbtn ${S.tedit ? 'on' : ''}" data-tedit="1">${S.tedit ? '✓ 編集を終える' : '✎ まとめて編集'}</button>` : ''}<button type="button" class="prbtn" data-print="1">🖨 印刷する（A4）</button></div>${S.tedit ? '<p class="hint tedh">マスを書き換えて、下の「保存する」でまとめて保存。<span class="tedx">Enterで下のマスへ。スプレッドシートからの貼り付けもできます。</span></p>' : ''}` + html;
   if (list.length > S.limit && !(S.view==='list' && S.wideL)) html += `<button class="more" id="more">もっと見る（残り${list.length-S.limit}件）</button>`;
   if (!list.length) html = '<p style="text-align:center;color:var(--sub);padding:40px 0">見つかりませんでした</p>';
   if (canEdit() && (list.length <= S.limit || (S.view==='list' && S.wideL))) html += '<button class="addrow" data-addk="w" style="margin-top:28px"><span class="plus">＋</span><span>新しい作品を登録する</span></button>';
@@ -3998,7 +4010,7 @@ function openWork(no, keepScroll, restoreSc){
       ${ph.length>1?`<div class="dots">${ph.map((p,i)=>`<span class="${i?'':'on'}" data-dot="${i}"></span>`).join('')}</div>`:''}
       ${creditHTML(ph)}
       </div><div class="textcol">
-      ${ot ? `<div class="eyebrow">${esc(w['種別']||'その他')}</div>` : ''}
+      <div class="eyebrow wno">${ot ? esc(no) + '　' + esc(w['種別']||'その他') : esc(nol(no))}</div>
       <h2 class="title">${w['作品名']?esc(w['作品名']):`<span class="untitled" style="font-size:24px">${ot ? '名前なし' : '無題'}</span>`}</h2>
       ${w['作品名メモ']?`<div class="subtitle">${esc(w['作品名メモ'])}</div>`:''}
       <div class="tombstone">${esc([w['制作年']||'制作年不明', w['画材'], dimTxt(w, false, ' cm')].filter(Boolean).join('　|　'))}</div>
@@ -6211,13 +6223,43 @@ function tblSort(list){ const srt = S.tsort || {k:'', d:1};
   if (srt.k) { const c = WCOLS.find(c => c[0]===srt.k) || (srt.k==='no' ? ['no','',null,w => w['作品番号']] : srt.k==='tt' ? ['tt','',null,w => w['作品名']||''] : null);
     if (c) { const key = c[3] || c[2]; list = list.slice().sort((a, b) => { const x = key(a), y = key(b); return (typeof x==='number' && typeof y==='number' ? x - y : String(x).localeCompare(String(y), 'ja', {numeric:true})) * srt.d; }); } }
   return list; }
-function worksTable(list){
+/* ---------- 作品リストのまとめて編集（スプレッドシートのように） ---------- */
+const TED = {};
+const tedN = () => Object.values(TED).reduce((a, o) => a + Object.keys(o).length, 0);
+function tedBar(){ let b = document.getElementById('tedbar'); const n = tedN();
+  if (!S.tedit || S.view !== 'list') { if (b) b.remove(); return; }
+  if (!b) { b = document.createElement('div'); b.id = 'tedbar'; document.body.appendChild(b); }
+  b.innerHTML = `<span>${n ? `変更 <b>${n}</b> か所` : '変更はまだありません'}</span><button type="button" data-tedundo="1" ${n ? '' : 'disabled'}>元に戻す</button><button type="button" class="primary" data-tedsave="1" ${n ? '' : 'disabled'}>保存する</button>`; }
+function tedSet(inp){ const no = inp.dataset.tno, f = inp.dataset.tf, o = String((workOf(no)||{})[f] ?? ''), v = inp.value.trim();
+  if (v === o) { if (TED[no]) { delete TED[no][f]; if (!Object.keys(TED[no]).length) delete TED[no]; } } else (TED[no] = TED[no] || {})[f] = v;
+  inp.classList.toggle('chg', v !== o); tedBar(); }
+async function tedSave(){ const list = Object.keys(TED).map(no => ({ no, patch: Object.assign({}, TED[no]) })); if (!list.length) return;
+  busy(true, list.length + '作品を保存しています…');
+  try { let res; try { res = await call('updateWorks', list); } catch(e){ if (!/この操作はできません/.test(e.message || e)) throw e; for (const x of list) res = await call('updateWork', x.no, x.patch); } /* まだデプロイ前なら1件ずつ */
+    Object.keys(TED).forEach(k => delete TED[k]); setData(res); busy(false); render(); toast(list.length + '作品を保存しました'); }
+  catch(e){ busy(false); alert('保存できませんでした：' + (e.message || e)); } }
+document.addEventListener('input', e => { if (e.target.classList && e.target.classList.contains('tin')) tedSet(e.target); });
+document.addEventListener('keydown', e => { const t = e.target; if (!t.classList || !t.classList.contains('tin') || e.key !== 'Enter' || e.isComposing) return; e.preventDefault();
+  const all = [...document.querySelectorAll(`#wtwrap .tin[data-tf="${t.dataset.tf}"]`)], k = all.indexOf(t), nx = all[k + (e.shiftKey ? -1 : 1)]; if (nx) { nx.focus(); nx.select(); } });
+document.addEventListener('paste', e => { const t = e.target; if (!t.classList || !t.classList.contains('tin')) return; const tx = (e.clipboardData || window.clipboardData).getData('text'); if (!/[\t\n]/.test(tx.replace(/\n$/, ''))) return; e.preventDefault();
+  const rows = tx.replace(/\r/g, '').replace(/\n$/, '').split('\n').map(r => r.split('\t')), trs = [...document.querySelectorAll('#wtwrap tr[data-wrow]')], tr = t.closest('tr'), ri = trs.indexOf(tr), cols = [...tr.querySelectorAll('.tin')], ci = cols.indexOf(t);
+  rows.forEach((r, i) => { const row = trs[ri + i]; if (!row) return; const ins = [...row.querySelectorAll('.tin')]; r.forEach((v, j) => { const inp = ins[ci + j]; if (inp) { inp.value = v.trim(); tedSet(inp); } }); });
+  toast(rows.length + '行を貼り付けました'); });
+document.addEventListener('click', e => { const t = e.target.closest('[data-tedit],[data-tedsave],[data-tedundo]'); if (!t) return;
+  if (t.dataset.tedit) { if (S.tedit && tedN() && !confirm('保存していない変更が ' + tedN() + ' か所あります。保存せずに編集を終えますか？')) return; if (S.tedit) Object.keys(TED).forEach(k => delete TED[k]); S.tedit = !S.tedit; render(); tedBar(); return; }
+  if (t.dataset.tedsave) { tedSave(); return; }
+  if (t.dataset.tedundo) { if (!confirm('変更したマスをすべて元に戻しますか？')) return; Object.keys(TED).forEach(k => delete TED[k]); render(); tedBar(); } });
+function worksTable(list){ setTimeout(tedBar, 0);
   S.wideL = true; const M = S.tblM = tblMobile();
   const srt = S.tsort || {k:'', d:1}; list = tblSort(list);
   const shown = list, nil = '<span class="nil">—</span>', lk = lacks; // 表では全件を出す（見出しを固定するため、表の中でスクロール）
   const SH = {sz:'サイズ', lc:'場所', ck:'確認', ev:'展覧会・画集', up:'更新'};
   const th = (k, t, cls) => `<th class="${cls||''} ${srt.k===k?'on':''}" data-tsort="${k}">${M && SH[k] ? SH[k] : t}<span class="ar">${srt.k===k ? (srt.d>0?'▲':'▼') : '↕'}</span></th>`;
+  const ED = !!S.tedit, ti = (no, f, ph, dl) => { const o = String((workOf(no)||{})[f] ?? ''), v = TED[no] && f in TED[no] ? TED[no][f] : o; return `<input class="tin${v !== o ? ' chg' : ''}" data-tno="${esc(no)}" data-tf="${esc(f)}" value="${esc(v)}" placeholder="${esc(ph||'')}"${dl ? ` list="${dl}"` : ''} autocomplete="off">`; };
   const cell = (w, c) => { const [k] = c, no = w['作品番号'];
+    if (ED) { if (k==='yr') return ti(no, '制作年', '例 1978'); if (k==='sz') return `<div class="tsz">${ti(no, '幅cm', '幅')}<i>×</i>${ti(no, '高さcm', '高さ')}</div>`;
+      if (k==='md') return ti(no, '画材', '', 'dlMd'); if (k==='kd') return ti(no, '種別', '', 'dlKd'); if (k==='sr') return ti(no, 'シリーズ', '', 'dlSr');
+      if (k==='lc') return `<div class="tlc">${ti(no, '所在区分', '区分', 'dlLk')}${ti(no, '所在', '場所')}</div>`; }
     if (k==='lc') { const kind = w['所在区分'], pl = [w['所在'], w['自宅エリア'] && !String(w['所在']||'').includes(w['自宅エリア']) ? 'エリア' + w['自宅エリア'] : ''].filter(Boolean).join(' ').replace(new RegExp('^' + (kind||'#') + '\\s*'), '');
       return kind && kind!=='不明' ? `<div class="lcw"><span class="wloc">${esc(kind)}</span><span class="locp" title="${esc(pl)}">${esc(pl && pl!==kind ? pl : '')}</span></div>` : '<span class="lack">不明</span>'; }
     if (k==='ck') return w['場所確認日'] ? `<span class="ok" title="${esc(String(w['場所確認日']).slice(0,10))} 確認">✓</span>` : nil;
@@ -6233,16 +6275,17 @@ function worksTable(list){
   const head = `<thead><tr>${th('no', 'No.', 'c-no')}<th class="c-ph"></th>${th('tt', '作品名', 'c-tt')}${WCOLS.map(c => th(c[0], c[1], c[0]==='ph' ? 'num' : '')).join('')}</tr></thead>`;
   setTimeout(wtSync, 0);
   const tv = `--wno:${wn}px;--wph:${w0}px;width:${tw}px`;
-  return `<div class="wthd ${M?'m':''}" id="wthd"><table class="wtbl ${M?'m':''}" style="${tv}">${cg}${head}</table></div><div class="wtwrap ${M?'m':''}" id="wtwrap"><table class="wtbl ${M?'m':''}" style="${tv}">${cg}<tbody>`
+  const dl = (id, f) => `<datalist id="${id}">${[...new Set(S.works.map(w => String(w[f]||'').trim()).filter(Boolean))].slice(0, 200).map(v => `<option value="${esc(v)}">`).join('')}</datalist>`;
+  return (ED ? dl('dlMd', '画材') + dl('dlKd', '種別') + dl('dlSr', 'シリーズ') + dl('dlLk', '所在区分') : '') + `<div class="wthd ${M?'m':''} ${ED?'ed':''}" id="wthd"><table class="wtbl ${M?'m':''}" style="${tv}">${cg}${head}</table></div><div class="wtwrap ${M?'m':''} ${ED?'ed':''}" id="wtwrap"><table class="wtbl ${M?'m':''}" style="${tv}">${cg}<tbody>`
     + shown.map(w => { const no = w['作品番号'];
       return `<tr data-wrow="${esc(no)}"><td class="c-no">${esc(isOtNo(no) ? no : no)}</td><td class="c-ph"><div class="tph">${(photoBy[no]||[]).length ? thumbHTML(no, 200) : ''}</div></td>
-        <td class="c-tt"><div class="ttt">${w['作品名'] ? esc(w['作品名']) : '<span class="lack">無題</span>'}</div></td>
+        <td class="c-tt">${ED ? ti(no, '作品名', '無題') : `<div class="ttt">${w['作品名'] ? esc(w['作品名']) : '<span class="lack">無題</span>'}</div>`}</td>
         ${WCOLS.map(c => `<td class="${c[0]==='ph' ? 'num' : c[0]==='fl' ? 'c-fl' : ''}">${cell(w, c)}</td>`).join('')}</tr>`; }).join('')
     + '</tbody></table></div>';
 }
 document.addEventListener('click', e => {
   const h = e.target.closest('[data-tsort]'); if (h) { const k = h.dataset.tsort, cur = S.tsort || {}; S.tsort = cur.k===k ? (cur.d>0 ? {k, d:-1} : {k:'', d:1}) : {k, d:1}; const y = scrollY; render(); scrollTo(0, y); return; }
-  const r = e.target.closest('tr[data-wrow]'); if (r) openWork(r.dataset.wrow);
+  if (e.target.closest('.tin')) return; const r = e.target.closest('tr[data-wrow]'); if (r && !S.tedit) openWork(r.dataset.wrow);
 });
 
 /* 表の見出しを画面の上に固定し、横スクロールを本体と合わせる */
