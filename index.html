@@ -1741,7 +1741,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'e57d0432ce', APP_URL = location.origin + location.pathname;
+const BUILD = '44ddfd1ef3', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2688,12 +2688,25 @@ async function hydrateDocs(root){
 }
 /* PDF：一度開いたものはスマホ・パソコンの中に保存して、次からすぐ開く */
 const DPDF = {};
-async function pdfBlobUrl(fid){ if (DPDF[fid]) return DPDF[fid];
+const DPDFP = {};
+function pdfBlobUrl(fid){ if (DPDF[fid]) return Promise.resolve(DPDF[fid]); return DPDFP[fid] || (DPDFP[fid] = pdfBlobUrl0(fid).catch(e => { delete DPDFP[fid]; throw e; })); } /* 同じPDFを同時に2回取りに行かない */
+async function pdfBlobUrl0(fid){ if (DPDF[fid]) return DPDF[fid];
   let b = (await thGet(['pdf_' + fid]))['pdf_' + fid];
   if (!b) { b = await (await fetch(await call('getPdf', fid))).blob(); thPut({['pdf_' + fid]: b}); }
-  try { let L = JSON.parse(localStorage.getItem('smr_pdfs') || '[]').filter(x => x !== fid); L.push(fid); // PDFは最近開いた5件だけ保存（容量を使いすぎない）
-    const old = L.slice(0, Math.max(0, L.length - 5)); L = L.slice(-5); localStorage.setItem('smr_pdfs', JSON.stringify(L)); if (old.length) thDel(old.map(x => 'pdf_' + x)); } catch(e){}
+  try { let L = JSON.parse(localStorage.getItem('smr_pdfs') || '[]').filter(x => x !== fid); L.push(fid); // PDFは最近開いた40件まで端末に保存（2回目からはすぐ開く）
+    const old = L.slice(0, Math.max(0, L.length - 40)); L = L.slice(-40); localStorage.setItem('smr_pdfs', JSON.stringify(L)); if (old.length) thDel(old.map(x => 'pdf_' + x)); } catch(e){}
   return DPDF[fid] = URL.createObjectURL(b); }
+/* 先読み：作品ページや書類を開いたら、関係するPDFを裏で取っておく（ハイライトを押した時にすぐ出る） */
+const PFQ = { q: [], on: false };
+function pdfPrefetch(fids){ try { if (navigator.connection && navigator.connection.saveData) return; } catch(e){}
+  (fids || []).filter(Boolean).forEach(f => { if (!DPDF[f] && !DPDFP[f] && PFQ.q.indexOf(f) < 0) PFQ.q.push(f); }); PFQ.q = PFQ.q.slice(-6);
+  if (PFQ.on) return; PFQ.on = true;
+  const next = () => { const f = PFQ.q.shift(); if (!f) { PFQ.on = false; return; } pdfDocOf(f).catch(() => {}).then(() => setTimeout(next, 300)); }; /* PDFの部品（pdf.js）も一緒に準備 */
+  setTimeout(next, 800); }
+const docPdfFid = d => { const r = docRes(d); return r.PDF ? docPages(d)[0] : ''; };
+function prefetchWorkPdfs(no){ try { const ids = new Set(); (S.events || []).forEach(e => { if (String(e['作品番号']) === String(no)) String(e['根拠・出典'] || '').replace(/D-\d+/g, m => ids.add(m)); });
+  (S.docs || []).forEach(d => { if (String(d['作品番号'] || '').split(',').map(x => x.trim()).includes(String(no))) ids.add(d['書類ID']); });
+  pdfPrefetch([...ids].map(id => docById(id)).filter(Boolean).map(docPdfFid)); } catch(e){} }
 function docView(fid){
   const el = document.createElement('div'); el.className = 'docview';
   el.innerHTML = `<div class="dvbar"><button type="button" class="vclose scrback" style="position:static">← 戻る</button><span>指で広げると拡大できます</span></div><div class="dvsc">${docImg(fid, 1600)}</div>`;
@@ -2882,7 +2895,7 @@ const wLabel = no => { const w = workOf(no); return w ? (isOtNo(no) ? no : nol(n
 const noOf = v => { const t = String(v||'').normalize('NFKC'), o = t.match(/(?:^|[^A-Za-z])([YHZ])\s*-?\s*(\d{1,3})(?!\d)/i);
   if (o) { const id = o[1].toUpperCase() + ('00' + o[2]).slice(-3); if (otById[id]) return id; }
   const m = t.match(/(?:No\.?\s*)?(\d{1,4})/i); if (!m) return ''; const n = m[1], p = ('000' + n).slice(-3); return workOf(n) ? n : workOf(p) ? p : ''; };
-function sheetDocReview(id){
+function sheetDocReview(id){ try { const d0 = docById(id); if (d0) pdfPrefetch([docPdfFid(d0)]); } catch(e){}
   const d = docById(id); if (!d) return;
   const r = docRes(d), pg = docPages(d), st = d['状態'];
   const imgs = `<div class="dpages rv">${pg.map((f, i) => `<span class="dpgi" data-dv="${esc(f)}">${docImg(f, 400)}<b>${i+1}</b></span>`).join('')}</div><p class="hint" style="margin-top:4px">写真を押すと大きく見られます</p>`;
@@ -3882,7 +3895,7 @@ document.addEventListener('input', e => { const el = e.target; if (!el.matches |
   box.onclick = ev => { const b = ev.target.closest('[data-wno]'); if (!b) return; el.value = wLabel(b.dataset.wno); box.innerHTML = ''; el.dispatchEvent(new Event('change', {bubbles: true})); el.blur(); };
 });
 function openWork(no, keepScroll, restoreSc){
-  const w = workOf(no); if (!w) return;
+  const w = workOf(no); if (!w) return; if (S.user && canEdit()) prefetchWorkPdfs(no);
   const ot = isOtNo(no), NO = ot ? no : 'No. ' + no; // その他の作品（Y001など）は本作と同じページで、クイズ・インタビューなしで表示
   const pg = $('#page');
   const ph = photoBy[no] || [];
