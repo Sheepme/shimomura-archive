@@ -1792,7 +1792,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '8407d60537', APP_URL = location.origin + location.pathname;
+const BUILD = '8f155944b2', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2922,7 +2922,7 @@ function renderDocFiles(){
   const pbar = `<div class="fpath"><button type="button" data-dfp="">${FIC.fold}資料ファイル</button>${path.map((x, i) => `<span>›</span><button type="button" data-dfp="${esc(path.slice(0, i + 1).join('/'))}">${fIc(x, i ? FIC.fold : FIC.bind)}${esc(x)}</button>`).join('')}
     ${path.length && path[0] !== DF_NONE ? `<button type="button" class="fspine" data-spine="${esc(path.join('/'))}">📦 背表紙</button>` : ''}<span class="fcount">${items.length}項目</span></div>`;
   $('#main').innerHTML = `<div class="docs fwrap"><div class="chead"><h2>書類</h2><p class="csub">実物のバインダーと同じ並びで、スキャンした資料を見られます</p></div>${work}<div class="fnd ${icon ? 'ficon' : ''}">${side}<section class="fmain">${tool}${body}${pbar}</section></div></div>`;
-  hydrateDocs($('#main')); hydrate($('#main'));
+  hydrateDocs($('#main')); hydrate($('#main')); hydrate($('#main'));
   const inp = $('#dfq'); inp.oninput = () => { S.dfq = inp.value; clearTimeout(inp._t); inp._t = setTimeout(() => { const pos = inp.selectionStart; renderDocFiles(); const n = $('#dfq'); n.focus(); try { n.setSelectionRange(pos, pos); } catch(e){} }, 250); };
 }
 function renderDocs(){ setTimeout(sameChk, 500);
@@ -2946,7 +2946,7 @@ function renderDocs(){ setTimeout(sameChk, 500);
     + (noTxt && !(PJ.j && PJ.j.on) ? `<button type="button" class="act dbig" id="txtJob">📝 全文がまだの資料 ${noTxt}通を書き起こす（サーバーで）</button>` : '');
   h = h.replace('<button class="act main dbig" data-docnew="">', tools + '<button class="act main dbig" data-docnew="">');
   h = h.replace('<div class="dsteps">', `<div class="dmodes"><button type="button" data-dmode="files">📁 資料ファイル</button><button type="button" class="on" data-dmode="list">登録の作業</button></div><div class="dsteps">`);
-  $('#main').innerHTML = '<div class="docs">' + h + '</div>'; hydrateDocs($('#main'));
+  $('#main').innerHTML = '<div class="docs">' + h + '</div>'; hydrateDocs($('#main')); hydrate($('#main'));
   const go = async () => { const q = $('#dsq').value.trim(), out = $('#dsres'); NOTEQ = q; if (!q) { out.innerHTML = ''; return; } out.innerHTML = '<div class="ldwrap" style="min-height:80px"><span class="ldspin"></span>探しています…</div>';
     try { const L = await call('searchDocs', q); out.innerHTML = L.length ? `<h3 class="sec">「${esc(q)}」が出てくる資料 ${L.length}件</h3><div class="dlist">${L.map(x => { const d = docById(x.id); return d ? docCard(d, '…' + x.s + '…') : ''; }).join('')}</div>` : '<p class="hint">見つかりませんでした</p>'; hydrateDocs(out); }
     catch(e){ out.innerHTML = `<p class="hint">探せませんでした（${esc(e.message || e)}）</p>`; } };
