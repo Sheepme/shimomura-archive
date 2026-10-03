@@ -1778,6 +1778,7 @@ body:has(#tedbar) .cbar{display:none!important}
 const S = { works:[], events:[], photos:[], places:[], exhibits:[], pubs:[], stack:[], pcur:null, cf:'all', cmain:false, me:'', ai:false,
   view:'home', wmode:'album', xnl:false, pnl:false, xt:'すべて', xq:'', xmain:false, pt:'すべて', pq:'', filter:'all', q:'', sort:'rand', limit:60, chat:[], cur:null };
 const FILTERS = [['all','すべて'],['自宅','自宅'],['美術館','美術館'],['個人蔵','個人蔵'],['委託中','委託中'],['flag','要確認'],['nophoto','写真なし'],['noname','作品名なし'],['noloc','保管場所不明'],['unconf','場所未確認'],['tmp','仮の写真'],['lack','情報が足りない'],['廃棄','廃棄']];
+const SUBF = { '美術館': {all:'すべての館', none:'（館名なし）'}, '委託中': {all:'すべての委託先', none:'（委託先なし）'} }; // 所在区分ごとのサブカテゴリ
 const LOC_KINDS = ['自宅','美術館','個人蔵','委託中','貸出中','その他','廃棄','不明'];
 const EVENT_TYPES = ['出品','掲載','画集掲載','寄贈','寄託','委託','販売','譲渡','貸出','返却','修復','移動','所在確認','廃棄','その他'];
 const KINDS = ['本画','下絵','習作','デッサン','その他'];
@@ -1788,7 +1789,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'a00cda268b', APP_URL = location.origin + location.pathname;
+const BUILD = '4ec74036c7', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1840,7 +1841,7 @@ function abRender0(){ const h = $('#abTitle'); if (!h) return;
   const isW = S.view === 'album' || S.view === 'list';
   // 一覧の段：作品アルバム › 美術館 › 館名
   const base = [S.view === 'home' ? {nm:'ホーム', ic:ROOT.match(/<svg[\s\S]*?<\/svg>/)[0], at:'data-home="1"'} : {nm: VIEW_NM[S.view] || tx, ic: icOf({album:'works', list:'list', ex:'ex', pb:'pb', ot:'ot', chrono:'chrono', doc:'doc'}[S.view]), at:'data-bc="view"'}];
-  if (isW && S.filter === '美術館') { base.push({nm:'美術館', ic:MUS_IC, at:'data-bc="flt"'}); if (S.mus) base.push({nm:S.mus, ic:icOf('loc'), at:'data-bc="mus"'}); }
+  if (isW && SUBF[S.filter]) { base.push({nm:S.filter, ic:S.filter==='美術館' ? MUS_IC : icOf('loc'), at:'data-bc="flt"'}); if (S.mus) base.push({nm:S.mus, ic:icOf('loc'), at:'data-bc="mus"'}); }
   if (dfOn()) { base.push({nm:'資料ファイル', ic:'🗂', at:'data-bc="df0"'}); (S.dpath || []).forEach((x, i) => base.push({nm:x, ic:'📁', at:`data-bc="df${i + 1}"`})); }
   const bc = (items, cur, cnt) => { const one = (x, last) => `<span class="crumb cp${last ? ' cplast' : ''}" ${x.at} aria-label="${esc(x.nm)}"><span class="hmtx">${esc(x.nm)}</span>${x.ic ? `<span class="hmic">${x.ic}</span>` : ''}</span>` + SEP;
     h.innerHTML = '<span class="crumb cdots" data-bc="view" aria-label="最初の階層">…</span>' + SEP + items.map((x, i) => one(x, i === items.length - 1)).join('') + `<span class="crumb cur">${esc(cur)}</span>` + (cnt == null ? '' : `<span class="abcn">${cnt}</span>`); };
@@ -1850,8 +1851,8 @@ function abRender0(){ const h = $('#abTitle'); if (!h) return;
     return; }
   const vcn = () => { const n = ({album: (S.works||[]).length, list: (S.works||[]).length, ex: (S.exhibits||[]).length, pb: (S.pubs||[]).length, ot: (S.others||[]).length, doc: (S.docs||[]).length})[S.view]; return n === undefined ? '' : `<span class="abcn">${n}</span>`; }; // 題名の後ろに件数
   if (dfOn()) { const t = docTreeAt(S.dpath || []); bc(base.slice(0, -1), base[base.length - 1].nm, t ? t.n : 0); return; }
-  if (isW && S.filter === '美術館') { // 作品アルバム › 美術館 › 館名
-    const ms = (S.works||[]).filter(w => w['所在区分']==='美術館' && (!S.mus || (w['所在']||'（館名なし）') === S.mus)).length;
+  if (isW && SUBF[S.filter]) { // 作品アルバム › 美術館 › 館名（委託中 › 委託先 も同じ）
+    const ms = (S.works||[]).filter(w => w['所在区分']===S.filter && (!S.mus || (w['所在']||SUBF[S.filter].none) === S.mus)).length;
     bc(base.slice(0, -1), base[base.length - 1].nm, ms);
     return; }
   h.innerHTML = S.view === 'home' ? '<span class="crumb chome cur">下村良之介作品目録</span>' : ROOT + SEP + `<span class="crumb cur">${esc(tx)}</span>` + vcn(); }
@@ -1987,7 +1988,7 @@ function filtered(){
     if (f==='tmp' && !(photoBy[w['作品番号']]||[]).some(p => /^【仮】/.test(p['メモ']||''))) return false;
     if (f==='lack' && !lacks(w).length) return false;
     if (['自宅','美術館','個人蔵','委託中','廃棄'].includes(f) && w['所在区分']!==f) return false;
-    if (f==='美術館' && S.mus && (w['所在']||'（館名なし）')!==S.mus) return false;
+    if (SUBF[f] && S.mus && (w['所在']||SUBF[f].none)!==S.mus) return false;
     if (!q) return true;
     const hay = [w['作品番号'],w['作品名'],w['作品名メモ'],w['制作年'],w['画材'],w['種別'],w['シリーズ'],w['所在'],w['補足'],w['状態メモ']]
       .concat((eventBy[w['作品番号']]||[]).map(e=>e['相手先・場所']+' '+e['内容']+' '+e['日付'])).join(' ').normalize('NFKC').toLowerCase();
@@ -2103,11 +2104,12 @@ function render(){ setTimeout(() => { try { tedBar(); } catch(e){} }, 0);
   document.querySelectorAll('#wseg button').forEach(b => b.classList.toggle('on', b.dataset.wm===S.view));
   const fcnt = k => { const b = [S.filter, S.mus, S.q]; S.filter = k; S.mus = ''; S.q = ''; const n = filtered().length; [S.filter, S.mus, S.q] = b; return n; }; // タブの横に件数（すべて 647・自宅 151…）
   $('#chips').innerHTML = FILTERS.map(([k,l]) => `<button class="chip ${S.filter===k?'on':''}" data-f="${k}">${l}<span class="cn">${fcnt(k)}</span></button>`).join('');
-  if (S.filter==='美術館') {
-    const cnt = {}; S.works.forEach(w => { if (w['所在区分']==='美術館') { const m = w['所在']||'（館名なし）'; cnt[m] = (cnt[m]||0) + 1; } });
+  if (SUBF[S.filter]) { const SF = SUBF[S.filter];
+    const cnt = {}; S.works.forEach(w => { if (w['所在区分']===S.filter) { const m = w['所在']||SF.none; cnt[m] = (cnt[m]||0) + 1; } });
+    if (S.filter==='委託中' && !cnt['思文閣']) cnt['思文閣'] = 0;
     const ms = Object.keys(cnt).sort((a,b) => cnt[b]-cnt[a] || a.localeCompare(b,'ja'));
     if (S.mus && !cnt[S.mus]) S.mus = '';
-    $('#subchips').innerHTML = `<button class="chip ${!S.mus?'on':''}" data-mus="">すべての館</button>` + ms.map(m => `<button class="chip ${S.mus===m?'on':''}" data-mus="${esc(m)}">${esc(m)}<span class="cn">${cnt[m]}</span></button>`).join('');
+    $('#subchips').innerHTML = `<button class="chip ${!S.mus?'on':''}" data-mus="">${SF.all}</button>` + ms.map(m => `<button class="chip ${S.mus===m?'on':''}" data-mus="${esc(m)}">${esc(m)}<span class="cn">${cnt[m]}</span></button>`).join('');
     $('#subchips').classList.remove('hidden'); $('#chips').classList.add('hidden'); // 「美術館」は上のバーの階層になり、タブは館の一覧に切り替わる
   } else { S.mus = ''; $('#subchips').classList.add('hidden'); $('#chips').classList.remove('hidden'); }
   abRender();
