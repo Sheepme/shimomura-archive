@@ -1719,7 +1719,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'f6e84d4c5f', APP_URL = location.origin + location.pathname;
+const BUILD = 'b7a48afb73', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2370,7 +2370,7 @@ function dfCard(d, x, i, inWork){ const did = esc(d['書類ID']), w = x.t === 'w
   const th = w && !inWork ? `<span class="dfwth">${(photoBy[x.id]||[]).length ? thumbHTML(x.id, 200) : '<span class="dfwnp">写真なし</span>'}</span>` : '';
   const ttl = inWork ? esc(x.f) : esc(x.name) + '：' + esc(x.f), src = inWork ? `<small class="dfsrcs">📄 ${esc(docTitle(d))}</small>` : '';
   if (x.r) return `<div class="dfx dfsumr" data-did="${did}">${th}<span class="dfsumt"><b>${ttl}</b>${src}<small>${({doc:'✓ 書類に合わせて直しました', ledger:'✓ 台帳のまま（書類の誤りとして記録）', same:'✓ 同じもの（表記ゆれ）' + (x.auto ? '：自動で判定' : ''), alias:'✓ 作品の別名として登録'})[x.r] || '✓ 確認済み'}</small></span></div>`;
-  return `<button type="button" class="dfx dfsum" data-did="${did}" data-dfopen="${did}|${i}">${th}<span class="dfsumt"><b>${ttl}</b>${src}<span class="dfvs"><span><small>台帳</small>${esc(x.cur || '（空）')}</span><i>⇄</i><span><small>書類</small>${esc(x.doc)}</span></span></span><em class="dfgo">確かめる ›</em></button>`; }
+  return `<button type="button" class="dfx dfsum" data-did="${did}" data-dfopen="${did}|${i}">${th}<span class="dfsumt"><b>${ttl}</b>${src}<span class="dfvs"><span><small>台帳</small>${esc(x.cur || '（空）')}</span><i>⇄</i><span><small>書類</small>${esc(x.doc)}</span></span></span><em class="dfgo">📑 見比べる ›</em></button>`; }
 /* 食い違いのボタン（書類の画面・作品ページ共通）：押されたボタンから書類と項目を決める */
 function dfDone(did, msg){ return x => { setData(x); busy(false); render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
   if (!$('#sheet').classList.contains('hidden') && $('#sheetbox').querySelector(`.dfx[data-did="${did}"]`)) sheetDocReview(did); toast(msg); }; }
@@ -2837,7 +2837,7 @@ function sheetDocReview(id){
     openSheet(`<h3 class="dttl">${esc(docTitle(d))}<button type="button" class="edbtn" id="dvTtl" aria-label="タイトルを直す">✎</button></h3>${noteMode ? `<button type="button" class="act main pdfopen dvnote" data-note="${esc(id)}">📖 ノートで読む（資料の文字）</button><button type="button" class="act pdfopen" id="dvImgs">🖼 原本の画像を見る（${pg.length}枚）</button><div id="dvImgsBox"></div>` : imgs}
       <p class="hint">${esc([r['日付'], r['相手先'] && r.PDF ? r['相手先'] : '', r['要約']].filter(Boolean).join('　'))}</p>
       ${r['要確認'] ? `<div class="dchk"><b>⚠ 要確認</b>${esc(r['要確認'])}<button type="button" class="act" id="dvChk">確認した</button></div>` : ''}
-      ${(r['食い違い']||[]).length ? `<h3 class="sec" style="font-size:18px">台帳との食い違い</h3><p class="hint">押すと、書類を見ながら「どっちが正しい？」を確かめる画面が開きます。</p>${r['食い違い'].map((x, i) => dfCard(d, x, i)).join('')}` : ''}
+      ${(r['食い違い']||[]).length ? `<h3 class="sec" style="font-size:18px">台帳との食い違い</h3><p class="hint">押すと、書類と作品を並べて見比べる画面が開き、「どっちが正しい？」を決められます。</p>${r['食い違い'].map((x, i) => dfCard(d, x, i)).join('')}` : ''}
       ${docEvHTML(d)}${docTocHTML(d)}
       ${(r['補完']||[]).length ? `<details class="dfill"><summary>この書類から自動で埋めた項目（${r['補完'].length}件）</summary>${r['補完'].map(x => `<p>${esc(x.name)}：${esc(x.f)}　→　${esc(x.v)}</p>`).join('')}</details>` : ''}
       ${d['メモ'] ? `<p class="hint dmemo">📝 ${esc(d['メモ'])}</p>` : ''}
