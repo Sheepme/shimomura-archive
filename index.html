@@ -1683,6 +1683,7 @@ body.cmpon #abTitle{visibility:hidden}
 #loading.loading::after{display:none!important}#loading.loading::before{content:'';position:absolute;left:-200vw;top:-200vh;width:400vw;height:400vh;z-index:-1;background:transparent}
 @keyframes ldpop{from{opacity:0;transform:translate(-50%,-50%) scale(.92)}to{opacity:1;transform:translate(-50%,-50%)}}
 .wprow.on{box-shadow:0 0 0 2px var(--ink) inset}.wpck{flex:0 0 26px;height:26px;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:700;color:var(--inv)!important}.wprow.on .wpck{background:var(--ink);border-color:var(--ink)}.wpbar{position:sticky;bottom:0;padding:12px 0 calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 30%)}.wpgo{width:100%}.wpgo:disabled{opacity:1;background:var(--wash2)!important;color:var(--sub)!important;border-color:transparent!important}.wpmh{margin:0 0 8px}
+.wdocs{display:flex;flex-direction:column;gap:12px}:root .dlist .dfx.evx.wdoc,:root[data-theme] .dlist .dfx.evx.wdoc{display:block!important;background:var(--paper)!important;border-radius:14px!important;padding:6px 6px 10px!important;margin:0!important;box-shadow:none!important}:root .wdoc>.dcard{width:100%}.wdoc>.dcard,.wdoc>button:first-child{margin:0;background:transparent;box-shadow:none;border:0}.wdbtns{display:grid;grid-template-columns:1.7fr 1fr;gap:8px;margin:2px 6px 0}.wdbtns .act{margin:0!important;padding:11px 8px;font-size:14.5px}.wdbtns .wdcmp{background:var(--bg);border-color:transparent}.wdbtns:has(> :only-child){grid-template-columns:1fr}.wdoc .dfprev{margin:8px 6px 2px}
 </style>
 </head>
 <body>
@@ -1750,7 +1751,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '8dade6d4d0', APP_URL = location.origin + location.pathname;
+const BUILD = '5a81856f7a', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2183,7 +2184,8 @@ function workDocsHTML(no){
   const ds = (S.docs||[]).filter(d => String(d['作品番号']||'').split(',').includes(String(no)));
   if (!ds.length) return '';
   const st = d => ({'まだ':'まだ読んでいない','確認待ち':'確認待ち','登録済み':'登録済み','登録しない':'登録しない'})[d['状態']] || d['状態'] || '';
-  return `<h3 class="sec">この作品の書類（${ds.length}通）</h3><div class="dlist">${ds.map(d => docCard(d, docWarn(d) ? '⚠ ' + docWarn(d) : st(d)) + (d['状態'] === '登録済み' ? `<button type="button" class="act cmpbtn" data-cmp="${esc(d['書類ID'])}|${esc(no)}">📑 この書類と作品を見比べる</button>` : '')).join('')}</div>`;
+  return `<h3 class="sec">この作品の書類（${ds.length}通）</h3><div class="dlist wdocs">${ds.map(d => { const ok = d['状態'] === '登録済み', pdf = ok && docPdfFid(d), k = esc(d['書類ID']) + '|' + esc(no);
+    return `<div class="dfx evx wdoc" data-wdid="${esc(d['書類ID'])}">${docCard(d, docWarn(d) ? '⚠ ' + docWarn(d) : st(d))}${ok ? `<div class="wdbtns">${pdf ? `<button type="button" class="act dfal dfhl evhl" data-dfhl="w" data-wdhl="${k}">書類をハイライト</button>` : ''}<button type="button" class="act wdcmp" data-cmp="${k}">📑 見比べる</button></div>` : ''}</div>`; }).join('')}</div>`;
 }
 /* ---- 同じ出来事（制作・出品・掲載・貸出・委託・寄贈・販売・贈与・廃棄など）が重なっていたら1つにまとめる ----
    同じ種類・同じ相手・同じ時期なら候補。内容は補い合い、書類はすべて残す。食い違う項目は選んでもらう。
@@ -2392,6 +2394,9 @@ function docTocHTML(d){ const pgs = docRes(d)['ページ'] || []; if (pgs.length
   return `<details class="dfill" ${pgs.length <= 15 ? 'open' : ''}><summary>ページの目次（${pgs.length}ページ）</summary><div class="dtoc">${pgs.map(g => `<${docRes(d).PDF ? `button type="button" data-tocp="${esc(g.p)}"` : 'div'} class="dtr"><span class="dtp">p.${esc(g.p)}</span><span><b>${esc(g['種類']||'')}</b>　${esc(g['説明']||'')}</span></${docRes(d).PDF ? 'button' : 'div'}>`).join('')}</div></details>`; }
 /* 食い違いの枠を押す：その場に書類の該当ページを出して、書いてある部分を光らせる（パソコンで左にPDFがあるときは、そちらも動かす） */
 /* 出来事の根拠の書類を、その場で開いて光らせる（保存してある位置があれば赤いマーカー） */
+/* 作品ページの書類：この作品が書かれているところをその場でハイライト */
+function wdHighlight(btn){ const [did, no] = btn.dataset.wdhl.split('|'), d = docById(did); if (!d) return; const at = cmpAt(d, no), w = workOf(no) || {};
+  dfPreview(btn.closest('.dfx'), d, { doc: w['作品名'] || '', name: '', f: '', at: at && at.p ? at : null }); }
 function evHighlight(btn){ const e = (S.events || []).find(x => x['出来事ID'] === btn.dataset.evhl2); if (!e) return;
   const d = evDocs(e).map(docById).find(x => x && docRes(x).PDF); if (!d) return toast('この出来事にはPDFの書類がありません');
   let at = null; try { at = JSON.parse(e['位置'] || 'null'); } catch(x){}
@@ -2400,7 +2405,7 @@ function evHighlight(btn){ const e = (S.events || []).find(x => x['出来事ID']
 function dfCard(d, x, i, inWork){ const did = esc(d['書類ID']), w = x.t === 'w' && workOf(x.id);
   const th = w && !inWork ? `<span class="dfwth">${(photoBy[x.id]||[]).length ? thumbHTML(x.id, 200) : '<span class="dfwnp">写真なし</span>'}</span>` : '';
   const ttl = inWork ? esc(x.f) : esc(x.name) + '：' + esc(x.f), src = inWork ? `<small class="dfsrcs">📄 ${esc(docTitle(d))}</small>` : '';
-  if (x.r) return `<div class="dfx dfsumr" data-did="${did}">${th}<span class="dfsumt"><b>${ttl}</b>${src}<small>${({doc:'✓ 書類に合わせて直しました', ledger:'✓ 台帳のまま（書類の誤りとして記録）', same:'✓ 同じもの（表記ゆれ）' + (x.auto ? '：自動で判定' : ''), alias:'✓ 作品の別名として登録'})[x.r] || '✓ 確認済み'}</small></span></div>`;
+  if (x.r) return `<div class="dfx dfsumr" data-did="${did}">${th}<span class="dfsumt"><b>${ttl}</b>${src}<small>${({doc:'✓ 書類に合わせて直しました', ledger:'✓ 台帳のまま（書類の誤りとして記録）', same:'✓ 同じもの（表記ゆれ）' + (x.auto ? '：自動で判定' : ''), swap:'✓ 縦と横が逆なだけ（自動で判定）', alias:'✓ 作品の別名として登録'})[x.r] || '✓ 確認済み'}</small></span></div>`;
   return `<button type="button" class="dfx dfsum" data-did="${did}" data-dfopen="${did}|${i}">${th}<span class="dfsumt"><b>${ttl}</b>${src}<span class="dfvs"><span><small>台帳</small>${esc(x.cur || '（空）')}</span><i>⇄</i><span><small>書類</small>${esc(x.doc)}</span></span></span><em class="dfgo">📑 見比べる ›</em></button>`; }
 /* 食い違いのボタン（書類の画面・作品ページ共通）：押されたボタンから書類と項目を決める */
 function dfDone(did, msg){ return x => { setData(x); busy(false); render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
@@ -2619,7 +2624,7 @@ async function dfPreview(card, d, x, inline){
   document.querySelectorAll('.dfx.dfopen').forEach(e => e.classList.remove('dfopen'));
   document.querySelectorAll('.dfprev').forEach(e => { e.closest('.dfx') && e.closest('.dfx').classList.remove('dfopen'); e.remove(); });
   const fid = docPages(d)[0], r = docRes(d); if (!fid || !r.PDF) return toast('この書類はPDFではないので、位置を出せません');
-  card.classList.add('dfopen'); dfBtnSync(); const v = document.createElement('div'); v.className = 'dfprev'; v.innerHTML = '<div class="ldwrap" style="min-height:120px"><span class="ldspin"></span>書類を開いています…</div>'; const hb = card.querySelector('[data-dfhl]'); if (hb) hb.after(v); else card.appendChild(v); /* ハイライトボタンのすぐ下に伸びて出てくる */
+  card.classList.add('dfopen'); dfBtnSync(); const v = document.createElement('div'); v.className = 'dfprev'; v.innerHTML = '<div class="ldwrap" style="min-height:120px"><span class="ldspin"></span>書類を開いています…</div>'; const hb = card.querySelector('[data-dfhl]'), an = hb && (hb.closest('.wdbtns') || hb); if (an) an.after(v); else card.appendChild(v); /* ハイライトボタンのすぐ下に伸びて出てくる */
   try { v.animate([{ height: '0px', opacity: 0 }, { height: v.offsetHeight + 'px', opacity: 1 }], { duration: 260, easing: 'cubic-bezier(.2,.7,.3,1)' }); } catch(e){}
   try { let at = x.at, line = '', q = '';
     if (!at || !at.box) { if (d['全文あり']) { const t = DTEXT[d['書類ID']] != null ? DTEXT[d['書類ID']] : (DTEXT[d['書類ID']] = await call('getDocText', d['書類ID'])); const f = dfFind(t, x.doc);
@@ -5370,6 +5375,7 @@ document.addEventListener('click', e => {
   if (t.id==='more'){ S.limit+=60; render(); return; }
   if (t.dataset.pdfscan){ sheetPdfScan(); return; }
   if (t.dataset.print){ sheetPrint(); return; }
+  if (t.dataset.wdhl){ wdHighlight(t); return; }
   if (t.dataset.evhl2){ evHighlight(t); return; }
   if (t.dataset.wfix){ const [did, no] = t.dataset.wfix.split('|'); dfMoveWork(did, no); return; }
   if (t.dataset.suslist){ openSusList(); return; }
