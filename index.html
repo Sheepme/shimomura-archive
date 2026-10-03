@@ -1703,7 +1703,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '0d6bad2efd', APP_URL = location.origin + location.pathname;
+const BUILD = '8c4c39152a', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1875,7 +1875,7 @@ const dateKey = s => { const m = String(s||'').match(/(\d{4})(?:年|[\/\-.])?\s*
 
 /* ---------- 一覧 ---------- */
 function filtered(){
-  const q = S.q.trim().toLowerCase().replace(/^no\.?\s*/,'');
+  const q = S.q.normalize('NFKC').trim().toLowerCase().replace(/^no\.?\s*/,''); /* 全角・半角の数字や英字は同じものとして探す */
   let a = S.works.filter(w => {
     const f = S.filter;
     if (f==='flag' && !w['要確認']) return false;
@@ -1889,7 +1889,7 @@ function filtered(){
     if (f==='美術館' && S.mus && (w['所在']||'（館名なし）')!==S.mus) return false;
     if (!q) return true;
     const hay = [w['作品番号'],w['作品名'],w['作品名メモ'],w['制作年'],w['画材'],w['種別'],w['シリーズ'],w['所在'],w['補足'],w['状態メモ']]
-      .concat((eventBy[w['作品番号']]||[]).map(e=>e['相手先・場所']+' '+e['内容']+' '+e['日付'])).join(' ').toLowerCase();
+      .concat((eventBy[w['作品番号']]||[]).map(e=>e['相手先・場所']+' '+e['内容']+' '+e['日付'])).join(' ').normalize('NFKC').toLowerCase();
     return q.split(/\s+/).every(t => hay.includes(t));
   });
   if (S.sort==='rand') { // ランダム（開くたびに変わる。同じ画面の中では順番を保つ）。写真のない作品は後ろへ
@@ -2263,7 +2263,7 @@ async function sheetCand(no){
   hydrate($('#sheetbox'));
   const upd = () => { $('#cGo').disabled = !sel.size; $('#cGo').textContent = sel.size ? sel.size + '枚を登録' : '選んだ写真を登録'; };
   document.querySelectorAll('.candp').forEach(b => b.onclick = () => { const id = b.dataset.cid; sel.has(id) ? sel.delete(id) : sel.add(id); b.classList.toggle('on', sel.has(id)); upd(); });
-  if ($('#cq')) $('#cq').oninput = e => { const q = e.target.value.trim(); document.querySelectorAll('.candp').forEach(b => b.style.display = !q || b.dataset.name.includes(q) ? '' : 'none'); };
+  if ($('#cq')) $('#cq').oninput = e => { const q = e.target.value.normalize('NFKC').trim().toLowerCase(); document.querySelectorAll('.candp').forEach(b => b.style.display = !q || String(b.dataset.name).normalize('NFKC').toLowerCase().includes(q) ? '' : 'none'); };
   $('#cGo').onclick = () => { if (!sel.size) return;
     const folder = (list.find(p => sel.has(p.id)) || {}).folder || '';
     const who = String(folder).replace(/(委託中)?(作品)?(の)?(画像|写真)$/, '').trim() || 'ギャラリー'; // 「思文閣委託中作品画像」→「思文閣」
@@ -3197,8 +3197,8 @@ function ivDraw(){
   const modeBtn = SR && QV.micOk ? `<button class="qzlink" data-iv="mode">${IV.text ? '🎤 声で答える' : '⌨ 文字で答える'}</button>` : '';
   let body;
   if (IV.mode==='list') {
-    const q = (IV.lq || '').trim(), all = S.works.filter(w => !['廃棄','統合済み'].includes(w['所在区分']));
-    const hit = (q ? all.filter(w => [w['作品番号'], w['作品名'], w['作品名メモ'], w['所在']].join(' ').includes(q)) : IV.list.map(workOf).filter(Boolean)).slice(0, 60);
+    const q = (IV.lq || '').normalize('NFKC').trim().toLowerCase(), all = S.works.filter(w => !['廃棄','統合済み'].includes(w['所在区分']));
+    const hit = (q ? all.filter(w => [w['作品番号'], w['作品名'], w['作品名メモ'], w['所在']].join(' ').normalize('NFKC').toLowerCase().includes(q)) : IV.list.map(workOf).filter(Boolean)).slice(0, 60);
     body = `<div class="ivmain"><div class="ivqt">どの絵について話す？</div></div>
       <div class="search ivls"><input id="ivLq" type="search" placeholder="番号・作品名で探す" value="${esc(IV.lq||'')}"></div>
       <div class="ivgrid">${hit.map(w => `<button class="ivpick" data-ivpick="${esc(w['作品番号'])}"><span class="ivth">${hasPh(w['作品番号']) ? thImg(photoBy[w['作品番号']][0]['ファイルID'], 200) : '📷'}</span><b>${esc(w['作品名'] || '無題')}</b><small>${esc(nol(w['作品番号']))}</small></button>`).join('') || '<p class="muted">見つかりません</p>'}</div>
@@ -3508,10 +3508,10 @@ function sheetLinkWork(no){
     <div class="btns"><button type="button" data-close>やめる</button><button type="button" class="primary" id="ok">ひも付ける</button></div>`);
   const label = () => { $('#ok').textContent = sel.size ? `ひも付ける（${sel.size}件）` : 'ひも付ける'; };
   const draw = () => {
-    const q = ($('#lq').value||'').trim().toLowerCase();
+    const q = ($('#lq').value||'').normalize('NFKC').trim().toLowerCase();
     const src = tab==='ex' ? S.exhibits.filter(x => !lx.has(x['展覧会ID'])).map(x => ({k:'ex', id:x['展覧会ID'], t:x['名称'], d:x['開始日'], s:[x['会場'], x['都市']].filter(Boolean).join('・')}))
                            : S.pubs.filter(p => !lp.has(p['資料ID'])).map(p => ({k:'pb', id:p['資料ID'], t:p['タイトル'], d:p['発行年月'], s:[p['種類'], p['発行元']].filter(Boolean).join('・')}));
-    const list = src.filter(r => !q || [r.t, r.d, r.s].join(' ').toLowerCase().includes(q)).sort((a, b) => dateKey(a.d) - dateKey(b.d)).slice(0, 150);
+    const list = src.filter(r => !q || [r.t, r.d, r.s].join(' ').normalize('NFKC').toLowerCase().includes(q)).sort((a, b) => dateKey(a.d) - dateKey(b.d)).slice(0, 150);
     $('#lres').innerHTML = list.map(r => `<button type="button" class="lm ${sel.has(r.k + '|' + r.id) ? 'on' : ''}" data-lk="${r.k}|${esc(r.id)}"><span class="lck">✓</span><span class="lt">${r.k==='ex' ? PRM(r.t) : ''}${esc(r.t || '（名前なし）')}<small>${esc([yr(r.d), r.s].filter(Boolean).join('　'))}</small></span></button>`).join('') || '<p class="muted">見つかりません</p>';
   };
   $('#lq').oninput = draw;
@@ -3766,8 +3766,8 @@ function renderExList(){
   drawExList();
 }
 function drawExList(){
-  const q = S.xq.trim().toLowerCase();
-  const list = S.exhibits.filter(x => (S.xt==='すべて' || x['種類']===S.xt) && (!S.xmain || x['主要']) && (!S.xnl || !(worksByEx[x['展覧会ID']]||[]).length) && (!q || [x['名称'], x['会場'], x['都市'], x['開始日'], x['主催'], x['メモ']].join(' ').toLowerCase().includes(q)));
+  const q = S.xq.normalize('NFKC').trim().toLowerCase();
+  const list = S.exhibits.filter(x => (S.xt==='すべて' || x['種類']===S.xt) && (!S.xmain || x['主要']) && (!S.xnl || !(worksByEx[x['展覧会ID']]||[]).length) && (!q || [x['名称'], x['会場'], x['都市'], x['開始日'], x['主催'], x['メモ']].join(' ').normalize('NFKC').toLowerCase().includes(q)));
   const Y = {}; list.forEach(x => { const y = yr(x['開始日']) || '年不明'; (Y[y] = Y[y] || []).push(x); });
   const ys = Object.keys(Y).filter(y => y!=='年不明').sort(); if (Y['年不明']) ys.push('年不明');
   let html = `<div class="chead"><h2>展覧会</h2><p class="csub">${list.length}件${list.length!==S.exhibits.length ? '（全' + S.exhibits.length + '件）' : ''}</p></div>`;
@@ -3786,8 +3786,8 @@ function renderPbList(){
   drawPbList();
 }
 function drawPbList(){
-  const q = S.pq.trim().toLowerCase();
-  const list = S.pubs.filter(p => (S.pt==='すべて' || p['種類']===S.pt) && (!S.pnl || !(worksByPb[p['資料ID']]||[]).length) && (!q || [p['タイトル'], p['発行元'], p['著者・編者'], p['発行年月'], p['掲載内容'], p['メモ']].join(' ').toLowerCase().includes(q)))
+  const q = S.pq.normalize('NFKC').trim().toLowerCase();
+  const list = S.pubs.filter(p => (S.pt==='すべて' || p['種類']===S.pt) && (!S.pnl || !(worksByPb[p['資料ID']]||[]).length) && (!q || [p['タイトル'], p['発行元'], p['著者・編者'], p['発行年月'], p['掲載内容'], p['メモ']].join(' ').normalize('NFKC').toLowerCase().includes(q)))
     .sort((a,b) => dateKey(a['発行年月'])-dateKey(b['発行年月']) || String(a['タイトル']).localeCompare(String(b['タイトル']),'ja'));
   let html = `<div class="chead"><h2>画集・資料</h2><p class="csub">${list.length}件${list.length!==S.pubs.length ? '（全' + S.pubs.length + '件）' : ''}</p></div>`;
   html += '<div class="grid">' + list.map(p => { const n = new Set(worksByPb[p['資料ID']]||[]).size;
@@ -3817,8 +3817,8 @@ function sheetLink(kind, id){
     <div class="btns"><button type="button" data-close>やめる</button><button type="button" class="primary" id="ok">ひも付ける</button></div>`);
   const label = () => { $('#ok').textContent = sel.size ? `ひも付ける（${sel.size}点）` : 'ひも付ける'; };
   const draw = () => {
-    const q = ($('#lq').value||'').trim().toLowerCase();
-    const list = S.works.concat(S.others||[]).filter(w => !linked.has(w['作品番号']) && (!q || [w['作品番号'], w['作品名'], w['作品名メモ'], w['制作年'], w['シリーズ'], isOtNo(w['作品番号']) ? w['種別'] : ''].join(' ').toLowerCase().includes(q))).slice(0, 80);
+    const q = ($('#lq').value||'').normalize('NFKC').trim().toLowerCase();
+    const list = S.works.concat(S.others||[]).filter(w => !linked.has(w['作品番号']) && (!q || [w['作品番号'], w['作品名'], w['作品名メモ'], w['制作年'], w['シリーズ'], isOtNo(w['作品番号']) ? w['種別'] : ''].join(' ').normalize('NFKC').toLowerCase().includes(q))).slice(0, 80);
     const nl = w => (isOtNo(w['作品番号']) ? '' : 'No.') + esc(w['作品番号']);
     $('#lres').innerHTML = list.map(w => `<button type="button" class="pr ${sel.has(w['作品番号'])?'on':''}" data-pno="${esc(w['作品番号'])}"><span class="th">${(photoBy[w['作品番号']]||[]).length ? thumbHTML(w['作品番号'],200) : nl(w)}</span><span class="tx"><b>${nl(w)}</b>　${esc(w['作品名']||(isOtNo(w['作品番号']) ? w['種別'] + '（名前なし）' : '無題'))}<small>${esc(w['制作年']||'')}</small></span><span class="ck">✓</span></button>`).join('') || '<p class="muted">見つかりません</p>';
     hydrate($('#lres'));
@@ -4473,8 +4473,8 @@ function renderOtList(){
   drawOtList();
 }
 function drawOtList(){
-  const q = S.oq.trim().toLowerCase();
-  const list = S.others.filter(x => (S.otk==='すべて' || (x['種別']||'その他')===S.otk) && (!q || [x['作品名'], x['作品名メモ'], x['制作年'], x['画材'], x['所在'], x['所在区分'], x['補足'], x['作品番号']].join(' ').toLowerCase().includes(q)));
+  const q = S.oq.normalize('NFKC').trim().toLowerCase();
+  const list = S.others.filter(x => (S.otk==='すべて' || (x['種別']||'その他')===S.otk) && (!q || [x['作品名'], x['作品名メモ'], x['制作年'], x['画材'], x['所在'], x['所在区分'], x['補足'], x['作品番号']].join(' ').normalize('NFKC').toLowerCase().includes(q)));
   S.osort = S.osort || 'rand'; // 並び順（作品アルバムと同じ）
   if (S.osort==='rand') { const R = drawOtList.rk || (drawOtList.rk = {}), k = no => R[no] === undefined ? (R[no] = Math.random()) : R[no]; list.sort((x,y) => (photoBy[x['作品番号']] ? 0 : 1) - (photoBy[y['作品番号']] ? 0 : 1) || k(x['作品番号']) - k(y['作品番号'])); }
   else if (S.osort==='no') list.sort((x,y) => String(x['作品番号']).localeCompare(String(y['作品番号']), 'ja', {numeric:true}));
@@ -5540,8 +5540,8 @@ function afterNav(n){
     if (c) c.insertAdjacentHTML('beforeend', `<button class="chip ${S.xlack?'on':''}" data-xlack="1">${S.xlack?'✓ ':''}会場・日付が分からない</button>`);
   };
   drawExList = function(){
-    const q = S.xq.trim().toLowerCase();
-    const list = S.exhibits.filter(x => (S.xt==='すべて' || x['種類']===S.xt) && (!S.xmain || x['主要']) && (!S.xnl || !(worksByEx[x['展覧会ID']]||[]).length) && (!S.xlack || exLack(x)) && (!q || [x['名称'], x['会場'], x['都市'], x['開始日'], x['主催'], x['メモ']].join(' ').toLowerCase().includes(q)));
+    const q = S.xq.normalize('NFKC').trim().toLowerCase();
+    const list = S.exhibits.filter(x => (S.xt==='すべて' || x['種類']===S.xt) && (!S.xmain || x['主要']) && (!S.xnl || !(worksByEx[x['展覧会ID']]||[]).length) && (!S.xlack || exLack(x)) && (!q || [x['名称'], x['会場'], x['都市'], x['開始日'], x['主催'], x['メモ']].join(' ').normalize('NFKC').toLowerCase().includes(q)));
     const Y = {}; list.forEach(x => { const y = yr(x['開始日']) || '年不明'; (Y[y] = Y[y] || []).push(x); });
     const ys = Object.keys(Y).filter(y => y!=='年不明').sort(); if (Y['年不明']) ys.push('年不明');
     let html = `<div class="chead"><h2>展覧会</h2><p class="csub">${list.length}件${list.length!==S.exhibits.length ? '（全' + S.exhibits.length + '件）' : ''}${S.xlack ? '<br>展覧会を開いて、鉛筆マークから会場や日付を入れてください。入れると、ここから消えます' : ''}</p></div>`;
