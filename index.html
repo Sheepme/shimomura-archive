@@ -1750,7 +1750,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '474aff2719', APP_URL = location.origin + location.pathname;
+const BUILD = '8dade6d4d0', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2496,7 +2496,15 @@ function wkMis(v, w){ let sc = 0; const why = [];
 /* 書類に書かれている値（台帳の値に、まだ決めていない食い違いの「書類の値」を重ねたもの） */
 function docVals(d, no){ const w = workOf(no) || {}, v = { '作品名': w['作品名'], '制作年': w['制作年'], '高さcm': w['高さcm'], '幅cm': w['幅cm'] };
   (docRes(d)['食い違い'] || []).forEach(x => { if (!x.r && x.t === 'w' && String(x.id) === String(no) && x.f in v) v[x.f] = x.doc; }); return v; }
-function docSus(d, no){ const w = workOf(no); if (!w) return null; const m = wkMis(docVals(d, no), w); return m.sc >= 2 ? m : null; }
+function docSus(d, no){ const w = workOf(no); if (!w) return null; const m = wkMis(docVals(d, no), w), X = docRes(d)['食い違い'] || [];
+  /* いまの場所が別の美術館：台帳で別の美術館にある作品が、この書類の美術館に行ったことになっている */
+  const lx = X.find(x => !x.r && x.loc && x.t === 'w' && String(x.id) === String(no));
+  if (lx && /美術館|博物館|ミュージアム/.test(String(lx.cur || '')) && wkNameSim(String(lx.cur).split('：').pop(), lx.doc) < .6) { m.sc += 2; m.why.push('台帳では「' + String(lx.cur).split('：').pop() + '」にある作品'); }
+  /* 同じ書類に、名前もサイズも似た作品がもう1つひも付いている（同じ作品が2回数えられたかも） */
+  const nos = String(d['作品番号'] || '').split(',').map(x => x.trim()).filter(x => x && x !== String(no));
+  for (const o of nos) { const w2 = workOf(o); if (!w2) continue; const ns = wkNameSim(w['作品名'], w2['作品名']), r = wkSizeR(w, w2);
+    if (ns >= .6 && (!r || r < 1.06)) { m.sc += 2; m.why.push('同じ書類の ' + nol(o) + '（' + (w2['作品名'] || '無題') + '）と同じ作品かも（対の作品なら問題ありません）'); break; } }
+  return m.sc >= 2 ? m : null; }
 /* 書類の内容に近い作品の候補（サイズ・名前・制作年が合うもの） */
 function wkCands(v, skip, n){ const all = S.works.concat(S.others || []).filter(w => w['所在区分'] !== '統合済み' && String(w['作品番号']) !== String(skip));
   return all.map(w => { const r = wkSizeR(v, w), ns = wkNameSim(v['作品名'], w['作品名']), m = wkMis(v, w); let g = 0; if (r && r < 1.06) g += 2; else if (r && r < 1.15) g += 1; if (ns >= .99) g += 2; else if (ns >= .6) g += 1; if (m.sc) g -= m.sc; return { w, g }; })
@@ -2556,7 +2564,7 @@ function cmpWork(d, no){ const w = workOf(no); if (!w) return '<p class="hint">�
   const loc = [w['所在区分'], w['所在'] && w['所在'] !== w['所在区分'] ? w['所在'] : ''].filter(Boolean).join(' ');
   const evs = (S.events || []).filter(e => String(e['作品番号']) === String(no) && String(e['根拠・出典'] || '').indexOf(did) >= 0);
   const sus = docSus(d, no), cds = sus ? wkCands(docVals(d, no), no, 3) : [];
-  return `${sus ? `<div class="cwsus"><b>⚠ 別の作品かもしれません</b><small>書類と台帳で${esc(sus.why.join('・'))}。番号の読み違いなどで、ちがう作品にひも付いている可能性があります。</small>${cds.length ? `<p class="cwsq">書類の内容に近い作品</p>${cds.map(w => `<button type="button" class="cwcand" data-cmpmv="${esc(w['作品番号'])}"><span class="dfwth">${(photoBy[w['作品番号']]||[]).length ? thumbHTML(w['作品番号'], 200) : ''}</span><span><b>${esc(nol(w['作品番号']))} ${esc(w['作品名'] || '無題')}</b><small>${esc([w['制作年'], dimTxt(w)].filter(Boolean).join('・'))}</small></span><em>付け替える</em></button>`).join('')}` : ''}<button type="button" class="act cwsusb" data-wfix="${esc(did)}|${esc(no)}">作品を選んで付け替える（2つ以上もOK）</button></div>` : ''}<div class="cwhd"><div class="cwph">${(photoBy[no]||[]).length ? thumbHTML(no, 800) : '<div class="cwnp">写真なし</div>'}</div>
+  return `${sus ? `<div class="cwsus"><b>⚠ 別の作品かもしれません</b><small>${sus.why.map(x => '・' + esc(x)).join('<br>')}<br>読み違いなどで、ちがう作品にひも付いている可能性があります。</small>${cds.length ? `<p class="cwsq">書類の内容に近い作品</p>${cds.map(w => `<button type="button" class="cwcand" data-cmpmv="${esc(w['作品番号'])}"><span class="dfwth">${(photoBy[w['作品番号']]||[]).length ? thumbHTML(w['作品番号'], 200) : ''}</span><span><b>${esc(nol(w['作品番号']))} ${esc(w['作品名'] || '無題')}</b><small>${esc([w['制作年'], dimTxt(w)].filter(Boolean).join('・'))}</small></span><em>付け替える</em></button>`).join('')}` : ''}<button type="button" class="act cwsusb" data-wfix="${esc(did)}|${esc(no)}">作品を選んで付け替える（2つ以上もOK）</button></div>` : ''}<div class="cwhd"><div class="cwph">${(photoBy[no]||[]).length ? thumbHTML(no, 800) : '<div class="cwnp">写真なし</div>'}</div>
     <div class="cwht"><div class="cwno">${esc(nol(no))}</div><h3 class="cwtt">${esc(w['作品名'] || '無題')}</h3>${w['作品名メモ'] ? `<div class="cwsub">${esc(w['作品名メモ'])}</div>` : ''}</div></div>
     <dl class="cwdl">${row('作品名', w['作品名'], ['作品名'])}${row('制作年', w['制作年'], ['制作年'])}${row('サイズ', dimTxt(w, false, ' cm'), ['幅cm', '高さcm'])}${row('画材', w['画材'], ['画材'])}${row('種別', w['種別'], ['種別'])}${row('シリーズ', w['シリーズ'], ['シリーズ'])}${row('いまの場所', loc, ['所在'])}${extra.map(([x, i]) => `<div class="cwr df"><dt>${esc(x.f)}</dt><dd>${x.cur ? esc(x.cur) : '<span class="cwnil">未入力</span>'}${cwDx(x, i)}</dd></div>`).join('')}</dl>
     ${evs.length ? `<h4 class="cwh">この書類からの来歴</h4>${evs.map(e => `<button type="button" class="cwev" data-cmpev="${esc(e['出来事ID'])}"><span>${esc(e['日付'] || '')}</span><b>${esc(e['種類'] || '')}</b><span>${esc(e['相手先・場所'] || '')}</span></button>`).join('')}` : ''}
