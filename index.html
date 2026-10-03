@@ -215,7 +215,7 @@ dl.info dd{position:relative;padding-right:44px}
 }
 .viewer{position:fixed;inset:0;z-index:95;background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 12px 110px}
 .viewer img{max-width:100%;max-height:100%;object-fit:contain;touch-action:pinch-zoom}
-html,body{touch-action:pan-x pan-y}.docview,.docview *{touch-action:auto}.viewer,.viewer img{touch-action:none}.viewer button{touch-action:manipulation}
+html,body{touch-action:pan-x pan-y}.docview,.docview *{touch-action:pan-x pan-y}.viewer,.viewer img{touch-action:none}.viewer button{touch-action:manipulation}
 .viewer{overflow:hidden;overscroll-behavior:contain}.viewer img{will-change:transform;cursor:zoom-in}.viewer img.zoomed{cursor:grab}#viewer #vimg{flex:1 1 0;min-height:0;width:100%;height:0;max-width:none;max-height:none;object-fit:contain}
 .vclose{position:absolute;top:12px;left:16px;z-index:3;border:1px solid var(--line);background:var(--paper);padding:8px 16px;font-size:16px;border-radius:999px}
 .vbar{position:absolute;bottom:52px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:24px;font-size:16px;color:var(--sub)}
@@ -1792,7 +1792,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'cef0fa398e', APP_URL = location.origin + location.pathname;
+const BUILD = '8407d60537', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2836,11 +2836,22 @@ function prefetchWorkPdfs(no){ try { const ids = new Set(); (S.events || []).for
   pdfPrefetch([...ids].map(id => docById(id)).filter(Boolean).map(docPdfFid)); } catch(e){} }
 function docView(fid){
   const el = document.createElement('div'); el.className = 'docview';
-  el.innerHTML = `<div class="dvbar"><button type="button" class="vclose scrback" style="position:static">← 戻る</button><span>指で広げると拡大できます</span></div><div class="dvsc">${docImg(fid, 1600)}</div>`;
+  el.innerHTML = `<div class="dvbar"><button type="button" class="vclose scrback" style="position:static">← 戻る</button><span>指で広げると書類が拡大できます（2回タップでも）</span></div><div class="dvsc">${docImg(fid, 1600)}</div>`;
   el.querySelector('button').onclick = () => docClose(el);
-  el.querySelector('.dvsc').onclick = e => { if (e.target.tagName==='IMG') e.target.classList.toggle('big'); };
+  dvZoom(el.querySelector('.dvsc'));
   document.body.appendChild(el); hpush('d'); scrPush(el); hydrateDocs(el);
 }
+/* 書類の拡大：画面全体ではなく、書類の画像だけを指2本で拡大・縮小する（拡大中は指1本でスクロール、2回タップで拡大／元に戻す） */
+function dvZoom(sc){ let w = 100, st = null, lastTap = 0;
+  const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY) || 1;
+  const setW = (nw, cx, cy) => { nw = Math.min(600, Math.max(100, nw)); const r = sc.getBoundingClientRect(), ox = cx - r.left, oy = cy - r.top, px = sc.scrollLeft + ox, py = sc.scrollTop + oy, k = nw / w; w = nw;
+    sc.querySelectorAll('img').forEach(im => { im.style.width = w + '%'; im.style.maxWidth = 'none'; }); sc.scrollLeft = px * k - ox; sc.scrollTop = py * k - oy; };
+  sc.addEventListener('touchstart', e => { if (e.touches.length === 2) { st = { d0: dist(e.touches), w0: w }; e.preventDefault(); } }, { passive: false });
+  sc.addEventListener('touchmove', e => { if (st && e.touches.length === 2) { e.preventDefault(); e.stopPropagation(); const t = e.touches; setW(st.w0 * dist(t) / st.d0, (t[0].clientX + t[1].clientX) / 2, (t[0].clientY + t[1].clientY) / 2); } }, { passive: false });
+  sc.addEventListener('touchend', e => { if (e.touches.length < 2) st = null; });
+  sc.addEventListener('click', e => { if (e.target.tagName !== 'IMG') return; const n = Date.now(); if (n - lastTap < 350) { setW(w > 100 ? 100 : 250, e.clientX, e.clientY); lastTap = 0; } else lastTap = n; });
+  sc.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); e.stopPropagation(); setW(w * Math.exp(-e.deltaY * 0.01), e.clientX, e.clientY); }, { passive: false });
+  ['gesturestart', 'gesturechange'].forEach(k => sc.addEventListener(k, e => e.preventDefault())); }
 function docClose(el, fromHist){ if (!el || !el.isConnected) return; scrPop(el); el.remove(); if (!fromHist) hback(); }
 function docTitle(d){ if (d['タイトル']) return d['タイトル']; const r = docRes(d), y = (String(r['日付']||'').match(/(\d{4})/) || [])[1]; return [y ? y + '年' : '', r['相手先'], r['書類の種類'] && r['書類の種類']!=='その他' ? r['書類の種類'] : ''].filter(Boolean).join(' ') || '書類 ' + (d['書類ID']||''); }
 
@@ -5584,7 +5595,7 @@ function setCols(d){
   }, {passive:false});
   document.addEventListener('touchend', e => { if (e.touches.length < 2) d0 = 0; }, {passive:true});
   /* 画面全体の拡大・縮小（ピンチ）は止める。写真・書類を大きく見る画面の中だけは指で拡大できる */
-  const zoomOk = e => !!(e.target && e.target.closest && e.target.closest('.docview')); // 写真の拡大画面は自前で拡大する
+  const zoomOk = e => false; // 写真・書類の拡大画面は、画像だけを自前で拡大する（画面全体は拡大しない）
   document.addEventListener('gesturestart', e => { if (!zoomOk(e)) e.preventDefault(); });
   document.addEventListener('gesturechange', e => { if (!zoomOk(e)) e.preventDefault(); });
   document.addEventListener('touchmove', e => { if (e.touches.length > 1 && !zoomOk(e) && !onAlbum()) e.preventDefault(); }, {passive:false});
