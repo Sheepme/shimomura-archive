@@ -1750,7 +1750,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'b5085761cf', APP_URL = location.origin + location.pathname;
+const BUILD = '474aff2719', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5546,7 +5546,7 @@ async function pdfjs(){ if (PDFJS) return PDFJS;
 const PDOC = {};
 /* ---------- 書類のページ画像：あればPDFの代わりに使う（1ページずつ軽い画像を取るだけなので速い） ---------- */
 let PIMG = {}; const PIU = {}, PDOCI = {};
-function pimgIndex(){ PIMG = {}; Object.keys(PDOCI).forEach(k => delete PDOCI[k]); (S.pimg || []).forEach(([did, pdf, p, id, w, h, ver]) => { const d = docById(did); if (!d || String(d['更新日時'] || '') !== String(ver || '')) return;
+function pimgIndex(){ PIMG = {}; Object.keys(PDOCI).forEach(k => delete PDOCI[k]); (S.pimg || []).forEach(([did, pdf, p, id, w, h, ver]) => { const d = docById(did); if (!d || docPdfFid(d) !== String(pdf)) return; /* 書類の情報を直しても（更新日時が変わっても）、PDFが同じなら画像はそのまま使える */
   const o = PIMG[pdf] = PIMG[pdf] || { did, pages: {}, n: 0 }; o.pages[p] = { id, w, h }; o.n = Math.max(o.n, +p); });
   Object.keys(PIMG).forEach(k => { const o = PIMG[k]; for (let i = 1; i <= o.n; i++) if (!o.pages[i]) { delete PIMG[k]; break; } }); }
 function pimgUrl(id){ return PIU[id] || (PIU[id] = call('getThumbs', [id], 1600).then(m => { const u = m && m[id]; if (!u) throw new Error('no image'); return u; }).catch(e => { delete PIU[id]; throw e; })); }
