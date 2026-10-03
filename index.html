@@ -1674,6 +1674,7 @@ body.cmpon #abTitle{visibility:hidden}
  .cmpback svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
  .cmpv .pqbar{padding-left:50px;min-height:40px}
 }
+.pimgn{font-size:15px;margin:14px 0 8px}.pimgmsg{font-size:14px;color:var(--ink);background:var(--wash);border-radius:10px;padding:10px 12px}.pimgbar{height:8px;border-radius:4px;background:var(--wash2);overflow:hidden;margin:8px 0 14px}.pimgbar i{display:block;height:100%;background:#2f7cf6;transition:width .3s}.pimggo{width:100%}
 </style>
 </head>
 <body>
@@ -1741,7 +1742,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '44ddfd1ef3', APP_URL = location.origin + location.pathname;
+const BUILD = 'e43102d72d', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1818,7 +1819,7 @@ function docCacheSync(docs){ let V = {}; try { V = JSON.parse(localStorage.getIt
   if (del.length) thDel(del); try { localStorage.setItem('smr_dver', JSON.stringify(N)); } catch(e){} }
 function setData(d){ if (S.upd) S.upd.t = 0; try { if (d && d.docs && d.docs.length) docCacheSync(d.docs); } catch(e){}
   const allW = d.works || []; d = Object.assign({}, d, {works: allW.filter(w => !OTRE.test(w['作品番号'])), others: allW.filter(w => OTRE.test(w['作品番号']))});
-  Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], memoChecker:d.memoChecker||'直美', marks:d.marks||[], user:d.user, ai:d.ai, publicView:d.publicView}); if (S.token && !d.user) setToken(''); index(); renderUser();  if (d.user) setTimeout(prefetchThumbs, 0); }
+  Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], memoChecker:d.memoChecker||'直美', marks:d.marks||[], pimg:d.pimg||S.pimg||[], user:d.user, ai:d.ai, publicView:d.publicView}); if (S.token && !d.user) setToken(''); index(); try { pimgIndex(); } catch(e){} renderUser();  if (d.user) setTimeout(prefetchThumbs, 0); }
 const canRole = () => !!(S.user && ['編集','管理'].includes(S.user.role));
 const canEdit = () => canRole();
 try { S.edit = localStorage.getItem('smr_edit') === '1'; } catch(e){ S.edit = false; }
@@ -2490,6 +2491,26 @@ function wkCands(v, skip, n){ const all = S.works.concat(S.others || []).filter(
   return all.map(w => { const r = wkSizeR(v, w), ns = wkNameSim(v['作品名'], w['作品名']), m = wkMis(v, w); let g = 0; if (r && r < 1.06) g += 2; else if (r && r < 1.15) g += 1; if (ns >= .99) g += 2; else if (ns >= .6) g += 1; if (m.sc) g -= m.sc; return { w, g }; })
     .filter(x => x.g >= 2).sort((a, b) => b.g - a.g).slice(0, n || 3).map(x => x.w); }
 function susList(){ const L = []; (S.docs || []).forEach(d => { if (d['状態'] !== '登録済み') return; String(d['作品番号'] || '').split(',').map(x => x.trim()).filter(Boolean).forEach(no => { const m = docSus(d, no); if (m) L.push({ d, no, m }); }); }); return L; }
+/* ---------- ページ画像を作る（パソコンで1回。PDFを1ページずつ画像にしてドライブへ） ---------- */
+const pimgTodo = () => (S.docs || []).filter(d => d['状態'] === '登録済み' && docPdfFid(d) && !PIMG[docPdfFid(d)]);
+function openPimgTool(){ const el = document.createElement('div'); el.className = 'noteview pimgv'; let stop = false, run = false;
+  const draw = (msg) => { const L = pimgTodo(); el.innerHTML = `<div class="nvin"><h2 class="nvt">ハイライトを速くする</h2><p class="hint">書類のPDFを1ページずつ軽い画像にして、Googleドライブに保存します。ハイライトの時はPDFを開かず、そのページの画像だけを取るので速くなります。AIは使わないので費用はかかりません。</p>
+    <p class="pimgn">まだの書類：<b>${L.length}</b>通（全${(S.docs || []).filter(d => docPdfFid(d)).length}通）</p>${msg ? `<p class="pimgmsg">${msg}</p>` : ''}
+    <div class="pimgbar"><i style="width:0%"></i></div>
+    ${L.length ? `<button type="button" class="act main pimggo">${run ? '止める' : '作り始める'}</button>` : '<p class="hint">すべて作り終わっています</p>'}<p class="hint">作っている間は、この画面を開いたままにしてください（途中で止めても、続きから作れます）。</p></div>`;
+    const b = el.querySelector('.pimggo'); if (b) b.onclick = () => { if (run) { stop = true; b.disabled = true; b.textContent = '止めています…'; } else go(); }; };
+  const go = async () => { run = true; stop = false; const L = pimgTodo(); draw(); const bar = el.querySelector('.pimgbar i'), msg = el.querySelector('.pimgn'); let done = 0, pg = 0, err = 0;
+    for (const d of L) { if (stop || !el.isConnected) break; const fid = docPdfFid(d), did = d['書類ID'];
+      try { msg.innerHTML = `作っています：<b>${esc(docTitle(d))}</b>（${done + 1} / ${L.length}）`; const doc = await pdfRealDoc(fid); let batch = [], first = true, rows = [];
+        for (let i = 1; i <= doc.numPages; i++) { const p = await doc.getPage(i), v0 = p.getViewport({ scale: 1 }), sc = Math.min(3, 1600 / v0.width), vp = p.getViewport({ scale: sc }), c = document.createElement('canvas'); c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+          const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); await p.render({ canvasContext: g, viewport: vp }).promise;
+          batch.push({ p: i, b64: c.toDataURL('image/jpeg', .72).split(',')[1], w: Math.round(v0.width * 100) / 100, h: Math.round(v0.height * 100) / 100 }); c.width = c.height = 0; pg++;
+          if (batch.length >= 3 || i === doc.numPages) { rows = rows.concat(await call('savePageImgs', did, fid, String(d['更新日時'] || ''), batch, first)); first = false; batch = []; } }
+        S.pimg = (S.pimg || []).filter(r => r[0] !== did).concat(rows); pimgIndex(); delete PDOCI[fid]; done++; }
+      catch(e){ err++; console.warn(e); }
+      bar.style.width = Math.round((done + err) / L.length * 100) + '%'; }
+    run = false; draw(stop ? `途中で止めました（${done}通・${pg}ページ作成）` : `${done}通・${pg}ページを作りました${err ? `（${err}通は作れませんでした）` : ''}`); if (S.view === 'doc') render(); };
+  document.body.appendChild(el); hpush('n'); scrPush(el); draw(); }
 function openSusList(){ const L = susList(); const el = document.createElement('div'); el.className = 'noteview susv';
   el.innerHTML = `<div class="nvin"><h2 class="nvt">別の作品かもしれない書類</h2><p class="hint">書類にひも付いた作品と、書類に書かれたサイズ・名前・制作年が大きく違うものです。押すと書類と作品を並べて見比べられます。</p>${L.length ? L.map(({ d, no, m }) => `<button type="button" class="wprow" data-cmp="${esc(d['書類ID'])}|${esc(no)}"><span class="dfwth">${(photoBy[no]||[]).length ? thumbHTML(no, 200) : '<span class="dfwnp">写真なし</span>'}</span><span class="wpt"><b>${esc(nol(no))}　${esc((workOf(no)||{})['作品名'] || '無題')}</b><small>📄 ${esc(docTitle(d))}</small><small class="susw">⚠ ${esc(m.why.join('・'))}</small></span><em>見比べる ›</em></button>`).join('') : '<p class="hint">見つかりませんでした</p>'}</div>`;
   document.body.appendChild(el); hpush('n'); scrPush(el); hydrate(el); }
@@ -2701,7 +2722,7 @@ const PFQ = { q: [], on: false };
 function pdfPrefetch(fids){ try { if (navigator.connection && navigator.connection.saveData) return; } catch(e){}
   (fids || []).filter(Boolean).forEach(f => { if (!DPDF[f] && !DPDFP[f] && PFQ.q.indexOf(f) < 0) PFQ.q.push(f); }); PFQ.q = PFQ.q.slice(-6);
   if (PFQ.on) return; PFQ.on = true;
-  const next = () => { const f = PFQ.q.shift(); if (!f) { PFQ.on = false; return; } pdfDocOf(f).catch(() => {}).then(() => setTimeout(next, 300)); }; /* PDFの部品（pdf.js）も一緒に準備 */
+  const next = () => { const f = PFQ.q.shift(); if (!f) { PFQ.on = false; return; } pdfDocOf(f).then(async dc => { if (dc.img) for (let i = 1; i <= dc.numPages; i++) await (await dc.getPage(i)).prefetch().catch(() => {}); }).catch(() => {}).then(() => setTimeout(next, 300)); }; /* PDFの部品（pdf.js）も一緒に準備 */
   setTimeout(next, 800); }
 const docPdfFid = d => { const r = docRes(d); return r.PDF ? docPages(d)[0] : ''; };
 function prefetchWorkPdfs(no){ try { const ids = new Set(); (S.events || []).forEach(e => { if (String(e['作品番号']) === String(no)) String(e['根拠・出典'] || '').replace(/D-\d+/g, m => ids.add(m)); });
@@ -2754,7 +2775,7 @@ function renderDocFiles(){
   const nNew = docsOf('まだ').length, nRev = docsOf('確認待ち').length, nChk = (S.docs||[]).filter(d => d['状態']==='登録済み' && docWarn(d)).length;
   const work = `<div class="fwork"><button type="button" class="fchip main" data-docnew="">${ico('photo')}書類を撮る</button><button type="button" class="fchip" data-pdfscan="1">📄 スキャンを読み取る</button>`
     + (nNew ? `<button type="button" class="fchip warn" data-dmode="list">まだ読んでいない ${nNew}</button>` : '') + (nRev ? `<button type="button" class="fchip warn" data-dmode="list">確かめて登録 ${nRev}</button>` : '')
-    + (nChk ? `<button type="button" class="fchip warn" data-dmode="list">⚠ 要確認 ${nChk}</button>` : '') + (() => { const n = susList().length; return n ? `<button type="button" class="fchip warn" data-suslist="1">⚠ 別の作品かも ${n}</button>` : ''; })() + `<button type="button" class="fchip ghost" data-dmode="list">登録の作業・全文検索 ›</button></div>`;
+    + (nChk ? `<button type="button" class="fchip warn" data-dmode="list">⚠ 要確認 ${nChk}</button>` : '') + (() => { const n = susList().length; return n ? `<button type="button" class="fchip warn" data-suslist="1">⚠ 別の作品かも ${n}</button>` : ''; })() + (() => { const n = canEdit() ? pimgTodo().length : 0; return n ? `<button type="button" class="fchip ghost" data-pimgtool="1">⚡ ハイライト高速化 ${n}通</button>` : ''; })() + `<button type="button" class="fchip ghost" data-dmode="list">登録の作業・全文検索 ›</button></div>`;
   const binders = Object.keys(root.k).sort(dfSort), sel = path[0] || '';
   const side = `<aside class="fside"><div class="fsh">場所</div><button type="button" class="fsrow ${!path.length ? 'on' : ''}" data-dfp="">${FIC.fold}<span>資料ファイル</span><small>${root.n}</small></button>
     <div class="fsh">バインダー</div>${binders.map(n => `<button type="button" class="fsrow ${sel === n ? 'on' : ''}" data-dfp="${esc(n)}">${fIc(n, FIC.bind)}<span>${esc(n)}</span><small>${root.k[n].n}</small></button>`).join('')}</aside>`;
@@ -5330,6 +5351,7 @@ document.addEventListener('click', e => {
   if (t.dataset.evhl2){ evHighlight(t); return; }
   if (t.dataset.wfix){ const [did, no] = t.dataset.wfix.split('|'); dfMoveWork(did, no); return; }
   if (t.dataset.suslist){ openSusList(); return; }
+  if (t.dataset.pimgtool){ openPimgTool(); return; }
   if (dfAct(t)) return;
   if (t.dataset.dmode !== undefined){ S.dmode = t.dataset.dmode; S.dfq = ''; render(); window.scrollTo(0, 0); return; }
   if (t.dataset.dfo !== undefined){ dfNav((S.dpath || []).concat(t.dataset.dfo)); return; }
@@ -5508,7 +5530,16 @@ async function pdfjs(){ if (PDFJS) return PDFJS;
   await new Promise((ok, ng) => { const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'; sc.onload = ok; sc.onerror = () => ng(new Error('PDFの表示部品を読み込めませんでした')); document.head.appendChild(sc); });
   window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; return PDFJS = window.pdfjsLib; }
 const PDOC = {};
-function pdfDocOf(fid){ return PDOC[fid] || (PDOC[fid] = (async () => { const url = await pdfBlobUrl(fid); const [buf, lib] = await Promise.all([fetch(url).then(r => r.arrayBuffer()), pdfjs()]); return lib.getDocument({ data: buf }).promise; })().catch(e => { delete PDOC[fid]; throw e; })); }
+/* ---------- 書類のページ画像：あればPDFの代わりに使う（1ページずつ軽い画像を取るだけなので速い） ---------- */
+let PIMG = {}; const PIU = {}, PDOCI = {};
+function pimgIndex(){ PIMG = {}; Object.keys(PDOCI).forEach(k => delete PDOCI[k]); (S.pimg || []).forEach(([did, pdf, p, id, w, h, ver]) => { const d = docById(did); if (!d || String(d['更新日時'] || '') !== String(ver || '')) return;
+  const o = PIMG[pdf] = PIMG[pdf] || { did, pages: {}, n: 0 }; o.pages[p] = { id, w, h }; o.n = Math.max(o.n, +p); });
+  Object.keys(PIMG).forEach(k => { const o = PIMG[k]; for (let i = 1; i <= o.n; i++) if (!o.pages[i]) { delete PIMG[k]; break; } }); }
+function pimgUrl(id){ return PIU[id] || (PIU[id] = call('getThumbs', [id], 1600).then(m => { const u = m && m[id]; if (!u) throw new Error('no image'); return u; }).catch(e => { delete PIU[id]; throw e; })); }
+function imgDoc(o){ return { numPages: o.n, img: true, getPage: async n => { const pg = o.pages[n]; let im = null; const load = () => im || (im = pimgUrl(pg.id).then(u => new Promise((ok, ng) => { const x = new Image(); x.onload = () => ok(x); x.onerror = ng; x.src = u; })));
+  return { getViewport: ({ scale }) => ({ width: pg.w * scale, height: pg.h * scale }), render: ({ canvasContext: c, viewport: vp }) => ({ promise: load().then(x => { c.fillStyle = '#fff'; c.fillRect(0, 0, vp.width, vp.height); c.drawImage(x, 0, 0, vp.width, vp.height); }) }), prefetch: load }; } }; }
+function pdfDocOf(fid){ const o = PIMG[fid]; if (o) return PDOCI[fid] || (PDOCI[fid] = Promise.resolve(imgDoc(o))); return pdfRealDoc(fid); }
+function pdfRealDoc(fid){ return PDOC[fid] || (PDOC[fid] = (async () => { const url = await pdfBlobUrl(fid); const [buf, lib] = await Promise.all([fetch(url).then(r => r.arrayBuffer()), pdfjs()]); return lib.getDocument({ data: buf }).promise; })().catch(e => { delete PDOC[fid]; throw e; })); }
 const pdfDesk = () => window.innerWidth >= 1000 && matchMedia('(pointer:fine)').matches;
 function pqHint(host, hint, page){ const old = host.querySelector('.pqhint'); if (old) old.remove(); if (!hint || !(hint.q || hint.msg)) return;
   const hre = hint.q ? fzRe(esc(hint.q), 'gi') : null;
@@ -5519,7 +5550,7 @@ async function pdfMount(host, fid, title, page, hint){
   host.innerHTML = `<div class="pqbar"><span class="pqt">${esc(title || 'PDF')}</span><span class="pqpg">–</span><button type="button" data-pz="-" aria-label="縮小">−</button><button type="button" data-pz="fit" aria-label="幅に合わせる" title="幅に合わせる">↔</button><button type="button" data-pz="+" aria-label="拡大">＋</button><button type="button" data-pz="mark" class="pqmk" hidden title="マーカーの所を大きく">全体</button><button type="button" data-pz="tab" title="別のタブで開く（印刷・保存）">↗</button>${host.closest('.pdfql') ? '<button type="button" data-pz="close" aria-label="閉じる" title="閉じる（Esc）">✕</button>' : ''}</div><div class="pqpages"><div class="ldwrap"><span class="ldspin"></span>PDFを読み込んでいます…</div></div>`;
   pqHint(host, hint, page);
   const box = host.querySelector('.pqpages'), pgEl = host.querySelector('.pqpg'); let url = '';
-  try { url = await pdfBlobUrl(fid); const doc = await pdfDocOf(fid); if (!host.isConnected) return;
+  try { const doc = await pdfDocOf(fid); if (!host.isConnected) return;
     const pages = []; for (let i = 1; i <= doc.numPages; i++) pages.push(await doc.getPage(i));
     let z = 1; const fitW = p => { const sm = box.clientWidth < 700; return Math.max(160, Math.min(1400, box.clientWidth - (sm ? 16 : 40))); }; /* 1ページごとに、表示エリアの横幅いっぱいになる大きさ（小さいページ・横長のページもそれぞれ見やすく） */
     let inner = null;
@@ -5533,7 +5564,7 @@ async function pdfMount(host, fid, title, page, hint){
     box.addEventListener('scroll', upd, { passive: true });
     host.querySelector('.pqbar').onclick = e => { const b = e.target.closest('[data-pz]'); if (!b) return; const v = b.dataset.pz;
       if (v === 'mark') { zoomMark(!host._mz); return; }
-      if (v === 'close') { scrBack(); return; } if (v === 'tab') { window.open(url, '_blank'); return; } const r = box.scrollTop / Math.max(1, box.scrollHeight);
+      if (v === 'close') { scrBack(); return; } if (v === 'tab') { const wn = window.open('', '_blank'); pdfBlobUrl(fid).then(u => { if (wn) wn.location = u; else window.open(u, '_blank'); }); return; } const r = box.scrollTop / Math.max(1, box.scrollHeight);
       host._mz = false; const mk = host.querySelector('.pqmk'); if (mk) mk.textContent = '🔍 ズーム';
       z = v === 'fit' ? 1 : Math.max(.4, Math.min(3, z * (v === '+' ? 1.25 : .8))); draw(); box.scrollTop = r * box.scrollHeight; };
     /* スマホ：2本指で拡大・縮小、2回タップで拡大／元に戻す */
