@@ -1663,6 +1663,7 @@ body.cmpon #abTitle{visibility:hidden}
 .cwr:has(.cwdx.on) .cwdx{display:none}
 .cwopts{align-items:start}.cwopt{min-height:0;height:auto;padding:10px 12px}.cwopt b{font-size:20px}.cwopt b i{font-style:normal;font-size:13px;font-weight:500;color:var(--sub);margin-left:2px}.cwopt small{font-size:12px}
 .cwdec{margin:2px 0 8px}.cwq{font-size:14.5px}
+.fico.fmk,.fico.fbadge{display:inline-flex;align-items:center;justify-content:center;border-radius:7px;overflow:hidden;background:#fff;box-shadow:0 0 0 1px var(--line);flex:0 0 auto;aspect-ratio:1/1;width:auto!important}.fico.fmk img{width:100%;height:100%;object-fit:contain;display:block}.fico.fbadge{background:hsl(var(--h) 38% 46%);color:#fff;font-weight:700;font-size:.42em;box-shadow:none;border-radius:50%;letter-spacing:-.04em;line-height:1}.fnm .fico.fmk,.fnm .fico.fbadge{height:26px}.ftth .fico.fmk,.ftth .fico.fbadge{height:60px;font-size:20px}.fsrow .fico.fmk,.fsrow .fico.fbadge{height:18px;font-size:8px}.fpath .fico.fmk,.fpath .fico.fbadge{height:14px;font-size:7px}.fnm .fico.fbadge{font-size:10.5px}@media (max-width:899px){.fnm .fico.fmk,.fnm .fico.fbadge{height:32px}.fnm .fico.fbadge{font-size:12px}.ftth .fico.fmk,.ftth .fico.fbadge{height:56px}}
 </style>
 </head>
 <body>
@@ -1730,7 +1731,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '46c7629fa5', APP_URL = location.origin + location.pathname;
+const BUILD = '768c445bd1', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1807,7 +1808,7 @@ function docCacheSync(docs){ let V = {}; try { V = JSON.parse(localStorage.getIt
   if (del.length) thDel(del); try { localStorage.setItem('smr_dver', JSON.stringify(N)); } catch(e){} }
 function setData(d){ if (S.upd) S.upd.t = 0; try { if (d && d.docs && d.docs.length) docCacheSync(d.docs); } catch(e){}
   const allW = d.works || []; d = Object.assign({}, d, {works: allW.filter(w => !OTRE.test(w['作品番号'])), others: allW.filter(w => OTRE.test(w['作品番号']))});
-  Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], memoChecker:d.memoChecker||'直美', user:d.user, ai:d.ai, publicView:d.publicView}); if (S.token && !d.user) setToken(''); index(); renderUser();  if (d.user) setTimeout(prefetchThumbs, 0); }
+  Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], memoChecker:d.memoChecker||'直美', marks:d.marks||[], user:d.user, ai:d.ai, publicView:d.publicView}); if (S.token && !d.user) setToken(''); index(); renderUser();  if (d.user) setTimeout(prefetchThumbs, 0); }
 const canRole = () => !!(S.user && ['編集','管理'].includes(S.user.role));
 const canEdit = () => canRole();
 try { S.edit = localStorage.getItem('smr_edit') === '1'; } catch(e){ S.edit = false; }
@@ -2708,6 +2709,11 @@ function docTree(){ const root = { name: '', k: {}, docs: [], n: 0 };
     let p = String(d['保管番号'] || '').split('/').map(x => x.trim()).filter(Boolean); if (!p.length) p = [DF_NONE];
     let t = root; t.n++; p.forEach(x => { t = t.k[x] = t.k[x] || { name: x, k: {}, docs: [], n: 0 }; t.n++; }); t.docs.push(d); });
   return root; }
+/* フォルダのマーク：美術館・学校・県のマーク（ドライブの「マーク」フォルダ）。まだないところは名前の頭文字の丸いマーク */
+const MK_RE = /(美術館|ミュージアム|博物館|大学|学校|高校|画廊|ギャラリー|財団|[都道府県]$|[市町村]$)/;
+function fIc(name, def){ const m = (S.marks || []).find(x => x.name === name); if (m) return `<span class="fico fmk">${thImg0(m.fid, 128)}</span>`;
+  if (!name || !MK_RE.test(name)) return def; const t = String(name).replace(/^(公益|一般)?(財団|社団)法人/, '').replace(/^(国立|県立|市立|府立|都立)/, ''), h = [...String(name)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 360, 7);
+  return `<span class="fico fbadge" style="--h:${h}">${esc(t.slice(0, 2))}</span>`; }
 function docTreeAt(path){ let t = docTree(); for (const x of path) { t = t.k[x]; if (!t) return null; } return t; }
 const dfSort = (a, b) => (a === DF_NONE) - (b === DF_NONE) || a.localeCompare(b, 'ja', { numeric: true });
 function dfWarnN(t){ let n = t.docs.filter(d => docWarn(d)).length; Object.values(t.k).forEach(c => n += dfWarnN(c)); return n; }
@@ -2727,7 +2733,7 @@ function renderDocFiles(){
     + (nChk ? `<button type="button" class="fchip warn" data-dmode="list">⚠ 要確認 ${nChk}</button>` : '') + (() => { const n = susList().length; return n ? `<button type="button" class="fchip warn" data-suslist="1">⚠ 別の作品かも ${n}</button>` : ''; })() + `<button type="button" class="fchip ghost" data-dmode="list">登録の作業・全文検索 ›</button></div>`;
   const binders = Object.keys(root.k).sort(dfSort), sel = path[0] || '';
   const side = `<aside class="fside"><div class="fsh">場所</div><button type="button" class="fsrow ${!path.length ? 'on' : ''}" data-dfp="">${FIC.fold}<span>資料ファイル</span><small>${root.n}</small></button>
-    <div class="fsh">バインダー</div>${binders.map(n => `<button type="button" class="fsrow ${sel === n ? 'on' : ''}" data-dfp="${esc(n)}">${FIC.bind}<span>${esc(n)}</span><small>${root.k[n].n}</small></button>`).join('')}</aside>`;
+    <div class="fsh">バインダー</div>${binders.map(n => `<button type="button" class="fsrow ${sel === n ? 'on' : ''}" data-dfp="${esc(n)}">${fIc(n, FIC.bind)}<span>${esc(n)}</span><small>${root.k[n].n}</small></button>`).join('')}</aside>`;
   /* 中身：フォルダと資料を1つの表に */
   let items = [];
   if (k) { const walk = (x, pp) => { x.docs.forEach(d => items.push({ d, pp })); Object.keys(x.k).forEach(n => walk(x.k[n], pp.concat(n))); }; walk(t, path);
@@ -2739,10 +2745,10 @@ function renderDocFiles(){
     : (a.f ? dfSort(a.f, b.f) : String(a.d['書類ID']).localeCompare(String(b.d['書類ID']), 'ja', { numeric: true }))));
   const ar = c => sk === c ? (sd > 0 ? ' ▲' : ' ▼') : '';
   const row = x => { if (x.f) { const w = dfWarnN(x.c), sub = Object.keys(x.c.k).length;
-      return `<button type="button" class="frow" data-dfo="${esc(x.f)}"><span class="fc fnm">${path.length ? FIC.fold : (x.f === DF_NONE ? FIC.fold : FIC.bind)}<span class="ftx"><b>${esc(x.f)}</b><small class="fsp">${x.c.n}通${sub ? '・フォルダ' + sub : ''}${w ? '　<em class="dfw">⚠ ' + w + '</em>' : ''}</small></span></span><span class="fc fdt">${w ? '<em class="dfw">⚠ ' + w + '</em>' : '—'}</span><span class="fc fkd">${kd(x)}</span><span class="fc fct">${x.c.n}通</span><span class="fgo">›</span></button>`; }
+      return `<button type="button" class="frow" data-dfo="${esc(x.f)}"><span class="fc fnm">${fIc(x.f, path.length ? FIC.fold : (x.f === DF_NONE ? FIC.fold : FIC.bind))}<span class="ftx"><b>${esc(x.f)}</b><small class="fsp">${x.c.n}通${sub ? '・フォルダ' + sub : ''}${w ? '　<em class="dfw">⚠ ' + w + '</em>' : ''}</small></span></span><span class="fc fdt">${w ? '<em class="dfw">⚠ ' + w + '</em>' : '—'}</span><span class="fc fkd">${kd(x)}</span><span class="fc fct">${x.c.n}通</span><span class="fgo">›</span></button>`; }
     const d = x.d, r = docRes(d), w = docWarn(d), pg = docPages(d).length;
     return `<button type="button" class="frow" data-doc="${esc(d['書類ID'])}"><span class="fc fnm">${r.PDF ? FIC.doc : FIC.img}<span class="ftx"><b>${esc(docTitle(d))}</b><small class="fsp">${w ? '<em class="dfw">⚠</em> ' : ''}${esc([dt(x), kd(x), x.pp ? x.pp.join(' › ') : ''].filter(Boolean).join('・'))}${d['全文あり'] ? ' <em class="fnt">全文</em>' : ''}</small></span></span><span class="fc fdt">${esc(dt(x) || '—')}${w ? ' <em class="dfw" title="' + esc(w) + '">⚠</em>' : ''}</span><span class="fc fkd">${esc(kd(x))}</span><span class="fc fct">${r.PDF ? 'PDF' : pg + '枚'}${d['全文あり'] ? ' <em class="fnt">全文</em>' : ''}</span><span class="fgo"></span></button>`; };
-  const tile = x => { if (x.f) return `<button type="button" class="ftile" data-dfo="${esc(x.f)}"><span class="ftth">${path.length || x.f === DF_NONE ? FIC.fold : FIC.bind}</span><b>${esc(x.f)}</b><small>${x.c.n}通${dfWarnN(x.c) ? '　<em class="dfw">⚠</em>' : ''}</small></button>`;
+  const tile = x => { if (x.f) return `<button type="button" class="ftile" data-dfo="${esc(x.f)}"><span class="ftth">${fIc(x.f, path.length || x.f === DF_NONE ? FIC.fold : FIC.bind)}</span><b>${esc(x.f)}</b><small>${x.c.n}通${dfWarnN(x.c) ? '　<em class="dfw">⚠</em>' : ''}</small></button>`;
     const d = x.d, pg = docPages(d); return `<button type="button" class="ftile" data-doc="${esc(d['書類ID'])}"><span class="ftth doc">${pg[0] ? docImg(pg[0], 200) : FIC.doc}</span><b>${esc(docTitle(d))}</b><small>${esc(dt(x))}${docWarn(d) ? '　<em class="dfw">⚠</em>' : ''}</small></button>`; };
   const title = k ? `「${esc(q)}」の検索結果` : esc(path.length ? path[path.length - 1] : '資料ファイル');
   const tool = `<div class="ftool"><span class="fnav"><button type="button" data-dfh="back" ${(S.dback||[]).length ? '' : 'disabled'} aria-label="戻る">‹</button><button type="button" data-dfh="fwd" ${(S.dfwd||[]).length ? '' : 'disabled'} aria-label="進む">›</button></span>
@@ -2751,10 +2757,10 @@ function renderDocFiles(){
   const body = !items.length ? `<p class="fempty">${k ? '見つかりませんでした。中身の文字から探すときは「登録の作業・全文検索」へ。' : '資料はまだありません'}</p>`
     : icon ? `<div class="fgrid">${items.map(tile).join('')}</div>`
     : (path.length && path[0] !== DF_NONE ? `<button type="button" class="fspinerow" data-spine="${esc(path.join('/'))}">📦 このフォルダの背表紙を見る</button>` : '') + `<div class="fhead"><button type="button" data-dfs="name">名前${ar('name')}</button><button type="button" data-dfs="date">日付${ar('date')}</button><button type="button" data-dfs="kind">種類${ar('kind')}</button><span>数</span><span></span></div><div class="frows">${items.map(row).join('')}</div>`;
-  const pbar = `<div class="fpath"><button type="button" data-dfp="">${FIC.fold}資料ファイル</button>${path.map((x, i) => `<span>›</span><button type="button" data-dfp="${esc(path.slice(0, i + 1).join('/'))}">${i ? FIC.fold : FIC.bind}${esc(x)}</button>`).join('')}
+  const pbar = `<div class="fpath"><button type="button" data-dfp="">${FIC.fold}資料ファイル</button>${path.map((x, i) => `<span>›</span><button type="button" data-dfp="${esc(path.slice(0, i + 1).join('/'))}">${fIc(x, i ? FIC.fold : FIC.bind)}${esc(x)}</button>`).join('')}
     ${path.length && path[0] !== DF_NONE ? `<button type="button" class="fspine" data-spine="${esc(path.join('/'))}">📦 背表紙</button>` : ''}<span class="fcount">${items.length}項目</span></div>`;
   $('#main').innerHTML = `<div class="docs fwrap"><div class="chead"><h2>書類</h2><p class="csub">実物のバインダーと同じ並びで、スキャンした資料を見られます</p></div>${work}<div class="fnd ${icon ? 'ficon' : ''}">${side}<section class="fmain">${tool}${body}${pbar}</section></div></div>`;
-  hydrateDocs($('#main'));
+  hydrateDocs($('#main')); hydrate($('#main'));
   const inp = $('#dfq'); inp.oninput = () => { S.dfq = inp.value; clearTimeout(inp._t); inp._t = setTimeout(() => { const pos = inp.selectionStart; renderDocFiles(); const n = $('#dfq'); n.focus(); try { n.setSelectionRange(pos, pos); } catch(e){} }, 250); };
 }
 function renderDocs(){ setTimeout(sameChk, 500);
