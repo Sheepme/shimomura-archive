@@ -1667,7 +1667,7 @@ body.cmpon #abTitle{visibility:hidden}
 
 .cmpback{display:none}
 @media (max-width:899px){
- body.cmpon #top,body.cmpon #top .appbar{display:none!important}
+ body.cmpon #top,body.cmpon #top .appbar,body.cmpon .cbar{display:none!important}
  .noteview.cmpv{padding-top:max(env(safe-area-inset-top),var(--cap,0px))!important;z-index:200}
  .cmpdoc{flex:0 0 34%}
  .cmpback{display:flex;align-items:center;justify-content:center;position:absolute;left:6px;top:calc(max(env(safe-area-inset-top),var(--cap,0px)) + 2px);z-index:5;width:40px;height:36px;border:0;border-radius:10px;background:transparent;color:var(--ink);cursor:pointer}
@@ -1750,7 +1750,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '28be5e6a41', APP_URL = location.origin + location.pathname;
+const BUILD = 'b5085761cf', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3926,8 +3926,10 @@ document.addEventListener('input', e => { const el = e.target; if (!el.matches |
   hydrate(box);
   box.onclick = ev => { const b = ev.target.closest('[data-wno]'); if (!b) return; el.value = wLabel(b.dataset.wno); box.innerHTML = ''; el.dispatchEvent(new Event('change', {bubbles: true})); el.blur(); };
 });
+let OWC = false;
 function openWork(no, keepScroll, restoreSc){
-  const w = workOf(no); if (!w) return; if (S.user && canEdit()) prefetchWorkPdfs(no);
+  const w = workOf(no); if (!w) return;
+  if (!OWC) { const cv = SCR.find(e => e.classList && e.classList.contains('cmpv')); if (cv && cv._did) return openWorkFromCmp(no, cv._did); } /* 見比べ画面から（検索などで）作品を開いた時も、右から重ねて開き、戻ると見比べに戻る */ if (S.user && canEdit()) prefetchWorkPdfs(no);
   const ot = isOtNo(no), NO = ot ? no : 'No. ' + no; // その他の作品（Y001など）は本作と同じページで、クイズ・インタビューなしで表示
   const pg = $('#page');
   const ph = photoBy[no] || [];
@@ -4013,7 +4015,7 @@ function pcName(t, id){
   if (t==='cmp') return '見比べ';
   return ''; }
 const VIEW_NM = {home:'ホーム', album:'作品アルバム', list:'作品リスト', ot:'その他の作品', ex:'展覧会', pb:'画集・資料', chrono:'年表', doc:'書類', ai:'作品目録AI'};
-function abSync(){ const pg = $('#page'), open = !pg.classList.contains('hidden'), b = $('#btnMenu');
+function abSync(){ try { cmpSync(); } catch(e){} const pg = $('#page'), open = !pg.classList.contains('hidden'), b = $('#btnMenu');
   document.body.classList.toggle('pgopen', open);
   if (b && b.dataset.st !== (open ? 'b' : 'm') && b.dataset.scr !== '1') { b.innerHTML = open ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>' : IC_MENU; b.dataset.st = open ? 'b' : 'm'; b.setAttribute('aria-label', open ? 'もどる' : 'メニューを開く'); }
   if (open) { const no = pg.querySelector('.pagehead .no'), T = {w:'作品', ot:'その他の作品', ex:'展覧会', pb:'画集・資料'}; const tt = S.pcur && S.pcur.t, id = S.pcur && S.pcur.id;
@@ -4032,7 +4034,7 @@ function openWorkAlone(no){ for (let n = 0; n < 12 && SCR.length; n++) { const t
 function openWorkFromCmp(no, did){ const pg = $('#page'), wasOpen = !pg.classList.contains('hidden'), prev = wasOpen && S.pcur ? { t: S.pcur.t, id: S.pcur.id, sc: pg.scrollTop } : null, st = (S.stack || []).slice();
   const sheetDoc = !$('#sheet').classList.contains('hidden') && S.sheetDoc === did;
   for (let n = 0; n < 12 && SCR.length; n++) { const top = SCR.pop(); if (top.id === 'sheet') { top.classList.add('hidden'); $('#sheetbox').innerHTML = ''; $('#sheetbox').classList.remove('split'); } else if (top.id === 'viewer') top.classList.add('hidden'); else top.remove(); }
-  S.sheetDoc = null; SNAP.v = null; S.pcur = null; openWork(no);
+  S.sheetDoc = null; SNAP.v = null; S.pcur = null; OWC = true; try { openWork(no); } finally { OWC = false; }
   S.stack = (wasOpen ? st.concat(prev ? [prev] : []) : []).concat([{ t: 'cmp', id: did, did, no, doc: sheetDoc }]);
   scrHead(); scrAnim(pg, '100', '0'); abSync(); }
 function openWorkFromDoc(no, did){
@@ -4530,7 +4532,8 @@ function scrUnder(){ return SCR[SCR.length - 1] || (!$('#page').classList.contai
 function scrAnim(el, from, to){ if (!el) return; try { const w = el.getBoundingClientRect().width || innerWidth, px = v => Math.round(parseFloat(v) / 100 * w) + 'px';
   const a = el.animate([{ marginLeft: px(from) }, { marginLeft: px(to) }], { duration: SCR_MS, easing: SCR_EASE }); a.onfinish = a.oncancel = () => { try { a.cancel(); } catch(e){} }; } catch(e){} }
 function scrTitle(el){ if (!el) return ''; if (el.id === 'sheet') { const h = el.querySelector('#sheetbox h3'); return h ? h.textContent.replace(/[✎]/g, '').trim() : ''; } if (el.id === 'viewer') return '写真'; if (el.classList.contains('pdfql')) return 'PDF'; if (el.classList.contains('dfrv')) return 'どっちが正しい？'; if (el.classList.contains('wpick')) return '作品を付け替える'; if (el.classList.contains('cmpv')) return '書類と作品を見比べる'; if (el.classList.contains('docview')) return '書類'; if (el.classList.contains('noteview')) return 'ノート'; return ''; }
-function scrHead(){ const on = SCR.length > 0; document.body.classList.toggle('scr', on); const b = $('#btnMenu');
+const cmpSync = () => document.body.classList.toggle('cmpon', !!(SCR.length && SCR[SCR.length - 1].classList.contains('cmpv') && SCR[SCR.length - 1].isConnected)); /* 見比べ画面がいちばん上にある時だけヘッダーを隠す */
+function scrHead(){ const on = SCR.length > 0; document.body.classList.toggle('scr', on); cmpSync(); const b = $('#btnMenu');
   if (b) { if (on && b.dataset.scr !== '1') { b.dataset.scr = '1'; b.dataset.mh = b.innerHTML; b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>'; b.setAttribute('aria-label', '戻る'); }
     else if (!on && b.dataset.scr === '1') { b.dataset.scr = ''; b.innerHTML = b.dataset.mh || b.innerHTML; b.setAttribute('aria-label', 'メニューを開く'); b.dataset.st = ''; try { abSync(); } catch(e){} } }
   try { abRender(); } catch(e){} }
