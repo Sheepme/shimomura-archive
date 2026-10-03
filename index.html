@@ -1675,6 +1675,13 @@ body.cmpon #abTitle{visibility:hidden}
  .cmpv .pqbar{padding-left:50px;min-height:40px}
 }
 .pimgn{font-size:15px;margin:14px 0 8px}.pimgmsg{font-size:14px;color:var(--ink);background:var(--wash);border-radius:10px;padding:10px 12px}.pimgbar{height:8px;border-radius:4px;background:var(--wash2);overflow:hidden;margin:8px 0 14px}.pimgbar i{display:block;height:100%;background:#2f7cf6;transition:width .3s}.pimggo{width:100%}
+
+/* 読み込み・保存中：どの画面の上でも、まん中にくるくるを出す（いちばん上のレイヤー） */
+#loading.loading{position:fixed!important;left:50%!important;right:auto!important;top:50%!important;bottom:auto!important;transform:translate(-50%,-50%);height:auto!important;min-height:0!important;padding:12px 20px!important;margin:0!important;border-radius:999px!important;background:rgba(28,28,28,.88)!important;-webkit-backdrop-filter:blur(10px)!important;backdrop-filter:blur(10px)!important;color:#fff!important;font-size:14.5px!important;font-weight:600;letter-spacing:.02em;gap:10px;z-index:2147483600!important;box-shadow:0 8px 28px rgba(0,0,0,.35)!important;display:flex;align-items:center;white-space:nowrap;overflow:visible;animation:ldpop .18s ease-out}
+#loading.loading.hidden{display:none!important}
+#loading.loading .ldsp{display:block!important;width:18px;height:18px;border-width:2.5px}
+#loading.loading::after{display:none!important}#loading.loading::before{content:'';position:absolute;left:-200vw;top:-200vh;width:400vw;height:400vh;z-index:-1;background:transparent}
+@keyframes ldpop{from{opacity:0;transform:translate(-50%,-50%) scale(.92)}to{opacity:1;transform:translate(-50%,-50%)}}
 </style>
 </head>
 <body>
@@ -1742,7 +1749,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'e43102d72d', APP_URL = location.origin + location.pathname;
+const BUILD = '91fb6d91a1', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
