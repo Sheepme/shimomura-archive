@@ -1688,6 +1688,15 @@ body.cmpon #abTitle{visibility:hidden}
 /* パソコンでも、重ねて開いた画面・作品ページでは左上に「←もどる」を出す */
 body.wide.pgopen #top .appbar #btnMenu,body.wide.scr #top .appbar #btnMenu{display:flex!important;visibility:visible!important}
 .cmpin{position:relative}
+
+/* ---- 重なり順（上から）：アラート ＞ 吹き出し ＞ サイドメニュー ＞ ヘッダー ＞ その他の画面 ---- */
+#top{z-index:400!important}
+#drawer.drawer,#drawer.drawer.pin{z-index:500!important}
+#mepop{z-index:900!important}
+.toast,#toast{z-index:1000!important}
+#confirm.sheet{z-index:1100!important}
+#loading.loading{z-index:1200!important}
+.wdoc .wdcmp{width:calc(100% - 12px);margin:4px 6px 0!important;padding:12px;font-size:15px}
 </style>
 </head>
 <body>
@@ -1755,7 +1764,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'e3345f3305', APP_URL = location.origin + location.pathname;
+const BUILD = 'eb74436c4e', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2017,7 +2026,12 @@ function navOn(){ const nv = S.view;
 /* ---------- メニュー（左から出る）。パソコンの広い画面では左にずっと出しておく ---------- */
 let dwFold = false; try { dwFold = localStorage.getItem('smr_dw') === '0'; } catch(e){}
 const isWide = () => innerWidth >= 1000;
+/* 3カラム以上になる画面（見比べ・作品ページの2カラム・書類の左右表示）では、メニューを自動でアイコン列に畳む。開くボタンでいつでも広げられる */
+let dwAuto0 = false, dwAutoOpen = false, PDW = 0;
+const dwAuto = () => isWide() && !!S.user && (!!document.querySelector('.noteview.cmpv') || (!$('#page').classList.contains('hidden') && !!document.querySelector('#page .pagebody:not(.one)')) || (!$('#sheet').classList.contains('hidden') && $('#sheetbox').classList.contains('split')));
+const dwFolded = () => dwFold || (dwAuto0 && !dwAutoOpen);
 function pinDrawer(){ const d = $('#drawer'); if (!d) return; const w = isWide() && !!S.user; /* パソコン：メニューは消さない。「開く」か「アイコンだけの1列」の2択 */
+  const au = dwAuto(); if (au !== dwAuto0) { dwAuto0 = au; dwAutoOpen = false; } const dwFold = dwFolded();
   document.body.classList.toggle('wide', w); document.body.classList.toggle('rail', w && dwFold); document.body.classList.toggle('wideoff', w && dwFold); d.classList.toggle('pin', w);
   d.querySelectorAll('#dwNav button').forEach(b => { b.title = b.textContent.trim(); }); const dx = document.getElementById('dwX'); if (dx) dx.setAttribute('aria-label', w && dwFold ? 'メニューを開く' : 'メニューを畳む');
   if (w) document.body.classList.remove('dwopen');
@@ -2029,7 +2043,7 @@ function pinDrawer(){ const d = $('#drawer'); if (!d) return; const w = isWide()
     if (sr && ab && nv) { if (isWide() && !!S.user && dwFold) { if (sr.parentNode !== ab) ab.insertBefore(sr, ak && ak.parentNode === ab ? ak : null); } else if (sr.parentNode !== nv.parentNode) nv.parentNode.insertBefore(sr, nv); } }
   d.dataset.was = w ? 'pin' : ''; if (typeof markStuck === 'function') { markStuck(); setTimeout(markStuck, 260); } }
 addEventListener('resize', () => pinDrawer());
-function openDrawer(){ if (isWide()) { dwFold = !dwFold; try { localStorage.setItem('smr_dw', dwFold ? '0' : '1'); } catch(e){} pinDrawer(); setTimeout(() => { if (['album','ot'].includes(S.view)) render(); }, 240); return; }
+function openDrawer(){ if (isWide()) { if (dwAuto0) dwAutoOpen = !dwAutoOpen; else { dwFold = !dwFold; try { localStorage.setItem('smr_dw', dwFold ? '0' : '1'); } catch(e){} } pinDrawer(); setTimeout(() => { if (['album','ot'].includes(S.view)) render(); }, 240); return; }
   const d = $('#drawer'); document.body.classList.add('dwopen'); d.classList.remove('hidden'); d.setAttribute('aria-hidden', 'false'); requestAnimationFrame(() => d.classList.add('open')); setTimeout(markStuck, 240); }
 function closeDrawer(){ const d = $('#drawer'); if (d.classList.contains('hidden') || d.classList.contains('pin')) return; document.body.classList.remove('dwopen'); setTimeout(markStuck, 240); d.classList.remove('open'); d.setAttribute('aria-hidden', 'true'); setTimeout(() => d.classList.add('hidden'), 220); }
 function render(){
@@ -2189,7 +2203,7 @@ function workDocsHTML(no){
   if (!ds.length) return '';
   const st = d => ({'まだ':'まだ読んでいない','確認待ち':'確認待ち','登録済み':'登録済み','登録しない':'登録しない'})[d['状態']] || d['状態'] || '';
   return `<h3 class="sec">この作品の書類（${ds.length}通）</h3><div class="dlist wdocs">${ds.map(d => { const ok = d['状態'] === '登録済み', pdf = ok && docPdfFid(d), k = esc(d['書類ID']) + '|' + esc(no);
-    return `<div class="dfx evx wdoc" data-wdid="${esc(d['書類ID'])}">${docCard(d, docWarn(d) ? '⚠ ' + docWarn(d) : st(d))}${ok ? `<div class="wdbtns">${pdf ? `<button type="button" class="act dfal dfhl evhl" data-dfhl="w" data-wdhl="${k}">書類をハイライト</button>` : ''}<button type="button" class="act wdcmp" data-cmp="${k}">📑 見比べる</button></div>` : ''}</div>`; }).join('')}</div>`;
+    return `<div class="dfx evx wdoc" data-wdid="${esc(d['書類ID'])}">${docCard(d, docWarn(d) ? '⚠ ' + docWarn(d) : st(d))}${ok ? `<button type="button" class="act main wdcmp" data-cmp="${k}">📑 書類と見比べる</button>` : ''}</div>`; }).join('')}</div>`;
 }
 /* ---- 同じ出来事（制作・出品・掲載・貸出・委託・寄贈・販売・贈与・廃棄など）が重なっていたら1つにまとめる ----
    同じ種類・同じ相手・同じ時期なら候補。内容は補い合い、書類はすべて残す。食い違う項目は選んでもらう。
@@ -2582,8 +2596,7 @@ function cmpView(did, no, fi, back){ const d = docById(did), d0 = d; if (!d) ret
   const el = document.createElement('div'); el.className = 'noteview cmpv';
   el.innerHTML = `<div class="cmpin"><button type="button" class="cmpback" aria-label="戻る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><div class="cmpdoc"></div><div class="cmpside"><div class="cmpws"></div><div class="cmpw"></div></div></div>`;
   document.body.appendChild(el); hpush('n'); scrPush(el); document.body.classList.add('cmpon'); if (back) { try { el.getAnimations().forEach(a => a.cancel()); } catch(e){} scrAnim(el, '-100', '0'); }
-  const fold0 = dwFold; if (isWide() && !dwFold) { dwFold = true; pinDrawer(); } /* メニューを畳んで広く使う */
-  const mo = new MutationObserver(() => { if (!el.isConnected) { mo.disconnect(); if (!document.querySelector('.noteview.cmpv')) document.body.classList.remove('cmpon'); if (dwFold !== fold0) { dwFold = fold0; pinDrawer(); } } }); mo.observe(document.body, { childList: true });
+  const mo = new MutationObserver(() => { if (!el.isConnected) { mo.disconnect(); if (!document.querySelector('.noteview.cmpv')) document.body.classList.remove('cmpon'); pinDrawer(); } }); mo.observe(document.body, { childList: true }); pinDrawer();
   const V = el.querySelector('.cmpdoc'), P = el.querySelector('.cmpw'), r = docRes(d);
   if (r.PDF) pdfMount(V, docPages(d)[0], docTitle(d)); else { V.innerHTML = `<div class="cmpimgs">${docPages(d).map(f => docImg(f, 1600)).join('')}</div>`; hydrateDocs(V); }
   el._did = did; const W = el.querySelector('.cmpws');
@@ -3991,7 +4004,7 @@ function openWork(no, keepScroll, restoreSc){
           ${e['展覧会ID'] && exById[e['展覧会ID']] ? `<button class="golink" data-ex="${esc(e['展覧会ID'])}">展覧会のページ ›</button>` : ''}${e['資料ID'] && pbById[e['資料ID']] ? `<button class="golink" data-pb="${esc(e['資料ID'])}">${esc(pbById[e['資料ID']]['種類']||'資料')}のページ ›</button>` : ''}
           ${e['内容'] && e['内容']!==e['相手先・場所'] && e['内容']!=='制作' ? `<div class="pl">${escU(e['内容'])}</div>`:''}
           ${e['担当者・連絡先'] ? `<div class="pl">担当者：${esc(e['担当者・連絡先'])}</div>` : ''}
-          ${canEdit() ? evDocs(e).map((id, n, all) => `<button class="golink" data-doc="${esc(id)}">書類${all.length > 1 ? (n + 1) : ''}を見る ›</button>`).join('') : ''}${canEdit() && evDocs(e).some(id => docById(id) && docRes(docById(id)).PDF) ? `<div class="dfx evx"><button type="button" class="act dfal dfhl evhl" data-dfhl="ev" data-evhl2="${esc(e['出来事ID'])}">書類をハイライト</button></div>` : ''}<div class="src">${escU([evDocs(e).length ? (evDocs(e).length > 1 ? '書類' + evDocs(e).length + '通より' : '書類より') : e['根拠・出典'], e['確かさ'], e['登録者']!=='旧リストから移行'?e['登録者']:''].filter(Boolean).join(' · '))}</div>
+          ${canEdit() ? evDocs(e).filter(id => docById(id)).map((id, n, all) => `<button class="golink" data-cmpe="${esc(id)}|${esc(no)}|${esc(e['出来事ID'])}">📑 書類${all.length > 1 ? (n + 1) : ''}と見比べる ›</button>`).join('') : ''}<div class="src">${escU([evDocs(e).length ? (evDocs(e).length > 1 ? '書類' + evDocs(e).length + '通より' : '書類より') : e['根拠・出典'], e['確かさ'], e['登録者']!=='旧リストから移行'?e['登録者']:''].filter(Boolean).join(' · '))}</div>
           ${canEdit()?`<button class="pen" data-evedit="${esc(e['出来事ID'])}" aria-label="このできごとを直す"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.6"/></svg></button>`:''}
         </div></li>`; }).join('')}</ul>` : '<p style="color:var(--sub)">まだ記録がありません</p>'}
       ${canEdit() ? workDiffsHTML(no) + workDocsHTML(no) : ''}
@@ -4032,7 +4045,8 @@ function pcName(t, id){
   if (t==='cmp') return '見比べ';
   return ''; }
 const VIEW_NM = {home:'ホーム', album:'作品アルバム', list:'作品リスト', ot:'その他の作品', ex:'展覧会', pb:'画集・資料', chrono:'年表', doc:'書類', ai:'作品目録AI'};
-function abSync(){ try { cmpSync(); } catch(e){} const pg = $('#page'), open = !pg.classList.contains('hidden'), b = $('#btnMenu');
+const dwSync = () => { try { if (isWide() && S.user && dwAuto() !== dwAuto0) pinDrawer(); } catch(e){} };
+function abSync(){ try { cmpSync(); dwSync(); } catch(e){} const pg = $('#page'), open = !pg.classList.contains('hidden'), b = $('#btnMenu');
   document.body.classList.toggle('pgopen', open);
   if (b && b.dataset.st !== (open ? 'b' : 'm') && b.dataset.scr !== '1') { b.innerHTML = open ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>' : IC_MENU; b.dataset.st = open ? 'b' : 'm'; b.setAttribute('aria-label', open ? 'もどる' : 'メニューを開く'); }
   if (open) { const no = pg.querySelector('.pagehead .no'), T = {w:'作品', ot:'その他の作品', ex:'展覧会', pb:'画集・資料'}; const tt = S.pcur && S.pcur.t, id = S.pcur && S.pcur.id;
@@ -4548,9 +4562,9 @@ function scrUnder(){ return SCR[SCR.length - 1] || (!$('#page').classList.contai
 /* 動かすときは transform を使わず左の余白で動かす（iPhoneでスクロールする画面に transform をかけると、スクロールできなくなることがあるため） */
 function scrAnim(el, from, to){ if (!el) return; try { const w = el.getBoundingClientRect().width || innerWidth, px = v => Math.round(parseFloat(v) / 100 * w) + 'px';
   const a = el.animate([{ marginLeft: px(from) }, { marginLeft: px(to) }], { duration: SCR_MS, easing: SCR_EASE }); a.onfinish = a.oncancel = () => { try { a.cancel(); } catch(e){} }; } catch(e){} }
-function scrTitle(el){ if (!el) return ''; if (el.id === 'sheet') { const h = el.querySelector('#sheetbox h3'); return h ? h.textContent.replace(/[✎]/g, '').trim() : ''; } if (el.id === 'viewer') return '写真'; if (el.classList.contains('pdfql')) return 'PDF'; if (el.classList.contains('dfrv')) return 'どっちが正しい？'; if (el.classList.contains('wpick')) return '作品を付け替える'; if (el.classList.contains('cmpv')) return '書類と作品を見比べる'; if (el.classList.contains('docview')) return '書類'; if (el.classList.contains('noteview')) return 'ノート'; return ''; }
+function scrTitle(el){ if (!el) return ''; if (el.id === 'sheet') { const h = el.querySelector('#sheetbox h3'); return h ? h.textContent.replace(/[✎]/g, '').trim() : ''; } if (el.id === 'viewer') return '写真'; if (el.classList.contains('pdfql')) return 'PDF'; if (el.classList.contains('dfrv')) return 'どっちが正しい？'; if (el.classList.contains('wpick')) return '作品を付け替える'; if (el.classList.contains('cmpv')) return '書類と作品を見比べる'; if (el.classList.contains('docview')) return '書類'; if (el.classList.contains('susv')) return '別の作品かも'; if (el.classList.contains('pimgv')) return 'ハイライト高速化'; if (el.classList.contains('noteview')) { const h = el.querySelector('.nvt'); return h ? h.textContent.trim().slice(0, 20) : 'ノート'; } return ''; }
 const cmpSync = () => document.body.classList.toggle('cmpon', !!(SCR.length && SCR[SCR.length - 1].classList.contains('cmpv') && SCR[SCR.length - 1].isConnected)); /* 見比べ画面がいちばん上にある時だけヘッダーを隠す */
-function scrHead(){ const on = SCR.length > 0; document.body.classList.toggle('scr', on); cmpSync(); const b = $('#btnMenu');
+function scrHead(){ const on = SCR.length > 0; document.body.classList.toggle('scr', on); cmpSync(); setTimeout(dwSync, 0); const b = $('#btnMenu');
   if (b) { if (on && b.dataset.scr !== '1') { b.dataset.scr = '1'; b.dataset.mh = b.innerHTML; b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>'; b.setAttribute('aria-label', '戻る'); }
     else if (!on && b.dataset.scr === '1') { b.dataset.scr = ''; b.innerHTML = b.dataset.mh || b.innerHTML; b.setAttribute('aria-label', 'メニューを開く'); b.dataset.st = ''; try { abSync(); } catch(e){} } }
   try { abRender(); } catch(e){} }
@@ -5380,6 +5394,7 @@ document.addEventListener('click', e => {
   if (t.dataset.pdfscan){ sheetPdfScan(); return; }
   if (t.dataset.print){ sheetPrint(); return; }
   if (t.dataset.wdhl){ wdHighlight(t); return; }
+  if (t.dataset.cmpe){ const [did, no, ev] = t.dataset.cmpe.split('|'); cmpView(did, no); setTimeout(() => { const b = document.querySelector(`.cmpv [data-cmpev="${ev}"]`); if (b) b.click(); }, 700); return; } /* 来歴から：書類と作品を並べて、その出来事のところを光らせる */
   if (t.dataset.evhl2){ evHighlight(t); return; }
   if (t.dataset.wfix){ const [did, no] = t.dataset.wfix.split('|'); dfMoveWork(did, no); return; }
   if (t.dataset.suslist){ openSusList(); return; }
