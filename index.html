@@ -1719,7 +1719,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'b7a48afb73', APP_URL = location.origin + location.pathname;
+const BUILD = '65bed01015', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2518,7 +2518,7 @@ function cmpView(did, no, fi){ const d = docById(did), d0 = d; if (!d) return; c
   el.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return;
     if (b.dataset.cmpw) { show(b.dataset.cmpw); return; }
     if (b.dataset.cmpdf != null && b.classList.contains('cwdx')) { e.stopPropagation(); if (b.classList.contains('on')) { P.querySelectorAll('.cwdec').forEach(z => z.remove()); b.classList.remove('on'); } else openDec(+b.dataset.cmpdf); return; }
-    if (b.dataset.cmpopen) { e.stopPropagation(); scrBack(); setTimeout(() => openWork(b.dataset.cmpopen), 50); return; }
+    if (b.dataset.cmpopen) { e.stopPropagation(); openWorkAlone(b.dataset.cmpopen); return; }
     if (b.dataset.cmpev) { e.stopPropagation(); const ev = (S.events || []).find(x => x['出来事ID'] === b.dataset.cmpev); let at = null; try { at = JSON.parse(ev && ev['位置'] || 'null'); } catch(x){} if (at && at.p && V._goto) V._goto(at.p, at.box || null, { msg: [ev['日付'], ev['種類'], ev['相手先・場所']].filter(Boolean).join(' ') + ' のところ' }); return; } }, true);
   show(no, fi);
 }
@@ -3922,6 +3922,10 @@ function abSync(){ const pg = $('#page'), open = !pg.classList.contains('hidden'
     setTitle(nm || T[tt] || ''); }
   else navOn(); }
 /* 書類の画面から作品へ：右からスライドして開き、「もどる」で書類の画面に戻れるようにする */
+/* 重なっている画面（書類・見比べなど）をすべて閉じて、作品ページだけを開く */
+function openWorkAlone(no){ for (let n = 0; n < 12 && SCR.length; n++) { const top = SCR[SCR.length - 1];
+    if (top.id === 'sheet') closeSheet(true); else if (top.id === 'viewer') closeViewer(true); else if (top.classList.contains('docview') || top.classList.contains('noteview')) docClose(top, true); else SCR.pop(); }
+  S.sheetDoc = null; S.pcur = null; S.stack = []; openWork(no); scrHead(); }
 function openWorkFromDoc(no, did){
   const pg = $('#page'), wasOpen = !pg.classList.contains('hidden'), prev = wasOpen && S.pcur ? { t: S.pcur.t, id: S.pcur.id, sc: pg.scrollTop } : null, st = (S.stack || []).slice();
   SNAP.v = null; closeSheet(true); /* 履歴は作品を開くときに積む */
