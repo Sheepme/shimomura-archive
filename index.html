@@ -1703,7 +1703,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'ac88fefb18', APP_URL = location.origin + location.pathname;
+const BUILD = '33644b898d', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5313,7 +5313,7 @@ async function pdfMount(host, fid, title, page, hint){
   const box = host.querySelector('.pqpages'), pgEl = host.querySelector('.pqpg'); let url = '';
   try { url = await pdfBlobUrl(fid); const doc = await pdfDocOf(fid); if (!host.isConnected) return;
     const pages = []; for (let i = 1; i <= doc.numPages; i++) pages.push(await doc.getPage(i));
-    let z = 1; const maxW = Math.max(...pages.map(p => p.getViewport({ scale: 1 }).width)); const fitW = p => { const sm = box.clientWidth < 700, aw = Math.max(160, box.clientWidth - (sm ? 16 : 40)); return p.getViewport({ scale: 1 }).width * aw / maxW; }; /* いちばん幅の広いページが、表示エリアの横幅いっぱいになる大きさ（Acrobatの「幅に合わせる」） */
+    let z = 1; const fitW = p => { const sm = box.clientWidth < 700; return Math.max(160, Math.min(1400, box.clientWidth - (sm ? 16 : 40))); }; /* 1ページごとに、表示エリアの横幅いっぱいになる大きさ（小さいページ・横長のページもそれぞれ見やすく） */
     let inner = null;
     let draw = () => { box.innerHTML = '<div class="pqin"></div>'; inner = box.firstChild; const done = new Set();
       const io = new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; const i = +e.target.dataset.i; if (done.has(i)) return; done.add(i);
