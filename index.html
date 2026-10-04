@@ -1764,7 +1764,8 @@ body:has(#tedbar) .cbar{display:none!important}
 .noteview.dv2 .dtopv{border:0;border-radius:0;background:none}.noteview.dv2 .dtpbar{padding:0 0 8px}
 .noteview.dv2 .act.pdfopen{display:flex;justify-content:space-between;width:100%;padding:15px 2px;background:none!important;color:var(--ink)!important;border:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);border-radius:0;font-size:16px;font-weight:500}
 .noteview.dv2 .act.pdfopen::after{content:'›';color:var(--sub);font-size:20px}
-body.bigon #top{display:none!important}body.bigon .bigv{padding-top:0!important;z-index:1150!important;left:0!important}.bigv .dvbar{padding:calc(env(safe-area-inset-top) + 8px) 12px 8px!important;background:#1e1e1c;color:#faf9f5;border-bottom:0}.bvx{flex:none;border:0;border-radius:999px;padding:9px 16px;background:#faf9f5;color:#141413;font:inherit;font-size:15px;font-weight:700;cursor:pointer}.bigv .bvn{color:rgba(250,249,245,.7)!important}
+body.bigon #top{display:none!important}body.bigon .bigv{padding-top:0!important;z-index:1150!important;left:0!important}.bigv .dvbar{padding:8px 12px!important;background:#1e1e1c;color:#faf9f5;border-bottom:0}.bvx{flex:none;border:0;border-radius:999px;padding:9px 16px;background:#faf9f5;color:#141413;font:inherit;font-size:15px;font-weight:700;cursor:pointer}.bigv .bvn{color:rgba(250,249,245,.7)!important}
+.bvfx{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(20px + env(safe-area-inset-bottom));z-index:5;width:56px;height:56px;border-radius:50%;border:0;background:var(--ink);color:var(--inv);font-size:22px;box-shadow:0 6px 20px rgba(0,0,0,.35);cursor:pointer}.bigv .dvbar{justify-content:space-between}
 .bigv .dvsc{background:#3a3a38;padding:10px 0}.bigv .dvsc canvas{display:block;width:100%;height:auto;margin:0 auto 10px;background:#fff}.bigv .dvbar{display:flex;align-items:center;gap:10px}.bigv .bvt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}.bigv .bvn{flex:none;font-size:13px;color:var(--sub);font-variant-numeric:tabular-nums}
 .drvbtn{gap:10px}.drvbtn .drvic{width:22px;height:22px;flex:none}.drvbtn span{flex:1;text-align:left}#sheetbox.dv2 .drvbtn,.noteview.dv2 .drvbtn{justify-content:flex-start!important}.bvd{flex:none;width:38px;height:38px;border:0;border-radius:50%;background:rgba(255,255,255,.12);color:#faf9f5;display:flex;align-items:center;justify-content:center}.bvd .drvic{width:22px;height:22px}
 </style>
@@ -1836,7 +1837,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'f844568fae', APP_URL = location.origin + location.pathname;
+const BUILD = 'dee30d114c', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2898,8 +2899,8 @@ function docView(fid){
 }
 /* スマホの「大きく」：元のファイルを開いたときと同じ形（ページを縦に並べてスクロール、指2本で拡大） */
 function bigView(fid, title, page, real){ const el = document.createElement('div'); el.className = 'docview bigv';
-  el.innerHTML = `<div class="dvbar"><button type="button" class="bvx">✕ 閉じる</button><span class="bvt">${esc(title || '')}</span><span class="bvn"></span>${canEdit() ? `<button type="button" class="bvd" data-drive="${esc(fid)}" aria-label="元のファイルを確認">${DRV_IC}</button>` : ''}</div><div class="dvsc"><div class="ldwrap"><span class="ldspin"></span>${real ? '元のファイルを読み込んでいます…（大きいPDFは時間がかかります）' : '開いています…'}</div></div>`;
-  el.querySelector('.bvx').onclick = () => { docClose(el); setTimeout(cmpSync, 0); }; const sc = el.querySelector('.dvsc'), nEl = el.querySelector('.bvn'); dvZoom(sc);
+  el.dataset.title = title || ''; el.innerHTML = `<div class="dvbar"><span class="bvn"></span>${canEdit() ? `<button type="button" class="bvd" data-drive="${esc(fid)}" aria-label="元のファイルを確認">${DRV_IC}</button>` : ''}</div><div class="dvsc"><div class="ldwrap"><span class="ldspin"></span>${real ? '元のファイルを読み込んでいます…（大きいPDFは時間がかかります）' : '開いています…'}</div></div><button type="button" class="bvfx" aria-label="閉じる">✕</button>`;
+  el.querySelector('.bvfx').onclick = () => docClose(el); if (real) bvName(el, fid); const sc = el.querySelector('.dvsc'), nEl = el.querySelector('.bvn'); dvZoom(sc);
   document.body.appendChild(el); hpush('d'); scrPush(el);
   if (real) el.querySelector('.bvn').dataset.real = '1';
   (async () => { try { const doc = await (real ? pdfRealDoc(fid) : pdfDocOf(fid)); if (!el.isConnected) return; sc.innerHTML = ''; const N = doc.numPages, dpr = Math.min(2, window.devicePixelRatio || 1), cvs = [];
@@ -4755,8 +4756,8 @@ function scrAnim(el, from, to){ if (!el) return; try { const w = el.getBoundingC
   /* 左の余白を動かすと、画面に張り付いた画面は動いている間だけ横幅が縮む（中身が細い幅で組まれて崩れる）ので、幅を固定してから動かす */
   const fx = /fixed|absolute/.test(getComputedStyle(el).position), w0 = el.style.width, mr0 = el.style.marginRight; if (fx) { el.style.width = w + 'px'; el.style.marginRight = '0'; }
   const a = el.animate([{ marginLeft: px(from) }, { marginLeft: px(to) }], { duration: SCR_MS, easing: SCR_EASE }); a.onfinish = a.oncancel = () => { try { a.cancel(); } catch(e){} if (fx) { el.style.width = w0; el.style.marginRight = mr0; } }; } catch(e){} }
-function scrTitle(el){ if (!el) return ''; if (el.id === 'sheet') { const h = el.querySelector('#sheetbox h3'); return h ? h.textContent.replace(/[✎]/g, '').trim() : ''; } if (el.id === 'viewer') return '写真'; if (el.classList.contains('pdfql')) return 'PDF'; if (el.classList.contains('dfrv')) return 'どっちが正しい？'; if (el.classList.contains('wpick')) return '作品を付け替える'; if (el.classList.contains('cmpv')) return '書類と作品を見比べる'; if (el.classList.contains('docview')) return '書類'; if (el.classList.contains('susv')) return '別の作品かも'; if (el.classList.contains('pimgv')) return 'ハイライト高速化'; if (el.classList.contains('noteview')) { const h = el.querySelector('.nvt'); return h ? h.textContent.trim().slice(0, 20) : 'ノート'; } return ''; }
-const cmpSync = () => { const tp = SCR.length && SCR[SCR.length - 1].isConnected ? SCR[SCR.length - 1] : null; document.body.classList.toggle('cmpon', !!(tp && tp.classList.contains('cmpv'))); document.body.classList.toggle('bigon', !!(tp && tp.classList.contains('bigv'))); }; /* 見比べ画面がいちばん上にある時だけヘッダーを隠す */
+function scrTitle(el){ if (!el) return ''; if (el.id === 'sheet') { const h = el.querySelector('#sheetbox h3'); return h ? h.textContent.replace(/[✎]/g, '').trim() : ''; } if (el.id === 'viewer') return '写真'; if (el.classList.contains('pdfql')) return 'PDF'; if (el.classList.contains('dfrv')) return 'どっちが正しい？'; if (el.classList.contains('wpick')) return '作品を付け替える'; if (el.classList.contains('cmpv')) return '書類と作品を見比べる'; if (el.classList.contains('bigv')) return el.dataset.title || '書類'; if (el.classList.contains('docview')) return '書類'; if (el.classList.contains('susv')) return '別の作品かも'; if (el.classList.contains('pimgv')) return 'ハイライト高速化'; if (el.classList.contains('noteview')) { const h = el.querySelector('.nvt'); return h ? h.textContent.trim().slice(0, 20) : 'ノート'; } return ''; }
+const cmpSync = () => { const tp = SCR.length && SCR[SCR.length - 1].isConnected ? SCR[SCR.length - 1] : null; document.body.classList.toggle('cmpon', !!(tp && tp.classList.contains('cmpv'))); document.body.classList.remove('bigon'); }; /* 見比べ画面がいちばん上にある時だけヘッダーを隠す */
 function scrHead(){ const on = SCR.length > 0; document.body.classList.toggle('scr', on); cmpSync(); setTimeout(dwSync, 0); const b = $('#btnMenu');
   if (b) { if (on && b.dataset.scr !== '1') { b.dataset.scr = '1'; b.dataset.mh = b.innerHTML; b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>'; b.setAttribute('aria-label', '戻る'); }
     else if (!on && b.dataset.scr === '1') { b.dataset.scr = ''; b.innerHTML = b.dataset.mh || b.innerHTML; b.setAttribute('aria-label', 'メニューを開く'); b.dataset.st = ''; try { abSync(); } catch(e){} } }
@@ -5870,9 +5871,11 @@ async function openOrigFile(id){ const d = (S.docs || []).find(x => docPages(x).
   if (d && docRes(d).PDF && docPages(d)[0] === id) return bigView(id, docTitle(d), 1, true); /* PDF：元のPDFそのものを、アプリの中の全画面で */
   origImgView(id, d ? docTitle(d) : '元の写真'); }
 /* 写真・画像の書類：元の画像（縮小していないもの）をアプリの中の全画面で見る */
+/* 上のバーに、ドライブでの元のファイル名を出す */
+function bvName(el, id){ call('getFileName', id).then(n => { if (n && el.isConnected) { el.dataset.title = n; try { abRender(); } catch(e){} } }).catch(() => {}); }
 function origImgView(id, title){ const el = document.createElement('div'); el.className = 'docview bigv';
-  el.innerHTML = `<div class="dvbar"><button type="button" class="bvx">✕ 閉じる</button><span class="bvt">${esc(title || '')}</span><span class="bvn">元のファイル</span></div><div class="dvsc"><div class="ldwrap"><span class="ldspin"></span>元のファイルを読み込んでいます…</div></div>`;
-  el.querySelector('.bvx').onclick = () => { docClose(el); setTimeout(cmpSync, 0); }; const sc = el.querySelector('.dvsc'); dvZoom(sc);
+  el.dataset.title = title || ''; el.innerHTML = `<div class="dvsc"><div class="ldwrap"><span class="ldspin"></span>元のファイルを読み込んでいます…</div></div><button type="button" class="bvfx" aria-label="閉じる">✕</button>`;
+  el.querySelector('.bvfx').onclick = () => docClose(el); bvName(el, id); const sc = el.querySelector('.dvsc'); dvZoom(sc);
   document.body.appendChild(el); hpush('d'); scrPush(el);
   (async () => { try { let url = ''; try { const o = await call('getOriginal', id); if (o && o.b64) url = URL.createObjectURL(await (await fetch('data:' + (o.mime || 'image/jpeg') + ';base64,' + o.b64)).blob()); } catch(e){}
       if (!url) { const m = await call('getThumbs', [id], 3200); if (!m || !m[id]) throw new Error('読み込めませんでした'); url = m[id]; }
