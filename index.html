@@ -2000,7 +2000,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'b3eb904b66', APP_URL = location.origin + location.pathname;
+const BUILD = '20861396f8', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2565,13 +2565,13 @@ function qcDrawFind(el, c){
     q = '台帳のこの作品と、同じもの？';
     hint = mus ? (cur && cur !== place ? `同じなら、保管場所を「${place}」にします（いまの台帳：${cur}）` : `同じなら、保管場所を「${place}」にします`) : '同じなら、売りに出ていた記録として残します（場所は変えません）';
     btm = `${go('fd:same', '同じ作品')}<div class="qc-row">${sub('fd:diff', c.j + 1 < c.cands.length ? 'ちがう<br>（次の候補へ）' : 'ちがう作品')}${sub('fd:unk', 'わからない')}</div>`;
-    QC.sp = mus ? `この作品、${place}にあるっていう記録が見つかったよ。同じ作品かな？` : 'この作品が、売りに出ていた記録が見つかったよ。同じ作品かな？';
+    QC.sp = mus ? `この作品、${place}にあるっていう記録が見つかったえ。おんなじ作品やろか？` : 'この作品、売りに出てたっていう記録が見つかったえ。おんなじ作品やろか？';
   } else {
     body = rec; q = '台帳にない作品かも'; const can = fdCanNew(f);
     hint = c.cands.length ? '候補の作品は、どれもちがいました。' : '台帳には、似た作品が見つかりませんでした。';
     hint += can ? `新しく台帳に入れると、場所は「${place}」になります（あとで重なりがないか確かめられるよう「要確認」の印を付けます）` : '版画・シリーズ・業者の記録などは、いまは記録だけ残します';
     btm = `${can ? go('fd:new', '台帳に新しく入れる') : go('fd:none', '台帳にない作品')}<div class="qc-row">${can ? sub('fd:none', '入れない') : ''}${sub('fd:unk', 'わからない')}</div>`;
-    QC.sp = c.cands.length ? 'ほかに似た作品は見つからなかったの。台帳にない作品かな？' : 'この記録の作品、台帳には見つからなかったの。台帳にない作品かな？';
+    QC.sp = c.cands.length ? 'ほかに似た作品は見つからへんかったわ。台帳にない作品やろか？' : 'この記録の作品、台帳には見つからへんかったんえ。台帳にない作品やろか？';
   }
   QC.q = q;
   el.innerHTML = `<div class="qc-w qc-dw">${qcTop()}${qcTask('find', mus ? '美術館' : '販売')}${QC.test ? '<p class="qc-test">練習モード：答えは保存しません</p>' : ''}
@@ -2620,7 +2620,7 @@ function qcDrawDiff(el, c){
   else opts = two;
   QC.q = 'どちらが正しい？';
   { const sv = t => '「' + String(t) + (u && /\d$/.test(t) ? 'センチ' : '') + '」', who = x.f === '作品名' ? 'この作品の名前、' : x.f === '所在' ? 'この作品の場所、' : lab + 'が、';
-    QC.sp = (x.cur ? `${who}台帳では${sv(x.cur)}、書類では${sv(x.doc)}になってるみたい。` : `${who}台帳には入ってないけど、書類では${sv(x.doc)}になってるよ。`) + 'どっちが正しいかな？'; }
+    QC.sp = (x.cur ? `${who}台帳では${sv(x.cur)}、書類では${sv(x.doc)}になってるみたいやねん。` : `${who}台帳には入ってへんけど、書類では${sv(x.doc)}になってるんえ。`) + 'どっちが合うてるやろ？'; }
   el.innerHTML = `<div class="qc-w qc-dw">${qcTop()}
     ${qcTask('diff', x.f === '所在' ? '場所' : lab)}${QC.test ? '<p class="qc-test">練習モード：答えは保存しません</p>' : ''}
     ${ph.length ? `<button type="button" class="qc-dph" id="qcDph" data-qa="dph" aria-label="写真を大きく">${thImg(ph[0]['ファイルID'], 800)}${wm(ph[0])}</button>` : ''}
@@ -2656,8 +2656,8 @@ function qcDraw(){
   const hint = { loc: loc ? `台帳では「${loc}」になっています` : '台帳では、場所がわかっていません', conf: 'あれば、確かめた日を記録します', name: '漢字で入れてください。マイクを押すと声でも入れられます',
     photo: '見つけたら、その場で撮ってください', mus: '名前を入れて「決める」を押してください', hear: QC.heard ? `聞き取った言葉：「${QC.heard}」。直してから、種類を押してください` : 'くわしい場所を入れて、種類を押してください' }[k];
   QC.q = q; /* 読み上げは、少しやわらかい言い方にする */
-  QC.sp = { loc: 'この作品、いまどこにあるか、わかるかな？', conf: `この作品、いまも「${loc}」にあるかな？`, name: 'この作品の名前、わかるかな？', photo: 'この作品、見つかったら写真を撮ってもらえる？',
-    mus: 'どこの美術館か学校か、教えてくれる？', hear: 'どこにあるか、教えてくれる？' }[k] || q;
+  QC.sp = { loc: 'この作品、いまどこにあるか、わからはる？', conf: `この作品、いまも「${loc}」にあるやろか？`, name: 'この作品の名前、わからはる？', photo: 'この作品、見つかったら写真撮ってもろてもよろしい？',
+    mus: 'どこの美術館か学校か、教えてくれはる？', hear: 'どこにあるか、教えてくれはる？' }[k] || q; /* 読み上げは京都弁（声の調子も GAS の tts で京都弁に） */
   const media = ph.length ? `<div class="qc-ph">${thImg(ph[0]['ファイルID'], 800)}</div>` : `<div class="qc-ph qc-nop">${QCSVG.cam}<b>写真がまだありません</b>${qzClues(no, w)}</div>`;
   const C = (a, t, cls) => `<button type="button" class="qc-c ${cls||''}" data-qa="${a}">${t}</button>`;
   const mic = (a, t) => QV.micOk ? `<button type="button" class="qc-mic" data-qa="${a}" aria-label="${t || '声で答える'}">${t ? `<span>${t}</span>` : ''}<i>${QCSVG.mic}</i></button>` : '';
