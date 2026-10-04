@@ -2021,7 +2021,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'b505ab8537', APP_URL = location.origin + location.pathname;
+const BUILD = 'f7399b66a6', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2313,6 +2313,7 @@ function navOn(){ const nv = S.view;
   setTitle(TT[nv] || '作品目録');
   document.querySelectorAll('#dwNav button').forEach(b => b.classList.toggle('on', b.dataset.v===nv));
   let sq = null; try { sq = SQ[nv]; } catch(e){}
+  document.querySelectorAll('.cblbl').forEach(x => { x.textContent = ({ex:'展覧会検索', pb:'画集・資料検索'})[nv] || '作品検索'; }); /* 検索ボタンの文字：展覧会のページでは「展覧会検索」 */
   const fi = $('#fsq'); if (fi && document.activeElement !== fi) { fi.placeholder = sq ? sq[1] : '作品を探す'; fi.value = sq ? (S[sq[0]] || '') : ''; $('#fsqClose').classList.toggle('hidden', !fi.value); } }
 /* ---------- メニュー（左から出る）。パソコンの広い画面では左にずっと出しておく ---------- */
 let dwFold = false; try { dwFold = localStorage.getItem('smr_dw') === '0'; } catch(e){}
