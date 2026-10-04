@@ -1843,7 +1843,7 @@ html[data-theme=dark] .qc{background:var(--bg)}
 .qc-ph.big{flex:0 0 auto;height:min(78vh,720px);max-height:none;cursor:zoom-out}.qc-ph .wm{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
 .qc-ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
 .qc-nop{flex:0 0 auto;max-height:none;min-height:0;box-sizing:border-box;border:2px dashed var(--hg-dash);padding:14px;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--hg-s)}
-.qc-nop{cursor:default}@media (max-height:700px){.qc-ph{min-height:16vh}}
+.qc-nop{cursor:default}.qc-w.inp .qc-ph{min-height:15vh}@media (max-height:700px){.qc-ph{min-height:16vh}}
 .qc-zm{position:absolute;top:8px;right:8px;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.55);display:grid;place-items:center;pointer-events:none}
 .qc-zm svg{width:22px;height:22px;fill:none;stroke:#FFFFFF;stroke-width:2.4;stroke-linecap:round}.big .qc-zm .zp{display:none}
 #qclb{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 56px) 12px calc(env(safe-area-inset-bottom,0px) + 24px);box-sizing:border-box;background:rgba(20,20,20,.38);-webkit-backdrop-filter:blur(16px) saturate(120%);backdrop-filter:blur(16px) saturate(120%);opacity:0;transition:opacity .2s;cursor:zoom-out}
@@ -2009,7 +2009,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'ab8d4b32ac', APP_URL = location.origin + location.pathname;
+const BUILD = '1aef58daf9', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2461,6 +2461,8 @@ function qcLightbox(btn){ const im = btn && btn.querySelector('img'); if (!im) r
   const close = () => { el.classList.remove('on'); setTimeout(() => el.remove(), 200); document.removeEventListener('keydown', esc1, true); };
   const esc1 = e => { if (e.key === 'Escape') close(); }; document.addEventListener('keydown', esc1, true); el.onclick = close;
   if (id && !TH['1600_' + id] && !TH['3200_' + id]) { const i = new Image(); i.dataset.tid = id; i.dataset.w = '1600'; i.onload = () => { if (big.isConnected) big.src = i.src; }; queueThumb(i); } } /* もっとくっきりした写真が届いたら差しかえる */
+/* カードのいちばん下の段：どの問題でも同じ（左に「とばす」か「もどる」、右に声で答えるボタン） */
+function qcFoot(m, back){ return `<div class="qc-microw"><button type="button" class="qc-skip" data-qa="${back ? 'back' : 'skip'}">${back ? 'もどる' : 'とばす'}</button>${m || ''}</div>`; }
 function qcPrefetch(nos){ const seen = new Set(); nos.forEach(no => { const p = no && (photoBy[no] || [])[0], id = p && p['ファイルID'];
     if (!id || seen.has(id) || seen.size >= 10 || TH[QCW + '_' + id]) return; seen.add(id); const i = new Image(); i.dataset.tid = id; i.dataset.w = String(QCW); queueThumb(i); }); }
 function startCards(test, mode){
@@ -2620,7 +2622,7 @@ function qcDrawFind(el, c){
   QC.q = q;
   el.innerHTML = `<div class="qc-w qc-dw">${qcTop()}${qcTask('find', mus ? '美術館' : '販売')}${QC.test ? '<p class="qc-test">練習モード：答えは保存しません</p>' : ''}
     ${body}<div><h1 class="qc-q">${esc(q)}</h1>${hint ? `<p class="qc-hint">${esc(hint)}</p>` : ''}</div>
-    <div class="qc-btm">${btm}<button type="button" class="qc-skip" data-qa="skip">あとで決める</button></div></div>`;
+    <div class="qc-btm">${btm}${qcFoot()}</div></div>`;
   hydrate(el); el.scrollTop = 0;
   if (QV.tts) say(QC.sp);
 }
@@ -2674,7 +2676,7 @@ function qcDrawDiff(el, c){
     <div class="qc-ab"><small>A　台帳</small><b>${v(x.cur)}</b><span>どこから：${esc(led)}</span></div>
     <div class="qc-ab"><small>B　書類</small><b class="hl">${v(x.doc)}</b><span>どこから：「${esc(docTitle(d))}」${pg ? 'の' + pg : ''}をAIが読み取りました。${x.note ? esc(x.note) : ''}</span></div>
     <h1 class="qc-q">${esc(QC.q)}</h1>
-    <div class="qc-btm">${opts}<button type="button" class="qc-skip" data-qa="skip">あとで決める</button></div></div>`;
+    <div class="qc-btm">${opts}${qcFoot()}</div></div>`;
   hydrate(el); el.scrollTop = 0;
   const box = pdf && $('#qcDf'); if (box) dfPreview(box, d, x, true).catch(() => {});
   if (QV.tts) say(QC.sp || QC.q);
@@ -2708,18 +2710,18 @@ function qcDraw(){
   const go = (a, t) => `<button type="button" class="hg-go" data-qa="${a}">${t}</button>`, sub = (a, t) => `<button type="button" class="hg-btn2" data-qa="${a}">${t}</button>`;
   let body = '', btm = '';
   if (k === 'loc') { body = `<div class="qc-ch">${C('home', '自宅')}${C('mus', '美術館・学校')}${C('priv', '個人の方')}${C('shibun', '思文閣（委託）')}${C('other', 'そのほか')}${C('unk', 'わからない', 'mut')}</div>`;
-    btm = `<div class="qc-microw"><button type="button" class="qc-skip" data-qa="skip">とばす</button>${mic('mic', '話して答える')}</div><p class="qc-heard srlive"></p>`; }
-  else if (k === 'conf') btm = `${go('yes', 'はい、ある')}<div class="qc-row">${sub('no', 'ちがう')}${sub('unk', 'わからない')}</div>`;
-  else if (k === 'name') { body = `<label class="qc-lbl" for="qcTtl">作品名</label><div class="qc-in"><input id="qcTtl" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" placeholder="ここに入れる">${mic('micname')}</div><p class="qc-heard srlive" id="qcHeard">${QC.heard ? '話した言葉：「' + esc(QC.heard) + '」' : ''}</p>`;
-    btm = `${go('name', 'この名前で登録')}<div class="qc-row">${sub('unk', 'わからない')}${sub('skip', 'とばす')}</div>`; }
-  else if (k === 'photo') btm = `<label class="hg-go qc-cam">${QCSVG.cam}いま撮る<input type="file" id="qcCam" accept="image/*" capture="environment" hidden></label><div class="qc-row">${sub('later', 'あとで撮る')}${sub('unk', 'どこにあるか<br>わからない')}</div>`;
+    btm = `${qcFoot(mic('mic', '話して答える'))}<p class="qc-heard srlive"></p>`; }
+  else if (k === 'conf') btm = `${go('yes', 'はい、ある')}<div class="qc-row">${sub('no', 'ちがう')}${sub('unk', 'わからない')}</div>${qcFoot()}`;
+  else if (k === 'name') { body = `<div class="qc-in"><input id="qcTtl" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" placeholder="作品名をここに入れる" aria-label="作品名"></div><p class="qc-heard srlive" id="qcHeard">${QC.heard ? '話した言葉：「' + esc(QC.heard) + '」' : ''}</p>`;
+    btm = `${go('name', 'この名前で登録')}${sub('unk', 'わからない')}${qcFoot(mic('micname', '話して答える'))}`; }
+  else if (k === 'photo') btm = `<label class="hg-go qc-cam">${QCSVG.cam}いま撮る<input type="file" id="qcCam" accept="image/*" capture="environment" hidden></label><div class="qc-row">${sub('later', 'あとで撮る')}${sub('unk', 'どこにあるか<br>わからない')}</div>${qcFoot()}`;
   else if (k === 'mus') { const M = [...new Set(S.works.filter(x => x['所在区分'] === '美術館' && x['所在'] && !/館名は/.test(x['所在'])).map(x => x['所在']))].sort();
     body = `<label class="qc-lbl" for="qcMus">美術館・学校</label><div class="qc-in"><input id="qcMus" type="text" list="qcMusL" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" placeholder="例：京都市美術館"></div><datalist id="qcMusL">${M.map(x => `<option value="${esc(x)}">`).join('')}</datalist>`;
-    btm = `${go('musok', '決める')}${sub('back', 'もどる')}`; }
+    btm = `${go('musok', '決める')}${qcFoot('', 1)}`; }
   else if (k === 'hear') { const pk = QC.pend && QC.pend.kind, K = (kd, t) => `<button type="button" class="qc-c${pk === kd ? ' sel' : ''}" data-qa="pl" data-k="${kd}">${t}</button>`;
-    body = `<label class="qc-lbl" for="qcPl">くわしい場所（なくてもよい）</label><div class="qc-in"><input id="qcPl" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" placeholder="例：玄関の棚、京都市美術館" value="${esc(QC.pend && QC.pend.det || '')}">${mic('micpl')}</div><div class="qc-ch">${K('自宅', '自宅')}${K('美術館', '美術館・学校')}${K('個人蔵', '個人の方')}${K('委託中', '思文閣（委託）')}${K('その他', 'そのほか')}</div>`;
-    btm = sub('back', 'もどる'); }
-  el.innerHTML = `<div class="qc-w"><div class="qc-top"><button type="button" class="qc-x" data-qc="end" aria-label="やめる">${QCSVG.x}</button>
+    body = `<label class="qc-lbl" for="qcPl">くわしい場所（なくてもよい）</label><div class="qc-in"><input id="qcPl" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" placeholder="例：玄関の棚、京都市美術館" value="${esc(QC.pend && QC.pend.det || '')}"></div><div class="qc-ch">${K('自宅', '自宅')}${K('美術館', '美術館・学校')}${K('個人蔵', '個人の方')}${K('委託中', '思文閣（委託）')}${K('その他', 'そのほか')}</div>`;
+    btm = qcFoot(mic('micpl', '話して答える'), 1); }
+  el.innerHTML = `<div class="qc-w${/^(name|mus|hear)$/.test(k) ? ' inp' : ''}"><div class="qc-top"><button type="button" class="qc-x" data-qc="end" aria-label="やめる">${QCSVG.x}</button>
       <div class="qc-bar" role="progressbar" aria-label="${QC.i + 1}問目 / ${QC.L.length}問" aria-valuenow="${QC.i}" aria-valuemax="${QC.L.length}"><i style="width:${Math.max(4, Math.round(QC.i / QC.L.length * 100))}%"></i></div>
       <button type="button" class="qc-say" data-qc="say" aria-label="もう一度読み上げる">${QCSVG.say}</button></div>
     ${qcTask(k)}${QC.test ? '<p class="qc-test">練習モード：答えは保存しません</p>' : ''}${media}<div class="qc-wk row"><small>${esc(nol(no))}</small><b>${esc(w['作品名'] || '作品名なし')}</b></div>
