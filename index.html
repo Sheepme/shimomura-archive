@@ -2000,7 +2000,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '9c92ceac28', APP_URL = location.origin + location.pathname;
+const BUILD = '2dbf35e0e7', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2043,8 +2043,8 @@ addEventListener('resize', () => { try { abFit(); } catch(e){} });
 function abRender0(){ const h = $('#abTitle'); if (!h) return;
   const ld = $('#loading'), ts = $('#toast'), up = $('#updBar');
   let st = '', tx = h.dataset.t || '';
-  if (ld && !ld.classList.contains('hidden')) { st = 'busy'; tx = ld.textContent.trim() || '読み込み中…'; }
-  else if (ts && !ts.classList.contains('hidden')) { st = 'ok'; tx = ts.textContent.trim(); }
+  /* 読み込み中・送信中は画面のまん中にだけ出す（上のページ名のところには出さない） */
+  if (ts && !ts.classList.contains('hidden')) { st = 'ok'; tx = ts.textContent.trim(); }
   h.className = st ? 'st-' + st : '';
   if (st) { h.textContent = tx; return; }
   // ふだんは「下村良之介作品目録 › ページ名 › 作品名」を同じ大きさの文字で横に並べる（押すとそこへ戻る）
