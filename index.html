@@ -1742,7 +1742,7 @@ body:has(#tedbar) .cbar{display:none!important}
 #sheetbox.dv2 .dtr .dtp{color:var(--sub);font-variant-numeric:tabular-nums;font-size:14px;padding-top:2px;display:flex;flex-direction:column;line-height:1.3;white-space:nowrap}#sheetbox.dv2 .dtr .dtp b{font-weight:600;color:var(--ink);font-size:14.5px}#sheetbox.dv2 .dtr .dtp small{font-size:12.5px}
 #sheetbox.dv2 .dtr small.muted{display:block;font-size:13.5px;margin-top:2px}
 #sheetbox.dv2 .dtr.on{box-shadow:none;background:var(--wash)}
-#sheetbox.dv2 .devgo,.devgo{font-style:normal;font-size:12.5px;white-space:nowrap;align-self:center;padding:5px 10px;border:1px solid var(--line);border-radius:999px;color:var(--sub);opacity:1}.devgo{display:inline-flex;align-items:center;gap:7px}.devgo::after,.tocgo::after{content:'';width:7px;height:7px;border-right:1.7px solid currentColor;border-bottom:1.7px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .2s}.dtr.on .devgo::after,.dtr.on .tocgo::after{transform:translateY(2px) rotate(-135deg)}.tocgo{font-style:normal;align-self:center;color:var(--sub);display:inline-flex;width:20px;justify-content:center}
+#sheetbox.dv2 .devgo,.devgo{font-style:normal;align-self:center;color:var(--sub);opacity:1;width:20px;justify-content:center}#sheetbox.split .devgo,#sheetbox.split .tocgo{display:none!important} /* パソコンは左の書類が切り替わるので、開閉の印は出さない */.devgo{display:inline-flex;align-items:center;gap:7px}.devgo::after,.tocgo::after{content:'';width:7px;height:7px;border-right:1.7px solid currentColor;border-bottom:1.7px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .2s}.dtr.on .devgo::after,.dtr.on .tocgo::after{transform:translateY(2px) rotate(-135deg)}.tocgo{font-style:normal;align-self:center;color:var(--sub);display:inline-flex;width:20px;justify-content:center}
 #sheetbox.dv2 .devbox{border:0;border-radius:0;background:none;margin:0}
 #sheetbox.dv2 .devbox .dtr{border-bottom:0;background:var(--wash)}
 #sheetbox.dv2 .devclose{background:var(--wash);border-top:0;font-weight:500;font-size:14px;color:var(--sub);padding:8px}
@@ -1837,7 +1837,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'fb7f6f5b78', APP_URL = location.origin + location.pathname;
+const BUILD = '1629d85ab5', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2513,7 +2513,7 @@ function devUnwrap(){ document.querySelectorAll('#sheetbox .devbox').forEach(bx 
 function docEvHTML(d){ const ids = String(d['出来事ID']||'').split(',').filter(Boolean); if (!ids.length) return '';
   const ev = ids.map(i => S.events.find(e => e['出来事ID']===i)).filter(Boolean).sort((a, b) => String(a['日付']).localeCompare(String(b['日付'])));
   if (!ev.length) return '';
-  return `<h3 class="sec" style="font-size:18px">この書類からわかった来歴（${ev.length}件）</h3><p class="hint" style="margin:-4px 0 6px">${docRes(d).PDF ? '押すと、書類のその出来事が書かれたところが光ります。' : ''}</p><div class="dtoc devs">${ev.map(e => `<${docRes(d).PDF ? 'button type="button"' : 'div'} class="dtr" data-dev="${esc(e['出来事ID'])}"><span class="dtp">${dt2(e['日付'])}</span><span><b>${esc(e['種類'])}</b>　${esc(e['相手先・場所']||'')}<br><small class="muted">${esc(wLabel(e['作品番号']))}${e['内容'] ? '　' + esc(e['内容']) : ''}</small></span>${docRes(d).PDF ? '<em class="devgo">掲載箇所</em>' : ''}</${docRes(d).PDF ? 'button' : 'div'}>`).join('')}</div>`; }
+  return `<h3 class="sec" style="font-size:18px">この書類からわかった来歴（${ev.length}件）</h3><p class="hint" style="margin:-4px 0 6px">${docRes(d).PDF ? '押すと、書類のその出来事が書かれたところが光ります（もう一度押すと閉じます）。' : ''}</p><div class="dtoc devs">${ev.map(e => `<${docRes(d).PDF ? 'button type="button"' : 'div'} class="dtr" data-dev="${esc(e['出来事ID'])}"><span class="dtp">${dt2(e['日付'])}</span><span><b>${esc(e['種類'])}</b>　${esc(e['相手先・場所']||'')}<br><small class="muted">${esc(wLabel(e['作品番号']))}${e['内容'] ? '　' + esc(e['内容']) : ''}</small></span>${docRes(d).PDF ? '<em class="devgo" aria-hidden="true"></em>' : ''}</${docRes(d).PDF ? 'button' : 'div'}>`).join('')}</div>`; }
 function docTocHTML(d){ const pgs = docRes(d)['ページ'] || []; if (pgs.length < 2) return '';
   const nt = !!d['全文あり'];
   return `<details class="dfill" ${pgs.length <= 15 ? 'open' : ''}><summary>ページの目次（${pgs.length}ページ）</summary><div class="dtoc">${pgs.map(g => `<${docRes(d).PDF ? `button type="button" data-tocp="${esc(g.p)}"` : 'div'} class="dtr"><span class="dtp">p.${esc(g.p)}</span><span><b>${esc(g['種類']||'')}</b>　${esc(g['説明']||'')}</span>${docRes(d).PDF ? '<em class="tocgo" aria-hidden="true"></em>' : ''}</${docRes(d).PDF ? 'button' : 'div'}>`).join('')}</div></details>`; }
@@ -3135,7 +3135,6 @@ function sheetDocReview(id){ try { const d0 = docById(id); if (d0) pdfPrefetch([
       if (L) { b.classList.add('on'); if (L._goto) L._goto(pn, null); else L._pend = [pn, null]; return; }
       devUnwrap(); if (was) return; b.classList.add('on'); /* スマホ：押したページの行の枠の中に開く（来歴と同じ形） */
       const box = document.createElement('div'); box.className = 'devbox'; b.before(box); box.appendChild(b);
-      const cl = document.createElement('button'); cl.type = 'button'; cl.className = 'devclose'; cl.textContent = '▲ 書類をたたむ'; cl.onclick = () => { b.classList.remove('on'); devUnwrap(); }; b.after(cl);
       const c = document.createElement('div'); c.className = 'dfx evx devpv'; c.innerHTML = '<span data-dfhl="toc" hidden></span>'; box.appendChild(c);
       dfPreview(c, d, { doc: '', at: { p: pn }, toc: 1 }, true); });
     /* この書類からわかった来歴：押すと、その出来事が書かれたところを光らせる（パソコンは左のビューワー、スマホはその下に開く） */
@@ -3145,7 +3144,6 @@ function sheetDocReview(id){ try { const d0 = docById(id); if (d0) pdfPrefetch([
       if (L) { b.classList.add('on'); const a = [at ? at.p : 1, at ? at.box || null : null, at && at.box ? null : { msg: [e['日付'], e['種類'], q].filter(Boolean).join(' ') + (at ? ' のところ' : '（場所の記録がないので1ページ目）') }]; if (L._goto) L._goto(...a); else L._pend = a; return; }
       if (was) return; b.classList.add('on'); const box = document.createElement('div'); box.className = 'devbox'; b.before(box); box.appendChild(b); /* 来歴と書類を1つの枠にまとめる */
       const c = document.createElement('div'); c.className = 'dfx evx devpv'; c.innerHTML = '<span data-dfhl="dev" hidden></span>'; box.appendChild(c);
-      const cl = document.createElement('button'); cl.type = 'button'; cl.className = 'devclose'; cl.textContent = '▲ 書類をたたむ'; cl.onclick = () => { b.classList.remove('on'); devUnwrap(); }; b.after(cl); /* たたむボタンは来歴のすぐ下（書類が長くても見える位置） */
       dfPreview(c, d, { doc: q, at }, true); });
     document.querySelectorAll('#sheetbox [data-dfsee]').forEach(b => b.onclick = async () => { const x = docRes(d)['食い違い'][+b.dataset.dfsee]; if (!x) return; const t0 = b.textContent; b.disabled = true; b.textContent = '探しています…';
       try { const t = DTEXT[id] != null ? DTEXT[id] : (DTEXT[id] = await call('getDocText', id)); const f = dfFind(t, x.doc);
