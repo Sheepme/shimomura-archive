@@ -2000,7 +2000,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '6af0ab0e0b', APP_URL = location.origin + location.pathname;
+const BUILD = 'b3eb904b66', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2430,7 +2430,11 @@ function startCards(test, mode){
     ['loc', 'name', 'photo', 'conf'].forEach(k => L = L.concat(by[k])); L = L.concat(qcDiffs(3), qcFinds(4, true)); }
   else if (mode === 'diff') L = qcDiffs(10);
   else if (mode === 'find') L = qcFinds(10);
-  else hgPick(400).forEach(no => { if (L.length < 10) { const k = qcKind(no); if (k) L.push({ no, k }); } });
+  else { /* 今日の10作品：同じ種類が続かないよう、場所・調べの記録・作品名・書類の違い・写真・場所の確認を順番にまぜる */
+    const by = { loc: [], name: [], photo: [], conf: [] };
+    hgPick(400).forEach(no => { const k = qcKind(no); if (k && by[k].length < 10) by[k].push({ no, k }); });
+    const P = [by.loc, qcFinds(3), by.name, qcDiffs(3), by.photo, by.conf];
+    for (let r = 0; L.length < 10 && P.some(x => x.length); r++) P.forEach(x => { if (L.length < 10 && x.length) L.push(x.shift()); }); }
   if (!L.length) return toast(mode === 'diff' ? 'いま決める書類の違いはありません' : mode === 'find' ? 'いま確かめる調べの記録はありません' : 'いま確かめる作品はありません');
   closeSheet(); closeAllPages(); ttsUnlock();
   QC = { L, i: 0, step: '', heard: '', pend: null, n: 0, test: !!test, mode: mode || '', before: new Set(L.filter(c => qcComplete(c.no)).map(c => c.no)) };
