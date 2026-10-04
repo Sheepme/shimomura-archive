@@ -1909,7 +1909,9 @@ html[data-theme=dark] .qc-chip{background:#16384A;color:#9ADDFF}
 .qc-dph.big{height:min(78vh,720px);cursor:zoom-out}.qc-dph img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
 .qc-dph .wm{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
 .qc-dpt{flex:none;display:flex;gap:8px;overflow-x:auto;margin-top:-4px}.qc-dpt button{flex:none;width:56px;height:56px;padding:0;border:2px solid transparent;border-radius:10px;overflow:hidden;background:var(--hg-sf);cursor:pointer}
-.qc-dpt button.on{border-color:#1CB0F6}.qc-dpt img{width:100%;height:100%;object-fit:cover;display:block}
+.qc-dpt button.on{border-color:#1CB0F6}.qc-dpt button{position:relative}.qc-dptg{position:absolute;left:0;right:0;bottom:0;font-style:normal;font-size:10px;font-weight:800;line-height:1.6;text-align:center;color:#fff;background:rgba(0,0,0,.55)}
+.qc-phtag{position:absolute;left:10px;top:10px;padding:3px 10px;border-radius:999px;background:rgba(0,0,0,.62);color:#fff;font-size:12px;font-weight:800;pointer-events:none}
+.qc-phcap{flex:none;margin:-4px 2px 0;font-size:13px;line-height:1.5;color:var(--hg-s)}.qc-phcap b{color:var(--hg-h)}.qc-phcap em{display:block;font-style:normal}.qc-dpt img{width:100%;height:100%;object-fit:cover;display:block}
 .qc-nph{font-size:13px;color:var(--hg-s)}
 .fdb-h{font-size:17px;color:var(--hg-h)}.fdb-all{align-self:flex-start}.fdb-l{display:flex;flex-direction:column;gap:8px}
 .fdb-i{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:14px;border:2px solid var(--hg-ln);background:var(--hg-bg);color:var(--hg-h);font:inherit;text-align:left;cursor:pointer}
@@ -2037,7 +2039,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'faadc58f12', APP_URL = location.origin + location.pathname;
+const BUILD = '4a0a763503', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2710,6 +2712,13 @@ function fdSrcLoad(){ const F = FDSRC, box = $('#qcSrc'); if (!box || !F.rows.le
   (c || (WLOG[F.no] = call('getWorkLog', F.no))).then(L => { WLOG[F.no] = Array.isArray(L) ? L : []; draw(WLOG[F.no]); })
     .catch(e => { delete WLOG[F.no]; const b = $('#qcSrc'); if (b && b.dataset.no === F.no) b.innerHTML = H + '<span class="qc-sl0">' + (/この操作はできません|getWorkLog/.test(String(e && e.message || e)) ? 'まだ Google 側の更新（デプロイ）が済んでいません' : '読めませんでした（' + esc(e && e.message || e) + '）') + '</span>'; });
 }
+/* カードの写真が、だれの写真か：いつも台帳の作品の写真。家で撮ったものか、美術館などの画像（転載）か、記録と同じところの画像かを書く */
+const QCPHTAG = '<span class="qc-phtag">台帳の写真</span>';
+function qcPhCap(no, k, rec){ const ph = photoBy[no] || [], p = ph[k]; if (!p) return '';
+  const cp = copyOf(p), nth = ph.length > 1 ? ` ${k + 1}/${ph.length}` : '', by = [p['登録者'] && !/@/.test(p['登録者']) ? p['登録者'] : '', tmd(p['登録日時'])].filter(Boolean).join('・');
+  if (cp) { const same = !!rec && ((cp.u && rec.u && cp.u === rec.u) || (!!fdMus(cp.mu) && fdMus(cp.mu) === fdMus(rec.mu)));
+    return `<b>${esc(nol(no))} の写真${nth}</b>：${esc(cp.mu || 'Webサイト')}の画像（転載）${same ? '<em>この記録と同じところの画像です</em>' : ''}`; }
+  return `<b>${esc(nol(no))} の写真${nth}</b>：家で撮った写真${by ? '（' + esc(by) + ' 登録）' : ''}${rec && rec.u ? '<em>記録の側の画像は「記録を開く」で見られます</em>' : ''}`; }
 function qcDrawFind(el, c){
   const f = fdById(c.id); if (!f || !fdOpen(f)) { QC.i++; return qcDraw(); }
   const mus = f['区分'] === '一次', cand = c.cands[c.j], no = cand && cand.no, w = no ? workOf(no) || {} : {}, ph = no ? photoBy[no] || [] : [];
@@ -2723,8 +2732,9 @@ function qcDrawFind(el, c){
   let body, q, hint, btm;
   if (no) {
     body = `<p class="qc-sl">台帳の作品${c.cands.length > 1 ? `<span>候補 ${c.j + 1} / ${c.cands.length}</span>` : ''}</p>
-    ${ph.length ? `<button type="button" class="qc-dph" id="qcDph" data-qa="dph" aria-label="写真を大きく">${thImg(ph[0]['ファイルID'], QCW)}${wm(ph[0])}${QCZM}</button>` : ''}
-    ${ph.length > 1 ? `<div class="qc-dpt">${ph.slice(0, 6).map((p, k) => `<button type="button" class="${k ? '' : 'on'}" data-qa="dpi:${k}">${thImg(p['ファイルID'], 200)}</button>`).join('')}</div>` : ''}
+    ${ph.length ? `<button type="button" class="qc-dph" id="qcDph" data-qa="dph" aria-label="写真を大きく">${thImg(ph[0]['ファイルID'], QCW)}${wm(ph[0])}${QCPHTAG}${QCZM}</button>` : ''}
+    ${ph.length > 1 ? `<div class="qc-dpt">${ph.slice(0, 6).map((p, k) => `<button type="button" class="${k ? '' : 'on'}" data-qa="dpi:${k}">${thImg(p['ファイルID'], 200)}${copyOf(p) ? '<i class="qc-dptg">転載</i>' : ''}</button>`).join('')}</div>` : ''}
+    ${ph.length ? `<p class="qc-phcap" id="qcPhCap">${qcPhCap(no, 0, QC.phRec = { u: f['根拠URL'] || '', mu: place })}</p>` : ''}
     <div class="qc-wk"><small>${esc(nol(no))}</small><b>${esc(w['作品名'] || '作品名なし')}</b>${ph.length ? '' : '<span class="qc-nph">写真はまだありません</span>'}</div>${fdCmpHTML(f, w, cur, place, mus)}${rec}`;
     q = '台帳のこの作品と、同じもの？';
     hint = mus ? (cur && cur !== place ? `同じなら、保管場所を「${place}」にします（いまの台帳：${cur}）` : `同じなら、保管場所を「${place}」にします`) : '同じなら、売りに出ていた記録として残します（場所は変えません）';
@@ -2796,8 +2806,9 @@ function qcDrawDiff(el, c){
     QC.sp = (x.cur ? `${who}台帳では${sv(x.cur)}、書類では${sv(x.doc)}になってるみたいやねん。` : `${who}台帳には入ってへんけど、書類では${sv(x.doc)}になってるんえ。`) + 'どっちが合うてるやろ？'; }
   el.innerHTML = `<div class="qc-w qc-dw">${qcTop()}
     ${qcTask('diff', x.f === '所在' ? '場所' : lab)}${QC.test ? '<p class="qc-test">練習モード：答えは保存しません</p>' : ''}
-    ${ph.length ? `<button type="button" class="qc-dph" id="qcDph" data-qa="dph" aria-label="写真を大きく">${thImg(ph[0]['ファイルID'], QCW)}${wm(ph[0])}${QCZM}</button>` : ''}
-    ${ph.length > 1 ? `<div class="qc-dpt">${ph.slice(0, 6).map((f, k) => `<button type="button" class="${k ? '' : 'on'}" data-qa="dpi:${k}">${thImg(f['ファイルID'], 200)}</button>`).join('')}</div>` : ''}
+    ${ph.length ? `<button type="button" class="qc-dph" id="qcDph" data-qa="dph" aria-label="写真を大きく">${thImg(ph[0]['ファイルID'], QCW)}${wm(ph[0])}${QCPHTAG}${QCZM}</button>` : ''}
+    ${ph.length > 1 ? `<div class="qc-dpt">${ph.slice(0, 6).map((f, k) => `<button type="button" class="${k ? '' : 'on'}" data-qa="dpi:${k}">${thImg(f['ファイルID'], 200)}${copyOf(f) ? '<i class="qc-dptg">転載</i>' : ''}</button>`).join('')}</div>` : ''}
+    ${ph.length ? `<p class="qc-phcap" id="qcPhCap">${qcPhCap(c.no, 0, QC.phRec = null)}</p>` : ''}
     <div class="qc-wk"><small>${esc(nol(c.no))}</small><b>${esc(w['作品名'] || '作品名なし')}</b>${ph.length ? '' : '<span class="qc-nph">写真はまだありません</span>'}</div>
     <div class="qc-sec"><div class="qc-sh"><b>読み取った書類</b><small>${esc(docTitle(d))}${pg ? '・' + pg : ''}</small></div>${pdf ? '<div class="dfx qc-dfx" id="qcDf"></div>' : ''}</div>
     <div class="qc-ab"><small>A　台帳</small><b>${v(x.cur)}</b><span>どこから：${esc(led)}</span></div>
@@ -2892,7 +2903,7 @@ function qcChange(e){ if (e.target.id === 'qcCam' && e.target.files && e.target.
 function qcAct(a, btn){ const c = QC && QC.L[QC.i]; if (!c) return; const no = c.no, w = workOf(no) || {}, k = QC.step || c.k, item = QCITEM[c.k];
   if (a.indexOf('fd:') === 0) return qcFindAct(a, c);
   if (a === 'dph' || a === 'php') return qcLightbox(btn); /* 写真をタップすると、背景をぼかして画面のまん中に大きく出す */ /* 写真をタップで大きく・もう一度で戻す */
-  if (a.startsWith('dpi:')) { const f = (photoBy[no] || [])[+a.slice(4)], box = $('#qcDph'); if (f && box) { box.innerHTML = thImg(f['ファイルID'], QCW) + wm(f) + QCZM; hydrate(box); } btn.parentNode.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === btn)); return; }
+  if (a.startsWith('dpi:')) { const f = (photoBy[no] || [])[+a.slice(4)], box = $('#qcDph'); if (f && box) { box.innerHTML = thImg(f['ファイルID'], QCW) + wm(f) + QCPHTAG + QCZM; hydrate(box); } const cap = $('#qcPhCap'); if (cap) cap.innerHTML = qcPhCap(no, +a.slice(4), QC.phRec); btn.parentNode.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === btn)); return; }
   /* 答えは覚えておき、「理由や補足はある？」のあとでまとめて保存する */
   const ask = (rec, patch, loc, ans, dr) => { QC.pn = { rec, patch, loc, ans, back: QC.step || '', pend: QC.pend, heard: QC.heard }; QC.step = 'note'; QC.dr = dr || ''; stopMic(true); return qcDraw(); };
   const L = (kind, place, v) => ask({ item: '場所', value: v || place, answer: 'はい' }, null, { kind, place }, kind === '個人蔵' ? '個人の方' : kind === '委託中' ? '思文閣（委託）' : place);
