@@ -2012,7 +2012,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '239517eac5', APP_URL = location.origin + location.pathname;
+const BUILD = '0d26b82a11', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2466,8 +2466,8 @@ function qcLightbox(btn){ const im = btn && btn.querySelector('img'); if (!im) r
   if (id && !TH['1600_' + id] && !TH['3200_' + id]) { const i = new Image(); i.dataset.tid = id; i.dataset.w = '1600'; i.onload = () => { if (big.isConnected) big.src = i.src; }; queueThumb(i); } } /* もっとくっきりした写真が届いたら差しかえる */
 /* カードのいちばん下の段：どの問題でも同じ（左に「とばす」か「もどる」、右に声で答えるボタン） */
 /* 間違えたときのために、いちばん最後の答えは、すぐには送らずに持っておく。
-   次の問題に答えたとき・やめたとき・1分たったとき・アプリを閉じたときに送る。「もどる」を押すと取り消して前の問題へ */
-function qcHoldSet(run, undo){ qcFlush(); if (!QC) return; QC.hold = { i: QC.i - 1, run, undo, t: setTimeout(qcFlush, 60000) }; }
+   次の問題に答えたとき・やめたとき・20秒たったとき・アプリを閉じたときに送る。「もどる」を押すと取り消して前の問題へ */
+function qcHoldSet(run, undo){ qcFlush(); if (!QC) return; QC.hold = { i: QC.i - 1, run, undo, t: setTimeout(qcFlush, 20000) }; /* 20秒たったら送る（アプリを閉じて答えが届かないことがないように短め） */ }
 function qcFlush(){ const h = QC && QC.hold; if (!h) return; clearTimeout(h.t); QC.hold = null; try { if (h.run) h.run(); } catch(e){} }
 function qcBack(){ const h = QC && QC.hold; if (!h || QC.i !== h.i + 1) return; clearTimeout(h.t); QC.hold = null; try { if (h.undo) h.undo(); } catch(e){}
   stopMic(true); sayStop(); QC.i = h.i; QC.step = ''; QC.heard = ''; QC.pend = null; qcDraw(); toast('前の問題にもどりました（答えは取り消しました）'); }
@@ -2739,7 +2739,7 @@ function qcDraw(){
     body = `<label class="qc-lbl" for="qcMus">美術館・学校</label><div class="qc-in"><input id="qcMus" type="text" list="qcMusL" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" placeholder="例：京都市美術館"></div><datalist id="qcMusL">${M.map(x => `<option value="${esc(x)}">`).join('')}</datalist>`;
     btm = `${go('musok', '決める')}${qcFoot('', 1)}`; }
   else if (k === 'hear') { const pk = QC.pend && QC.pend.kind, K = (kd, t) => `<button type="button" class="qc-c${pk === kd ? ' sel' : ''}" data-qa="pl" data-k="${kd}">${t}</button>`;
-    body = `<label class="qc-lbl" for="qcPl">くわしい場所（なくてもよい）</label><div class="qc-in"><input id="qcPl" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" placeholder="例：玄関の棚、京都市美術館" value="${esc(QC.pend && QC.pend.det || '')}"></div><div class="qc-ch">${K('自宅', '自宅')}${K('美術館', '美術館・学校')}${K('個人蔵', '個人の方')}${K('委託中', '思文閣（委託）')}${K('その他', 'そのほか')}</div>`;
+    body = `<label class="qc-lbl" for="qcPl">くわしい場所（なくてもよい）</label><div class="qc-in"><input id="qcPl" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" placeholder="例：玄関の棚、京都市美術館" value="${esc(QC.pend && QC.pend.det || '')}"></div><div class="qc-ch">${K('自宅', '自宅')}${K('美術館', '美術館・学校')}${K('個人蔵', '個人の方')}${K('委託中', '思文閣（委託）')}${K('その他', 'そのほか')}${K('廃棄', 'もうない（廃棄）')}</div>`;
     btm = qcFoot(mic('micpl', '話して答える'), 1); }
   el.innerHTML = `<div class="qc-w${/^(name|mus|hear)$/.test(k) ? ' inp' : ''}"><div class="qc-top"><button type="button" class="qc-x" data-qc="end" aria-label="やめる">${QCSVG.x}</button>${qcBackBtn()}
       <div class="qc-bar" role="progressbar" aria-label="${QC.i + 1}問目 / ${QC.L.length}問" aria-valuenow="${QC.i}" aria-valuemax="${QC.L.length}"><i style="width:${Math.max(4, Math.round(QC.i / QC.L.length * 100))}%"></i></div>
@@ -2774,6 +2774,7 @@ function qcAct(a, btn){ const c = QC && QC.L[QC.i]; if (!c) return; const no = c
     if (kd === '個人蔵') { const old = String(w['所蔵者・連絡先'] || '').trim(); return qcSave(no, { item: '場所', value: '個人蔵', answer: 'はい' }, det ? { '所蔵者・連絡先': old && old.indexOf(det) < 0 ? old + ' / ' + det : old || det } : null, { kind: '個人蔵', place: '個人蔵' }); }
     if (kd === '委託中') return L('委託中', '思文閣');
     if (kd === 'その他') return det ? L('その他', det) : toast('場所を入れてください');
+    if (kd === '廃棄') { if (!confirm(nol(no) + ' を「廃棄（もうない）」にしますか？\n作品の一覧や数からは外れます（記録は残ります）')) return; return L('廃棄', det ? '廃棄 ' + det.replace(/^(廃棄|破棄)\s*/, '') : '廃棄'); }
     return; }
   if (a === 'musok') { const v = (($('#qcMus') || {}).value || '').trim(); if (!v) return toast('名前を入れてください'); return L('美術館', v); }
   if (a === 'back') { QC.step = c.k === 'conf' ? 'loc' : ''; QC.pend = null; QC.heard = ''; return qcDraw(); }
@@ -2794,6 +2795,7 @@ function qcAct(a, btn){ const c = QC && QC.L[QC.i]; if (!c) return; const no = c
 }
 const qcClean = t => String(t || '').replace(/^(たしか|えーと|ええと|えっと|うーん|あの)[、,\s]*/, '').replace(/[「」『』。]/g, '').replace(/(にあると思う|にあります|にある|やと思う|だと思う|と思う|です|かな|やね|やな)$/, '').trim();
 function qcPlaceFrom(t){ const s = String(t || ''), det = qcClean(s);
+  if (/廃棄|破棄|捨て|処分|焼却|燃や|もう(無|な)い/.test(s)) return { kind: '廃棄', det: '' }; /* 「破棄した」「捨てた」も廃棄として選んでおく（押して決める） */
   if (/思文閣/.test(s)) return { kind: '委託中', det: '' };
   const m = s.match(/[^\s、。「」]*?(美術館|博物館|ミュージアム|大学|高校|学校|会館|市役所|図書館)/); if (m) return { kind: '美術館', det: m[0] };
   if (/(個人|さん|氏|様)/.test(s)) return { kind: '個人蔵', det };
@@ -4433,7 +4435,7 @@ function qzHeard(t){
   if (UNK.test(t)) return s.kind==='loc' ? qzLocUnknown() : qzAnswer('unk');
   if (s.kind==='pick') { const o = s.opts.find(o => t.includes(o)); if (o) return qzPick(o); return toast('「' + s.opts.join('」「') + '」から選んでください'); }
   if (s.kind==='size') { const m = String(t).normalize('NFKC').match(/(\d+(?:\.\d+)?)\D+(\d+(?:\.\d+)?)/); if (m) { Q.sw = m[1]; Q.sh = m[2]; } Q.heard = t; qzDraw(); return say('幅' + (Q.sw||'?') + '、高さ' + (Q.sh||'?') + '。よければ、保存を押してください'); }
-  if (s.kind==='loc') { const k = LOC_KINDS.find(k => t.includes(k)) || (/美術館|博物館|記念館|大学/.test(t) ? '美術館' : ''); if (k) Q.lk = k; Q.txt = t.replace(/^(自宅の?)/, ''); Q.heard = t; qzDraw(); return say('「' + t + '」。よければ、保存を押してください'); }
+  if (s.kind==='loc') { const k = LOC_KINDS.find(k => t.includes(k)) || (/破棄|捨て|処分|焼却/.test(t) ? '廃棄' : '') || (/美術館|博物館|記念館|大学/.test(t) ? '美術館' : ''); if (k) Q.lk = k; Q.txt = t.replace(/^(自宅の?)/, ''); Q.heard = t; qzDraw(); return say('「' + t + '」。よければ、保存を押してください'); }
   Q.txt = s.field==='制作年' ? toSeireki(t) : t; Q.heard = t; qzDraw(); say('「' + Q.txt + '」。よければ、保存を押してください。ちがうときは、手で直せます');
 }
 /* 「ちがう」の深掘り */
