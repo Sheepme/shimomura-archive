@@ -1831,7 +1831,7 @@ html:not([data-theme=dark]) body.vhome{background:#FFFFFF}
 /* ===== 今日の10作品（カード） ===== */
 .qc{position:fixed;inset:0;z-index:108;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#FFFFFF}
 html[data-theme=dark] .qc{background:var(--bg)}
-.qc-w{max-width:560px;height:100%;margin:0 auto;box-sizing:border-box;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px calc(env(safe-area-inset-bottom,0px) + 18px);display:flex;flex-direction:column;gap:14px}
+.qc-w{max-width:560px;height:100%;margin:0 auto;box-sizing:border-box;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;flex-direction:column;gap:11px}
 .qc-top{display:flex;align-items:center;gap:10px}
 .qc-x,.qc-say{flex:none;width:44px;height:44px;border:0;background:none;display:grid;place-items:center;cursor:pointer;padding:0}
 .qc-x{color:var(--hg-f)}.qc-say{color:#1CB0F6}
@@ -1839,16 +1839,24 @@ html[data-theme=dark] .qc{background:var(--bg)}
 .qc-x svg{width:24px;height:24px;stroke-width:3}.qc-say svg{width:26px;height:26px}
 .qc-bar{flex:1;min-width:0;height:16px;border-radius:8px;background:var(--hg-ln);overflow:hidden}
 .qc-bar i{display:block;height:100%;border-radius:8px;background:var(--hg-gl);transition:width .4s}
-.qc-ph{position:relative;display:block;width:100%;padding:0;border:0;font:inherit;flex:1 1 240px;min-height:150px;max-height:46vh;border-radius:16px;overflow:hidden;background:var(--hg-sf);cursor:zoom-in}
+.qc-ph{position:relative;display:block;width:100%;padding:0;border:0;font:inherit;flex:1 1 320px;min-height:26vh;max-height:58vh;border-radius:16px;overflow:hidden;background:var(--hg-sf);cursor:zoom-in}
 .qc-ph.big{flex:0 0 auto;height:min(78vh,720px);max-height:none;cursor:zoom-out}.qc-ph .wm{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
 .qc-ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
 .qc-nop{flex:0 0 auto;max-height:none;min-height:0;box-sizing:border-box;border:2px dashed var(--hg-dash);padding:14px;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--hg-s)}
-.qc-nop{cursor:default}.qc-nop>svg{width:40px;height:40px;stroke-width:2}.qc-nop b{font-size:16px}.qc-nop .qzinfo{width:100%;margin-top:4px}
+.qc-nop{cursor:default}@media (max-height:700px){.qc-ph{min-height:16vh}}
+.qc-zm{position:absolute;top:8px;right:8px;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.55);display:grid;place-items:center;pointer-events:none}
+.qc-zm svg{width:22px;height:22px;fill:none;stroke:#FFFFFF;stroke-width:2.4;stroke-linecap:round}.big .qc-zm .zp{display:none}
+#qclb{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 56px) 12px calc(env(safe-area-inset-bottom,0px) + 24px);box-sizing:border-box;background:rgba(20,20,20,.38);-webkit-backdrop-filter:blur(16px) saturate(120%);backdrop-filter:blur(16px) saturate(120%);opacity:0;transition:opacity .2s;cursor:zoom-out}
+#qclb.on{opacity:1}.qclb-f{position:relative;max-width:100%;max-height:100%;display:flex}
+#qclb img{display:block;max-width:calc(100vw - 24px);max-height:calc(100dvh - 140px);object-fit:contain;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.45);background:#FFFFFF;transform:scale(.96);transition:transform .2s}#qclb.on img{transform:none}
+.qclb-x{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px;width:44px;height:44px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#FFFFFF;display:grid;place-items:center;cursor:pointer}
+.qclb-x svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round}.qclb-h{margin:0;font-size:14px;font-weight:700;color:#FFFFFF;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.qc-wk.row{flex-direction:row;align-items:baseline;flex-wrap:wrap;column-gap:10px}.qc-nop>svg{width:40px;height:40px;stroke-width:2}.qc-nop b{font-size:16px}.qc-nop .qzinfo{width:100%;margin-top:4px}
 .qc-wk{display:flex;flex-direction:column;gap:2px}.qc-wk small{font-size:14px;font-weight:700;color:var(--hg-s)}.qc-wk b{font-size:18px;color:var(--hg-h)}
 .qc-q{margin:0;font-size:clamp(22px,6.4vw,26px);font-weight:800;line-height:1.35;color:var(--hg-h)}
 .qc-hint{margin:4px 0 0;font-size:15px;line-height:1.5;color:var(--hg-s)}
 .qc-ch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.qc-c{min-height:58px;padding:6px 8px;border-radius:16px;border:2px solid var(--hg-ln);border-bottom-width:5px;background:var(--hg-bg);color:var(--hg-t);font:inherit;font-size:18px;font-weight:800;cursor:pointer}
+.qc-c{min-height:52px;padding:6px 8px;border-radius:16px;border:2px solid var(--hg-ln);border-bottom-width:5px;background:var(--hg-bg);color:var(--hg-t);font:inherit;font-size:18px;font-weight:800;cursor:pointer}
 .qc-c.wide{grid-column:1/-1;min-height:52px;background:var(--hg-sf);color:var(--hg-s);font-size:17px}
 .qc-c:active{transform:translateY(3px);border-bottom-width:2px}
 .qc-c.mut{background:var(--hg-sf);color:var(--hg-s);font-size:17px}
@@ -2001,7 +2009,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'a57f2fe93f', APP_URL = location.origin + location.pathname;
+const BUILD = 'ab8d4b32ac', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2443,6 +2451,16 @@ const QCSVG = {
   ok: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' };
 /* カード・クイズの作品写真：スマホの画面でもぼけない大きさ（1200px）。はじめに10枚まとめて読み込んでおく */
 const QCW = 1200;
+/* 写真の右上の拡大マーク（虫めがね＋。大きくしているときは−） */
+const QCZM = '<i class="qc-zm" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4L20.5 20.5M7.6 10.5h5.8"/><path class="zp" d="M10.5 7.6v5.8"/></svg></i>';
+function qcLightbox(btn){ const im = btn && btn.querySelector('img'); if (!im) return; const id = im.dataset.tid || '', wmk = btn.querySelector('.wm');
+  let el = $('#qclb'); if (el) el.remove(); el = document.createElement('div'); el.id = 'qclb'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', '写真を大きく表示');
+  el.innerHTML = `<div class="qclb-f"><img alt="">${wmk ? wmk.outerHTML : ''}</div><button type="button" class="qclb-x" aria-label="閉じる">${QCSVG.x}</button><p class="qclb-h">もう一度タップで閉じる</p>`;
+  const big = el.querySelector('img'); big.src = (id && (TH['3200_' + id] || TH['1600_' + id])) || im.src;
+  document.body.appendChild(el); requestAnimationFrame(() => el.classList.add('on'));
+  const close = () => { el.classList.remove('on'); setTimeout(() => el.remove(), 200); document.removeEventListener('keydown', esc1, true); };
+  const esc1 = e => { if (e.key === 'Escape') close(); }; document.addEventListener('keydown', esc1, true); el.onclick = close;
+  if (id && !TH['1600_' + id] && !TH['3200_' + id]) { const i = new Image(); i.dataset.tid = id; i.dataset.w = '1600'; i.onload = () => { if (big.isConnected) big.src = i.src; }; queueThumb(i); } } /* もっとくっきりした写真が届いたら差しかえる */
 function qcPrefetch(nos){ const seen = new Set(); nos.forEach(no => { const p = no && (photoBy[no] || [])[0], id = p && p['ファイルID'];
     if (!id || seen.has(id) || seen.size >= 10 || TH[QCW + '_' + id]) return; seen.add(id); const i = new Image(); i.dataset.tid = id; i.dataset.w = String(QCW); queueThumb(i); }); }
 function startCards(test, mode){
@@ -2585,7 +2603,7 @@ function qcDrawFind(el, c){
   if (no) {
     const wf = [w['制作年'] ? esc(w['制作年']) + (/^\d{4}$/.test(w['制作年']) ? '年' : '') : '', w['高さcm'] && w['幅cm'] ? esc(w['高さcm']) + ' × ' + esc(w['幅cm']) + ' cm' : ''].filter(Boolean).join('・');
     body = `<p class="qc-sl">台帳の作品${c.cands.length > 1 ? `<span>候補 ${c.j + 1} / ${c.cands.length}</span>` : ''}</p>
-    ${ph.length ? `<button type="button" class="qc-dph" id="qcDph" data-qa="dph" aria-label="写真を大きく">${thImg(ph[0]['ファイルID'], QCW)}${wm(ph[0])}</button>` : ''}
+    ${ph.length ? `<button type="button" class="qc-dph" id="qcDph" data-qa="dph" aria-label="写真を大きく">${thImg(ph[0]['ファイルID'], QCW)}${wm(ph[0])}${QCZM}</button>` : ''}
     ${ph.length > 1 ? `<div class="qc-dpt">${ph.slice(0, 6).map((p, k) => `<button type="button" class="${k ? '' : 'on'}" data-qa="dpi:${k}">${thImg(p['ファイルID'], 200)}</button>`).join('')}</div>` : ''}
     <div class="qc-wk"><small>${esc(nol(no))}</small><b>${esc(w['作品名'] || '作品名なし')}</b>${wf ? `<span class="qc-nph">${wf}</span>` : ''}<span class="qc-nph">場所：${esc(cur || 'わからない')}</span>${ph.length ? '' : '<span class="qc-nph">写真はまだありません</span>'}</div>${rec}`;
     q = '台帳のこの作品と、同じもの？';
@@ -2649,7 +2667,7 @@ function qcDrawDiff(el, c){
     QC.sp = (x.cur ? `${who}台帳では${sv(x.cur)}、書類では${sv(x.doc)}になってるみたいやねん。` : `${who}台帳には入ってへんけど、書類では${sv(x.doc)}になってるんえ。`) + 'どっちが合うてるやろ？'; }
   el.innerHTML = `<div class="qc-w qc-dw">${qcTop()}
     ${qcTask('diff', x.f === '所在' ? '場所' : lab)}${QC.test ? '<p class="qc-test">練習モード：答えは保存しません</p>' : ''}
-    ${ph.length ? `<button type="button" class="qc-dph" id="qcDph" data-qa="dph" aria-label="写真を大きく">${thImg(ph[0]['ファイルID'], QCW)}${wm(ph[0])}</button>` : ''}
+    ${ph.length ? `<button type="button" class="qc-dph" id="qcDph" data-qa="dph" aria-label="写真を大きく">${thImg(ph[0]['ファイルID'], QCW)}${wm(ph[0])}${QCZM}</button>` : ''}
     ${ph.length > 1 ? `<div class="qc-dpt">${ph.slice(0, 6).map((f, k) => `<button type="button" class="${k ? '' : 'on'}" data-qa="dpi:${k}">${thImg(f['ファイルID'], 200)}</button>`).join('')}</div>` : ''}
     <div class="qc-wk"><small>${esc(nol(c.no))}</small><b>${esc(w['作品名'] || '作品名なし')}</b>${ph.length ? '' : '<span class="qc-nph">写真はまだありません</span>'}</div>
     <div class="qc-sec"><div class="qc-sh"><b>読み取った書類</b><small>${esc(docTitle(d))}${pg ? '・' + pg : ''}</small></div>${pdf ? '<div class="dfx qc-dfx" id="qcDf"></div>' : ''}</div>
@@ -2684,7 +2702,7 @@ function qcDraw(){
   QC.q = q; /* 読み上げは、少しやわらかい言い方にする */
   QC.sp = { loc: 'この作品、いまどこにあるか、わからはる？', conf: `この作品、いまも「${loc}」にあるやろか？`, name: 'この作品の名前、わからはる？', photo: 'この作品、見つかったら写真撮ってもろてもよろしい？',
     mus: 'どこの美術館か学校か、教えてくれはる？', hear: 'どこにあるか、教えてくれはる？' }[k] || q; /* 読み上げは京都弁（声の調子も GAS の tts で京都弁に） */
-  const media = ph.length ? `<button type="button" class="qc-ph" data-qa="php" aria-label="写真を大きく">${thImg(ph[0]['ファイルID'], QCW)}${wm(ph[0])}</button>` : `<div class="qc-ph qc-nop">${QCSVG.cam}<b>写真がまだありません</b>${qzClues(no, w)}</div>`;
+  const media = ph.length ? `<button type="button" class="qc-ph" data-qa="php" aria-label="写真を大きく">${thImg(ph[0]['ファイルID'], QCW)}${wm(ph[0])}${QCZM}</button>` : `<div class="qc-ph qc-nop">${QCSVG.cam}<b>写真がまだありません</b>${qzClues(no, w)}</div>`;
   const C = (a, t, cls) => `<button type="button" class="qc-c ${cls||''}" data-qa="${a}">${t}</button>`;
   const mic = (a, t) => QV.micOk ? `<button type="button" class="qc-mic" data-qa="${a}" aria-label="${t || '声で答える'}">${t ? `<span>${t}</span>` : ''}<i>${QCSVG.mic}</i></button>` : '';
   const go = (a, t) => `<button type="button" class="hg-go" data-qa="${a}">${t}</button>`, sub = (a, t) => `<button type="button" class="hg-btn2" data-qa="${a}">${t}</button>`;
@@ -2704,7 +2722,7 @@ function qcDraw(){
   el.innerHTML = `<div class="qc-w"><div class="qc-top"><button type="button" class="qc-x" data-qc="end" aria-label="やめる">${QCSVG.x}</button>
       <div class="qc-bar" role="progressbar" aria-label="${QC.i + 1}問目 / ${QC.L.length}問" aria-valuenow="${QC.i}" aria-valuemax="${QC.L.length}"><i style="width:${Math.max(4, Math.round(QC.i / QC.L.length * 100))}%"></i></div>
       <button type="button" class="qc-say" data-qc="say" aria-label="もう一度読み上げる">${QCSVG.say}</button></div>
-    ${qcTask(k)}${QC.test ? '<p class="qc-test">練習モード：答えは保存しません</p>' : ''}${media}<div class="qc-wk"><small>${esc(nol(no))}</small><b>${esc(w['作品名'] || '作品名なし')}</b></div>
+    ${qcTask(k)}${QC.test ? '<p class="qc-test">練習モード：答えは保存しません</p>' : ''}${media}<div class="qc-wk row"><small>${esc(nol(no))}</small><b>${esc(w['作品名'] || '作品名なし')}</b></div>
     <div><h1 class="qc-q">${esc(q)}</h1>${hint ? `<p class="qc-hint">${esc(hint)}</p>` : ''}</div>${body}<div class="qc-btm">${btm}</div></div>`;
   hydrate(el); el.scrollTop = 0;
   if (QV.tts && !QC.step) say(QC.sp);
@@ -2717,8 +2735,8 @@ function qcClick(e){ if (!QC) return; const t = e.target.closest('[data-qc],[dat
 function qcChange(e){ if (e.target.id === 'qcCam' && e.target.files && e.target.files[0]) qcPhoto(e.target.files[0]); }
 function qcAct(a, btn){ const c = QC && QC.L[QC.i]; if (!c) return; const no = c.no, w = workOf(no) || {}, k = QC.step || c.k, item = QCITEM[c.k];
   if (a.indexOf('fd:') === 0) return qcFindAct(a, c);
-  if (a === 'dph' || a === 'php') return btn.classList.toggle('big'); /* 写真をタップで大きく・もう一度で戻す */ /* 写真をタップで大きく・もう一度で戻す */
-  if (a.startsWith('dpi:')) { const f = (photoBy[no] || [])[+a.slice(4)], box = $('#qcDph'); if (f && box) { box.innerHTML = thImg(f['ファイルID'], QCW) + wm(f); hydrate(box); } btn.parentNode.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === btn)); return; }
+  if (a === 'dph' || a === 'php') return qcLightbox(btn); /* 写真をタップすると、背景をぼかして画面のまん中に大きく出す */ /* 写真をタップで大きく・もう一度で戻す */
+  if (a.startsWith('dpi:')) { const f = (photoBy[no] || [])[+a.slice(4)], box = $('#qcDph'); if (f && box) { box.innerHTML = thImg(f['ファイルID'], QCW) + wm(f) + QCZM; hydrate(box); } btn.parentNode.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === btn)); return; }
   const L = (kind, place, v) => qcSave(no, { item: '場所', value: v || place, answer: 'はい' }, null, { kind, place });
   if (a === 'home') return L('自宅', '自宅');
   if (a === 'priv') return L('個人蔵', '個人蔵');
