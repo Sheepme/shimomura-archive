@@ -1836,7 +1836,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '0a6a6a0dbc', APP_URL = location.origin + location.pathname;
+const BUILD = '3531cd5edf', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3128,10 +3128,11 @@ function sheetDocReview(id){ try { const d0 = docById(id); if (d0) pdfPrefetch([
     document.querySelectorAll('#sheetbox [data-tocp]').forEach(b => b.onclick = () => { const pn = +b.dataset.tocp, L = document.querySelector('#sheetbox.split .dsv');
       const was = b.classList.contains('on'); document.querySelectorAll('#sheetbox .dtr.on').forEach(x => x.classList.remove('on'));
       if (L) { b.classList.add('on'); if (L._goto) L._goto(pn, null); else L._pend = [pn, null]; return; }
-      const wrap = b.closest('.dtoc'); let c = wrap.parentElement.querySelector('.tocpv');
-      if (c) { const o = c.querySelector('.dfprev'); if (o) o.remove(); c.classList.remove('dfopen'); if (was) { c.remove(); return; } }
-      else { c = document.createElement('div'); c.className = 'dfx evx tocpv'; c.innerHTML = '<span data-dfhl="toc" hidden></span>'; wrap.after(c); }
-      b.classList.add('on'); dfPreview(c, d, { doc: '', at: { p: pn }, toc: 1 }, true); });
+      devUnwrap(); if (was) return; b.classList.add('on'); /* スマホ：押したページの行の枠の中に開く（来歴と同じ形） */
+      const box = document.createElement('div'); box.className = 'devbox'; b.before(box); box.appendChild(b);
+      const cl = document.createElement('button'); cl.type = 'button'; cl.className = 'devclose'; cl.textContent = '▲ 書類をたたむ'; cl.onclick = () => { b.classList.remove('on'); devUnwrap(); }; b.after(cl);
+      const c = document.createElement('div'); c.className = 'dfx evx devpv'; c.innerHTML = '<span data-dfhl="toc" hidden></span>'; box.appendChild(c);
+      dfPreview(c, d, { doc: '', at: { p: pn }, toc: 1 }, true); });
     /* この書類からわかった来歴：押すと、その出来事が書かれたところを光らせる（パソコンは左のビューワー、スマホはその下に開く） */
     document.querySelectorAll('#sheetbox button[data-dev]').forEach(b => b.onclick = () => { const e = (S.events || []).find(x => x['出来事ID'] === b.dataset.dev); if (!e) return;
       let at = null; try { at = JSON.parse(e['位置'] || 'null'); } catch(x){} if (!(at && at.p)) at = null; const q = e['相手先・場所'] || e['日付'] || '', L = document.querySelector('#sheetbox.split .dsv');
