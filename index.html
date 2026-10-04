@@ -1838,7 +1838,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '546bcb3384', APP_URL = location.origin + location.pathname;
+const BUILD = 'd092de6020', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4059,7 +4059,7 @@ function docTopPreview(d){ const r = docRes(d), box = $('#sheetbox'); if (!r.PDF
   pgPrev(c => { const h = box.querySelector('h3.dttl'); if (h) h.after(c); else box.prepend(c); }, docPdfFid(d)); }
 /* スマホの書類画面（案A）：書類を全面に、来歴・目次などは下から引き出すシートに（地図アプリと同じ形）。
    シートは「少し・半分・全部」の3段。行を押すとシートは半分になり、上の書類がそのページに切り替わって光る。押した行はシートの中に選ばれたまま残る */
-const DOCSHEET_A = true;
+const DOCSHEET_A = false;
 function docSheetA(box, L, R){ box.classList.add('spA'); const IN = document.createElement('div'); IN.className = 'dsrin'; while (R.firstChild) IN.appendChild(R.firstChild);
   R.insertAdjacentHTML('afterbegin', '<div class="shgrip" aria-label="一覧を広げる・下げる"><i></i></div>'); R.appendChild(IN); /* つまみは固定、中身だけスクロール */
   const grip = R.querySelector('.shgrip'), PEEK = 118, H = () => R.offsetHeight || 600;
