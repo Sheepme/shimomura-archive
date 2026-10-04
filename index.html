@@ -2012,7 +2012,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'f7ff656afb', APP_URL = location.origin + location.pathname;
+const BUILD = '239517eac5', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2783,12 +2783,13 @@ function qcAct(a, btn){ const c = QC && QC.L[QC.i]; if (!c) return; const no = c
   if (a === 'later') return qcSave(no, { item, value: '', answer: '保留' });
   if (a === 'skip') { QC.i++; QC.step = ''; QC.heard = ''; QC.pend = null; qcHoldSet(null, null); return qcDraw(); }
   if (a === 'name') { const v = (($('#qcTtl') || {}).value || '').trim(); if (!v) return toast('名前を入れてください'); return qcSave(no, { item: '作品名', value: v, answer: 'はい' }, { '作品名': v }); }
-  if (a === 'mic' || a === 'micname' || a === 'micpl') { ttsUnlock(); if (btn) btn.classList.add('on');
+  if (a === 'mic' || a === 'micname' || a === 'micpl') { ttsUnlock(); const sp = btn && btn.querySelector('span'), relabel = on => { if (sp) { if (on && !sp.dataset.t) sp.dataset.t = sp.textContent; sp.textContent = on ? '話し終わったら押す' : (sp.dataset.t || sp.textContent); } };
+    if (btn) btn.classList.add('on'); if (!(MIC.r && !MIC.r.__killed)) relabel(true);
     const ok = listen(text => { if (!QC) return;
       if (a === 'micname') { const v = text.replace(/^(たしか|えーと|ええと|えっと|うーん)[、,\s]*/, '').replace(/[「」『』]/g, '').replace(/(やったと思う|だったと思う|だと思う|と思う|です|かな)[。.]?$/, '').trim();
         const i = $('#qcTtl'); if (i) i.value = v; QC.heard = text; const h = $('#qcHeard'); if (h) h.textContent = '話した言葉：「' + text + '」'; return; }
       if (UNK.test(text)) return qcSave(no, { item, value: '', answer: '不明' });
-      QC.heard = text; QC.pend = qcPlaceFrom(text) || { kind: '', det: qcClean(text) }; QC.step = 'hear'; qcDraw(); }, () => { if (btn) btn.classList.remove('on'); });
+      QC.heard = text; QC.pend = qcPlaceFrom(text) || { kind: '', det: qcClean(text) }; QC.step = 'hear'; qcDraw(); }, () => { if (btn) btn.classList.remove('on'); relabel(false); });
     if (!ok && btn) { btn.classList.remove('on'); toast('マイクが使えません。ボタンで答えてください'); } }
 }
 const qcClean = t => String(t || '').replace(/^(たしか|えーと|ええと|えっと|うーん|あの)[、,\s]*/, '').replace(/[「」『』。]/g, '').replace(/(にあると思う|にあります|にある|やと思う|だと思う|と思う|です|かな|やね|やな)$/, '').trim();
@@ -3969,12 +3970,14 @@ function vrWav(chunks, rate){ // 16kHz・モノラルのWAVにする（送る量
   return btoa(bin); }
 function listen(onText, onDone, auto){
   if (!SR || !QV.micOk) return false;
+  /* 聞いている最中にもう一度押したら、そこで区切って文字にする（やり直しにしない）。文字にしている最中は待ってもらう */
+  if (!auto && MIC.r && !MIC.r.__killed) { if (!MIC.r.done && MIC.r.stopNow) { MIC.r.stopNow(); return true; } if (MIC.r.done) { toast('いま文字にしています。少し待ってね'); return true; } }
   sayStop();
   stopMic(true);
   try { if (TTSA) { TTSA.onended = null; TTSA.pause(); TTSA.removeAttribute('src'); TTSA.load(); } } catch(e){}
   const r = { __killed: false, done: false, cleanup: null }; r.abort = () => { r.__killed = true; if (r.cleanup) r.cleanup(); }; MIC.r = r;
   const b = $('#qzMic'); if (b) b.classList.add('on');
-  const live = t => document.querySelectorAll('.srlive').forEach(el => { el.textContent = t || '…'; el.classList.toggle('on', !!t); });
+  const live = t => document.querySelectorAll('.srlive').forEach(el => { el.textContent = t || (el.classList.contains('qc-heard') ? '' : '…'); el.classList.toggle('on', !!t); });
   const end = () => { if (MIC.r === r) MIC.r = null; const bb = $('#qzMic'); if (bb) bb.classList.remove('on'); };
   const quiet = IV ? 2000 : 1100, maxMs = IV ? 60000 : 10000; // 話し終わって、これだけ静かなら区切る
   (async () => {
@@ -3989,13 +3992,16 @@ function listen(onText, onDone, auto){
     let heard = false, lastLoud = 0, floor = 0, nf = 0; const t0 = performance.now();
     r.cleanup = () => { try { proc.onaudioprocess = null; proc.disconnect(); src.disconnect(); } catch(e){} try { stream.getTracks().forEach(t => t.stop()); } catch(e){} };
     const finish = () => { if (r.done || r.__killed) return; r.done = true; r.cleanup();
-      if (!heard) { end(); stopMic(); toast('声が聞こえなかったよ。🎤を押して話してね'); return; }
+      if (!heard) { end(); stopMic(); live(''); toast('声が聞こえなかったよ。🎤を押して話してね'); if (onDone) onDone(); return; }
       live('文字にしています…');
       let b64 = ''; try { b64 = vrWav(chunks, ac.sampleRate); } catch(e){}
-      call('transcribe', b64, 'audio/wav', '').then(text => { end(); if (r.__killed) return; text = String(text || '').trim();
-          if (text) { live(text); onText(text); } else toast('うまく聞き取れなかったよ。もう一度話してね');
+      /* 25秒たっても返ってこなければ、あきらめて「もう一度」と出す（「文字にしています…」のまま止まらないように） */
+      const slow = new Promise((_, ng) => setTimeout(() => ng(new Error('時間がかかっています。もう一度🎤を押して話してね')), 25000));
+      Promise.race([call('transcribe', b64, 'audio/wav', ''), slow]).then(text => { end(); if (r.__killed) { if (!MIC.r) live(''); return; } text = String(text || '').trim();
+          if (text) { live(text); onText(text); } else { live(''); toast('うまく聞き取れなかったよ。もう一度話してね'); }
           if (onDone) onDone(); })
-        .catch(err => { end(); if (r.__killed) return; toast(String(err && err.message || err).slice(0, 60) || '声を文字にできませんでした'); if (onDone) onDone(); }); };
+        .catch(err => { end(); if (r.__killed) { if (!MIC.r) live(''); return; } live(''); toast(String(err && err.message || err).slice(0, 60) || '声を文字にできませんでした'); if (onDone) onDone(); }); };
+    r.stopNow = () => finish();
     proc.onaudioprocess = ev => { if (r.__killed || r.done) return; const d = ev.inputBuffer.getChannelData(0); chunks.push(new Float32Array(d));
       let s = 0; for (let i = 0; i < d.length; i += 4) s += d[i] * d[i]; const rms = Math.sqrt(s / (d.length / 4)), now = performance.now();
       if (now - t0 < 400) { floor += rms; nf++; return; } // 最初は周りの音の大きさを測る
