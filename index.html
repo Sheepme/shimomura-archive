@@ -368,8 +368,8 @@ html,body{touch-action:pan-x pan-y}.docview,.docview *{touch-action:pan-x pan-y}
 .diff .after{font-weight:500}
 .diff .after.none{color:var(--warn);font-weight:400;font-size:17px}
 dl.info dd .fill{border:0;background:none;padding:0;color:var(--warn);font-size:17px;border-bottom:1px dashed var(--warn);border-radius:0}
-.tl li.editable{cursor:pointer}
-.tl li.editable:hover{background:var(--wash)}
+.tl li.viewable{cursor:pointer}
+.tl li.viewable:hover{background:var(--wash)}
 .tl .edithint{font-size:14px;color:var(--faint);margin-top:4px}
 
 /* AIにきく（チャット） */
@@ -1838,7 +1838,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd092de6020', APP_URL = location.origin + location.pathname;
+const BUILD = '0c4047cd9a', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4211,7 +4211,8 @@ function openWork(no, keepScroll, restoreSc){
       <h3 class="sec">来歴</h3>
       ${canEdit() ? evDupHTML(ev) : ''}
       ${ev.length ? `<ul class="tl">${ev.map(e=>{ const ds=String(e['日付']||''); const y=(ds.match(/\d{4}/)||[''])[0]; const rest=ds.replace(y,'').replace(/^年/,'').trim();
-        return `<li class="${canEdit()?'editable':''}" data-ev="${esc(e['出来事ID'])}"><div class="d">${esc(y||'—')}${rest?`<span class="dsub">${esc(rest)}</span>`:(y?'':'<span class="dsub">日付不明</span>')}</div><div>
+        const viewable = !!((e['展覧会ID'] && exById[e['展覧会ID']]) || (e['資料ID'] && pbById[e['資料ID']]) || (canEdit() && evDocs(e).some(id => docById(id))));
+        return `<li class="${viewable ? 'viewable' : ''}" data-ev="${esc(e['出来事ID'])}"><div class="d">${esc(y||'—')}${rest?`<span class="dsub">${esc(rest)}</span>`:(y?'':'<span class="dsub">日付不明</span>')}</div><div>
           <div class="ty ${esc(e['種類'])}">${esc(e['種類'])}</div>
           ${e['相手先・場所']?`<div class="pl"><b>${PRM(e['相手先・場所'])}${esc(e['相手先・場所'])}</b></div>`:''}
           ${e['展覧会ID'] && exById[e['展覧会ID']] ? `<button class="golink" data-ex="${esc(e['展覧会ID'])}">展覧会のページ ›</button>` : ''}${e['資料ID'] && pbById[e['資料ID']] ? `<button class="golink" data-pb="${esc(e['資料ID'])}">${esc(pbById[e['資料ID']]['種類']||'資料')}のページ ›</button>` : ''}
@@ -5715,7 +5716,7 @@ $('#page').addEventListener('change', async e => {
   catch(err){ e.target.checked = !on; alert('保存できませんでした。\n' + (err.message||err)); }
   finally { busy(false); }
 });
-$('#page').addEventListener('click', e => { if (e.target.closest('[data-login]')) return openLogin(); const dot = e.target.closest('[data-dot]'); if (dot){ const g = $('#page .gallery'); g.scrollTo({left: g.clientWidth * +dot.dataset.dot, behavior:'smooth'}); return; } const va = e.target.closest('[data-view]'); if (va){ e.preventDefault(); openViewer(+va.dataset.view); return; } const li = e.target.closest('li[data-ev]'); if (li && canEdit() && !e.target.closest('button,a')) sheetEventEdit(li.dataset.ev); });
+$('#page').addEventListener('click', e => { if (e.target.closest('[data-login]')) return openLogin(); const dot = e.target.closest('[data-dot]'); if (dot){ const g = $('#page .gallery'); g.scrollTo({left: g.clientWidth * +dot.dataset.dot, behavior:'smooth'}); return; } const va = e.target.closest('[data-view]'); if (va){ e.preventDefault(); openViewer(+va.dataset.view); return; } const li = e.target.closest('li[data-ev]'); if (li && !e.target.closest('button,a,.evsrcbox')) { const g = li.querySelector('.golink[data-ex], .golink[data-pb], .golink[data-doc]'); if (g) g.click(); } })  /* 行を押す＝見る（展覧会・資料・書類のページ）。直すのは鉛筆だけ */;
 // （旧）見出しを押すと自分のメニュー → 今はページ名なので、いちばん上へスクロールに変更済み
 function masBase(){ const w = innerWidth; if (w < 700) return 2; if (w < 900) return 3; const pad = w >= 1800 ? 144 : 96; return Math.max(3, Math.floor((w - pad + 28) / 248)); }
 /* アルバムの列数：ピンチ（2本指で広げる・つまむ）で変えられる。スマホ1〜5列、タブレット2〜6列、PC2〜10列 */
