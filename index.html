@@ -1730,6 +1730,39 @@ body:has(#tedbar) .cbar{display:none!important}
 .tsz .tc,.tlc .tc{flex:1;min-width:0}.tlc .tc:first-child{flex:0 0 38%}
 .tadd{border:1px dashed var(--line);background:transparent;color:var(--ink);border-radius:8px;padding:5px 8px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}.tadd small{margin-left:4px;color:var(--sub)}
 .tmemo{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sub)}
+
+/* ---- 資料ページ（新しい見た目 DOCUI2）：年表と同じ文字中心。線で区切り、塗りの箱やボタンを減らす ---- */
+#sheetbox.dv2 h3.dttl{font-size:25px;line-height:1.4;font-weight:700;letter-spacing:.01em;margin-bottom:4px}
+#sheetbox.dv2 > .hint:first-of-type,#sheetbox.dv2 .dsr > .hint:first-of-type{font-size:14.5px;color:var(--sub)}
+#sheetbox.dv2 h3.sec{font-size:12.5px!important;font-weight:600;letter-spacing:.16em;color:var(--sub);margin:28px 0 4px!important;padding-bottom:8px;border-bottom:1px solid var(--line)}
+#sheetbox.dv2 h3.sec + .hint{display:none}
+#sheetbox.dv2 .dtoc{gap:0;margin:0}
+#sheetbox.dv2 .dtr{background:none;border-radius:0;border-bottom:1px solid var(--line);padding:13px 2px;display:grid;grid-template-columns:5.4em minmax(0,1fr) auto;gap:10px;font-size:15.5px;line-height:1.6}
+#sheetbox.dv2 .dtr .dtp{color:var(--sub);font-variant-numeric:tabular-nums;font-size:14px;padding-top:1px}
+#sheetbox.dv2 .dtr small.muted{display:block;font-size:13.5px;margin-top:2px}
+#sheetbox.dv2 .dtr.on{box-shadow:none;background:var(--wash)}
+#sheetbox.dv2 .devgo{font-size:14px;opacity:.6}
+#sheetbox.dv2 .devbox{border:0;border-radius:0;background:none;margin:0}
+#sheetbox.dv2 .devbox .dtr{border-bottom:0;background:var(--wash)}
+#sheetbox.dv2 .devclose{background:var(--wash);border-top:0;font-weight:500;font-size:14px;color:var(--sub);padding:8px}
+#sheetbox.dv2 details.dfill{margin:24px 0 0}
+#sheetbox.dv2 details.dfill>summary{font-size:12.5px;font-weight:600;letter-spacing:.16em;color:var(--sub);padding-bottom:8px;border-bottom:1px solid var(--line);list-style:none;cursor:pointer}
+#sheetbox.dv2 details.dfill>summary::-webkit-details-marker{display:none}
+#sheetbox.dv2 details.dfill>summary::after{content:' ＋';letter-spacing:0}#sheetbox.dv2 details.dfill[open]>summary::after{content:' －'}
+#sheetbox.dv2 .act.pdfopen,#sheetbox.dv2 .act.dvnote,#sheetbox.dv2 .act.cmpbtn{display:flex;justify-content:space-between;align-items:center;width:100%;margin:0;padding:15px 2px;background:none!important;color:var(--ink)!important;border:0;border-bottom:1px solid var(--line);border-radius:0;box-shadow:none;font-size:16px;font-weight:500;text-align:left}
+#sheetbox.dv2 .act.pdfopen::after,#sheetbox.dv2 .act.dvnote::after,#sheetbox.dv2 .act.cmpbtn::after{content:'›';color:var(--sub);font-size:20px}
+#sheetbox.dv2 .act.dvnote{border-top:1px solid var(--line);margin-top:18px}
+#sheetbox.dv2 .dtopv{border:0;border-radius:0;background:none;margin:14px 0 6px}
+#sheetbox.dv2 .dtpbar{padding:0 0 8px}#sheetbox.dv2 .dtpsq{border-radius:6px}
+#sheetbox.dv2 .dfsum,#sheetbox.dv2 .dfsumr{background:none!important;border-radius:0!important;border-bottom:1px solid var(--line)!important;padding:12px 2px!important;margin:0!important}
+#sheetbox.dv2 .golink{padding:10px 0}
+#sheetbox.dv2 .wl2{gap:6px}
+.noteview.dv2 .nvt{font-size:25px;line-height:1.4}
+.noteview.dv2 .nvtoc{font-size:12.5px;letter-spacing:.16em;color:var(--sub);border-bottom:1px solid var(--line);padding-bottom:8px;margin:18px 0 10px}
+.noteview.dv2 .nvnote{background:none!important;border:0!important;box-shadow:none!important;padding:4px 2px!important;font-size:17px;line-height:1.95}
+.noteview.dv2 .dtopv{border:0;border-radius:0;background:none}.noteview.dv2 .dtpbar{padding:0 0 8px}
+.noteview.dv2 .act.pdfopen{display:flex;justify-content:space-between;width:100%;padding:15px 2px;background:none!important;color:var(--ink)!important;border:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);border-radius:0;font-size:16px;font-weight:500}
+.noteview.dv2 .act.pdfopen::after{content:'›';color:var(--sub);font-size:20px}
 </style>
 </head>
 <body>
@@ -1799,7 +1832,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'cfbc1df228', APP_URL = location.origin + location.pathname;
+const BUILD = '80265e48d2', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2769,7 +2802,7 @@ function dfFind(text, v){ const parts = String(text || '').split(/【\s*p\.?\s*(
     if (parts.length === 1 && re.test(parts[0])) return { p: '1', q }; }
   return null; }
 async function noteView(id, startP, qq){ const d = docById(id); if (!d) return;
-  const el = document.createElement('div'); el.className = 'noteview';
+  const el = document.createElement('div'); el.className = 'noteview' + (DOCUI2 ? ' dv2' : '');
   el.innerHTML = `<div class="nvin"><h2 class="nvt">${esc(docTitle(d))}</h2><div class="nvbody"><div class="ldwrap"><span class="ldspin"></span>ノートを読み込んでいます…</div></div></div>`;
   document.body.appendChild(el); hpush('n'); scrPush(el);
   let t = ''; try { t = DTEXT[id] != null ? DTEXT[id] : (DTEXT[id] = await call('getDocText', id)); } catch(e){ el.querySelector('.nvbody').innerHTML = `<p class="hint">ノートを読み込めませんでした（${esc(e.message || e)}）</p>`; return; }
@@ -3964,7 +3997,9 @@ document.addEventListener('click', async e => {
   catch(err){ alert('戻せませんでした。\n' + (err.message||err)); }
   finally { busy(false); }
 });
-(function(){ const _o = sheetDocReview; sheetDocReview = function(id){ _o(id); const bx = $('#sheetbox .btns'); if (bx && canEdit() && !$('#sheetbox [data-del]')) bx.insertAdjacentHTML('beforebegin', delBtn('doc', id, 'この書類')); docSplit(id); }; })();
+/* 資料ページの新しい見た目（年表と同じ、文字中心のシンプルな形）。false にすると元の見た目に戻る */
+const DOCUI2 = true;
+(function(){ const _o = sheetDocReview; sheetDocReview = function(id){ _o(id); { const sb = $('#sheetbox'); if (sb) sb.classList.toggle('dv2', DOCUI2); } const bx = $('#sheetbox .btns'); if (bx && canEdit() && !$('#sheetbox [data-del]')) bx.insertAdjacentHTML('beforebegin', delBtn('doc', id, 'この書類')); docSplit(id); }; })();
 /* 画面が広いときは、左に書類（PDF・写真）、右に確認・修正の画面を並べる */
 /* スマホの書類詳細：作品ページの「該当箇所を確認」と同じ見た目で、書類の1ページ目をはじめから表示する */
 /* 書類のページを正方形の枠に表示する部品：左右スワイプ・‹ › でページ送り、指2本で拡大（拡大中は指1本で動かす・2回タップで元に戻す）。拡大中はスワイプでページが変わらない */
