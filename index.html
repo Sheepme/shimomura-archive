@@ -1887,6 +1887,13 @@ html[data-theme=dark] .qc-chip{background:#16384A;color:#9ADDFF}
 .qc-dpt{flex:none;display:flex;gap:8px;overflow-x:auto;margin-top:-4px}.qc-dpt button{flex:none;width:56px;height:56px;padding:0;border:2px solid transparent;border-radius:10px;overflow:hidden;background:var(--hg-sf);cursor:pointer}
 .qc-dpt button.on{border-color:#1CB0F6}.qc-dpt img{width:100%;height:100%;object-fit:cover;display:block}
 .qc-nph{font-size:13px;color:var(--hg-s)}
+.fdb-h{font-size:17px;color:var(--hg-h)}.fdb-all{align-self:flex-start}.fdb-l{display:flex;flex-direction:column;gap:8px}
+.fdb-i{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:14px;border:2px solid var(--hg-ln);background:var(--hg-bg);color:var(--hg-h);font:inherit;text-align:left;cursor:pointer}
+.fdb-i.on{border-color:#58CC02;background:rgba(88,204,2,.07)}.fdb-ck{flex:none;width:26px;height:26px;border-radius:8px;border:2px solid var(--hg-ln);display:grid;place-items:center;color:#FFFFFF}
+.fdb-i.on .fdb-ck{background:#58CC02;border-color:#58CC02}.fdb-ck svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.fdb-th{flex:none;width:52px;height:52px;border-radius:10px;overflow:hidden;background:var(--hg-sf)}.fdb-th img{width:100%;height:100%;object-fit:cover;display:block}
+.fdb-tx{min-width:0;display:flex;flex-direction:column;gap:2px}.fdb-tx b{font-size:15px}.fdb-tx small{font-size:12.5px;line-height:1.45;color:var(--hg-s)}.fdb-tx .fdb-r{color:#A56A00}
+html[data-theme=dark] .fdb-tx .fdb-r{color:#FFC800}.fdb-b{position:sticky;bottom:0;padding:10px 0 4px;background:var(--hg-bg)}
 .qc-sl{flex:none;margin:0;display:flex;justify-content:space-between;font-size:15px;font-weight:800;color:var(--hg-h)}.qc-sl span{font-size:13px;color:var(--hg-s)}
 .qc-rec{flex:none;display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:16px;border:2px solid #FFC800;background:#FFF8DC;color:#4B4B4B}
 .qc-rec small{font-size:13px;font-weight:800;color:#A56A00}.qc-rec b{font-size:18px;color:#3C3C3C}.qc-rec p{margin:0;font-size:14px;line-height:1.55}
@@ -1993,7 +2000,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'c9889b5450', APP_URL = location.origin + location.pathname;
+const BUILD = '6af0ab0e0b', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2469,7 +2476,8 @@ function fdScore(f, w){
   if (y1 && y2) { const d = Math.abs(y1 - y2); sc += d === 0 ? .25 : d <= 1 ? .1 : d >= 3 ? -.25 : 0; }
   const z = fdSz(f['サイズ']), h = parseFloat(w['高さcm']), wd = parseFloat(w['幅cm']);
   if (z && h > 0 && wd > 0) { const r = (a, b) => Math.abs(a - b) / Math.max(a, b), e = Math.min(Math.max(r(z[0], h), r(z[1], wd)), Math.max(r(z[0], wd), r(z[1], h)));
-    sc += e <= .04 ? .35 : e <= .1 ? .15 : e > .25 ? -.2 : 0; }
+    sc += e <= .04 ? .35 : e <= .1 ? .15 : e > .15 ? -.25 : 0; }
+  if (w['所在区分'] === '美術館') { const a = fdMus(f['相手先']), b = fdMus(w['所在']); if (a && b) sc += a === b ? .4 : -.5; }
   return sc; }
 let FDC = null;
 function fdCands(f){ const key = (S.works || []).length + '|' + (S.others || []).length + '|' + (S.finds || []).length;
@@ -2478,14 +2486,53 @@ function fdCands(f){ const key = (S.works || []).length + '|' + (S.others || [])
   const L = pool.map(w => ({ no: String(w['作品番号']), s: fdScore(f, w) })).filter(x => strict ? x.s >= 1 : x.s >= .85).sort((a, b) => b.s - a.s).slice(0, 3);
   return FDC.m[id] = L; }
 const fdOpen = f => !f['状態'] && !FDS.has(f['候補ID']);
+/* 美術館の名前の書き方いろいろ（台帳の「京都市美」「西宮大谷記念美術館」など）を同じ鍵にする */
+const FD_MUS = [[/京都国立近代|京都国立近美|京都近美/, '京都近美'], [/京都市京セラ|京都市美/, '京都市美'], [/西宮.*大谷/, '西宮大谷'], [/新津/, '新津'], [/豊橋/, '豊橋'], [/名古屋市/, '名古屋市'],
+  [/刈谷/, '刈谷'], [/兵庫県立/, '兵庫県立'], [/豊川/, '豊川'], [/セルヌスキ|チェルヌスキ|cernuschi/i, 'チェルヌスキ'], [/富山.*水墨/, '富山水墨'], [/富山県(立近代)?美/, '富山県美'],
+  [/国立国際/, '国立国際'], [/東京国立近代/, '東京近美'], [/東京都現代/, '都現美'], [/愛知県/, '愛知県'], [/福井県/, '福井県'], [/新潟県立近代/, '新潟県近美'], [/宇都宮/, '宇都宮'],
+  [/広島市現代/, '広島市現代'], [/和歌山/, '和歌山'], [/山口県/, '山口県'], [/徳島/, '徳島'], [/中之島/, '中之島'], [/藝術大学|藝大|芸大/, '藝大'], [/千葉市/, '千葉市'],
+  [/メトロポリタン/, 'メトロポリタン'], [/フィラデルフィア/, 'フィラデルフィア'], [/ヴィクトリア国立/, 'NGV'], [/グレーター/, 'AGGV']];
+const fdMus = s => { const t = String(s || '').normalize('NFKC'); const m = FD_MUS.find(([re]) => re.test(t)); return m ? m[1] : ''; };
+/* 台帳でもう同じ美術館になっていて、題・年・サイズもほぼ同じ作品（管理者がまとめて確かめる） */
+function fdReg(f){ if (f['区分'] !== '一次') return null; const c = fdCands(f)[0], w = c && workOf(c.no);
+  return c && c.s >= 1.6 && w && w['所在区分'] === '美術館' && fdMus(w['所在']) && fdMus(w['所在']) === fdMus(f['相手先']) ? c : null; }
 /* カードにする記録：美術館の記録はすべて、業者の記録は台帳に似た作品があるものだけ */
 function qcFinds(max, mix){ const A = [], B = [], C = [];
-  (S.finds || []).forEach(f => { if (!fdOpen(f)) return; const cs = fdCands(f), it = { no: cs[0] ? cs[0].no : '', k: 'find', id: f['候補ID'], cands: cs, j: 0 };
+  (S.finds || []).forEach(f => { if (!fdOpen(f) || fdReg(f)) return; const cs = fdCands(f), it = { no: cs[0] ? cs[0].no : '', k: 'find', id: f['候補ID'], cands: cs, j: 0 };
     if (f['区分'] === '一次') (cs.length ? A : B).push(it); else if (cs.length) C.push(it); });
   A.sort((a, b) => b.cands[0].s - a.cands[0].s); C.sort((a, b) => b.cands[0].s - a.cands[0].s);
   if (mix) return [A[0], A[1], B[0], C[0]].filter(Boolean).slice(0, max);
   return A.concat(B, C).slice(0, max); }
-function qcFindLeft(){ let all = 0, left = 0; (S.finds || []).forEach(f => { if (f['区分'] !== '一次' && !fdCands(f).length) return; all++; if (fdOpen(f)) left++; }); return { all, left }; }
+function qcFindLeft(){ let all = 0, left = 0; (S.finds || []).forEach(f => { if (f['区分'] !== '一次' && !fdCands(f).length) return; if (fdReg(f) && fdOpen(f)) return; all++; if (fdOpen(f)) left++; }); return { all, left }; }
+/* ===== 管理者：台帳でもう同じ美術館になっている作品の記録を、一覧でまとめて確かめる ===== */
+let FDB = null;
+function fdbOpen(){ const L = (S.finds || []).filter(f => fdOpen(f) && fdReg(f)); if (!L.length) return toast('まとめて確かめる記録はありません');
+  closeSheet(); closeAllPages(); FDB = { L, off: new Set() };
+  let el = $('#fdb'); if (!el) { el = document.createElement('div'); el.id = 'fdb'; el.className = 'qc hm2 fdb'; document.body.appendChild(el);
+    el.addEventListener('click', e => { const t = e.target.closest('[data-fdb]'); if (!t || !FDB) return; const a = t.dataset.fdb;
+      if (a === 'end') return fdbEnd(); if (a === 'all') { FDB.off = FDB.off.size ? new Set() : new Set(FDB.L.map(f => f['候補ID'])); return fdbDraw(); }
+      if (a === 'go') return fdbGo(); if (a.indexOf('t:') === 0) { const id = a.slice(2); FDB.off.has(id) ? FDB.off.delete(id) : FDB.off.add(id); return fdbDraw(); } }); }
+  el.classList.remove('hidden'); qcLock(true); fdbDraw(); }
+function fdbEnd(){ const el = $('#fdb'); if (el) { el.classList.add('hidden'); el.innerHTML = ''; } qcLock(false); FDB = null; renderHome(); }
+function fdbDraw(){ const el = $('#fdb'); if (!el || !FDB) return; const n = FDB.L.length - FDB.off.size, y = el.scrollTop;
+  const sz = w => [w['制作年'], w['高さcm'] && w['幅cm'] ? w['高さcm'] + '×' + w['幅cm'] : ''].filter(Boolean).join('・');
+  el.innerHTML = `<div class="qc-w fdb-w"><div class="qc-top"><button type="button" class="qc-x" data-fdb="end" aria-label="閉じる">${QCSVG.x}</button><b class="fdb-h">まとめて確認（管理者）</b></div>
+    ${qcTask('find', '美術館')}
+    <p class="qc-hint">台帳でもう同じ美術館になっていて、題・年・サイズもほぼ同じ作品です。承認すると、美術館の記録（根拠のリンク）を出来事に足します。台帳の場所の書き方は変えません。ちがうものはチェックを外してください（承認せずに、この一覧に残ります）。</p>
+    <button type="button" class="hg-link fdb-all" data-fdb="all">${FDB.off.size ? 'すべてチェックする' : 'すべてチェックを外す'}</button>
+    <div class="fdb-l">${FDB.L.map(f => { const c = fdReg(f), w = workOf(c.no) || {}, on = !FDB.off.has(f['候補ID']);
+      return `<button type="button" class="fdb-i${on ? ' on' : ''}" data-fdb="t:${esc(f['候補ID'])}" aria-pressed="${on}"><i class="fdb-ck">${on ? QCSVG.ok || '✓' : ''}</i>
+        <span class="fdb-th">${(photoBy[c.no] || []).length ? thumbHTML(c.no, 200) : ''}</span>
+        <span class="fdb-tx"><b>${esc(nol(c.no))}　${esc(w['作品名'] || '作品名なし')}</b><small>台帳：${esc(sz(w))}${w['所在'] ? '・' + esc(w['所在']) : ''}</small>
+        <small class="fdb-r">記録：${esc((f['相手先'] || '').replace(/（.*$/, ''))}《${esc(f['作品名'])}》${esc([f['制作年'], f['サイズ']].filter(Boolean).join('・'))}</small></span></button>`; }).join('')}</div>
+    <div class="qc-btm fdb-b"><button type="button" class="hg-go" data-fdb="go" ${n ? '' : 'disabled'}>チェックした${n}件を承認</button></div></div>`;
+  hydrate(el); el.scrollTop = y; }
+async function fdbGo(){ if (!FDB) return; const L = FDB.L.filter(f => !FDB.off.has(f['候補ID'])); if (!L.length) return;
+  const items = L.map(f => ({ id: f['候補ID'], st: '承認', no: fdReg(f).no, keep: 1 }));
+  busy(true, L.length + '件を承認しています…');
+  try { const res = await call('setFinds', items); if (res && res.works) setData(res); busy(false); const ng = (res && res.findNg) || []; toast((res && res.findDone != null ? res.findDone : L.length) + '件を承認しました' + (ng.length ? '（' + ng.length + '件はできませんでした）' : '')); fdbEnd(); }
+  catch(e){ busy(false); if (isLoginErr(e)) { alert('ログインの有効期限が切れました。もう一度ログインしてください。'); return fdbEnd(); }
+    toast(/この操作はできません|setFinds/.test(String(e.message || e)) ? 'まだGoogle側の更新（デプロイ）が済んでいません' : '保存できませんでした：' + (e.message || e)); } }
 const fdById = id => (S.finds || []).find(f => f['候補ID'] === id);
 const fdPrint = f => /エッチング|銅版|版画|アクア|木版|リト|シルク/.test(f['技法・素材'] || '') || /^〈/.test(f['作品名'] || '');
 const fdCanNew = f => f['区分'] === '一次' && !fdPrint(f) && !/同じ作家かどうか未確認/.test(f['メモ'] || '');
@@ -2759,7 +2806,7 @@ function renderHome(){
       <p class="hg-note">ここには、まだ足りないものがある作品だけを出しています。番号の下に、足りないものを出しています。押すとその作品のページを開きます。</p>
       <button type="button" class="hg-link" data-v="works">すべての作品を見る</button></section>
     ${ed ? `<section class="hg-sec"><h2 class="hg-h2">ひとつずつ片付ける</h2>
-      ${row('data-bsgo="noloc"', '#1CB0F6', IC.loc, '場所がわからない', nLc)}${row('data-bsgo="noname"', '#CE82FF', NAMEIC, '作品名がない', nNm)}${row('data-bsgo="nophoto"', '#FF4B4B', IC.photo, '写真がない', nPh)}${row('data-hgdiff="1"', '#2B70C9', IC.doc, '書類と台帳の違い', nDf)}${(S.finds || []).length ? row('data-hgfind="1"', '#FF9600', FDIC, '調べで見つかった記録', qcFindLeft().left) : ''}
+      ${row('data-bsgo="noloc"', '#1CB0F6', IC.loc, '場所がわからない', nLc)}${row('data-bsgo="noname"', '#CE82FF', NAMEIC, '作品名がない', nNm)}${row('data-bsgo="nophoto"', '#FF4B4B', IC.photo, '写真がない', nPh)}${row('data-hgdiff="1"', '#2B70C9', IC.doc, '書類と台帳の違い', nDf)}${(S.finds || []).length ? row('data-hgfind="1"', '#FF9600', FDIC, '調べで見つかった記録', qcFindLeft().left) : ''}${(S.finds || []).length && S.user && S.user.role === '管理' ? (n => n ? row('data-hgfindb="1"', '#FF9600', FDIC, '調べの記録：まとめて確認（管理者）', n) : '')((S.finds || []).filter(f => fdOpen(f) && fdReg(f)).length) : ''}
       <details class="hg-more"><summary>そのほかの作業</summary><div class="todos">${todo.map(card).join('')}</div></details></section>` : ''}
     <button class="tourlink" data-v="help">使い方を見る</button></div><aside class="dash">${dashHTML()}</aside></div>`;
   hydrate($('#main'));
@@ -2769,6 +2816,7 @@ function renderHome(){
       if (e.target.closest('[data-hg10]')) return startCards();
       if (e.target.closest('[data-hgtest]')) return startCards(true);
       if (e.target.closest('[data-hgdiff]')) return startCards(false, 'diff');
+      if (e.target.closest('[data-hgfindb]')) return fdbOpen();
       if (e.target.closest('[data-hgfind]')) return startCards(false, 'find');
       const p = e.target.closest('[data-hgpg]'); if (p) { S.hgPage = Math.max(0, (S.hgPage || 0) + (+p.dataset.hgpg)); renderHome(); const g = $('#hgGrid'); if (g) g.scrollIntoView({ block: 'start' }); return; }
       const t = e.target.closest('[data-hgw]'); if (t) openWork(t.dataset.hgw); }); }
