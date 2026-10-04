@@ -1842,7 +1842,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '3ad1c38371', APP_URL = location.origin + location.pathname;
+const BUILD = '7cffa34f8f', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3130,7 +3130,7 @@ function sheetDocReview(id){ try { const d0 = docById(id); if (d0) pdfPrefetch([
       ${String(r['資料ID']||'').split(',').filter(x => (S.pubs||[]).some(p => p['資料ID']===x)).map(x => `<p><button type="button" class="golink" data-pb="${esc(x)}">画集・本：${esc((S.pubs.find(p => p['資料ID']===x)||{})['タイトル']||x)} ›</button></p>`).join('')}
       ${st==='登録済み' && r.PDF && !nos.length ? '<p class="hint">作品のひも付けはありません</p>' : st==='登録済み' ? `<h3 class="sec" style="font-size:18px">登録した作品</h3>${nos.length ? `<button type="button" class="act main cmpbtn" data-cmp="${esc(id)}|${esc(nos[0])}">📑 書類と作品を見比べる</button>` : ''}<div class="wl2">${nos.map(no => `<span class="wfixw"><button class="wchip" data-no="${esc(no)}">${esc(wLabel(no) || nol(no))}</button><button type="button" class="wfix" data-wfix="${esc(id)}|${esc(no)}">作品が違う？</button></span>`).join('')}</div><p class="hint">AIが別の作品と読み違えていたら「作品が違う？」から正しい作品に付け替えられます。</p>`
         : '<p class="hint">この書類は「登録しない」にしました。</p><button class="act" id="dvAgain" style="width:100%">やっぱり登録する</button>'}
-      <div class="btns"><button type="button" data-close>✕ この書類を閉じる</button></div>`);
+      `); /* 書類は見るページなので、下の「閉じる」バー（編集画面の形）は出さない。戻るは左上の「<」 */
     wireDocImgs(); hydrateDocs($('#sheetbox'));
     document.querySelectorAll('#sheetbox [data-ex],#sheetbox [data-pb]').forEach(b => b.addEventListener('click', () => { SNAP.v = null; closeSheet(); }));
     document.querySelectorAll('#sheetbox [data-note]').forEach(b => b.onclick = () => noteView(b.dataset.note, b.dataset.np));
