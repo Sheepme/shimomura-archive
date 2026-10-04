@@ -1993,7 +1993,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '795f2b88a5', APP_URL = location.origin + location.pathname;
+const BUILD = 'c9889b5450', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2722,8 +2722,8 @@ function renderHome(){
   const N = W.length, nDone = W.filter(done).length;
   const nPh = W.filter(w => !hasPh(w['作品番号'])).length, nNm = W.filter(w => !hasName(w)).length, nLc = W.filter(w => !hasLoc(w)).length;
   const nDf = qcDiffLeft().left; /* カードで決められる違いの数（作品の違いだけ） */
-  /* 図鑑の一覧は、まだそろっていない作品だけ（40点ずつ） */
-  const M = W.filter(w => !done(w)), PG = 40, pages = Math.max(1, Math.ceil(M.length / PG));
+  /* 図鑑の一覧は、まだそろっていない作品だけ（12点ずつ） */
+  const M = W.filter(w => !done(w)), PG = 12, pages = Math.max(1, Math.ceil(M.length / PG));
   if (S.hgPage == null || S.hgPage >= pages) S.hgPage = 0;
   const P = M.slice(S.hgPage * PG, S.hgPage * PG + PG);
   const OK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
