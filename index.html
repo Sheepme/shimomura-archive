@@ -1816,7 +1816,7 @@ body.bigon #top{display:none!important}body.bigon .bigv{padding-top:0!important;
 <div id="page" class="page hidden"></div>
 <div id="sheet" class="sheet hidden"><div class="box" id="sheetbox"></div></div>
 <div id="confirm" class="sheet hidden" style="z-index:100"><div class="box" id="confirmbox"></div></div>
-<div id="viewer" class="viewer hidden"><button class="vclose scrback" id="vclose">← 戻る</button><button id="vedit" class="vedit hidden" type="button" aria-label="この写真を編集">✎</button><div id="vmenu" class="vmenu"><button id="vmain" class="hidden">★ メイン画像にする</button><button id="vcopy" class="hidden">© 著作物の設定</button><div id="vrot" class="vrot hidden"><button type="button" data-rot="-90">↺ 左に回す</button><button type="button" data-rot="90">↻ 右に回す</button></div><button id="vdrv" class="hidden">📄 元の写真を開く</button><button id="vrep" class="hidden">この写真を差し替える</button><button id="vdel" class="hidden">削除</button></div><img id="vimg" alt=""><span id="vwm" class="wm vwm"></span><div class="vbar"><button id="vprev">‹ 前</button><span id="vcount"></span><p id="vcredit" class="credit"></p><button id="vnext">次 ›</button></div><button id="vorig" type="button">高画質で見る</button></div>
+<div id="viewer" class="viewer hidden"><button class="vclose scrback" id="vclose">← 戻る</button><button id="vedit" class="vedit hidden" type="button" aria-label="この写真を編集">✎</button><div id="vmenu" class="vmenu"><button id="vmain" class="hidden">★ メイン画像にする</button><button id="vcopy" class="hidden">© 著作物の設定</button><div id="vrot" class="vrot hidden"><button type="button" data-rot="-90">↺ 左に回す</button><button type="button" data-rot="90">↻ 右に回す</button></div><button id="vdrv" class="hidden">☁ 元のファイルを確認</button><button id="vrep" class="hidden">この写真を差し替える</button><button id="vdel" class="hidden">削除</button></div><img id="vimg" alt=""><span id="vwm" class="wm vwm"></span><div class="vbar"><button id="vprev">‹ 前</button><span id="vcount"></span><p id="vcredit" class="credit"></p><button id="vnext">次 ›</button></div><button id="vorig" type="button">高画質で見る</button></div>
 <div id="loading" class="loading hidden">読み込み中…</div>
 <div id="toast" class="tmsg hidden"></div>
 
@@ -1836,7 +1836,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '87fc04b884', APP_URL = location.origin + location.pathname;
+const BUILD = 'd3cf4dc108', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2897,11 +2897,12 @@ function docView(fid){
   document.body.appendChild(el); hpush('d'); scrPush(el); hydrateDocs(el);
 }
 /* スマホの「大きく」：元のファイルを開いたときと同じ形（ページを縦に並べてスクロール、指2本で拡大） */
-function bigView(fid, title, page){ const el = document.createElement('div'); el.className = 'docview bigv';
-  el.innerHTML = `<div class="dvbar"><button type="button" class="bvx">✕ 閉じる</button><span class="bvt">${esc(title || '')}</span><span class="bvn"></span>${canEdit() ? `<button type="button" class="bvd" data-drive="${esc(fid)}" aria-label="元のファイルを開く">📄</button>` : ''}</div><div class="dvsc"><div class="ldwrap"><span class="ldspin"></span>開いています…</div></div>`;
+function bigView(fid, title, page, real){ const el = document.createElement('div'); el.className = 'docview bigv';
+  el.innerHTML = `<div class="dvbar"><button type="button" class="bvx">✕ 閉じる</button><span class="bvt">${esc(title || '')}</span><span class="bvn"></span>${canEdit() ? `<button type="button" class="bvd" data-drive="${esc(fid)}" aria-label="元のファイルを確認">${DRV_IC}</button>` : ''}</div><div class="dvsc"><div class="ldwrap"><span class="ldspin"></span>${real ? '元のファイルを読み込んでいます…（大きいPDFは時間がかかります）' : '開いています…'}</div></div>`;
   el.querySelector('.bvx').onclick = () => { docClose(el); setTimeout(cmpSync, 0); }; const sc = el.querySelector('.dvsc'), nEl = el.querySelector('.bvn'); dvZoom(sc);
   document.body.appendChild(el); hpush('d'); scrPush(el);
-  (async () => { try { const doc = await pdfDocOf(fid); if (!el.isConnected) return; sc.innerHTML = ''; const N = doc.numPages, dpr = Math.min(2, window.devicePixelRatio || 1), cvs = [];
+  if (real) el.querySelector('.bvn').dataset.real = '1';
+  (async () => { try { const doc = await (real ? pdfRealDoc(fid) : pdfDocOf(fid)); if (!el.isConnected) return; sc.innerHTML = ''; const N = doc.numPages, dpr = Math.min(2, window.devicePixelRatio || 1), cvs = [];
       for (let i = 1; i <= N; i++) { const pg = await doc.getPage(i), v0 = pg.getViewport({ scale: 1 }), cv = document.createElement('canvas'); cv.className = 'bvpg'; cv.dataset.p = i; cv.width = 4; cv.height = 4; cv.style.aspectRatio = v0.width + ' / ' + v0.height; sc.appendChild(cv); cvs.push({ cv, pg, v0 }); }
       const draw = async o => { if (o.done) return; o.done = 1; const W = (sc.clientWidth || 360) * 2 * dpr, vp = o.pg.getViewport({ scale: W / o.v0.width }); const c2 = document.createElement('canvas'); c2.width = Math.round(vp.width); c2.height = Math.round(vp.height);
         await o.pg.render({ canvasContext: c2.getContext('2d'), viewport: vp }).promise; o.cv.width = c2.width; o.cv.height = c2.height; o.cv.getContext('2d').drawImage(c2, 0, 0); };
@@ -3117,7 +3118,7 @@ function sheetDocReview(id){ try { const d0 = docById(id); if (d0) pdfPrefetch([
       ${(r['補完']||[]).length ? `<details class="dfill"><summary>この書類から自動で埋めた項目（${r['補完'].length}件）</summary>${r['補完'].map(x => `<p>${esc(x.name)}：${esc(x.f)}　→　${esc(x.v)}</p>`).join('')}</details>` : ''}
       ${d['メモ'] ? `<p class="hint dmemo">📝 ${esc(d['メモ'])}</p>` : ''}
       ${d['全文あり'] && !noteMode ? `<button type="button" class="act main pdfopen dvnote" data-note="${esc(id)}">📖 ノートで読む（資料の文字）</button>` : ''}
-      ${driveBtn(pg[0], pg.length > 1 && !r.PDF ? '元のファイルを開く（1枚目）' : '')}
+      ${driveBtn(pg[0], pg.length > 1 && !r.PDF ? '元のファイルを確認（1枚目）' : '')}
       ${d['保管番号'] ? `<button type="button" class="act pdfopen" data-spine="${esc(d['保管番号'])}">📦 ${esc(d['保管番号'])} の背表紙を見る</button><button type="button" class="act pdfopen" data-dfgo="${esc(d['保管番号'])}">📁 このファイルを開く（同じフォルダの資料）</button>` : ''}
       ${r['展覧会ID'] && (S.exhibits||[]).some(e => e['展覧会ID']===r['展覧会ID']) ? `<p><button type="button" class="golink" data-ex="${esc(r['展覧会ID'])}">展覧会：${esc((S.exhibits.find(e => e['展覧会ID']===r['展覧会ID'])||{})['名称']||'')} ›</button></p>` : ''}
       ${String(r['資料ID']||'').split(',').filter(x => (S.pubs||[]).some(p => p['資料ID']===x)).map(x => `<p><button type="button" class="golink" data-pb="${esc(x)}">画集・本：${esc((S.pubs.find(p => p['資料ID']===x)||{})['タイトル']||x)} ›</button></p>`).join('')}
@@ -4605,7 +4606,7 @@ function showV(){ const p = V.list[V.i]; if (!p) return;
   const isW = S.cur && workOf(S.cur), isMain = V.i===0; $('#vmain').classList.toggle('hidden', !canEdit() || !isW || V.list.length < 2 || !p['写真ID']); $('#vmain').textContent = isMain ? '★ メイン画像' : '☆ メイン画像にする'; $('#vmain').disabled = isMain;
   $('#vcopy').classList.toggle('hidden', !canEdit() || !p['写真ID']); $('#vcopy').textContent = copyOf(p) ? '© 著作物（' + copyOf(p).mu + '）' : '© 著作物の設定';
   $('#vedit').classList.toggle('hidden', !canEdit()); $('#vmenu').classList.remove('open');
-  $('#vrep').classList.toggle('hidden', !canEdit()); $('#vdrv').classList.toggle('hidden', !canEdit() || !p['ファイルID']); $('#vdel').classList.toggle('hidden', !canEdit() || !p['写真ID']); $('#vrot').classList.toggle('hidden', !canEdit());
+  $('#vrep').classList.toggle('hidden', !canEdit()); $('#vdrv').classList.toggle('hidden', !canEdit() || !p['ファイルID'] || !!copyOf(p)); /* 他人の著作物（縮小画像だけ保存）には出さない */ $('#vdel').classList.toggle('hidden', !canEdit() || !p['写真ID']); $('#vrot').classList.toggle('hidden', !canEdit());
   $('#vorig').textContent = TH['3200_' + p['ファイルID']] ? '高画質で表示中' : '高画質で見る';
   $('#vorig').onclick = () => { const id = p['ファイルID'], k2 = '3200_' + id; if (TH[k2]) { $('#vimg').src = TH[k2]; return; }
     $('#vorig').textContent = '読み込み中…'; vSpin(true);
@@ -5863,14 +5864,20 @@ function pdfQuick(fid, title, page, hint){ const el = document.createElement('di
 /* Googleドライブにある元のファイルを開く（保管場所が分かるように、ドライブのページで開く。共有の設定は変えない） */
 const DRV_IC = '<svg class="drvic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18.5h10.5a4 4 0 0 0 .6-7.96A6 6 0 0 0 6.5 9.6 4.5 4.5 0 0 0 7 18.5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>';
 const driveUrl = id => 'https://drive.google.com/file/d/' + encodeURIComponent(id) + '/view';
-const driveBtn = (id, label) => id && canEdit() ? `<button type="button" class="act pdfopen drvbtn" data-drive="${esc(id)}"><span>📄 ${esc(label || '元のファイルを開く')}</span></button>` : '';
+const driveBtn = (id, label) => id && canEdit() ? `<button type="button" class="act pdfopen drvbtn" data-drive="${esc(id)}">${DRV_IC}<span>${esc(label || '元のファイルを確認')}</span></button>` : '';
 /* 元のファイルを開く：PDFは openOrigPdf、写真などは元の画像を取ってきて同じ開き方で */
-async function openOrigFile(id){ if ((S.docs || []).some(x => docPdfFid(x) === id)) return openOrigPdf(id);
-  const ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1), w = ios ? null : window.open('', '_blank'); busy(true, '元のファイルを開いています…');
-  try { let url = '', mime = 'image/jpeg'; try { const o = await call('getOriginal', id); if (o && o.b64) { mime = o.mime || mime; url = URL.createObjectURL(await (await fetch('data:' + mime + ';base64,' + o.b64)).blob()); } } catch(e){}
-    if (!url) { const m = await call('getThumbs', [id], 3200); if (!m || !m[id]) throw new Error('読み込めませんでした'); url = URL.createObjectURL(await (await fetch(m[id])).blob()); } /* データURLのままでは新しいタブで開けないので、いったんファイルにする */
-    if (ios) { const a = document.createElement('a'); a.href = url; a.download = '元のファイル.' + (/png/i.test(mime) ? 'png' : 'jpg'); document.body.appendChild(a); a.click(); setTimeout(() => a.remove(), 1000); } else if (w) w.location = url; else location.href = url; }
-  catch(e){ try { w && w.close(); } catch(x){} alert('開けませんでした（' + (e && e.message || e) + '）'); } finally { busy(false); } }
+async function openOrigFile(id){ const d = (S.docs || []).find(x => docPages(x).includes(id));
+  if (d && docRes(d).PDF && docPages(d)[0] === id) return bigView(id, docTitle(d), 1, true); /* PDF：元のPDFそのものを、アプリの中の全画面で */
+  origImgView(id, d ? docTitle(d) : '元の写真'); }
+/* 写真・画像の書類：元の画像（縮小していないもの）をアプリの中の全画面で見る */
+function origImgView(id, title){ const el = document.createElement('div'); el.className = 'docview bigv';
+  el.innerHTML = `<div class="dvbar"><button type="button" class="bvx">✕ 閉じる</button><span class="bvt">${esc(title || '')}</span><span class="bvn">元のファイル</span></div><div class="dvsc"><div class="ldwrap"><span class="ldspin"></span>元のファイルを読み込んでいます…</div></div>`;
+  el.querySelector('.bvx').onclick = () => { docClose(el); setTimeout(cmpSync, 0); }; const sc = el.querySelector('.dvsc'); dvZoom(sc);
+  document.body.appendChild(el); hpush('d'); scrPush(el);
+  (async () => { try { let url = ''; try { const o = await call('getOriginal', id); if (o && o.b64) url = URL.createObjectURL(await (await fetch('data:' + (o.mime || 'image/jpeg') + ';base64,' + o.b64)).blob()); } catch(e){}
+      if (!url) { const m = await call('getThumbs', [id], 3200); if (!m || !m[id]) throw new Error('読み込めませんでした'); url = m[id]; }
+      if (!el.isConnected) return; sc.innerHTML = `<img src="${url}" alt="">`; }
+    catch(e){ sc.innerHTML = '<p class="hint" style="padding:16px">開けませんでした（' + esc(e.message || e) + '）</p>'; } })(); }
 /* 元のPDFファイルを開く。iPhone（ホーム画面のアプリ）では別のタブに渡せず白紙になるので、端末のPDF表示（共有・保存もできる）で開く */
 async function openOrigPdf(fid){ const d = (S.docs || []).find(x => docPages(x)[0] === fid), name = ((d ? docTitle(d) : '資料') + '.pdf').replace(/[\\/:*?"<>|]/g, '_');
   const ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
