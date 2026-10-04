@@ -1834,6 +1834,9 @@ html:not([data-theme=dark]) body.vhome{background:#FFFFFF}
 .qc{position:fixed;inset:0;z-index:108;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#FFFFFF}
 html[data-theme=dark] .qc{background:var(--bg)}
 body.qcopen::before{content:'';position:fixed;left:0;right:0;top:-50vh;bottom:-50vh;z-index:107;background:#FFFFFF}html[data-theme=dark] body.qcopen::before{background:var(--bg)}body.qcopen #nav,body.qcopen #navAsk,body.qcopen #fmSearch{visibility:hidden!important}
+/* カードを開いている間は、後ろのホームなどを見えなくする（iPhone のキーボードの上のすき間から透けないように） */
+body.qcopen>*:not(#qc):not(#qclb):not(#fdb):not(#top){visibility:hidden!important}
+body.qcopen #toast,body.qcopen #loading,body.qcopen #confirm{visibility:visible!important}
 .qc-w{max-width:560px;height:100%;margin:0 auto;box-sizing:border-box;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;flex-direction:column;gap:11px}
 .qc-top{display:flex;align-items:center;gap:10px}
 .qc-x,.qc-say{flex:none;width:44px;height:44px;border:0;background:none;display:grid;place-items:center;cursor:pointer;padding:0}
@@ -2018,7 +2021,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'a8ab093dd0', APP_URL = location.origin + location.pathname;
+const BUILD = 'b505ab8537', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2512,7 +2515,7 @@ function startCards(test, mode, wno){
   closeSheet(); closeAllPages(); ttsUnlock();
   const tts0 = QV.tts; QV.tts = !test && !mode ? qcTtsPref() : false;
   QC = { tts0, L, i: 0, step: '', heard: '', pend: null, n: 0, test: !!test, mode: mode || '', wno: wno || '', before: new Set(L.filter(c => qcComplete(c.no)).map(c => c.no)) };
-  let el = $('#qc'); if (!el) { el = document.createElement('div'); el.id = 'qc'; el.className = 'qc hm2'; document.body.appendChild(el); el.addEventListener('click', qcClick); el.addEventListener('change', qcChange);
+  let el = $('#qc'); if (!el) { el = document.createElement('div'); el.id = 'qc'; el.className = 'qc hm2'; document.body.appendChild(el); el.addEventListener('click', qcClick); el.addEventListener('change', qcChange); el.addEventListener('focusin', () => setTimeout(qcVV, 60)); el.addEventListener('focusout', () => setTimeout(qcVV, 200));
     el.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'qcTtl') { e.preventDefault(); qcAct('name'); } if (e.key === 'Enter' && e.target.id === 'qcMus') { e.preventDefault(); qcAct('muadd'); } if (e.key === 'Enter' && e.target.id === 'qcAr') { e.preventDefault(); qcAct('aradd'); } }); }
   el.classList.remove('hidden'); qcLock(true); qcVV();
   try { qcPrefetch(L.map(c => c.k === 'find' ? (c.cands[c.j || 0] || {}).no : c.no)); } catch(e){}
@@ -2523,8 +2526,11 @@ let QCY = 0;
 function qcLock(on){ const b = document.body; b.classList.toggle('qcopen', !!on);
   if (on) { QCY = window.scrollY || 0; Object.assign(b.style, { position: 'fixed', top: -QCY + 'px', left: '0', right: '0', overflow: 'hidden' }); }
   else { Object.assign(b.style, { position: '', top: '', left: '', right: '', overflow: '' }); window.scrollTo(0, QCY); } }
+let QCH = 0; /* キーボードが出ていないときの高さ（新しい iPhone はキーボードで innerHeight も縮むので、いちばん大きかった高さとくらべる） */
 function qcVV(){ const el = $('#qc'), v = window.visualViewport; if (!el || !QC) return;
-  if (v) { el.style.top = v.offsetTop + 'px'; el.style.height = v.height + 'px'; el.style.bottom = 'auto'; el.classList.toggle('kb', v.height < window.innerHeight * 0.78); } }
+  const a = document.activeElement, foc = !!a && el.contains(a) && /^(INPUT|TEXTAREA)$/.test(a.tagName) && a.type !== 'file' && matchMedia('(pointer:coarse)').matches;
+  if (v) { QCH = Math.max(QCH, window.innerHeight, v.height); el.style.top = v.offsetTop + 'px'; el.style.height = v.height + 'px'; el.style.bottom = 'auto'; el.classList.toggle('kb', foc || v.height < QCH * 0.78); }
+  else el.classList.toggle('kb', foc); }
 if (window.visualViewport) { visualViewport.addEventListener('resize', qcVV); visualViewport.addEventListener('scroll', qcVV); }
 /* 書類と台帳の違い（作品の食い違いで、まだ決めていないもの）。場所・作品名を先に */
 function qcDiffs(max){ const out = [], pri = f => f === '所在' ? 0 : f === '作品名' ? 1 : 2;
