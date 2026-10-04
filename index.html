@@ -1839,7 +1839,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '2e008852a2', APP_URL = location.origin + location.pathname;
+const BUILD = '60bfd89abe', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4803,7 +4803,7 @@ const EDGE = { t: 0 };
       if (!document.documentElement.classList.contains('sa')) return; if (Date.now() - EDGE.t < 450) return; EDGE.t = Date.now(); if (hist_()) history.forward(); else fwdGo(); return; }
     const ok = dx > 70 && Math.abs(dy) < 60; sx = null; if (!ok) return;
     const canBack = SCR.length > 0 || !$('#page').classList.contains('hidden') || (typeof VH !== 'undefined' && VH.length > 0);
-    if (!canBack) { openDrawer(); return; } /* メニューは、いちばん上の階層（戻る先がない）ときだけ */
+    if (!canBack) return; /* 端スワイプでメニューは開かない（戻ると競合するため）。メニューは左上のボタンだけ */
     if (!document.documentElement.classList.contains('sa')) return; /* ブラウザでは、ブラウザ自身の「戻る」スワイプに任せる（二重に戻らないように） */
     if (Date.now() - EDGE.t < 450) return; EDGE.t = Date.now(); /* 続けてスワイプしても1回ずつ */
     if (hist_()) history.back(); else if (!closeTop()) vBack(); }, {passive: true}); /* 戻るはブラウザの履歴に一本化（ボタン・スワイプで同じ動き） */
