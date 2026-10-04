@@ -1839,7 +1839,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '9037f2688d', APP_URL = location.origin + location.pathname;
+const BUILD = '0c6e26277b', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4799,7 +4799,8 @@ const EDGE = { t: 0 };
   /* iPhone自身の「戻る」スワイプと二重にならないように：少し待って、iPhoneがもう戻していたら何もしない */
   const later = f => { const s0 = t0; setTimeout(() => { if (ps >= s0) return; f(); }, 450); };
   const busyUI = () => document.body.classList.contains('wide') || $('#drawer').classList.contains('open') || !$('#confirm').classList.contains('hidden') || !!document.querySelector('#quiz:not(.hidden), .brief, #tour') || (typeof VZ !== 'undefined' && VZ.s > 1);
-  let side = 0; addEventListener('touchstart', e => { const t = e.touches[0]; t0 = Date.now(); side = t.clientX <= 24 ? -1 : t.clientX >= innerWidth - 24 ? 1 : 0; sx = (e.touches.length === 1 && side && !busyUI()) ? t.clientX : null; sy = t.clientY; dx = dy = 0; }, {passive: true});
+  const OWN_SWIPE = false; /* 端スワイプの戻る／進むは iPhone（Safari）自身の機能にまかせる。アプリ独自のを戻すときは true */
+  let side = 0; addEventListener('touchstart', e => { if (!OWN_SWIPE) { sx = null; return; } const t = e.touches[0]; t0 = Date.now(); side = t.clientX <= 24 ? -1 : t.clientX >= innerWidth - 24 ? 1 : 0; sx = (e.touches.length === 1 && side && !busyUI()) ? t.clientX : null; sy = t.clientY; dx = dy = 0; }, {passive: true});
   addEventListener('touchmove', e => { if (sx === null) return; const t = e.touches[0]; dx = t.clientX - sx; dy = t.clientY - sy; }, {passive: true});
   addEventListener('touchend', () => { if (sx === null) return; if (side === 1) { const okf = dx < -70 && Math.abs(dy) < 60; sx = null; if (!okf || !FW.length) return; /* 右端から左へ：進む */
       if (!document.documentElement.classList.contains('sa')) return; if (Date.now() - EDGE.t < 450) return; EDGE.t = Date.now(); later(() => { if (hist_()) history.forward(); else fwdGo(); }); return; }
