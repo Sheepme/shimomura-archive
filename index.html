@@ -13,6 +13,7 @@
 (function(){
   var API = "https://script.google.com/macros/s/AKfycbz2w0lUll7wmfJdesc1yTkk3i7NQJgXSTAL9Obwy3BodOvLbpFpK3rGVt53b_hJRWO7Uw/exec";
   /* 通信量を減らす：最後に受け取ったデータを行ごとに覚えておき、変わった行だけ受け取る */
+  var UNL = false; addEventListener('pagehide', function(){ UNL = true; }); addEventListener('beforeunload', function(){ UNL = true; }); /* 画面を切り替える途中の「通信が切れました」は出さない */
   var C = null, NOH = ['startLogin','login','logout','appBuild','getThumbs','getDocThumbs','getOriginal','getLog','getArchive','getAIHistory','tts','checkMemo','askAI','interviewTurn','detectRotation','getPdf','getSpine','pdfJobStatus','startPdfJob','stopPdfJob','aiMore','readPdf','pendingPdfs','transcribe','getDocText','searchDocs','startTextJob'];
   function rh(s){ var a = 0, b = 0x811c9dc5; for (var i = 0; i < s.length; i++){ var c = s.charCodeAt(i); a = (Math.imul(a, 31) + c) | 0; b = Math.imul(b ^ c, 16777619); } return (a >>> 0).toString(36) + '.' + (b >>> 0).toString(36); }
   function isData(d){ return !!d && typeof d === 'object' && Array.isArray(d.works) && Array.isArray(d.events); }
@@ -42,12 +43,12 @@
   function send(fn, args){ return ready.then(function(){ return send2(fn, args); }); }
   function send2(fn, args){
     if (fn === 'appBuild') return fetch('version.json?t=' + Date.now(), {cache:'no-store'}).then(function(r){return r.json()}).then(function(j){return j.build});
-    var t0 = Date.now(), tries = 0;
+    if (UNL) return new Promise(function(){}); var t0 = Date.now(), tries = 0;
     function once(){
       tries++;
       var body = { fn: fn, args: args }; if (C && NOH.indexOf(fn) < 0) { body.h = {}; Object.keys(C.h).forEach(function(k){ body.h[k] = C.h[k].join(','); }); }
       return fetch(API, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(body), redirect:'follow', cache:'no-store'})
-        .then(function(r){ if (!r.ok) { var er = new Error('通信に失敗しました（' + r.status + '）'); er.net = true; throw er; } return r.json(); }, function(e){ var er = new Error('通信が切れました（' + fn + '・' + Math.round((Date.now() - t0) / 1000) + '秒）\n電波の良い所で、もう一度ためしてください。'); er.net = true; throw er; })
+        .then(function(r){ if (!r.ok) { var er = new Error('通信に失敗しました（' + r.status + '）'); er.net = true; throw er; } return r.json(); }, function(e){ if (UNL) return new Promise(function(){}); var sec = Math.round((Date.now() - t0) / 1000), er = new Error(sec > 40 ? '時間がかかりすぎて止まりました（' + fn + '・' + sec + '秒）\nもう一度ためしてください。' : '通信が切れました（' + fn + '・' + sec + '秒）\nもう一度ためしてください。'); er.net = true; throw er; })
         .then(function(j){
           if (!j || !j.ok) { if (j && /LOGIN_REQUIRED/.test(j.e || '')) dropC(); throw new Error(j && j.e || '通信に失敗しました'); }
           if (fn === 'login' || fn === 'logout') dropC();
@@ -1834,13 +1835,13 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '6953d8f832', APP_URL = location.origin + location.pathname;
+const BUILD = '45a4829d6c', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
   call('appBuild').then(b => { if (!b || b === BUILD || $('#updBar')) return;
     // 入力中でなければ、そのまま新しい版に切り替える（古い画面が残らないように）
-    const busyEdit = !$('#sheet').classList.contains('hidden') || (document.activeElement && /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) || S.aiOpen || !!document.querySelector('.quiz:not(.hidden)');
+    const busyEdit = CALLS.n > 0 || !$('#loading').classList.contains('hidden') || !$('#sheet').classList.contains('hidden') || (document.activeElement && /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) || S.aiOpen || !!document.querySelector('.quiz:not(.hidden)');
     let tried = ''; try { tried = sessionStorage.getItem('smr_upd') || ''; } catch(e){}
     if (!busyEdit && tried !== b) { try { sessionStorage.setItem('smr_upd', b); } catch(e){} location.replace(APP_URL + '?r=' + Date.now()); return; }
     let snz = 0; try { snz = +sessionStorage.getItem('smr_updsnz') || 0; } catch(e){} if (Date.now() - snz < 30 * 60000) return; /* 「あとで」を押したら30分は出さない */
@@ -1855,8 +1856,10 @@ setTimeout(checkBuild, 4000);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkBuild(); });
 function call(fn, ...args){
   if (!NO_TOKEN.includes(fn)) args.unshift(S.token || '');
-  return new Promise((ok, ng) => google.script.run.withSuccessHandler(ok).withFailureHandler(ng)[fn](...args));
+  CALLS.n++; const done = () => { CALLS.n = Math.max(0, CALLS.n - 1); };
+  return new Promise((ok, ng) => google.script.run.withSuccessHandler(v => { done(); ok(v); }).withFailureHandler(e => { done(); ng(e); })[fn](...args));
 }
+const CALLS = { n: 0 }; /* 通信中の数（通信中は新しい版への自動切り替えをしない：切り替えると通信が途中で切れる） */
 function busy(on, text){ $('#loading').innerHTML = '<span class="ldsp"></span>' + esc(text || '読み込み中…'); $('#loading').classList.toggle('hidden', !on); tbSync(); }
 function tbSync(){ abRender(); }
 /* 上端（ステータスバー）の色を画面の地の色にそろえる */
