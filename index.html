@@ -1936,6 +1936,14 @@ html[data-theme=dark] .fdb-tx .fdb-r{color:#FFC800}.fdb-b{position:sticky;bottom
 html[data-theme=dark] .qc-cr.ok .qc-cl i,html[data-theme=dark] .qc-cr.same .qc-cl i{background:#2B4A12;color:#A8E07A}html[data-theme=dark] .qc-cr.near .qc-cl i{background:#4A3B10;color:#FFD866}html[data-theme=dark] .qc-cr.ng .qc-cl i{background:#4D1C1F;color:#FF8A8F}
 html[data-theme=dark] .qc-cr.ng>span{background:rgba(255,90,90,.10)}
 .qc-cmps{margin:-4px 2px 0;font-size:13px;color:var(--hg-s)}
+.qc-cr.cur>span{background:rgba(28,176,246,.10)}.qc-cr.cur .qc-cl i{background:#1CB0F6;color:#fff}.qc-cr.done .qc-cl i{background:var(--hg-sf);color:var(--hg-s)}.qc-cr.done>span{color:var(--hg-s)}
+html[data-theme=dark] .qc-cr.cur>span{background:rgba(28,176,246,.16)}
+.qc-wrong{flex:none;align-self:flex-start;margin:-6px 0 0;padding:6px 2px;border:0;background:none;color:#1F5FAD;font-size:14px;font-weight:700;text-align:left;cursor:pointer}html[data-theme=dark] .qc-wrong{color:#6CB4FF}
+.qc-wcl{display:flex;flex-direction:column;gap:8px}.qc-wcl>small{font-size:13px;color:var(--hg-s)}
+.qc-wc{display:flex;gap:12px;align-items:center;text-align:left;padding:8px;border-radius:14px;border:2px solid var(--hg-ln);background:none;color:var(--hg-h);cursor:pointer}.qc-wc.sel{border-color:#1CB0F6;background:rgba(28,176,246,.08)}
+.qc-wct{flex:none;width:64px;height:64px;border-radius:10px;overflow:hidden;background:var(--hg-sf);display:grid;place-items:center}.qc-wct img{width:100%;height:100%;object-fit:cover}.qc-wct i{font-style:normal;font-size:11px;color:var(--hg-s)}
+.qc-wcx{display:flex;flex-direction:column;gap:2px;min-width:0}.qc-wcx b{font-size:15px}.qc-wcx small{font-size:12px;color:var(--hg-s)}.qc-wcx em{font-style:normal;font-size:11px;font-weight:800;color:#3F7A00}
+.qc-inrow{display:flex;gap:8px;align-items:center}.qc-inrow input{flex:1;min-width:0}.qc-inrow .hg-btn2{flex:none;width:auto;padding:0 18px}.qc-wnone{font-size:15px}.qc-c.sel{border-color:#1CB0F6}
 .qc-src{flex:none;display:flex;flex-direction:column;gap:10px;padding:12px 14px;border-radius:14px;background:var(--hg-sf);font-size:13px;line-height:1.55;color:var(--hg-h)}
 .qc-src>small{font-size:12px;font-weight:800;color:var(--hg-s)}.qc-sr{display:flex;flex-direction:column;gap:2px}.qc-sr b{font-size:14px;color:var(--hg-h)}
 .qc-sr em{display:block;font-style:normal;color:var(--hg-s);padding-left:1em}.qc-sl0{color:var(--hg-s)}
@@ -2040,7 +2048,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '7058859ab1', APP_URL = location.origin + location.pathname;
+const BUILD = 'faa0045455', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2537,8 +2545,8 @@ function startCards(test, mode, wno){
   else { /* 今日の10作品：同じ種類が続かないよう、場所・調べの記録・作品名・書類の違い・写真・場所の確認を順番にまぜる */
     const by = { loc: [], name: [], photo: [], conf: [] };
     hgPick(400).forEach(no => { const k = qcKind(no); if (k && by[k].length < 10) by[k].push({ no, k }); });
-    const P = [by.loc, qcFinds(3), by.name, qcDiffs(3), by.photo, qcAsks(2), by.conf];
-    for (let r = 0; L.length < 10 && P.some(x => x.length); r++) P.forEach(x => { if (L.length < 10 && x.length) L.push(x.shift()); }); }
+    const P = [by.loc, qcFinds(3), by.name, qcDiffGroups(3), by.photo, qcAsks(2), by.conf]; /* 書類の違いは、同じ書類と作品のものを続けて出す */
+    for (let r = 0; L.length < 10 && P.some(x => x.length); r++) P.forEach(x => { if (L.length < 10 && x.length) { const it = x.shift(); if (Array.isArray(it)) L.push(...it); else L.push(it); } }); }
   if (!L.length) return toast(mode === 'work' ? 'この作品で聞くことはありません' : mode === 'ask' ? 'いま聞きたいことはありません' : mode === 'diff' ? 'いま決める書類の違いはありません' : mode === 'find' ? 'いま確かめる調べの記録はありません' : 'いま確かめる作品はありません');
   closeSheet(); closeAllPages(); ttsUnlock();
   const tts0 = QV.tts; QV.tts = !test && !mode ? qcTtsPref() : false;
@@ -2564,9 +2572,13 @@ function qcVV(){ const el = $('#qc'), v = window.visualViewport; if (!el || !QC)
   else el.classList.toggle('kb', foc); }
 if (window.visualViewport) { visualViewport.addEventListener('resize', qcVV); visualViewport.addEventListener('scroll', qcVV); }
 /* 書類と台帳の違い（作品の食い違いで、まだ決めていないもの）。場所・作品名を先に */
-function qcDiffs(max){ const out = [], pri = f => f === '所在' ? 0 : f === '作品名' ? 1 : 2;
-  (S.docs||[]).forEach(d => { if (d['状態'] !== '登録済み') return; (docRes(d)['食い違い']||[]).forEach((x, i) => { if (!x.r && x.t === 'w' && workOf(x.id) && !QDD.has(d['書類ID'] + '|' + i) && !(x.f === '所在' && musSame(x.cur, x.doc))) out.push({ no: String(x.id), k: 'diff', did: d['書類ID'], i, p: pri(x.f) }); }); });
-  return out.sort((a, b) => a.p - b.p).slice(0, max); }
+/* 書類と台帳の違い：1つの書類と作品の組み合わせ（グループ）ごとにまとめて、続けて聞く */
+function qcDiffGroups(max){ const G = new Map(), pri = f => f === '所在' ? 0 : f === '作品名' ? 1 : 2;
+  (S.docs||[]).forEach(d => { if (d['状態'] !== '登録済み') return; (docRes(d)['食い違い']||[]).forEach((x, i) => { if (!x.r && x.t === 'w' && workOf(x.id) && !QDD.has(d['書類ID'] + '|' + i) && !(x.f === '所在' && musSame(x.cur, x.doc))) {
+    const key = d['書類ID'] + '|' + x.id; if (!G.has(key)) G.set(key, []); G.get(key).push({ no: String(x.id), k: 'diff', did: d['書類ID'], i, p: pri(x.f) }); } }); });
+  const L = [...G.values()].map(g => g.sort((a, b) => a.p - b.p)).sort((a, b) => a[0].p - b[0].p || b.length - a.length), out = []; let n = 0;
+  for (const g of L) { if (n >= max) break; out.push(g); n += g.length; } return out; }
+const qcDiffs = max => [].concat(...qcDiffGroups(max));
 /* ===== 調べで見つかった記録（収集チャットの結果）：台帳の作品との照合はアプリの中だけで行う ===== */
 const FDIC = '<circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/>';
 const FDS = new Set(); /* この画面で決めた記録（保存の返事が来る前に同じものを出さない） */
@@ -2787,10 +2799,78 @@ function qcTop(){ return `<div class="qc-top"><button type="button" class="qc-x"
 const qcSayBtn = () => `<button type="button" class="qc-say${QV.tts ? '' : ' off'}" data-qc="say" aria-pressed="${QV.tts}" aria-label="${QV.tts ? '読み上げをオフにする' : '読み上げをオンにする'}">${QV.tts ? QCSVG.say : QCSVG.mute}</button>`;
 /* 読み上げのはじめの状態：今日の10作品はオン（前回の切りかえを覚える）、それ以外（練習・種類ごと・作品ページのクイズ）はオフ */
 const qcTtsPref = () => { try { return localStorage.getItem('smr_qctts') !== '0'; } catch(e){ return true; } };
+/* 書類の違いのカード：台帳｜書類 の表（同じ書類と作品の違いをまとめて見せる） */
+const dfGroup = (d, no) => (docRes(d)['食い違い'] || []).map((x, i) => ({ x, i })).filter(o => o.x.t === 'w' && String(o.x.id) === String(no) && !(o.x.f === '所在' && musSame(o.x.cur, o.x.doc)));
+const dfFill = (d, no) => (docRes(d)['補完'] || []).filter(x => x.t === 'w' && String(x.id) === String(no));
+const dfN = (f, v) => { const t = String(v == null ? '' : v).normalize('NFKC').trim(); if (!t) return ''; if (/cm$/.test(f)) { const n = parseFloat(t.replace(/[^\d.]/g, '')); return n > 0 ? String(Math.round(n * 10) / 10) : ''; } if (f === '制作年') return String(fdY(t) || t); return t.replace(/\s/g, ''); };
+/* 書類が読み取った作品の行のうち、この作品の行（違い・自動で入れた値がいちばん合う行） */
+function dfEntry(d, no){ const L = docRes(d)['下村良之介の作品'] || []; if (!L.length) return null; const w = workOf(no) || {};
+  const G = dfGroup(d, no).filter(o => !o.x.loc).map(o => ({ f: o.x.f, v: o.x.doc })).concat(dfFill(d, no).map(x => ({ f: x.f, v: x.v })));
+  let best = null, bs = -1; L.forEach(o => { let sc = 0; G.forEach(g => { const a = dfN(g.f, o[g.f]); if (a && a === dfN(g.f, g.v)) sc += 2; }); sc += fdSim(fdN(o['作品名'] || ''), fdN(w['作品名'] || '')); if (sc > bs) { bs = sc; best = o; } });
+  const one = L.length === 1 && String(docById(d['書類ID']) && d['作品番号'] || '').split(',').filter(Boolean).length <= 1;
+  return bs >= 1 || one ? best : null; }
+const DFR = { doc: '書類にした', ledger: '台帳のまま', alias: '別名にした', same: '同じだった', other: '直した', neither: 'わからない' };
+function dfCmpHTML(d, no, curI){
+  const w = workOf(no) || {}, G = dfGroup(d, no), F = dfFill(d, no), E = dfEntry(d, no) || {}, did = d['書類ID'];
+  const yr = v => { const y = fdY(v); return y ? y + '年' : String(v || ''); };
+  const led = k => k === 'サイズ' ? (w['高さcm'] && w['幅cm'] ? w['高さcm'] + '×' + w['幅cm'] + ' cm' : '') : k === '場所' ? (w['所在'] || (w['所在区分'] && w['所在区分'] !== '不明' ? w['所在区分'] : '')) : k === '制作年' ? yr(w['制作年']) : String(w[k] || '');
+  const D = [['作品名', ['作品名']], ['制作年', ['制作年']], ['サイズ', ['高さcm', '幅cm']], ['画材', ['画材']], ['場所', ['所在']]];
+  const R = D.map(([k, fs]) => { const gx = G.filter(o => fs.includes(o.x.f) || (k === '場所' && o.x.loc)), fx = F.filter(x => fs.includes(x.f));
+    const dv = f => { const g = gx.find(o => o.x.f === f); if (g) return g.x.doc; const z = fx.find(x => x.f === f); if (z) return z.v; return k === '場所' ? '' : (E[f] || ''); };
+    let b = k === 'サイズ' ? (dv('高さcm') && dv('幅cm') ? dv('高さcm') + '×' + dv('幅cm') + ' cm' : '') : k === '場所' ? (gx[0] ? gx[0].x.doc : '') : k === '制作年' ? yr(dv('制作年')) : String(dv(fs[0]) || '');
+    let m = '', lb = '';
+    if (gx.length) { const done = gx.filter(o => o.x.r || QDD.has(did + '|' + o.i));
+      if (gx.some(o => o.i === curI)) { m = 'cur'; lb = 'いま決める'; } else if (done.length === gx.length) { m = 'done'; lb = DFR[(done[0].x.r || '')] || '決めた'; } else { m = 'ng'; lb = 'ちがう'; } }
+    else if (fx.length) { m = 'ok'; lb = '書類から入れた'; }
+    else if (b && led(k)) { const same = k === 'サイズ' ? dfN('高さcm', E['高さcm']) && ['高さcm', '幅cm'].every(f => dfN(f, E[f]) === dfN(f, w[f])) || (dfN('高さcm', E['高さcm']) === dfN('幅cm', w['幅cm']) && dfN('幅cm', E['幅cm']) === dfN('高さcm', w['高さcm'])) : dfN(fs[0], dv(fs[0])) === dfN(fs[0], w[fs[0]]); if (same) { m = 'ok'; lb = '同じ'; } }
+    return [k, led(k), b, m, lb]; });
+  const nd = G.length, left = G.filter(o => !o.x.r && !QDD.has(did + '|' + o.i)).length;
+  FDSRC = { no: String(no), rows: R.filter(r => /^(cur|ng|done)$/.test(r[3]) && r[1]).map(r => [r[0], r[1]]) };
+  return `<div class="qc-cmp qc-dcmp" role="table" aria-label="台帳と書類のくらべ"><div class="qc-cr qc-chd" role="row"><span role="columnheader">くらべる</span><span role="columnheader">台帳</span><span role="columnheader">書類</span></div>
+    ${R.map(([k, a, b, m, lb]) => `<div class="qc-cr ${m}" role="row"><span class="qc-cl" role="rowheader">${k}${lb ? `<i>${esc(lb)}</i>` : ''}</span><span role="cell">${a ? esc(a) : '<em>—</em>'}</span><span role="cell">${b ? esc(b) : '<em>—</em>'}</span></div>`).join('')}</div>
+    <p class="qc-cmps">この書類とのちがい ${nd}つ${nd > 1 ? `（のこり ${left}つ）` : ''}。「—」は、書類に書いてないか、読み取れなかったところです</p>
+    <button type="button" class="qc-wrong" data-qa="dfw">ちがいが多い？　この書類は、別の作品のことかも</button>
+    ${FDSRC.rows.length ? `<div class="qc-src" id="qcSrc" data-no="${esc(FDSRC.no)}"></div>` : ''}`;
+}
+/* 「別の作品のことかも」：書類に書いてあることで、台帳の作品の候補を出す（題・年・サイズ） */
+function dfwInfo(d, no){ const G = dfGroup(d, no), E = dfEntry(d, no) || {}, dv = f => { const g = G.find(o => o.x.f === f); return g ? g.x.doc : (E[f] || ''); };
+  return { t: dv('作品名'), y: dv('制作年'), h: dv('高さcm'), w: dv('幅cm') }; }
+function dfwCands(d, no){ const I = dfwInfo(d, no), T = I.t ? fdTitles(I.t) : [], y = fdY(I.y), z = I.h && I.w ? [parseFloat(I.h), parseFloat(I.w)] : null;
+  return (S.works || []).filter(w => String(w['作品番号']) !== String(no) && !['廃棄', '統合済み'].includes(w['所在区分'])).map(w => { let ts = 0; fdWorkTitles(w).forEach(x => { const n = fdN(x); T.forEach(([t, k]) => { ts = Math.max(ts, fdSim(t, n) * k); }); });
+    let sc = ts, sz = 0; const y2 = fdY(w['制作年']); if (y && y2) sc += y === y2 ? .3 : Math.abs(y - y2) <= 1 ? .1 : Math.abs(y - y2) >= 3 ? -.3 : 0;
+    const h = parseFloat(w['高さcm']), wd = parseFloat(w['幅cm']); if (z && z[0] > 0 && z[1] > 0 && h > 0 && wd > 0) { const r = (a, b) => Math.abs(a - b) / Math.max(a, b), e = Math.min(Math.max(r(z[0], h), r(z[1], wd)), Math.max(r(z[0], wd), r(z[1], h))); sz = e <= .04 ? 1 : e > .15 ? -1 : 0; sc += sz === 1 ? .6 : sz === -1 ? -.4 : 0; }
+    return { no: String(w['作品番号']), s: sc, sz }; }).filter(x => x.s >= .55).sort((a, b) => b.s - a.s).slice(0, 4); }
+function qcDrawDiffWrong(el, c, d){
+  const w = workOf(c.no) || {}, I = dfwInfo(d, c.no), C = dfwCands(d, c.no), sel = QC.dfwSel || '';
+  const info = [I.t ? '《' + I.t + '》' : '', fdY(I.y) ? fdY(I.y) + '年' : '', I.h && I.w ? I.h + '×' + I.w + ' cm' : ''].filter(Boolean).join('　');
+  const card = n => { const x = workOf(n) || {}, f = C.find(o => o.no === n); return `<button type="button" class="qc-wc${sel === n ? ' sel' : ''}" data-qa="dfw:sel" data-n="${esc(n)}"><span class="qc-wct">${(photoBy[n] || []).length ? thumbHTML(n, 200) : '<i>写真なし</i>'}</span><span class="qc-wcx"><b>${esc(nol(n))}　${esc(x['作品名'] || '作品名なし')}</b><small>${esc([x['制作年'], x['高さcm'] && x['幅cm'] ? x['高さcm'] + '×' + x['幅cm'] + ' cm' : '', x['所在'] || x['所在区分'] || ''].filter(Boolean).join('・'))}</small>${f && f.sz === 1 ? '<em>サイズが合う</em>' : ''}</span></button>`; };
+  const list = C.map(o => o.no); if (sel && sel !== '__none' && list.indexOf(sel) < 0) list.unshift(sel);
+  QC.q = 'この書類は、どの作品のこと？'; QC.sp = 'この書類、どの作品のことやろ？';
+  el.innerHTML = `<div class="qc-w qc-dw inp">${qcTop()}${qcTask('diff', '作品')}${QC.test ? '<p class="qc-test">練習モード：答えは保存しません</p>' : ''}
+    <div><h1 class="qc-q">${esc(QC.q)}</h1><p class="qc-hint">${esc('いまは ' + nol(c.no) + '「' + (w['作品名'] || '作品名なし') + '」につながっています。書類「' + docTitle(d) + '」に書いてあること：' + (info || '（題・年・サイズが読み取れていません）'))}</p></div>
+    ${list.length ? `<div class="qc-wcl"><small>候補（題・年・サイズが近い作品）</small>${list.map(card).join('')}</div>` : '<p class="qc-hint">近い作品は見つかりませんでした。番号が分かれば下に入れてください</p>'}
+    <label class="qc-lbl" for="qcDfw">作品番号で選ぶ</label><div class="qc-in qc-inrow"><input id="qcDfw" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="done" placeholder="例：084" aria-label="作品番号"><button type="button" class="hg-btn2" data-qa="dfw:num">選ぶ</button></div>
+    <button type="button" class="qc-c${sel === '__none' ? ' sel' : ''} qc-wnone" data-qa="dfw:sel" data-n="__none">台帳のどの作品でもない（つながりを外す）</button>
+    <div class="qc-btm">${sel ? `<button type="button" class="hg-go" data-qa="dfw:go">${sel === '__none' ? 'つながりを外す' : esc(nol(sel)) + ' につなぎ直す'}</button>` : ''}<button type="button" class="hg-btn2" data-qa="dfw:unk">わからない（あとで確かめる）</button>${qcFoot('', 1)}</div></div>`;
+  hydrate(el);
+}
+/* つなぎ直したあと：この書類の残りのカードを、新しい違いで作り直す */
+function qcDiffRegroup(did, from, nos){ const keep = QC.L.slice(0, QC.i), tail = QC.L.slice(QC.i), others = [...new Set(tail.filter(x => x.k === 'diff' && x.did === did && x.no !== from).map(x => x.no))];
+  const rest = tail.filter(x => !(x.k === 'diff' && x.did === did)), add = [], d = docById(did); let n = 0; /* つなぎ直すと書類の違いの番号がずれるので、同じ書類のカードは新しい中身で作り直す */
+  if (d) nos.concat(others).forEach((no, j) => dfGroup(d, no).forEach(o => { if (!o.x.r && !QDD.has(did + '|' + o.i)) { add.push({ no: String(no), k: 'diff', did, i: o.i, p: 0 }); if (j < nos.length) n++; } }));
+  QC.L = keep.concat(add, rest); return n; }
+async function qcDiffMove(c, to){ const d = docById(c.did); if (!d) return;
+  if (QC.test) { toast('練習モード：つなぎ直しはしません'); QC.step = ''; QC.dfwSel = ''; QC.L = QC.L.slice(0, QC.i).concat(QC.L.slice(QC.i).filter(x => !(x.k === 'diff' && x.did === c.did && x.no === c.no))); return qcDraw(); }
+  busy(true, to ? nol(to) + ' につなぎ直しています…' : 'つながりを外しています…');
+  try { const res = await call('moveDocWork', c.did, c.no, to || ''); if (res && res.works) setData(res); busy(false);
+    QC.step = ''; QC.dfwSel = ''; QC.n++; const n = qcDiffRegroup(c.did, c.no, to ? [to] : []);
+    toast(to ? nol(to) + ' につなぎ直しました' + (n ? '（ちがいが ' + n + 'つあります）' : '（ちがいはありません）') : 'つながりを外しました'); qcDraw(); }
+  catch(e){ busy(false); if (isLoginErr(e)) { alert('ログインの有効期限が切れました。もう一度ログインしてください。'); return qcEnd(); } toast('保存できませんでした：' + (e.message || e)); } }
 function qcDrawDiff(el, c){
   const d = docById(c.did), x = d && (docRes(d)['食い違い'] || [])[c.i];
   if (!d || !x || x.r) { QC.i++; return qcDraw(); }
   if (/^(dfo|area|mus)$/.test(QC.step)) return qcDrawDiffOther(el, c, x, QC.step === 'dfo' ? '' : QC.step);
+  if (QC.step === 'dfw') return qcDrawDiffWrong(el, c, d);
   const w = workOf(c.no) || {}, ph = photoBy[c.no] || [], FL = { '幅cm': '幅', '高さcm': '高さ', '所在': 'いまの場所' }, lab = FL[x.f] || x.f, u = /cm$/.test(x.f) ? ' cm' : '';
   const pdf = !!(docPages(d)[0] && docRes(d).PDF);
   const kd = x.f === '作品名' ? 'name' : /日$|制作年|cm$/.test(x.f) ? '' : 'same', pg = x.at && x.at.p ? x.at.p + 'ページ目' : '';
@@ -2798,14 +2878,14 @@ function qcDrawDiff(el, c){
     : `台帳にいま入っている内容です（最後に直した人：${w['最終更新者'] || '不明'}${w['最終更新日時'] ? '・' + String(w['最終更新日時']).slice(0, 10) : ''}）。`;
   const v = t => esc(t || '（空）') + (t && u && /\d$/.test(t) ? u : '');
   const go = (a, t, sub) => `<button type="button" class="qc-op n" data-qa="${a}"><b>${t}</b>${sub ? `<span>${sub}</span>` : ''}</button>`;
-  const two = `<div class="qc-row"><button type="button" class="hg-btn2 qc-r2" data-qa="df:ledger"><b>台帳が正しい</b><small>書類の書き間違いとして記録</small></button><button type="button" class="hg-btn2 qc-r2" data-qa="df:doc"><b>書類が正しい</b><small>台帳を直す</small></button></div>`;
+  const two = `<div class="qc-row"><button type="button" class="hg-btn2 qc-r2" data-qa="df:ledger"><b>台帳が正しい</b><small>${v(x.cur)} のまま</small></button><button type="button" class="hg-btn2 qc-r2" data-qa="df:doc"><b>書類が正しい</b><small>${v(x.doc)} に直す</small></button></div>`;
   let opts = '';
   if (kd === 'name') opts = go('df:same-ledger', '同じ名前（書き方の違い）', `台帳は「${esc(x.cur)}」のまま。書類の書き方も覚えて、次からは聞きません`)
     + `<div class="qc-op2"><b>どちらも正しい</b><span>どちらかをメインに、もう一方をサブ（別名）にします</span><div class="qc-mn"><button type="button" data-qa="df:alias"><small>メインにする</small><b>${esc(x.cur || '（空）')}</b></button><button type="button" data-qa="df:same-doc"><small>メインにする</small><b>${esc(x.doc)}</b></button></div></div>` + two;
   else if (kd === 'same') opts = two + go('df:same-ledger', '同じもの（書き方の違い）', '台帳のまま。書類の書き方も覚えて、次からは聞きません');
   else opts = two;
   opts += go('df:other', 'どちらも違う', x.f === '所在' || x.loc ? 'いまの場所を選びなおします' : '正しい' + lab + 'を入れて、台帳を直します');
-  QC.q = 'どちらが正しい？';
+  QC.q = (x.f === '所在' ? '場所' : lab) + 'は、どちらが正しい？';
   { const sv = t => '「' + String(t) + (u && /\d$/.test(t) ? 'センチ' : '') + '」', who = x.f === '作品名' ? 'この作品の名前、' : x.f === '所在' ? 'この作品の場所、' : lab + 'が、';
     QC.sp = (x.cur ? `${who}台帳では${sv(x.cur)}、書類では${sv(x.doc)}になってるみたいやねん。` : `${who}台帳には入ってへんけど、書類では${sv(x.doc)}になってるんえ。`) + 'どっちが合うてるやろ？'; }
   el.innerHTML = `<div class="qc-w qc-dw">${qcTop()}
@@ -2814,12 +2894,11 @@ function qcDrawDiff(el, c){
     ${ph.length > 1 ? `<div class="qc-dpt">${ph.slice(0, 6).map((f, k) => `<button type="button" class="${k ? '' : 'on'}" data-qa="dpi:${k}">${thImg(f['ファイルID'], 200)}${copyOf(f) ? '<i class="qc-dptg">転載</i>' : ''}</button>`).join('')}</div>` : ''}
     ${ph.length ? `<p class="qc-phcap" id="qcPhCap">${qcPhCap(c.no, 0, QC.phRec = null)}</p>` : ''}
     <div class="qc-wk"><small>${esc(nol(c.no))}</small><b>${esc(w['作品名'] || '作品名なし')}</b>${ph.length ? '' : '<span class="qc-nph">写真はまだありません</span>'}</div>
+    ${dfCmpHTML(d, c.no, c.i)}
     <div class="qc-sec"><div class="qc-sh"><b>読み取った書類</b><small>${esc(docTitle(d))}${pg ? '・' + pg : ''}</small></div>${pdf ? '<div class="dfx qc-dfx" id="qcDf"></div>' : ''}</div>
-    <div class="qc-ab"><small>A　台帳</small><b>${v(x.cur)}</b><span>どこから：${esc(led)}</span></div>
-    <div class="qc-ab"><small>B　書類</small><b class="hl">${v(x.doc)}</b><span>どこから：「${esc(docTitle(d))}」${pg ? 'の' + pg : ''}をAIが読み取りました。${x.note ? esc(x.note) : ''}</span></div>
-    <h1 class="qc-q">${esc(QC.q)}</h1>
+    <div><h1 class="qc-q">${esc(QC.q)}</h1><p class="qc-hint">${esc('台帳「' + (x.cur || '（空）') + (u && /\d$/.test(x.cur || '') ? u : '') + '」、書類「' + x.doc + (u && /\d$/.test(x.doc || '') ? u : '') + '」。書類は「' + docTitle(d) + '」' + (pg ? 'の' + pg : '') + 'をAIが読み取ったものです。' + (x.note || ''))}</p></div>
     <div class="qc-btm">${opts}${qcFoot()}</div></div>`;
-  hydrate(el); el.scrollTop = 0;
+  hydrate(el); fdSrcLoad(); { const gk = c.did + '|' + c.no, t = el.querySelector('.qc-dcmp'); el.scrollTop = QC.lastGrp === gk && t ? Math.max(0, t.offsetTop - 12) : 0; QC.lastGrp = gk; }
   const box = pdf && $('#qcDf'); if (box) dfPreview(box, d, x, true).catch(() => {});
   if (QV.tts) say(QC.sp || QC.q);
 }
@@ -2924,6 +3003,16 @@ function qcAct(a, btn){ const c = QC && QC.L[QC.i]; if (!c) return; const no = c
   if (a === 'priv') return L('個人蔵', '個人蔵');
   if (a === 'shibun') return L('委託中', '思文閣');
   if (a === 'df:other') { QC.step = 'dfo'; return qcDraw(); }
+  if (a === 'dfw') { QC.step = 'dfw'; QC.dfwSel = ''; return qcDraw(); }
+  if (a === 'dfw:sel') { QC.dfwSel = btn && btn.dataset.n || ''; return qcDraw(); }
+  if (a === 'dfw:num') { let v = (($('#qcDfw') || {}).value || '').normalize('NFKC').trim().replace(/^No\.?\s*/i, ''); if (/^\d{1,3}$/.test(v)) v = ('00' + v).slice(-3);
+    if (!v || !workOf(v)) return toast('その番号の作品が見つかりません'); if (v === String(c.no)) return toast('いまつながっている作品です'); QC.dfwSel = v; return qcDraw(); }
+  if (a === 'dfw:go') return qcDiffMove(c, QC.dfwSel === '__none' ? '' : QC.dfwSel);
+  if (a === 'dfw:unk') { const d = docById(c.did), me = S.user && S.user.name || '', old = String(w['要確認メモ'] || '').trim(), line = '書類「' + (d ? docTitle(d) : c.did) + '」がこの作品のことか、わからない（' + today() + (me ? ' ' + me : '') + '）';
+    const skip = () => { while (QC.i < QC.L.length && QC.L[QC.i].k === 'diff' && QC.L[QC.i].did === c.did && QC.L[QC.i].no === c.no) { if (!QC.test) QDD.add(c.did + '|' + QC.L[QC.i].i); QC.i++; } QC.step = ''; QC.dfwSel = ''; QC.n++; qcDraw(); };
+    if (QC.test) return skip();
+    call('setFlag', c.no, true, old ? old + ' / ' + line : line).then(res => { if (res && res.works) setData(res); }).catch(e => toast('保存できませんでした：' + (e.message || e)));
+    toast('要確認の印を付けました。あとで確かめます'); return skip(); }
   if (a === 'dfo:ok') { const x = qcDiffX(c) || {}, cm = /cm$/.test(x.f || ''), v = (($('#qcDfo') || {}).value || '').trim().normalize(cm ? 'NFKC' : 'NFC');
     if (!v) return toast('正しい内容を入れてください（わからなければ「正しいのはわからない」）');
     if (cm && !/^\d+(\.\d+)?$/.test(v)) return toast('数字だけを入れてください（例：45.5）');
@@ -2949,6 +3038,7 @@ function qcAct(a, btn){ const c = QC && QC.L[QC.i]; if (!c) return; const no = c
     if (kd === 'その他') return det ? L('その他', det) : toast('場所を入れてください');
     if (kd === '廃棄') return ask({ item: '場所', value: '廃棄', answer: 'はい' }, null, { kind: '廃棄', place: '廃棄' }, 'もうない（廃棄）', det.replace(/^(廃棄|破棄)\s*/, ''));
     return; }
+  if (a === 'back' && k === 'dfw') { QC.step = ''; QC.dfwSel = ''; return qcDraw(); }
   if (a === 'back' && (k === 'area' || k === 'mus')) { QC.step = QC.subBack || ''; QC.draft = ''; return qcDraw(); }
   if (a === 'back') { const P = QC.pn; if (k === 'note' && P) { stopMic(true); QC.step = P.back; QC.pend = P.pend; QC.heard = P.heard; QC.draft = (P.back || c.k) === 'name' || ((P.back || c.k) === 'mus' && !musList().some(m => m.label === P.rec.value)) ? P.rec.value : ''; QC.pn = null; QC.dr = ''; return qcDraw(); }
     QC.step = c.k === 'conf' ? 'loc' : ''; QC.pend = null; QC.heard = ''; QC.draft = ''; return qcDraw(); }
