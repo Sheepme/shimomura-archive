@@ -1457,6 +1457,7 @@ html.sa .vedit{top:calc(12px + var(--cap))}html.sa .vmenu{top:calc(66px + var(--
 #sheet .box{max-width:none!important;width:100%;height:100%;max-height:none!important;border-radius:0!important;box-shadow:none;border:0!important;background:var(--bg)!important;
   padding:calc(var(--cap,0px) + var(--edge,0px) + 72px) max(18px, calc((100% - 760px) / 2)) calc(30px + env(safe-area-inset-bottom))!important}
 #sheet #sheetbox.split{width:100%!important;height:100%!important;border-radius:0!important;padding:calc(var(--cap,0px) + var(--edge,0px) + 72px) 24px 24px!important}
+#sheet #sheetbox.split.sp{display:flex!important;flex-direction:column;gap:0;overflow:hidden;padding:calc(var(--cap,0px) + var(--edge,0px) + 62px) 0 0!important}#sheetbox.split.sp .dsv{flex:0 0 42%;border-radius:0;min-height:0;overflow:auto}#sheetbox.split.sp .dsr{flex:1 1 auto;min-height:0;overflow-y:auto;padding:14px 18px 0}#sheetbox.split.sp #dvImgs,#sheetbox.split.sp #dvImgsBox{display:none}#sheetbox.split.sp .dsr .btns{position:sticky;bottom:0;margin:12px -18px 0!important;padding:10px 18px calc(10px + env(safe-area-inset-bottom))!important;background:var(--bg)!important;z-index:2}
 body.kbopen #sheet .box{max-height:none!important}#sheet .box{padding-bottom:0!important}#sheet .box>:last-child:not(.btns){margin-bottom:calc(24px + env(safe-area-inset-bottom))}#sheet .btns{background:inherit;padding-bottom:calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
 body.wide #sheet.sheet,body.wide #viewer,body.wide .docview{left:var(--pw,264px)}
 body.scr .appbar,body.scr #top{z-index:400!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}
@@ -1792,7 +1793,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '9585ebdf0d', APP_URL = location.origin + location.pathname;
+const BUILD = '747d7f664f', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2457,7 +2458,7 @@ async function docNote(id){ const t = DTEXT[id] != null ? DTEXT[id] : (DTEXT[id]
 let NOTEQ = '';
 /* ノートのページ：資料のページごとにめくって読む（長い資料・写真や手紙が入った資料にも） */
 /* 書類から読んだ「できごと」（寄贈・寄託など）と、ページの目次 */
-function devUnwrap(){ document.querySelectorAll('#sheetbox .devbox').forEach(bx => { const r = bx.querySelector('.dtr'); if (r) bx.before(r); bx.remove(); }); document.querySelectorAll('#sheetbox .devpv').forEach(x => x.remove()); }
+function devUnwrap(){ document.querySelectorAll('#sheetbox .devbox').forEach(bx => { const r = bx.querySelector('.dtr'); if (r) bx.before(r); bx.remove(); }); document.querySelectorAll('#sheetbox .devpv').forEach(x => x.remove()); const tp = document.querySelector('#sheetbox .dtopv'); if (tp && tp._d && !tp.querySelector('.dfprev')) dfPreview(tp, tp._d, { doc: '', at: { p: 1 } }, true); }
 function docEvHTML(d){ const ids = String(d['出来事ID']||'').split(',').filter(Boolean); if (!ids.length) return '';
   const ev = ids.map(i => S.events.find(e => e['出来事ID']===i)).filter(Boolean).sort((a, b) => String(a['日付']).localeCompare(String(b['日付'])));
   if (!ev.length) return '';
@@ -3052,7 +3053,7 @@ function sheetDocReview(id){ try { const d0 = docById(id); if (d0) pdfPrefetch([
       ${(r['補完']||[]).length ? `<details class="dfill"><summary>この書類から自動で埋めた項目（${r['補完'].length}件）</summary>${r['補完'].map(x => `<p>${esc(x.name)}：${esc(x.f)}　→　${esc(x.v)}</p>`).join('')}</details>` : ''}
       ${d['メモ'] ? `<p class="hint dmemo">📝 ${esc(d['メモ'])}</p>` : ''}
       ${d['全文あり'] && !noteMode ? `<button type="button" class="act main pdfopen dvnote" data-note="${esc(id)}">📖 ノートで読む（資料の文字）</button>` : ''}
-      ${r.PDF ? `<button type="button" class="act pdfopen" data-pdfopen="${esc(pg[0]||'')}">📄 PDFを見る</button>` : ''}
+      ${r.PDF ? `<button type="button" class="act pdfopen" data-pdftab="${esc(pg[0]||'')}">📄 元のファイルを開く</button>` : ''}
       ${d['保管番号'] ? `<button type="button" class="act pdfopen" data-spine="${esc(d['保管番号'])}">📦 ${esc(d['保管番号'])} の背表紙を見る</button><button type="button" class="act pdfopen" data-dfgo="${esc(d['保管番号'])}">📁 このファイルを開く（同じフォルダの資料）</button>` : ''}
       ${r['展覧会ID'] && (S.exhibits||[]).some(e => e['展覧会ID']===r['展覧会ID']) ? `<p><button type="button" class="golink" data-ex="${esc(r['展覧会ID'])}">展覧会：${esc((S.exhibits.find(e => e['展覧会ID']===r['展覧会ID'])||{})['名称']||'')} ›</button></p>` : ''}
       ${String(r['資料ID']||'').split(',').filter(x => (S.pubs||[]).some(p => p['資料ID']===x)).map(x => `<p><button type="button" class="golink" data-pb="${esc(x)}">画集・本：${esc((S.pubs.find(p => p['資料ID']===x)||{})['タイトル']||x)} ›</button></p>`).join('')}
@@ -3956,7 +3957,13 @@ document.addEventListener('click', async e => {
 });
 (function(){ const _o = sheetDocReview; sheetDocReview = function(id){ _o(id); const bx = $('#sheetbox .btns'); if (bx && canEdit() && !$('#sheetbox [data-del]')) bx.insertAdjacentHTML('beforebegin', delBtn('doc', id, 'この書類')); docSplit(id); }; })();
 /* 画面が広いときは、左に書類（PDF・写真）、右に確認・修正の画面を並べる */
-async function docSplit(id){ const d = docById(id), box = $('#sheetbox'); if (!d || window.innerWidth < 1000 || !box || box.classList.contains('split')) return;
+/* スマホの書類詳細：作品ページの「該当箇所を確認」と同じ見た目で、書類の1ページ目をはじめから表示する */
+function docTopPreview(d){ const r = docRes(d), box = $('#sheetbox'); if (!r.PDF || !box || box.querySelector('.dtopv')) return;
+  const c = document.createElement('div'); c.className = 'dfx evx dtopv'; c.innerHTML = '<span data-dfhl="top" hidden></span>';
+  const h = box.querySelector('h3.dttl'); if (h) h.after(c); else box.prepend(c);
+  box.querySelectorAll('#dvImgs,#dvImgsBox').forEach(x => x.remove()); c._d = d; dfPreview(c, d, { doc: '', at: { p: 1 } }, true); }
+async function docSplit(id){ const d = docById(id), box = $('#sheetbox'); if (!d || !box || box.classList.contains('split')) return;
+  if (window.innerWidth < 1000) { docTopPreview(d); return; } /* スマホは分けずに、書類の画像（軽い画像）を最初から見せる */
   const r = docRes(d), pg = docPages(d); if (!pg.length) return;
   const L = document.createElement('div'), R = document.createElement('div'); L.className = 'dsv'; R.className = 'dsr';
   while (box.firstChild) R.appendChild(box.firstChild); box.classList.add('split'); box.append(L, R);
@@ -5516,6 +5523,7 @@ document.addEventListener('click', e => {
   if (t.dataset.dfv){ S.dfv = t.dataset.dfv; try { localStorage.setItem('smr_dfv', S.dfv); } catch(e){} render(); return; }
   if (t.dataset.dfs){ S.dfsd = S.dfs === t.dataset.dfs ? -(S.dfsd || 1) : 1; S.dfs = t.dataset.dfs; render(); return; }
   if (t.dataset.dfgo !== undefined){ closeSheet(); closeAllPages(); S.view = 'doc'; S.dmode = 'files'; S.dfq = ''; S.dpath = t.dataset.dfgo ? t.dataset.dfgo.split('/') : [DF_NONE]; render(); window.scrollTo(0, 0); return; }
+  if (t.dataset.pdftab){ const fid = t.dataset.pdftab, wn = window.open('', '_blank'); pdfBlobUrl(fid).then(u => { if (wn) wn.location = u; else window.open(u, '_blank'); }).catch(e => { try { wn && wn.close(); } catch(x){} alert('開けませんでした：' + (e.message || e)); }); return; } // 元のPDFファイルを別のタブで
   if (t.dataset.pdfopen){ openPdf(t.dataset.pdfopen, t.dataset.pdfp, t.dataset.pdfq ? { q: t.dataset.pdfq, line: t.dataset.pdfl || '' } : null); return; }
   if (t.dataset.spine){ showSpine(t, t.dataset.spine); return; }
   if (t.dataset.rec){ if (canEdit() && !recInline(t)) sheetRec(t.dataset.rec, t.dataset.rid, t.dataset.rf); return; } // 展覧会・画集なども、鉛筆でその場で直す
