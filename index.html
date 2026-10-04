@@ -1779,7 +1779,7 @@ body.pgopen.pgtuck:not(.dwopen):not(.scr) .cbar{transform:translateY(calc(100% +
 /* ===== 新しいホーム（2026/10/04）：白地・立体ボタン・ダークモード対応 ===== */
 .hm2{--hg-g:#58A700;--hg-g2:#3F7A00;--hg-gl:#58CC02;--hg-h:#3C3C3C;--hg-t:#4B4B4B;--hg-s:#777777;--hg-f:#AFAFAF;--hg-ln:#E5E5E5;--hg-sf:#F7F7F7;--hg-bg:#FFFFFF;--hg-dash:#CECECE;--hg-lk:#2B70C9;--hg-w:#C62828;color:var(--hg-t)}
 html[data-theme=dark] .hm2{--hg-h:var(--ink);--hg-t:var(--ink);--hg-s:var(--sub);--hg-f:var(--faint);--hg-ln:var(--line);--hg-sf:var(--paper);--hg-bg:var(--bg);--hg-dash:var(--faint);--hg-lk:#6CB4FF;--hg-w:#FF8A80}
-html:not([data-theme=dark]) body.vhome{background:#FFFFFF}
+html:not([data-theme=dark]) body.vhome{background:var(--bg)} /* ライトモードのホームの地は、上のメニューと同じ色（カードは白） */
 .hm2 .hg-date{margin:0;font-size:15px;font-weight:700;color:var(--hg-s)}
 .hm2 .hg-hello{margin:2px 0 18px;font-size:clamp(25px,7.4vw,30px);font-weight:800;line-height:1.25;color:var(--hg-h);text-wrap:balance}
 .hm2 .hg-card{display:flex;flex-direction:column;gap:12px;margin:0 0 20px;padding:18px;border-radius:20px;border:2px solid var(--hg-ln);border-bottom-width:5px;background:var(--hg-bg)}
@@ -1898,7 +1898,7 @@ html[data-theme=dark] .qc-c.sel{background:#16384A;color:#9ADDFF}
 .qc-test{margin:0;align-self:center;padding:4px 12px;border-radius:10px;background:#FFF4D0;color:#3C3C3C;font-size:14px;font-weight:800;text-align:center}
 .hm2 .hg-test{align-self:center;font-size:15px}
 .qc.kb .qc-ph{flex:0 0 72px;min-height:72px!important;max-height:72px}.qc.kb .qc-zm{display:none}
-.qc.kb .qc-nop,.qc.kb .qc-hint,.qc.kb .qc-wk,.qc.kb .qc-lbl{display:none}
+.qc.kb .qc-nop,.qc.kb .qc-hint,.qc.kb .qc-wk,.qc.kb .qc-lbl,.qc.kb .qc-rel,.qc.kb .qc-wcl,.qc.kb .qc-wnone{display:none}
 .qc.kb .qc-q{font-size:20px}
 .qc.kb .qc-w{gap:10px;padding-top:8px}
 .qc.kb .qc-btm{margin-top:0}
@@ -2049,7 +2049,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd174ec8973', APP_URL = location.origin + location.pathname;
+const BUILD = '518a48604c', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2563,12 +2563,16 @@ let QCY = 0;
 function qcLock(on){ const b = document.body; b.classList.toggle('qcopen', !!on); document.documentElement.style.overscrollBehavior = on ? 'none' : '';
   if (on) { QCY = window.scrollY || 0; Object.assign(b.style, { position: 'fixed', top: -QCY + 'px', left: '0', right: '0', overflow: 'hidden' }); }
   else { Object.assign(b.style, { position: '', top: '', left: '', right: '', overflow: '' }); window.scrollTo(0, QCY); } }
+/* キーボードが出たら、入力欄がキーボードに隠れないよう、カードの中をスクロールして見せる（下に「答える」ボタンの分の余白） */
+function qcShowInput(){ clearTimeout(qcShowInput.t); qcShowInput.t = setTimeout(() => { const el = $('#qc'), a = document.activeElement; if (!el || !a || !el.contains(a) || !/^(INPUT|TEXTAREA)$/.test(a.tagName)) return;
+  const r = a.getBoundingClientRect(), e = el.getBoundingClientRect(), room = Math.min(110, Math.max(24, e.height * 0.25));
+  if (r.bottom > e.bottom - room) el.scrollTop += r.bottom - (e.bottom - room); else if (r.top < e.top + 8) el.scrollTop -= (e.top + 8) - r.top; }, 90); }
 let QCH = 0; /* キーボードが出ていないときの高さ（新しい iPhone はキーボードで innerHeight も縮むので、いちばん大きかった高さとくらべる） */
 function qcVV(){ const el = $('#qc'), v = window.visualViewport; if (!el || !QC) return;
   const a = document.activeElement, foc = !!a && el.contains(a) && /^(INPUT|TEXTAREA)$/.test(a.tagName) && a.type !== 'file' && matchMedia('(pointer:coarse)').matches;
   /* 画面の位置合わせは、キーボードが出ているときだけ。ふだんは画面いっぱいに固定する（スクロールの跳ね返りで画面ごとずれ、指と逆に動くのを防ぐ） */
   if (v) { QCH = Math.max(QCH, window.innerHeight, v.height); const kb = foc || v.height < QCH * 0.78; el.classList.toggle('kb', kb);
-    if (kb) { el.style.top = v.offsetTop + 'px'; el.style.height = v.height + 'px'; el.style.bottom = 'auto'; }
+    if (kb) { el.style.top = v.offsetTop + 'px'; el.style.height = v.height + 'px'; el.style.bottom = 'auto'; if (foc) qcShowInput(); }
     else if (el.style.top || el.style.height) { el.style.top = el.style.height = el.style.bottom = ''; if (v.offsetTop > 0 && v.scale <= 1.01) window.scrollTo(0, 0); } }
   else el.classList.toggle('kb', foc); }
 if (window.visualViewport) { visualViewport.addEventListener('resize', qcVV); visualViewport.addEventListener('scroll', qcVV); }
