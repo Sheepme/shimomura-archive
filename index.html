@@ -2000,7 +2000,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '20861396f8', APP_URL = location.origin + location.pathname;
+const BUILD = 'ced70270e7', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2081,7 +2081,7 @@ function docCacheSync(docs){ let V = {}; try { V = JSON.parse(localStorage.getIt
   if (del.length) thDel(del); try { localStorage.setItem('smr_dver', JSON.stringify(N)); } catch(e){} }
 function setData(d){ if (S.upd) S.upd.t = 0; try { if (d && d.docs && d.docs.length) docCacheSync(d.docs); } catch(e){}
   const allW = d.works || []; d = Object.assign({}, d, {works: allW.filter(w => !OTRE.test(w['作品番号'])), others: allW.filter(w => OTRE.test(w['作品番号']))});
-  Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], finds:d.finds||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], memoChecker:d.memoChecker||'直美', marks:d.marks||[], pimg:d.pimg||S.pimg||[], user:d.user, ai:d.ai, publicView:d.publicView}); if (S.token && !d.user) setToken(''); index(); try { pimgIndex(); } catch(e){} renderUser();  if (d.user) setTimeout(prefetchThumbs, 0); }
+  Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], finds:d.finds||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], faces:d.faces||[], memoChecker:d.memoChecker||'直美', marks:d.marks||[], pimg:d.pimg||S.pimg||[], user:d.user, ai:d.ai, publicView:d.publicView}); if (S.token && !d.user) setToken(''); index(); try { pimgIndex(); } catch(e){} renderUser(); try { faceInit(); } catch(e){}  if (d.user) setTimeout(prefetchThumbs, 0); }
 const canRole = () => !!(S.user && ['編集','管理'].includes(S.user.role));
 const canEdit = () => canRole();
 try { S.edit = localStorage.getItem('smr_edit') === '1'; } catch(e){ S.edit = false; }
@@ -2235,6 +2235,14 @@ const THDB = (() => { let p = null; return () => p || (p = new Promise(ok => { t
 async function thGet(keys){ const db = await THDB(); if (!db) return {}; return new Promise(ok => { const out = {}; try { const st = db.transaction('th').objectStore('th'); let n = keys.length; if (!n) return ok(out); keys.forEach(k => { const q = st.get(k); q.onsuccess = () => { if (q.result) out[k] = q.result; if (!--n) ok(out); }; q.onerror = () => { if (!--n) ok(out); }; }); } catch(e){ ok(out); } }); }
 async function thDel(keys){ const db = await THDB(); if (!db) return; try { const st = db.transaction('th', 'readwrite').objectStore('th'); keys.forEach(k => st.delete(k)); } catch(e){} }
 async function thPut(map){ const db = await THDB(); if (!db) return; try { const st = db.transaction('th', 'readwrite').objectStore('th'); Object.keys(map).forEach(k => st.put(map[k], k)); } catch(e){} }
+/* メニューの顔写真：ドライブ「写真/メニューの顔写真」に入れた写真から、開くたびにランダムで出す（ないときは icon.jpg のまま） */
+let FACE = '', FACEK = '';
+function faceInit(){ const L = S.faces || []; if (!L.length) return; const k = L.join(','); if (k === FACEK) return; FACEK = k;
+  L.forEach(id => { if (TH['200_' + id]) return; const i = new Image(); i.dataset.tid = id; i.dataset.w = '200'; i.onload = () => { if (id === FACE) faceShow(); }; queueThumb(i); });
+  facePick(); }
+function facePick(){ const L = S.faces || []; if (!L.length) return; const ok = L.filter(id => TH['200_' + id]), pool = ok.length ? ok : L;
+  let id = pool[Math.floor(Math.random() * pool.length)]; if (pool.length > 1 && id === FACE) id = pool[(pool.indexOf(id) + 1) % pool.length]; FACE = id; faceShow(); }
+function faceShow(){ const u = FACE && TH['200_' + FACE]; if (u) document.querySelectorAll('img.dwicon').forEach(im => { im.src = u; }); }
 function thSet(q, k, src){ TH[k] = src; (q.get(k)||[]).forEach(el => { el.src = src; lowOff(el); }); }
 /* 大きい写真を待つ間：小さい写真をぼかして出し、右上に小さく読み込み中のマーク */
 function lowOn(el, src){ el.src = src; if (el.classList.contains('lowres')) return; el.classList.add('lowres'); const p = el.parentElement; if (!p) return;
@@ -2294,7 +2302,7 @@ function pinDrawer(){ const d = $('#drawer'); if (!d) return; const w = isWide()
     if (sr && ab && nv) { if (isWide() && !!S.user && dwFold) { if (sr.parentNode !== ab) ab.insertBefore(sr, ak && ak.parentNode === ab ? ak : null); } else if (sr.parentNode !== nv.parentNode) nv.parentNode.insertBefore(sr, nv); } }
   d.dataset.was = w ? 'pin' : ''; if (typeof markStuck === 'function') { markStuck(); setTimeout(markStuck, 260); } }
 addEventListener('resize', () => pinDrawer());
-function openDrawer(){ if (isWide()) { if (dwAuto0) dwAutoOpen = !dwAutoOpen; else { dwFold = !dwFold; try { localStorage.setItem('smr_dw', dwFold ? '0' : '1'); } catch(e){} } pinDrawer(); setTimeout(() => { if (['album','ot'].includes(S.view)) render(); }, 240); return; }
+function openDrawer(){ try { if (!isWide()) facePick(); } catch(e){} if (isWide()) { if (dwAuto0) dwAutoOpen = !dwAutoOpen; else { dwFold = !dwFold; try { localStorage.setItem('smr_dw', dwFold ? '0' : '1'); } catch(e){} } pinDrawer(); setTimeout(() => { if (['album','ot'].includes(S.view)) render(); }, 240); return; }
   const d = $('#drawer'); document.body.classList.add('dwopen'); d.classList.remove('hidden'); d.setAttribute('aria-hidden', 'false'); requestAnimationFrame(() => d.classList.add('open')); setTimeout(markStuck, 240); }
 function closeDrawer(){ const d = $('#drawer'); if (d.classList.contains('hidden') || d.classList.contains('pin')) return; document.body.classList.remove('dwopen'); setTimeout(markStuck, 240); d.classList.remove('open'); d.setAttribute('aria-hidden', 'true'); setTimeout(() => d.classList.add('hidden'), 220); }
 /* ---------- 一覧の移動（ホーム→作品リスト→書類…）も覚えて、「戻る」で1つ前の画面に戻す ---------- */
