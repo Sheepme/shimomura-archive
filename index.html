@@ -1866,6 +1866,8 @@ html[data-theme=dark] .qc{background:var(--bg)}
 .qc .qc-heard,.qc .qc-heard.srlive{all:unset;display:block;min-height:1em;font-size:14px;line-height:1.6;color:var(--hg-s)}
 .qc .qc-heard.srlive.on{color:var(--hg-h);font-weight:700}
 .qc-cam{cursor:pointer}.qc-cam svg{width:26px;height:26px}
+.qc-test{margin:0;align-self:center;padding:4px 12px;border-radius:10px;background:#FFF4D0;color:#3C3C3C;font-size:14px;font-weight:800;text-align:center}
+.hm2 .hg-test{align-self:center;font-size:15px}
 .qc-end{gap:16px}.qc-end .qc-q{text-align:center}
 .qc-star{align-self:center;width:88px;height:88px;border-radius:50%;background:#FFC800;border-bottom:6px solid #E5A800;box-sizing:border-box;display:grid;place-items:center;color:#FFFFFF;margin-top:12px}
 .qc-star svg{width:48px;height:48px;fill:currentColor}
@@ -1945,7 +1947,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '869f8951d1', APP_URL = location.origin + location.pathname;
+const BUILD = '402e7d8446', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2366,12 +2368,17 @@ const QCSVG = {
   cam: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.6-2.2h6.8L17 8h3v11H4z"/><circle cx="12" cy="13.2" r="3.6"/></svg>',
   star: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2l2.6 5.5 6 .7-4.4 4.1 1.2 5.9L12 16.5l-5.4 2.9 1.2-5.9L3.4 9.4l6-.7z"/></svg>',
   ok: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' };
-function startCards(){
+function startCards(test){
   try { quizIndex(); } catch(e){}
-  const L = []; hgPick(400).forEach(no => { if (L.length < 10) { const k = qcKind(no); if (k) L.push({ no, k }); } });
+  let L = [];
+  if (test) { /* 練習モード：保存しない。4種類が全部出るよう、本物の作品から3点ずつ */
+    const by = { loc: [], name: [], photo: [], conf: [] };
+    hgPick(5000).forEach(no => { const w = workOf(no); if (!w) return; const ph = hasPh(no), k = !ph ? (hasName(w) ? 'photo' : null) : !hasLoc(w) ? 'loc' : !hasName(w) ? 'name' : needLoc(w) ? 'conf' : null; if (k && by[k].length < 3) by[k].push({ no, k }); });
+    ['loc', 'name', 'photo', 'conf'].forEach(k => L = L.concat(by[k])); }
+  else hgPick(400).forEach(no => { if (L.length < 10) { const k = qcKind(no); if (k) L.push({ no, k }); } });
   if (!L.length) return toast('いま確かめる作品はありません');
   closeSheet(); closeAllPages(); ttsUnlock();
-  QC = { L, i: 0, step: '', heard: '', pend: null, n: 0, before: new Set(L.filter(c => qcComplete(c.no)).map(c => c.no)) };
+  QC = { L, i: 0, step: '', heard: '', pend: null, n: 0, test: !!test, before: new Set(L.filter(c => qcComplete(c.no)).map(c => c.no)) };
   let el = $('#qc'); if (!el) { el = document.createElement('div'); el.id = 'qc'; el.className = 'qc hm2'; document.body.appendChild(el); el.addEventListener('click', qcClick); el.addEventListener('change', qcChange);
     el.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'qcName') { e.preventDefault(); qcAct('name'); } if (e.key === 'Enter' && e.target.id === 'qcMus') { e.preventDefault(); qcAct('musok'); } }); }
   el.classList.remove('hidden'); document.body.style.overflow = 'hidden'; qcDraw();
@@ -2405,14 +2412,14 @@ function qcDraw(){
   el.innerHTML = `<div class="qc-w"><div class="qc-top"><button type="button" class="qc-x" data-qc="end" aria-label="やめる">${QCSVG.x}</button>
       <div class="qc-bar" role="progressbar" aria-label="${QC.i + 1}問目 / ${QC.L.length}問" aria-valuenow="${QC.i}" aria-valuemax="${QC.L.length}"><i style="width:${Math.max(4, Math.round(QC.i / QC.L.length * 100))}%"></i></div>
       <button type="button" class="qc-say" data-qc="say" aria-label="もう一度読み上げる">${QCSVG.say}</button></div>
-    ${media}<div class="qc-wk"><small>${esc(nol(no))}</small><b>${esc(w['作品名'] || '作品名なし')}</b></div>
+    ${QC.test ? '<p class="qc-test">練習モード：答えは保存しません</p>' : ''}${media}<div class="qc-wk"><small>${esc(nol(no))}</small><b>${esc(w['作品名'] || '作品名なし')}</b></div>
     <div><h1 class="qc-q">${esc(q)}</h1>${hint ? `<p class="qc-hint">${esc(hint)}</p>` : ''}</div>${body}<div class="qc-btm">${btm}</div></div>`;
   hydrate(el); el.scrollTop = 0;
   if (QV.tts && !QC.step) say(q);
 }
 function qcClick(e){ if (!QC) return; const t = e.target.closest('[data-qc],[data-qa]'); if (!t) return;
   if (t.dataset.qc === 'end') return qcEnd();
-  if (t.dataset.qc === 'again') { qcEnd(); return setTimeout(startCards, 50); }
+  if (t.dataset.qc === 'again') { const tm = QC.test; qcEnd(); return setTimeout(() => startCards(tm), 50); }
   if (t.dataset.qc === 'say') { ttsUnlock(); const was = QV.tts; QV.tts = true; say(QC.q || ''); QV.tts = was; return; }
   if (t.dataset.qa) qcAct(t.dataset.qa, t); }
 function qcChange(e){ if (e.target.id === 'qcCam' && e.target.files && e.target.files[0]) qcPhoto(e.target.files[0]); }
@@ -2446,6 +2453,7 @@ function qcPlaceFrom(t){ const s = String(t || '');
   if (/(個人|さん|氏|様)/.test(s)) return { kind: '個人蔵', place: '個人蔵' };
   return null; }
 async function qcSave(no, rec, patch, loc){
+  if (QC.test) { stopMic(true); QC.n += rec && rec.answer === 'はい' ? 1 : 0; QC.i++; QC.step = ''; QC.heard = ''; QC.pend = null; return qcDraw(); } /* 練習モードは保存しない */
   const w = workOf(no), me = S.user && S.user.name || '';
   if (rec) { S.quiz = S.quiz || []; const row = { '日時': '', '答えた人': me, '種類': '作品', '対象': no, '項目': rec.item, '値': String(rec.value || ''), '答え': rec.answer }; S.quiz.push(row); QZI[no + '|' + rec.item] = row; }
   if (w && patch) Object.assign(w, patch);
@@ -2455,7 +2463,9 @@ async function qcSave(no, rec, patch, loc){
   try { await call('quizSave', no, rec ? [rec] : [], patch || null, loc || null, null); }
   catch(e){ if (isLoginErr(e)) { alert('ログインの有効期限が切れました。もう一度ログインしてください。'); qcEnd(); return; } toast('保存できませんでした：' + (e.message || e)); }
 }
-async function qcPhoto(file){ const c = QC && QC.L[QC.i]; if (!c) return; busy(true, '写真を送っています…');
+async function qcPhoto(file){ const c = QC && QC.L[QC.i]; if (!c) return;
+  if (QC.test) { toast('練習モードなので、写真は保存しません'); return qcSave(c.no, { item: '写真なし', value: '', answer: 'はい' }); }
+  busy(true, '写真を送っています…');
   try { const b64 = await shrink(file); await call('addPhotos', c.no, [{ b64, mime: PMIME }], '表', ''); busy(false); toast('写真を登録しました');
     await refreshData().catch(() => {}); if (QC) qcSave(c.no, { item: '写真なし', value: '', answer: 'はい' }); }
   catch(e){ busy(false); toast('写真を送れませんでした：' + (e.message || e)); } }
@@ -2464,11 +2474,11 @@ function qcFinish(){
   const fresh = QC.L.filter(c => qcComplete(c.no) && !QC.before.has(c.no)).map(c => c.no);
   const W = S.works.filter(w => !/^[YHZ]\d{3,}$/.test(String(w['作品番号'])) && !['廃棄','統合済み'].includes(w['所在区分'])), N = W.length, nd = W.filter(w => qcComplete(w['作品番号'])).length;
   el.innerHTML = `<div class="qc-w qc-end"><div class="qc-star">${QCSVG.star}</div>
-    <h1 class="qc-q">今日の${QC.L.length}作品、${QC.n >= QC.L.length ? 'クリア！' : 'おつかれさま！'}</h1>
+    <h1 class="qc-q">${QC.test ? '練習' : '今日の' + QC.L.length + '作品'}、${QC.n >= QC.L.length ? 'クリア！' : 'おつかれさま！'}</h1>${QC.test ? '<p class="qc-test">練習モードでした。台帳は変わっていません</p>' : ''}
     <div class="qc-stats"><div class="y"><span>答えた</span><b>${QC.n}点</b></div><div class="g"><span>図鑑に追加</span><b>+${fresh.length}</b></div><div class="b"><span>いまの図鑑</span><b>${nd}</b></div></div>
     <div class="hg-bar"><i style="width:${Math.round(nd / Math.max(N, 1) * 1000) / 10}%"></i></div><p class="hg-note">${nd} / ${N}点 そろった</p>
     ${fresh.length ? `<p class="qc-lbl">新しく図鑑にのった作品</p><div class="hg-grid">${fresh.map(no => `<div class="hg-t"><span class="hg-ph">${thumbHTML(no, 200)}<i class="hg-ok">${QCSVG.ok}</i></span><span class="hg-no">${esc(nol(no))}</span></div>`).join('')}</div>` : ''}
-    <div class="qc-btm"><button type="button" class="hg-go" data-qc="again">つづけて10作品</button><button type="button" class="hg-btn2" data-qc="end">ホームにもどる</button></div></div>`;
+    <div class="qc-btm"><button type="button" class="hg-go" data-qc="again">${QC.test ? 'もう一度練習' : 'つづけて10作品'}</button><button type="button" class="hg-btn2" data-qc="end">ホームにもどる</button></div></div>`;
   hydrate(el); el.scrollTop = 0;
 }
 function renderHome(){
@@ -2501,7 +2511,7 @@ function renderHome(){
     <p class="hg-date">${d.getMonth() + 1}月${d.getDate()}日（${'日月火水木金土'[d.getDay()]}）</p>
     <h1 class="hg-hello">${esc(S.user && S.user.name || '')}さん、こんにちは</h1>
     <section class="hg-card">${ed ? `<div><div class="hg-ttl">今日の10作品</div><div class="hg-sub">保管場所の確認から・5分ほど。ボタンでも声でも答えられます</div></div>
-      <button type="button" class="hg-go" data-hg10="1">${PLAY}はじめる</button>` : ''}
+      <button type="button" class="hg-go" data-hg10="1">${PLAY}はじめる</button>${S.user && S.user.role === '管理' ? '<button type="button" class="hg-link hg-test" data-hgtest="1">練習する（答えは保存しません）</button>' : ''}` : ''}
       <button type="button" class="${ed ? 'hg-btn2' : 'hg-go'}" data-ivgo="1">声でおしゃべり（インタビュー）</button></section>
     ${ed ? `<section class="hg-card hg-memo">${memoHTML()}</section>` : ''}
     <section class="hg-sec"><h2 class="hg-h2">作品図鑑</h2>
@@ -2523,6 +2533,7 @@ function renderHome(){
   if (!renderHome.bound) { renderHome.bound = 1;
     document.addEventListener('click', e => { if (S.view !== 'home') return;
       if (e.target.closest('[data-hg10]')) return startCards();
+      if (e.target.closest('[data-hgtest]')) return startCards(true);
       const p = e.target.closest('[data-hgpg]'); if (p) { S.hgPage = Math.max(0, (S.hgPage || 0) + (+p.dataset.hgpg)); renderHome(); const g = $('#hgGrid'); if (g) g.scrollIntoView({ block: 'start' }); return; }
       const t = e.target.closest('[data-hgw]'); if (t) openWork(t.dataset.hgw); }); }
 }
