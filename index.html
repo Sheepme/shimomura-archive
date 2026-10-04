@@ -1204,7 +1204,7 @@ body.briefing .cbar,body.loggedout .cbar{display:none}
 @media (pointer:coarse){
   body:not(.searching) #fsq{pointer-events:none}
   body.searching .cbar{top:calc(var(--vvt,0px) + var(--tb) + var(--cap) + 6px);bottom:auto;left:12px;right:12px;transition:none}
-  body.searching .appbar{opacity:0;pointer-events:none}
+  body.searching:not(.pgopen) .appbar{opacity:0;pointer-events:none}
 }
 body.slock{position:fixed;left:0;right:0;width:100%;overflow:hidden}
 /* 検索の入力中は「質問」ボタンを消して、検索欄を横いっぱいに */
@@ -1255,7 +1255,7 @@ html.sa{--edge:34px}
 .appbar,.brand.appbar{z-index:96}
 body.pgopen .page .pagehead{display:none}
 .page{padding-top:calc(var(--tb) + var(--cap) + var(--edge,0px) + 68px)}
-body:has(#viewer:not(.hidden)) .appbar,body:has(.docview) .appbar,body.kbopen:has(#sheet:not(.hidden)) .appbar{opacity:0;pointer-events:none}
+body.hidebar .appbar,body.kbopen:has(#sheet:not(.hidden)) .appbar{opacity:0;pointer-events:none}
 .appbar{transition:top .25s ease,left .22s ease,translate .22s ease,opacity .15s}
 .sheet .box{max-height:min(92vh, calc(var(--vvh,100vh) - 12px - var(--tb) - 70px))}
 body.kbopen .sheet .box{max-height:calc(var(--vvh,100vh) - 12px)}
@@ -1841,7 +1841,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'aa5f1fc756', APP_URL = location.origin + location.pathname;
+const BUILD = '568db1bfc0', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4784,7 +4784,7 @@ function scrAnim(el, from, to){ if (!el) return; try { const w = el.getBoundingC
   const a = el.animate([{ marginLeft: px(from) }, { marginLeft: px(to) }], { duration: SCR_MS, easing: SCR_EASE }); a.onfinish = a.oncancel = () => { try { a.cancel(); } catch(e){} if (fx) { el.style.width = w0; el.style.marginRight = mr0; } }; } catch(e){} }
 function scrTitle(el){ if (!el) return ''; if (el.id === 'sheet') { const h = el.querySelector('#sheetbox h3'); return h ? h.textContent.replace(/[✎]/g, '').trim() : ''; } if (el.id === 'viewer') return '写真'; if (el.classList.contains('pdfql')) return 'PDF'; if (el.classList.contains('dfrv')) return 'どっちが正しい？'; if (el.classList.contains('wpick')) return '作品を付け替える'; if (el.classList.contains('cmpv')) return '書類と作品を見比べる'; if (el.classList.contains('bigv')) return el.dataset.title || '書類'; if (el.classList.contains('docview')) return '書類'; if (el.classList.contains('susv')) return '別の作品かも'; if (el.classList.contains('pimgv')) return 'ハイライト高速化'; if (el.classList.contains('noteview')) { const h = el.querySelector('.nvt'); return h ? h.textContent.trim().slice(0, 20) : 'ノート'; } return ''; }
 const cmpSync = () => { const tp = SCR.length && SCR[SCR.length - 1].isConnected ? SCR[SCR.length - 1] : null; document.body.classList.toggle('cmpon', !!(tp && tp.classList.contains('cmpv'))); document.body.classList.remove('bigon'); }; /* 見比べ画面がいちばん上にある時だけヘッダーを隠す */
-function scrHead(){ const on = SCR.length > 0; document.body.classList.toggle('scr', on); cmpSync(); setTimeout(dwSync, 0); const b = $('#btnMenu');
+function scrHead(){ const on = SCR.length > 0; document.body.classList.toggle('scr', on); { const tp = on ? SCR[SCR.length - 1] : null; document.body.classList.toggle('hidebar', !!(tp && tp.isConnected && (tp.id === 'viewer' || (tp.classList.contains('docview') && !tp.classList.contains('bigv'))))); } /* ヘッダーを隠すのは、写真・書類を全画面で見ているときだけ */ cmpSync(); setTimeout(dwSync, 0); const b = $('#btnMenu');
   if (b) { if (on && b.dataset.scr !== '1') { b.dataset.scr = '1'; b.dataset.mh = b.innerHTML; b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>'; b.setAttribute('aria-label', '戻る'); }
     else if (!on && b.dataset.scr === '1') { b.dataset.scr = ''; b.innerHTML = b.dataset.mh || b.innerHTML; b.setAttribute('aria-label', 'メニューを開く'); b.dataset.st = ''; try { abSync(); } catch(e){} } }
   try { abRender(); } catch(e){} }
