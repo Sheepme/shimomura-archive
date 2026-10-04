@@ -1775,9 +1775,9 @@ body.pgopen.pgtuck:not(.dwopen):not(.scr) .cbar{transform:translateY(calc(100% +
 .devw{margin:0!important;padding:10px 12px 4px;border-top:1px solid var(--line)}.devw .wfixw{margin:0 6px 6px 0}.devw>.wfix{margin:0 0 6px}
 .pen.pen-s{position:static!important;transform:none!important;width:28px;height:28px;margin-left:6px;vertical-align:middle;display:inline-flex}.evfix.wfix{display:inline-block;width:auto;margin:8px 0 2px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:var(--paper);color:var(--sub);font-size:12.5px}
 /* ===== 新しいホーム（2026/10/04）：白地・立体ボタン・ダークモード対応 ===== */
-.hm2{--hg-g:#58A700;--hg-g2:#3F7A00;--hg-gl:#58CC02;--hg-h:#3C3C3C;--hg-t:#4B4B4B;--hg-s:#777777;--hg-f:#AFAFAF;--hg-ln:#E5E5E5;--hg-sf:#F7F7F7;--hg-bg:#FFFFFF;--hg-dash:#CECECE;--hg-lk:#2B70C9;color:var(--hg-t)}
-html[data-theme=dark] .hm2{--hg-h:#F1F7FB;--hg-t:#DCE6EC;--hg-s:#93A6B0;--hg-f:#6F838D;--hg-ln:#37464F;--hg-sf:#202F36;--hg-bg:#131F24;--hg-dash:#52656D;--hg-lk:#49C0F8}
-body.vhome{background:#FFFFFF}html[data-theme=dark] body.vhome{background:#131F24}
+.hm2{--hg-g:#58A700;--hg-g2:#3F7A00;--hg-gl:#58CC02;--hg-h:#3C3C3C;--hg-t:#4B4B4B;--hg-s:#777777;--hg-f:#AFAFAF;--hg-ln:#E5E5E5;--hg-sf:#F7F7F7;--hg-bg:#FFFFFF;--hg-dash:#CECECE;--hg-lk:#2B70C9;--hg-w:#C62828;color:var(--hg-t)}
+html[data-theme=dark] .hm2{--hg-h:var(--ink);--hg-t:var(--ink);--hg-s:var(--sub);--hg-f:var(--faint);--hg-ln:var(--line);--hg-sf:var(--paper);--hg-bg:var(--bg);--hg-dash:var(--faint);--hg-lk:#6CB4FF;--hg-w:#FF8A80}
+html:not([data-theme=dark]) body.vhome{background:#FFFFFF}
 .hm2 .hg-date{margin:0;font-size:15px;font-weight:700;color:var(--hg-s)}
 .hm2 .hg-hello{margin:2px 0 18px;font-size:clamp(25px,7.4vw,30px);font-weight:800;line-height:1.25;color:var(--hg-h);text-wrap:balance}
 .hm2 .hg-card{display:flex;flex-direction:column;gap:12px;margin:0 0 20px;padding:18px;border-radius:20px;border:2px solid var(--hg-ln);border-bottom-width:5px;background:var(--hg-bg)}
@@ -1809,15 +1809,14 @@ body.vhome{background:#FFFFFF}html[data-theme=dark] body.vhome{background:#131F2
 .hm2 .hg-t{display:flex;flex-direction:column;gap:4px;min-width:0;padding:0;border:0;background:none;font:inherit;text-align:center;cursor:pointer}
 .hm2 .hg-ph{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;aspect-ratio:1;max-width:100%;border-radius:12px;overflow:hidden;background:var(--hg-sf)}
 .hm2 .hg-ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.hm2 .hg-t.hg-miss .hg-ph img{opacity:.3}
 .hm2 .hg-t.hg-nop .hg-ph{box-sizing:border-box;border:2px dashed var(--hg-dash);color:var(--hg-s)}
 .hm2 .hg-t.hg-nop svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .hm2 .hg-t.hg-nop small{font-size:11px;font-weight:800}
 .hm2 .hg-ok{position:absolute;right:4px;top:4px;width:22px;height:22px;border-radius:50%;background:var(--hg-gl);border:2px solid #FFFFFF;display:grid;place-items:center}
 .hm2 .hg-ok svg{width:12px;height:12px;fill:none;stroke:#FFFFFF;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
 .hm2 .hg-lb{position:absolute;left:4px;right:4px;bottom:5px;padding:2px 4px;border-radius:8px;background:var(--hg-bg);color:var(--hg-h);font-size:12px;font-weight:800;line-height:1.3}
-.hm2 .hg-no{font-size:13px;font-weight:700;color:var(--hg-f);font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hm2 .hg-t.hg-done .hg-no{color:var(--hg-h)}
+.hm2 .hg-ms{margin-top:-3px;font-size:12px;font-weight:700;line-height:1.35;color:var(--hg-w)}
+.hm2 .hg-no{font-size:13px;font-weight:700;color:var(--hg-h);font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hm2 .hg-link{align-self:flex-start;padding:4px 0;border:0;background:none;font:inherit;font-size:17px;font-weight:800;color:var(--hg-lk);cursor:pointer}
 .hm2 .hg-row{display:flex;align-items:center;gap:12px;width:100%;min-height:66px;padding:10px 14px;box-sizing:border-box;border-radius:16px;border:2px solid var(--hg-ln);border-bottom-width:4px;background:var(--hg-bg);color:var(--hg-h);font:inherit;text-align:left;cursor:pointer}
 .hm2 .hg-ic{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:#FFFFFF}
@@ -1827,6 +1826,8 @@ body.vhome{background:#FFFFFF}html[data-theme=dark] body.vhome{background:#131F2
 .hm2 .hg-more summary{padding:12px 4px;font-size:16px;font-weight:800;color:var(--hg-s);cursor:pointer}
 .hm2 .hg-more .todos{margin-top:6px}
 .hm2 .mmadd{white-space:nowrap}
+.qzinfo{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:17px;line-height:1.5;color:var(--ink)}
+.qzinfo li{padding:6px 12px;border-radius:10px;background:var(--wash)}
 </style>
 </head>
 <body>
@@ -1896,7 +1897,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'e23dfdc11e', APP_URL = location.origin + location.pathname;
+const BUILD = 'aeed92282a', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2299,6 +2300,10 @@ const IC = {
   ai:'<path d="M5 4.5h14a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2h-7l-4 3v-3H5a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2z"/>'
 };
 const ico = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${IC[k]}</svg>`;
+/* 今日の10作品：答えやすい作品から（写真があって場所がない → 写真があって名前がない → 写真はないが名前がわかる → 写真があってそろっている → そのほか） */
+function hgPick(n){ const all = qzTargets('all'), W = no => workOf(no) || {}, g = [[], [], [], [], []];
+  all.forEach(no => { const w = W(no), ph = hasPh(no); g[ph && !hasLoc(w) ? 0 : ph && !hasName(w) ? 1 : !ph && hasName(w) ? 2 : ph ? 3 : 4].push(no); });
+  return [].concat(...g).slice(0, n); }
 function renderHome(){
   const OTn = no => /^[YHZ]\d{3,}$/.test(String(no));
   const W = S.works.filter(w => !OTn(w['作品番号']) && !['廃棄','統合済み'].includes(w['所在区分']));
@@ -2306,15 +2311,16 @@ function renderHome(){
   const N = W.length, nDone = W.filter(done).length;
   const nPh = W.filter(w => !hasPh(w['作品番号'])).length, nNm = W.filter(w => !hasName(w)).length, nLc = W.filter(w => !hasLoc(w)).length;
   const nDf = (S.docs||[]).filter(d => d['状態']==='登録済み').reduce((s, d) => s + (docRes(d)['食い違い']||[]).filter(x => !x.r).length, 0);
-  /* 図鑑は50点ずつ。最初は、まだそろっていない作品がある所から */
-  const PG = 50, pages = Math.max(1, Math.ceil(N / PG));
-  if (S.hgPage == null || S.hgPage >= pages) { const i = W.findIndex(w => !done(w)); S.hgPage = i < 0 ? 0 : Math.floor(i / PG); }
-  const P = W.slice(S.hgPage * PG, S.hgPage * PG + PG), pDone = P.filter(done).length;
+  /* 図鑑の一覧は、まだそろっていない作品だけ（40点ずつ） */
+  const M = W.filter(w => !done(w)), PG = 40, pages = Math.max(1, Math.ceil(M.length / PG));
+  if (S.hgPage == null || S.hgPage >= pages) S.hgPage = 0;
+  const P = M.slice(S.hgPage * PG, S.hgPage * PG + PG);
   const OK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
   const CAM = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.6-2.2h6.8L17 8h3v11H4z"/><circle cx="12" cy="13.2" r="3.6"/></svg>';
-  const tile = w => { const no = w['作品番号'], ph = hasPh(no), ok = done(w), lb = (hasName(w) ? '' : '名前？') + (hasLoc(w) ? '' : '場所？');
-    return `<button type="button" class="hg-t ${ok ? 'hg-done' : ph ? 'hg-miss' : 'hg-nop'}" data-hgw="${esc(no)}" aria-label="${esc(nol(no) + ' ' + (w['作品名']||'無題') + (ok ? '（そろっています）' : ''))}">
-      <span class="hg-ph">${ph ? thumbHTML(no, 200) : CAM + '<small>写真なし</small>'}${ok ? `<i class="hg-ok">${OK}</i>` : ''}${ph && lb ? `<b class="hg-lb">${lb}</b>` : ''}</span><span class="hg-no">${esc(nol(no))}</span></button>`; };
+  const tile = w => { const no = w['作品番号'], ph = hasPh(no), lb = [ph ? '' : '写真', hasName(w) ? '' : '名前', hasLoc(w) ? '' : '場所'].filter(Boolean).join('・');
+    const miss = [ph ? '' : '写真', hasName(w) ? '' : '作品名', hasLoc(w) ? '' : '保管場所'].filter(Boolean).join('・');
+    return `<button type="button" class="hg-t ${ph ? 'hg-miss' : 'hg-nop'}" data-hgw="${esc(no)}" aria-label="${esc(nol(no) + ' ' + (w['作品名']||'無題') + '：' + miss + 'がありません')}">
+      <span class="hg-ph">${ph ? thumbHTML(no, 200) : CAM + '<small>写真なし</small>'}</span><span class="hg-no">${esc(nol(no))}</span><span class="hg-ms">${lb}がない</span></button>`; };
   const NAMEIC = '<path d="M3.5 12.5V5.5a2 2 0 0 1 2-2h7l8 8-9 9-8-8z"/><circle cx="8" cy="8" r="1.6"/>';
   const row = (attr, color, ic, label, n) => `<button type="button" class="hg-row" ${attr}><span class="hg-ic" style="background:${color}"><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg></span><b>${label}</b><em>${n ? n : '✓'}</em></button>`;
   /* 以前の「やること」のうち、上の一覧にないもの */
@@ -2335,11 +2341,11 @@ function renderHome(){
       <div class="hg-numrow"><span class="hg-num">${nDone}</span><span class="hg-of">/ ${N}点 そろった</span></div>
       <div class="hg-bar"><i style="width:${Math.round(nDone / Math.max(N, 1) * 1000) / 10}%"></i></div>
       <p class="hg-note">写真・作品名・保管場所の3つがそろうと、図鑑にのります</p></section>
-    <section class="hg-sec" id="hgGrid"><div class="hg-rh"><button type="button" class="hg-pg" data-hgpg="-1" ${S.hgPage ? '' : 'disabled'} aria-label="前の50点">‹</button>
-      <div><h3>${P.length ? esc(nol(P[0]['作品番号'])) + '〜' + esc(nol(P[P.length - 1]['作品番号'])) : ''}</h3><small>${pDone} / ${P.length} そろった</small></div>
-      <button type="button" class="hg-pg" data-hgpg="1" ${S.hgPage < pages - 1 ? '' : 'disabled'} aria-label="次の50点">›</button></div>
-      <div class="hg-grid">${P.map(tile).join('')}</div>
-      <p class="hg-note">はっきりした写真が、そろった作品です。うすい写真は足りないものがあります。押すとその作品のページを開きます。</p>
+    <section class="hg-sec" id="hgGrid"><div class="hg-rh"><button type="button" class="hg-pg" data-hgpg="-1" ${S.hgPage ? '' : 'disabled'} aria-label="前のページ">‹</button>
+      <div><h3>まだそろっていない作品</h3><small>${M.length}点・${S.hgPage + 1} / ${pages}ページ</small></div>
+      <button type="button" class="hg-pg" data-hgpg="1" ${S.hgPage < pages - 1 ? '' : 'disabled'} aria-label="次のページ">›</button></div>
+      ${M.length ? `<div class="hg-grid">${P.map(tile).join('')}</div>` : '<p class="hg-note">ぜんぶそろいました！</p>'}
+      <p class="hg-note">ここには、まだ足りないものがある作品だけを出しています。番号の下に、足りないものを出しています。押すとその作品のページを開きます。</p>
       <button type="button" class="hg-link" data-v="works">すべての作品を見る</button></section>
     ${ed ? `<section class="hg-sec"><h2 class="hg-h2">ひとつずつ片付ける</h2>
       ${row('data-bsgo="noloc"', '#1CB0F6', IC.loc, '場所がわからない', nLc)}${row('data-bsgo="noname"', '#CE82FF', NAMEIC, '作品名がない', nNm)}${row('data-bsgo="nophoto"', '#FF4B4B', IC.photo, '写真がない', nPh)}${row('data-todo="doc"', '#2B70C9', IC.doc, '書類と台帳の違い', nDf)}
@@ -2349,7 +2355,7 @@ function renderHome(){
   window.scrollTo(0, 0);
   if (!renderHome.bound) { renderHome.bound = 1;
     document.addEventListener('click', e => { if (S.view !== 'home') return;
-      if (e.target.closest('[data-hg10]')) { const L = qzTargets('all').slice(0, 10); if (!L.length) return toast('確認する作品はありません'); return startQuiz('all', L); }
+      if (e.target.closest('[data-hg10]')) { const L = hgPick(10); if (!L.length) return toast('確認する作品はありません'); return startQuiz('all', L); }
       const p = e.target.closest('[data-hgpg]'); if (p) { S.hgPage = Math.max(0, (S.hgPage || 0) + (+p.dataset.hgpg)); renderHome(); const g = $('#hgGrid'); if (g) g.scrollIntoView({ block: 'start' }); return; }
       const t = e.target.closest('[data-hgw]'); if (t) openWork(t.dataset.hgw); }); }
 }
@@ -3491,8 +3497,13 @@ function startQuiz(first, nos){
   qzDraw(true);
 }
 function endQuiz(){ stopMic(); const el = $('#quiz'); if (el) el.classList.add('hidden'); document.body.style.overflow = ''; sayStop(); Q = null; refreshData().catch(() => {}); }
+/* 写真がない作品の手がかり（サイズ・年・画材・台帳の場所・展覧会など） */
+function qzClues(no, w){ const loc = w['所在'] || (w['所在区分'] && w['所在区分'] !== '不明' ? w['所在区分'] : '');
+  const L = [w['制作年'], dimTxt(w, true), w['画材'], loc ? '台帳の場所：' + loc : ''].filter(Boolean)
+    .concat((eventBy[no]||[]).filter(e => ['出品','画集掲載','寄贈','寄託','委託','販売','貸出'].includes(e['種類'])).slice(0, 2).map(evText));
+  return L.length ? `<ul class="qzinfo">${L.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<small>台帳に手がかりになる情報がありません</small>'; }
 function qzHead(no, small){ const w = workOf(no) || {}, ph = photoBy[no] || [];
-  return `<div class="qzmedia ${small?'sm':''}">${ph.length ? thImg(ph[0]['ファイルID'], 800) : `<div class="qznoph"><b>${esc(w['作品名'] || '無題')}</b><small>写真はまだありません</small></div>`}</div>
+  return `<div class="qzmedia ${small?'sm':''}">${ph.length ? thImg(ph[0]['ファイルID'], 800) : `<div class="qznoph"><b>${esc(w['作品名'] || '作品名なし')}</b><small>写真はまだありません</small>${qzClues(no, w)}</div>`}</div>
     <div class="qztitle"><b>${esc(w['作品名'] || '無題')}</b><span>${esc(nol(no))}${w['制作年'] ? '・' + esc(w['制作年']) : ''}</span></div>`; }
 const QZSTAT = () => { const d = new Date().toISOString().slice(0,10); let o = {}; try { o = JSON.parse(localStorage.getItem('smr_qzday')||'{}'); } catch(e){} return o.d===d ? o : {d, n:0}; };
 function qzCount(){ const o = QZSTAT(); o.n++; try { localStorage.setItem('smr_qzday', JSON.stringify(o)); } catch(e){} return o.n; }
