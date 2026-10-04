@@ -1923,6 +1923,16 @@ html[data-theme=dark] .fdb-tx .fdb-r{color:#FFC800}.fdb-b{position:sticky;bottom
 .qc-rec small{font-size:13px;font-weight:800;color:#A56A00}.qc-rec b{font-size:18px;color:#3C3C3C}.qc-rec p{margin:0;font-size:14px;line-height:1.55}
 .qc-rec .qc-rt{font-size:16px;font-weight:700;color:#3C3C3C}.qc-rec .qc-rt span{font-weight:500;margin-left:6px}.qc-rec .qc-rp,.qc-rec .qc-rm{font-size:13px;color:#6B6450}
 .qc-rec .qc-rw{margin-top:4px;font-size:13px;line-height:1.5;color:#6B6450}.qc-rec a{align-self:flex-start;margin-top:2px;font-size:15px;font-weight:800;color:#1F5FAD;text-decoration:none}
+.qc-cmp{flex:none;display:grid;grid-template-columns:5.8em minmax(0,1fr) minmax(0,1fr);border:2px solid var(--hg-ln);border-radius:16px;overflow:hidden;font-size:14px;line-height:1.45}
+.qc-cr{display:contents}.qc-cr>span{padding:9px 10px;border-top:1px solid var(--hg-ln);color:var(--hg-h);overflow-wrap:anywhere}.qc-cr>span+span{border-left:1px solid var(--hg-ln)}
+.qc-cr.qc-chd>span{border-top:0;background:var(--hg-sf);font-size:12px;font-weight:800;color:var(--hg-s);padding:7px 10px}
+.qc-cl{font-weight:700;color:var(--hg-s)!important;display:flex;flex-direction:column;gap:3px}.qc-cl i{font-style:normal;font-size:11px;font-weight:800;align-self:flex-start;white-space:nowrap;padding:1px 7px;border-radius:999px;background:var(--hg-sf);color:var(--hg-s)}
+.qc-cr em{font-style:normal;color:var(--hg-s)}
+.qc-cr.ok .qc-cl i,.qc-cr.same .qc-cl i{background:#D7FFB8;color:#3F7A00}.qc-cr.near .qc-cl i{background:#FFF1C2;color:#8A5A00}.qc-cr.ng .qc-cl i{background:#FFDFE0;color:#C1121F}
+.qc-cr.ng>span{background:rgba(255,75,75,.07)}
+html[data-theme=dark] .qc-cr.ok .qc-cl i,html[data-theme=dark] .qc-cr.same .qc-cl i{background:#2B4A12;color:#A8E07A}html[data-theme=dark] .qc-cr.near .qc-cl i{background:#4A3B10;color:#FFD866}html[data-theme=dark] .qc-cr.ng .qc-cl i{background:#4D1C1F;color:#FF8A8F}
+html[data-theme=dark] .qc-cr.ng>span{background:rgba(255,90,90,.10)}
+.qc-cmps{margin:-4px 2px 0;font-size:13px;color:var(--hg-s)}
 .qc-rec.biz{border-color:var(--hg-ln);background:var(--hg-sf)}.qc-rec.biz small{color:var(--hg-s)}
 html[data-theme=dark] .qc-rec{background:#3D3418;border-color:#7A6420;color:#E8E1C8}html[data-theme=dark] .qc-rec b,html[data-theme=dark] .qc-rec .qc-rt{color:#FFF4D0}
 html[data-theme=dark] .qc-rec small{color:#FFC800}html[data-theme=dark] .qc-rec .qc-rw,html[data-theme=dark] .qc-rec .qc-rp,html[data-theme=dark] .qc-rec .qc-rm{color:#CFC6A8}html[data-theme=dark] .qc-rec a{color:#6CB4FF}
@@ -2024,7 +2034,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '96a605ab03', APP_URL = location.origin + location.pathname;
+const BUILD = 'cc0062e603', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2639,6 +2649,27 @@ function fdWhere(f){ const u = String(f['根拠URL'] || ''), p = f['相手先'] 
   if (/jmapps\.ne\.jp/.test(u)) return p + 'の収蔵品データベースに、この記録がありました。';
   if (f['区分'] === '一次') return p.replace(/（.*$/, '') + 'のホームページに、この記録がありました。';
   return p.replace(/（.*$/, '') + 'のページにあった記録です。業者の記録なので、本物かどうかは確かめていません。'; }
+/* 台帳の作品と、見つかった記録を並べてくらべる（同じ・ほぼ同じ・近い・ちがう） */
+function fdCmpHTML(f, w, cur, place, mus){
+  const yy = v => { const y = fdY(v); return y ? y + '年' : String(v || '').trim(); };
+  const T = fdTitles(f['作品名']); let ts = 0; fdWorkTitles(w).forEach(x => { const n = fdN(x); T.forEach(([t, k]) => { ts = Math.max(ts, fdSim(t, n) * k); }); });
+  const y1 = fdY(w['制作年']), y2 = fdY(f['制作年']), z = fdSz(f['サイズ']), h = parseFloat(w['高さcm']), wd = parseFloat(w['幅cm']);
+  let ze = null; if (z && h > 0 && wd > 0) { const r = (a, b) => Math.abs(a - b) / Math.max(a, b); ze = Math.min(Math.max(r(z[0], h), r(z[1], wd)), Math.max(r(z[0], wd), r(z[1], h))); }
+  const m1 = String(w['画材'] || '').normalize('NFKC').replace(/[\s、,，・/／]/g, ''), m2 = String(f['技法・素材'] || '').normalize('NFKC').replace(/[\s、,，・/／]/g, '');
+  const mset = (a, b) => { if (!a || !b) return 0; const A = new Set(a), B = new Set(b); let n = 0; A.forEach(x => { if (B.has(x)) n++; }); return n / Math.max(A.size, B.size); };
+  const pa = fdMus(cur), pb = fdMus(place);
+  const R = [
+    ['作品名', w['作品名'], f['作品名'], !w['作品名'] || !f['作品名'] ? '' : ts >= .95 ? 'ok' : ts >= .55 ? 'near' : 'ng'],
+    ['制作年', yy(w['制作年']), yy(f['制作年']), !y1 || !y2 ? '' : y1 === y2 ? 'ok' : Math.abs(y1 - y2) <= 1 ? 'near' : 'ng'],
+    ['サイズ', h > 0 && wd > 0 ? w['高さcm'] + '×' + w['幅cm'] + ' cm' : '', f['サイズ'] ? f['サイズ'] + (/\d$/.test(f['サイズ']) ? ' cm' : '') : '', ze == null ? '' : ze <= .005 ? 'ok' : ze <= .04 ? 'same' : ze <= .1 ? 'near' : 'ng'],
+    ['画材', w['画材'], f['技法・素材'], !m1 || !m2 ? '' : m1 === m2 ? 'ok' : mset(m1, m2) >= .99 ? 'same' : mset(m1, m2) >= .6 ? 'near' : ''],
+    ['場所', cur, mus ? place : '', !mus || !cur ? '' : (pa && pa === pb) || (typeof musSame === 'function' && musSame(cur, place)) ? 'ok' : 'ng']];
+  const LB = { ok: '同じ', same: 'ほぼ同じ', near: '近い', ng: 'ちがう' };
+  const n = R.filter(r => r[3]).length, g = R.filter(r => r[3] && r[3] !== 'ng').length;
+  return `<div class="qc-cmp" role="table" aria-label="台帳と記録のくらべ"><div class="qc-cr qc-chd" role="row"><span role="columnheader">くらべる</span><span role="columnheader">台帳</span><span role="columnheader">${mus ? '美術館の記録' : '販売の記録'}</span></div>
+    ${R.map(([k, a, b, m]) => `<div class="qc-cr ${m}" role="row"><span class="qc-cl" role="rowheader">${k}${m ? `<i>${LB[m]}</i>` : ''}</span><span role="cell">${a ? esc(a) : '<em>—</em>'}</span><span role="cell">${b ? esc(b) : '<em>—</em>'}</span></div>`).join('')}</div>
+    ${n ? `<p class="qc-cmps">くらべられる${n}つのうち、${g}つが合っています</p>` : ''}`;
+}
 function qcDrawFind(el, c){
   const f = fdById(c.id); if (!f || !fdOpen(f)) { QC.i++; return qcDraw(); }
   const mus = f['区分'] === '一次', cand = c.cands[c.j], no = cand && cand.no, w = no ? workOf(no) || {} : {}, ph = no ? photoBy[no] || [] : [];
@@ -2646,16 +2677,15 @@ function qcDrawFind(el, c){
   const go = (a, t) => `<button type="button" class="hg-go" data-qa="${a}">${t}</button>`, sub = (a, t) => `<button type="button" class="hg-btn2" data-qa="${a}">${t}</button>`;
   const facts = [f['制作年'] ? esc(f['制作年']) + (/^\d{4}$/.test(f['制作年']) ? '年' : '') : '', f['サイズ'] ? esc(f['サイズ']) + (/\d$/.test(f['サイズ']) ? ' cm' : '') : ''].filter(Boolean).join('・');
   const rec = `<div class="qc-rec${mus ? '' : ' biz'}"><small>${mus ? '美術館の記録' : '販売の記録'}</small><b>${esc(f['相手先'])}</b>
-    <p class="qc-rt">《${esc(f['作品名'])}》${facts ? `<span>${facts}</span>` : ''}</p>${f['技法・素材'] ? `<p>${esc(f['技法・素材'])}</p>` : ''}${f['番号・来歴'] ? `<p>${esc(f['番号・来歴'])}</p>` : ''}
+    ${no ? '' : `<p class="qc-rt">《${esc(f['作品名'])}》${facts ? `<span>${facts}</span>` : ''}</p>${f['技法・素材'] ? `<p>${esc(f['技法・素材'])}</p>` : ''}`}${f['番号・来歴'] ? `<p>${esc(f['番号・来歴'])}</p>` : ''}
     ${f['担当者・連絡先'] ? `<p class="qc-rp">${esc(f['担当者・連絡先'])}</p>` : ''}${f['メモ'] ? `<p class="qc-rm">メモ：${esc(f['メモ'])}</p>` : ''}
     <span class="qc-rw">どこから：${esc(fdWhere(f))}</span>${f['根拠URL'] ? `<a href="${esc(f['根拠URL'])}" target="_blank" rel="noopener">記録を開く ›</a>` : ''}</div>`;
   let body, q, hint, btm;
   if (no) {
-    const wf = [w['制作年'] ? esc(w['制作年']) + (/^\d{4}$/.test(w['制作年']) ? '年' : '') : '', w['高さcm'] && w['幅cm'] ? esc(w['高さcm']) + ' × ' + esc(w['幅cm']) + ' cm' : ''].filter(Boolean).join('・');
     body = `<p class="qc-sl">台帳の作品${c.cands.length > 1 ? `<span>候補 ${c.j + 1} / ${c.cands.length}</span>` : ''}</p>
     ${ph.length ? `<button type="button" class="qc-dph" id="qcDph" data-qa="dph" aria-label="写真を大きく">${thImg(ph[0]['ファイルID'], QCW)}${wm(ph[0])}${QCZM}</button>` : ''}
     ${ph.length > 1 ? `<div class="qc-dpt">${ph.slice(0, 6).map((p, k) => `<button type="button" class="${k ? '' : 'on'}" data-qa="dpi:${k}">${thImg(p['ファイルID'], 200)}</button>`).join('')}</div>` : ''}
-    <div class="qc-wk"><small>${esc(nol(no))}</small><b>${esc(w['作品名'] || '作品名なし')}</b>${wf ? `<span class="qc-nph">${wf}</span>` : ''}<span class="qc-nph">場所：${esc(cur || 'わからない')}</span>${ph.length ? '' : '<span class="qc-nph">写真はまだありません</span>'}</div>${rec}`;
+    <div class="qc-wk"><small>${esc(nol(no))}</small><b>${esc(w['作品名'] || '作品名なし')}</b>${ph.length ? '' : '<span class="qc-nph">写真はまだありません</span>'}</div>${fdCmpHTML(f, w, cur, place, mus)}${rec}`;
     q = '台帳のこの作品と、同じもの？';
     hint = mus ? (cur && cur !== place ? `同じなら、保管場所を「${place}」にします（いまの台帳：${cur}）` : `同じなら、保管場所を「${place}」にします`) : '同じなら、売りに出ていた記録として残します（場所は変えません）';
     btm = `${go('fd:same', '同じ作品')}<div class="qc-row">${sub('fd:diff', c.j + 1 < c.cands.length ? 'ちがう<br>（次の候補へ）' : 'ちがう作品')}${sub('fd:unk', 'わからない')}</div>`;
