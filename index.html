@@ -1792,7 +1792,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '1c0b632db1', APP_URL = location.origin + location.pathname;
+const BUILD = '9585ebdf0d', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2514,6 +2514,8 @@ function dfAct(t){ if (t.dataset.dfopen) { const [did0, si0] = t.dataset.dfopen.
 function dfReview(list, cur){
   const el = document.createElement('div'); el.className = 'noteview dfrv'; el.innerHTML = '<div class="nvin"></div>'; document.body.appendChild(el); hpush('n'); scrPush(el);
   const box = el.firstChild; let pos = Math.max(0, list.indexOf(cur));
+  try { const pid = k => { const [a, b] = k.split('|'), dd = docById(a), xx = dd && (docRes(dd)['食い違い'] || [])[+b], o = dd && PIMG[docPdfFid(dd)], pg = o && o.pages[(xx && xx.at && xx.at.p) || 1]; return pg && pg.id; };
+    pimgPrefetch([cur].concat(list.filter(k => k !== cur)).map(pid)); } catch(e){}
   const draw = () => { const [did, si] = list[pos].split('|'), i = +si, d = docById(did), x = d && (docRes(d)['食い違い'] || [])[i];
     if (!d || !x) { box.innerHTML = '<p class="hint">見つかりませんでした</p>'; return; }
     const w = x.t === 'w' && workOf(x.id), r = docRes(d), rest = list.filter(k => { const [a, b] = k.split('|'), dd = docById(a), xx = dd && (docRes(dd)['食い違い'] || [])[+b]; return xx && !xx.r; }).length;
@@ -4647,7 +4649,9 @@ function scrZ(){ SCR.forEach((el, i) => { el.style.zIndex = 100 + i * 2; }); }
 function scrUnder(){ return SCR[SCR.length - 1] || (!$('#page').classList.contains('hidden') ? $('#page') : $('#main')); }
 /* 動かすときは transform を使わず左の余白で動かす（iPhoneでスクロールする画面に transform をかけると、スクロールできなくなることがあるため） */
 function scrAnim(el, from, to){ if (!el) return; try { const w = el.getBoundingClientRect().width || innerWidth, px = v => Math.round(parseFloat(v) / 100 * w) + 'px';
-  const a = el.animate([{ marginLeft: px(from) }, { marginLeft: px(to) }], { duration: SCR_MS, easing: SCR_EASE }); a.onfinish = a.oncancel = () => { try { a.cancel(); } catch(e){} }; } catch(e){} }
+  /* 左の余白を動かすと、画面に張り付いた画面は動いている間だけ横幅が縮む（中身が細い幅で組まれて崩れる）ので、幅を固定してから動かす */
+  const fx = /fixed|absolute/.test(getComputedStyle(el).position), w0 = el.style.width, mr0 = el.style.marginRight; if (fx) { el.style.width = w + 'px'; el.style.marginRight = '0'; }
+  const a = el.animate([{ marginLeft: px(from) }, { marginLeft: px(to) }], { duration: SCR_MS, easing: SCR_EASE }); a.onfinish = a.oncancel = () => { try { a.cancel(); } catch(e){} if (fx) { el.style.width = w0; el.style.marginRight = mr0; } }; } catch(e){} }
 function scrTitle(el){ if (!el) return ''; if (el.id === 'sheet') { const h = el.querySelector('#sheetbox h3'); return h ? h.textContent.replace(/[✎]/g, '').trim() : ''; } if (el.id === 'viewer') return '写真'; if (el.classList.contains('pdfql')) return 'PDF'; if (el.classList.contains('dfrv')) return 'どっちが正しい？'; if (el.classList.contains('wpick')) return '作品を付け替える'; if (el.classList.contains('cmpv')) return '書類と作品を見比べる'; if (el.classList.contains('docview')) return '書類'; if (el.classList.contains('susv')) return '別の作品かも'; if (el.classList.contains('pimgv')) return 'ハイライト高速化'; if (el.classList.contains('noteview')) { const h = el.querySelector('.nvt'); return h ? h.textContent.trim().slice(0, 20) : 'ノート'; } return ''; }
 const cmpSync = () => document.body.classList.toggle('cmpon', !!(SCR.length && SCR[SCR.length - 1].classList.contains('cmpv') && SCR[SCR.length - 1].isConnected)); /* 見比べ画面がいちばん上にある時だけヘッダーを隠す */
 function scrHead(){ const on = SCR.length > 0; document.body.classList.toggle('scr', on); cmpSync(); setTimeout(dwSync, 0); const b = $('#btnMenu');
@@ -5687,6 +5691,9 @@ let PIMG = {}; const PIU = {}, PDOCI = {};
 function pimgIndex(){ PIMG = {}; Object.keys(PDOCI).forEach(k => delete PDOCI[k]); (S.pimg || []).forEach(([did, pdf, p, id, w, h, ver]) => { const d = docById(did); if (!d || docPdfFid(d) !== String(pdf)) return; /* 書類の情報を直しても（更新日時が変わっても）、PDFが同じなら画像はそのまま使える */
   const o = PIMG[pdf] = PIMG[pdf] || { did, pages: {}, n: 0 }; o.pages[p] = { id, w, h }; o.n = Math.max(o.n, +p); });
   Object.keys(PIMG).forEach(k => { const o = PIMG[k]; for (let i = 1; i <= o.n; i++) if (!o.pages[i]) { delete PIMG[k]; break; } }); }
+/* 何件も続けて見る画面では、使うページの画像を先にまとめて取っておく（1回の通信で10枚まで） */
+function pimgPrefetch(ids){ ids = [...new Set(ids)].filter(id => id && !PIU[id]); for (let i = 0; i < ids.length; i += 10) { const g = ids.slice(i, i + 10), pr = call('getThumbs', g, 1600);
+  g.forEach(id => { PIU[id] = pr.then(m => { const u = m && m[id]; if (!u) throw new Error('no image'); return u; }).catch(e => { delete PIU[id]; throw e; }); PIU[id].catch(() => {}); }); } }
 function pimgUrl(id){ return PIU[id] || (PIU[id] = call('getThumbs', [id], 1600).then(m => { const u = m && m[id]; if (!u) throw new Error('no image'); return u; }).catch(e => { delete PIU[id]; throw e; })); }
 function imgDoc(o){ return { numPages: o.n, img: true, getPage: async n => { const pg = o.pages[n]; let im = null; const load = () => im || (im = pimgUrl(pg.id).then(u => new Promise((ok, ng) => { const x = new Image(); x.onload = () => ok(x); x.onerror = ng; x.src = u; })));
   return { getViewport: ({ scale }) => ({ width: pg.w * scale, height: pg.h * scale }), render: ({ canvasContext: c, viewport: vp }) => ({ promise: load().then(x => { c.fillStyle = '#fff'; c.fillRect(0, 0, vp.width, vp.height); c.drawImage(x, 0, 0, vp.width, vp.height); }) }), prefetch: load }; } }; }
