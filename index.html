@@ -1773,6 +1773,7 @@ body.bigon #top{display:none!important}body.bigon .bigv{padding-top:0!important;
 body.pgopen #nav .cbin,body.scr #nav .cbin{display:none!important}body.pgopen #nav,body.scr #nav{justify-content:flex-end;pointer-events:none}body.pgopen #nav .cbask,body.scr #nav .cbask{pointer-events:auto;margin-left:auto!important;order:9}
 body.pgopen.pgtuck:not(.dwopen):not(.scr) .cbar{transform:translateY(calc(100% + 24px + env(safe-area-inset-bottom)));opacity:0;pointer-events:none}body.pgopen .cbar{transition:transform .25s,opacity .25s}
 .devw{margin:0!important;padding:10px 12px 4px;border-top:1px solid var(--line)}.devw .wfixw{margin:0 6px 6px 0}.devw>.wfix{margin:0 0 6px}
+.pen.pen-s{position:static!important;transform:none!important;width:28px;height:28px;margin-left:6px;vertical-align:middle;display:inline-flex}.evfix.wfix{display:inline-block;width:auto;margin:8px 0 2px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:var(--paper);color:var(--sub);font-size:12.5px}
 </style>
 </head>
 <body>
@@ -1842,7 +1843,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '7cffa34f8f', APP_URL = location.origin + location.pathname;
+const BUILD = 'c765b5b1a5', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2533,7 +2534,7 @@ function evSrc(btn){ const e = (S.events || []).find(x => x['出来事ID'] === b
   const docs = evDocs(e).map(docById).filter(d => d && docRes(d).PDF); if (!docs.length) return toast('この来歴にはPDFの書類がありません');
   let at = null; try { at = JSON.parse(e['位置'] || 'null'); } catch(x){} if (!(at && at.p)) at = null;
   btn.classList.add('on'); btn.textContent = '閉じる ↑'; box.className = 'dfx evx evsrcbox open';
-  box.innerHTML = (docs.length > 1 ? `<div class="evsdocs">${docs.map((d, i) => `<button type="button" data-evsd="${esc(d['書類ID'])}">${esc(docTitle(d))}</button>`).join('')}</div>` : `<p class="evsdt">📄 ${esc(docTitle(docs[0]))}</p>`) + '<span data-dfhl="evs" hidden></span>' + `<button type="button" class="evfix" data-evedit="${esc(e['出来事ID'])}">✎ 書類と違っていたら、この来歴を直す</button>`;
+  box.innerHTML = (docs.length > 1 ? `<div class="evsdocs">${docs.map((d, i) => `<button type="button" data-evsd="${esc(d['書類ID'])}">${esc(docTitle(d))}</button>`).join('')}</div>` : `<p class="evsdt">📄 ${esc(docTitle(docs[0]))}</p>`) + '<span data-dfhl="evs" hidden></span>' + `<button type="button" class="wfix evfix" data-evedit="${esc(e['出来事ID'])}">日付・内容が違う？</button>`;
   box._show = did => { const d = docs.find(x => x['書類ID'] === did) || docs[0]; box.querySelectorAll('[data-evsd]').forEach(b => b.classList.toggle('on', b.dataset.evsd === d['書類ID']));
     box.classList.remove('dfopen'); box.querySelectorAll('.dfprev').forEach(x => x.remove());
     dfPreview(box, d, { doc: e['相手先・場所'] || e['日付'] || '', at: d === docs[0] ? at : null }, true); };
@@ -3117,14 +3118,14 @@ function sheetDocReview(id){ try { const d0 = docById(id); if (d0) pdfPrefetch([
     const noteMode = !!d['全文あり'] && window.innerWidth < 1000; // ノートがあるスマホでは、原本の画像は押したときだけ読み込む
     S.sheetDoc = null; setTimeout(() => { S.sheetDoc = id; }, 0);
     openSheet(`<h3 class="dttl">${esc(docTitle(d))}<button type="button" class="edbtn" id="dvTtl" aria-label="タイトルを直す">✎</button></h3>${noteMode ? `<button type="button" class="act main pdfopen dvnote" data-note="${esc(id)}">📖 ノートで読む（資料の文字）</button><button type="button" class="act pdfopen" id="dvImgs">🖼 原本の画像を見る（${pg.length}枚）</button><div id="dvImgsBox"></div>` : imgs}
+      ${d['全文あり'] && !noteMode ? `<button type="button" class="act main pdfopen dvnote" data-note="${esc(id)}">📖 ノートで読む（資料の文字）</button>` : ''}
+      ${driveBtn(pg[0], pg.length > 1 && !r.PDF ? '元のファイルを確認（1枚目）' : '')}<!-- 見る方法（ノート・元のファイル）は上にまとめる -->
       <p class="hint">${esc([r['日付'], r['相手先'] && r.PDF ? r['相手先'] : '', r['要約']].filter(Boolean).join('　'))}</p>
       ${r['要確認'] ? `<div class="dchk"><b>⚠ 要確認</b>${esc(r['要確認'])}<button type="button" class="act" id="dvChk">確認した</button></div>` : ''}
       ${(r['食い違い']||[]).length ? `<h3 class="sec" style="font-size:18px">台帳との食い違い</h3><p class="hint">押すと、書類と作品を並べて見比べる画面が開き、「どっちが正しい？」を決められます。</p>${r['食い違い'].map((x, i) => dfCard(d, x, i)).join('')}` : ''}
       ${docEvHTML(d)}${docTocHTML(d)}
       ${(r['補完']||[]).length ? `<details class="dfill"><summary>この書類から自動で埋めた項目（${r['補完'].length}件）</summary>${r['補完'].map(x => `<p>${esc(x.name)}：${esc(x.f)}　→　${esc(x.v)}</p>`).join('')}</details>` : ''}
       ${d['メモ'] ? `<p class="hint dmemo">📝 ${esc(d['メモ'])}</p>` : ''}
-      ${d['全文あり'] && !noteMode ? `<button type="button" class="act main pdfopen dvnote" data-note="${esc(id)}">📖 ノートで読む（資料の文字）</button>` : ''}
-      ${driveBtn(pg[0], pg.length > 1 && !r.PDF ? '元のファイルを確認（1枚目）' : '')}
       ${d['保管番号'] ? `<button type="button" class="act pdfopen" data-spine="${esc(d['保管番号'])}">📦 ${esc(d['保管番号'])} の背表紙を見る</button><button type="button" class="act pdfopen" data-dfgo="${esc(d['保管番号'])}">📁 このファイルを開く（同じフォルダの資料）</button>` : ''}
       ${r['展覧会ID'] && (S.exhibits||[]).some(e => e['展覧会ID']===r['展覧会ID']) ? `<p><button type="button" class="golink" data-ex="${esc(r['展覧会ID'])}">展覧会：${esc((S.exhibits.find(e => e['展覧会ID']===r['展覧会ID'])||{})['名称']||'')} ›</button></p>` : ''}
       ${String(r['資料ID']||'').split(',').filter(x => (S.pubs||[]).some(p => p['資料ID']===x)).map(x => `<p><button type="button" class="golink" data-pb="${esc(x)}">画集・本：${esc((S.pubs.find(p => p['資料ID']===x)||{})['タイトル']||x)} ›</button></p>`).join('')}
@@ -3132,7 +3133,7 @@ function sheetDocReview(id){ try { const d0 = docById(id); if (d0) pdfPrefetch([
         : '<p class="hint">この書類は「登録しない」にしました。</p><button class="act" id="dvAgain" style="width:100%">やっぱり登録する</button>'}
       `); /* 書類は見るページなので、下の「閉じる」バー（編集画面の形）は出さない。戻るは左上の「<」 */
     wireDocImgs(); hydrateDocs($('#sheetbox'));
-    document.querySelectorAll('#sheetbox [data-ex],#sheetbox [data-pb]').forEach(b => b.addEventListener('click', () => { SNAP.v = null; closeSheet(); }));
+    /* 展覧会・資料へのリンクは、全体のクリック処理で「書類から開く（戻ると書類へ）」にする */
     document.querySelectorAll('#sheetbox [data-note]').forEach(b => b.onclick = () => noteView(b.dataset.note, b.dataset.np));
     /* ページの目次：画面は移らず、ビューアの該当ページへ（パソコンは左のビューア、スマホは目次のすぐ下に出す） */
     document.querySelectorAll('#sheetbox [data-tocp]').forEach(b => b.onclick = () => { const pn = +b.dataset.tocp, L = document.querySelector('#sheetbox.split .dsv');
@@ -3146,11 +3147,13 @@ function sheetDocReview(id){ try { const d0 = docById(id); if (d0) pdfPrefetch([
     document.querySelectorAll('#sheetbox button[data-dev]').forEach(b => b.onclick = () => { const e = (S.events || []).find(x => x['出来事ID'] === b.dataset.dev); if (!e) return;
       let at = null; try { at = JSON.parse(e['位置'] || 'null'); } catch(x){} if (!(at && at.p)) at = null; const q = e['相手先・場所'] || e['日付'] || '', L = document.querySelector('#sheetbox.split .dsv');
       const was = b.classList.contains('on'); document.querySelectorAll('#sheetbox .dtr.on').forEach(x => x.classList.remove('on')); devUnwrap();
-      if (L) { b.classList.add('on'); const a = [at ? at.p : 1, at ? at.box || null : null, at && at.box ? null : { msg: [e['日付'], e['種類'], q].filter(Boolean).join(' ') + (at ? ' のところ' : '（場所の記録がないので1ページ目）') }]; if (L._goto) L._goto(...a); else L._pend = a; return; }
-      if (was) return; b.classList.add('on'); const box = document.createElement('div'); box.className = 'devbox'; b.before(box); box.appendChild(b); /* 来歴と書類を1つの枠にまとめる */
-      { const no = String(e['作品番号'] || ''), w = document.createElement('div'); w.className = 'wl2 devw'; /* 作品の確認と、読み違いの直し（ひも付けのときと同じ形） */
+      document.querySelectorAll('#sheetbox .devw').forEach(x => x.remove());
+      const devW = () => { const no = String(e['作品番号'] || ''), w = document.createElement('div'); w.className = 'wl2 devw'; /* 作品の確認と、読み違いの直し（ひも付けのときと同じ形） */
         w.innerHTML = (no ? `<span class="wfixw"><button type="button" class="wchip" data-no="${esc(no)}">${esc(wLabel(no) || nol(no))}</button>${canEdit() ? `<button type="button" class="wfix" data-wfix="${esc(id)}|${esc(no)}">作品が違う？</button>` : ''}</span>` : '') + (canEdit() ? `<button type="button" class="wfix" data-evfix="${esc(e['出来事ID'])}|${esc(id)}">日付・内容が違う？</button>` : '');
-        if (w.innerHTML) box.appendChild(w); }
+        return w.innerHTML ? w : null; };
+      if (L) { if (!was) { const w = devW(); if (w) b.after(w); } else { b.classList.remove('on'); return; } b.classList.add('on'); const a = [at ? at.p : 1, at ? at.box || null : null, at && at.box ? null : { msg: [e['日付'], e['種類'], q].filter(Boolean).join(' ') + (at ? ' のところ' : '（場所の記録がないので1ページ目）') }]; if (L._goto) L._goto(...a); else L._pend = a; return; }
+      if (was) return; b.classList.add('on'); const box = document.createElement('div'); box.className = 'devbox'; b.before(box); box.appendChild(b); /* 来歴と書類を1つの枠にまとめる */
+      { const w = devW(); if (w) box.appendChild(w); }
       const c = document.createElement('div'); c.className = 'dfx evx devpv'; c.innerHTML = '<span data-dfhl="dev" hidden></span>'; box.appendChild(c);
       dfPreview(c, d, { doc: q, at }, true); });
     document.querySelectorAll('#sheetbox [data-dfsee]').forEach(b => b.onclick = async () => { const x = docRes(d)['食い違い'][+b.dataset.dfsee]; if (!x) return; const t0 = b.textContent; b.disabled = true; b.textContent = '探しています…';
@@ -4213,7 +4216,7 @@ function openWork(no, keepScroll, restoreSc){
         ${dd('所蔵者・連絡先', w['所蔵者・連絡先'], 'w11')}${dd('管理メモ', w['管理メモ'], 'w12')}
       </dl>
       ${ot && !epi.length ? '' : `<h3 class="sec">エピソード・記憶</h3>`}
-      ${ot && !epi.length ? '' : epi.length ? `<div class="epis">${epi.map(e => `<blockquote class="epi">${escU(e['内容'])}<cite>${esc(String(e['根拠・出典']||'').replace(/^聞き取り（(.*)）$/, '$1さんの話') || '')}${e['登録日時'] ? '　' + esc(String(e['登録日時']).slice(0,10)) : ''}${canEdit()?` <button class="golink" data-evedit="${esc(e['出来事ID'])}">直す</button>`:''}</cite></blockquote>`).join('')}</div>` : '<p style="color:var(--sub)">まだありません</p>'}
+      ${ot && !epi.length ? '' : epi.length ? `<div class="epis">${epi.map(e => `<blockquote class="epi">${escU(e['内容'])}<cite>${esc(String(e['根拠・出典']||'').replace(/^聞き取り（(.*)）$/, '$1さんの話') || '')}${e['登録日時'] ? '　' + esc(String(e['登録日時']).slice(0,10)) : ''}${canEdit()?` <button class="pen pen-s" data-evedit="${esc(e['出来事ID'])}" aria-label="このお話を直す"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.6"/></svg></button>`:''}</cite></blockquote>`).join('')}</div>` : '<p style="color:var(--sub)">まだありません</p>'}
       ${ot ? '' : `<button class="act ivbtn" data-ivwork="${esc(no)}">🎙 この作品についてインタビュー</button>`}
       <h3 class="sec">来歴</h3>
       ${canEdit() ? evDupHTML(ev) : ''}
@@ -4246,8 +4249,9 @@ function openWork(no, keepScroll, restoreSc){
 }
 
 /* ---------- ページの重ね表示（作品 → 展覧会 → 作品 … と進んで、もどるで1つずつ戻る） ---------- */
+let NAVN = 0; /* 新しく画面を移動した回数（書類に戻る予定を取り消すため） */
 function showPage(st, html, keepScroll, restoreSc){
-  const pg = $('#page'), sc = pg.scrollTop, open = !pg.classList.contains('hidden');
+  const pg = $('#page'), sc = pg.scrollTop, open = !pg.classList.contains('hidden'); if (!keepScroll) NAVN++;
   if (!open) { S.stack = []; hpush('w'); }
   else if (!keepScroll && S.pcur && !(S.pcur.t===st.t && S.pcur.id===st.id)) { S.stack.push({t:S.pcur.t, id:S.pcur.id, sc}); hpush('w'); }
   S.pcur = st; S.cur = (st.t==='w' || st.t==='ot') ? st.id : null;
@@ -4289,11 +4293,15 @@ function openWorkFromCmp(no, did){ const pg = $('#page'), wasOpen = !pg.classLis
   S.sheetDoc = null; SNAP.v = null; S.pcur = null; OWC = true; try { openWork(no); } finally { OWC = false; }
   S.stack = (wasOpen ? st.concat(prev ? [prev] : []) : []).concat([{ t: 'cmp', id: did, did, no, doc: sheetDoc }]);
   scrHead(); scrAnim(pg, '100', '0'); abSync(); }
-function openWorkFromDoc(no, did){
-  const pg = $('#page'), wasOpen = !pg.classList.contains('hidden'), prev = wasOpen && S.pcur ? { t: S.pcur.t, id: S.pcur.id, sc: pg.scrollTop } : null, st = (S.stack || []).slice();
-  SNAP.v = null; closeSheet(true); /* 履歴は作品を開くときに積む */
-  S.pcur = null; openWork(no);
-  S.stack = (wasOpen ? st.concat(prev ? [prev] : []) : []).concat([{ t: 'doc', id: did }]);
+/* 書類の画面の中で押したか（押した直後に書類の中身が描き直されても判定できるように） */
+const inDocSheet = t => !!(S.sheetDoc && !$('#sheet').classList.contains('hidden') && (t.closest('#sheetbox') || !t.isConnected));
+function openWorkFromDoc(no, did){ return openPageFromDoc('w', no, did); }
+/* 書類 → 作品・展覧会・資料のページ：右から重ねて開き、「戻る」で書類（同じ位置）に戻る */
+function openPageFromDoc(t, id, did){
+  const pg = $('#page'), wasOpen = !pg.classList.contains('hidden'), prev = wasOpen && S.pcur ? { t: S.pcur.t, id: S.pcur.id, sc: pg.scrollTop } : null, st = (S.stack || []).slice(), dsc = $('#sheet').scrollTop, dsb = $('#sheetbox').scrollTop;
+  SNAP.v = null; S.sheetRet = null; closeSheet(true); /* 書類の履歴はそのまま残し、ページを開くときに積む */
+  S.pcur = null; ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[t](id);
+  S.stack = (wasOpen ? st.concat(prev ? [prev] : []) : []).concat([{ t: 'doc', id: did, dsc, dsb }]);
   scrAnim(pg, '100', '0'); abSync();
 }
 function closeWork(fromHist){
@@ -4307,7 +4315,7 @@ function closeWork(fromHist){
       const p = S.stack.pop(), prev = S.stack.length ? S.stack.pop() : null;
       if (prev) { S.pcur = null; ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[prev.t](prev.id, false, prev.sc); }
       else { pg0.classList.add('hidden'); document.body.style.overflow = ''; S.cur = null; S.pcur = null; S.stack = []; abSync(); }
-      if (!fromHist) hback(); sheetDocReview(p.id); return; } }
+      if (!fromHist) hback(); HIST.noPush++; try { sheetDocReview(p.id); } finally { HIST.noPush--; } setTimeout(() => { if (p.dsc != null) { $('#sheet').scrollTop = p.dsc; $('#sheetbox').scrollTop = p.dsb || 0; } }, 120); return; } }
   const pg = $('#page'), open = !pg.classList.contains('hidden');
   if (open && S.stack.length){ const p = S.stack.pop(); S.pcur = null; ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[p.t](p.id, false, p.sc); if (!fromHist) hback(); return; }
   pg.classList.add('hidden'); document.body.style.overflow=''; S.cur=null; S.pcur=null; S.stack=[]; if (open && !fromHist) hback(); abSync();
@@ -4827,7 +4835,8 @@ function scrBack(fromHist){ const top = SCR[SCR.length - 1]; if (!top) return fa
   if (top.id === 'viewer') { closeViewer(fromHist); return true; }
   if (top.classList.contains('docview') || top.classList.contains('noteview')) { docClose(top, fromHist); return true; }
   return false; }
-function openSheet(html){ S.sheetRet = null; S.sheetDoc = null; $('#sheetbox').classList.remove('split'); $('#sheetbox').innerHTML = html; if ($('#sheet').classList.contains('hidden')) { hpush('s'); $('#sheet').classList.remove('hidden'); scrPush($('#sheet')); }
+function openSheet(html){ if (S.sheetDoc && !$('#sheet').classList.contains('hidden')) { const did = S.sheetDoc, sc = $('#sheet').scrollTop, sb = $('#sheetbox').scrollTop; S.sheetRet = () => { sheetDocReview(did); setTimeout(() => { $('#sheet').scrollTop = sc; $('#sheetbox').scrollTop = sb; }, 120); }; } /* 書類の上で直す画面を開いたら、閉じたとき書類に戻る */
+  S.sheetDoc = null; $('#sheetbox').classList.remove('split'); $('#sheetbox').innerHTML = html; $('#sheetbox').scrollTop = 0; $('#sheet').scrollTop = 0; /* 中身を入れ替えたら上から */ if ($('#sheet').classList.contains('hidden')) { hpush('s'); $('#sheet').classList.remove('hidden'); scrPush($('#sheet')); }
   clearTimeout(SNAP.t); SNAP.v = null; SNAP.t = setTimeout(() => { SNAP.v = sheetState(); }, 250); }
 /* 入力中の内容があるか（開いたときの状態とくらべる）。写真を選んだ・項目を選んだ・文字を入れた、を見分ける */
 const SNAP = { v: null, t: 0 };
@@ -4837,7 +4846,7 @@ function sheetState(){ const b = $('#sheetbox'); if (!b) return '';
     + '|' + [...b.querySelectorAll('img.preview,.pvs img')].filter(i => !i.classList.contains('hidden') && i.getAttribute('src')).length; }
 const sheetDirty = () => !$('#sheet').classList.contains('hidden') && SNAP.v !== null && sheetState() !== SNAP.v;
 const askLeave = () => !sheetDirty() || confirm('入力した内容は、まだ保存されていません。閉じていいですか？');
-function closeSheet(fromHist){ if (!$('#sheet').classList.contains('hidden')) scrPop($('#sheet')); $('#sheetbox').onclick = null; $('#sheetbox').classList.remove('split'); const open = !$('#sheet').classList.contains('hidden'); $('#sheet').classList.add('hidden'); $('#sheetbox').innerHTML=''; if (open && !fromHist) hback(); { const rt = S.sheetRet; S.sheetRet = null; if (open && rt) setTimeout(rt, fromHist ? 60 : 380); } /* 書類から直しに行ったときは、閉じたら書類に戻る */ try { if (PDFQ && PDFQ.running) setTimeout(pdfBg, 0); } catch(e){} }
+function closeSheet(fromHist){ if (!$('#sheet').classList.contains('hidden')) scrPop($('#sheet')); $('#sheetbox').onclick = null; $('#sheetbox').classList.remove('split'); const open = !$('#sheet').classList.contains('hidden'); $('#sheet').classList.add('hidden'); $('#sheetbox').innerHTML=''; if (open && !fromHist) hback(); { const rt = S.sheetRet, n0 = NAVN; S.sheetRet = null; if (open && rt) setTimeout(() => { if (NAVN !== n0 || !$('#sheet').classList.contains('hidden')) return; rt(); }, fromHist ? 60 : 380); } /* 書類から直しに行ったときは、閉じたら書類に戻る */ try { if (PDFQ && PDFQ.running) setTimeout(pdfBg, 0); } catch(e){} }
 
 /* ---------- スワイプで戻る（ブラウザの「戻る」と連動） ---------- */
 /* 画面を開くたびに履歴を1つ積み、戻る操作で一番上の画面を閉じる */
@@ -5571,7 +5580,7 @@ async function ask(q){
 /* ---------- フローティングメニュー ---------- */
 function hidePop(){ $('#fmPop').classList.add('hidden'); }
 function closeOverlays(){ for (let n = 0; n < 12 && SCR.length; n++) { const top = SCR.pop(); if (top.id === 'sheet') { top.classList.add('hidden'); $('#sheetbox').innerHTML = ''; $('#sheetbox').classList.remove('split'); S.sheetDoc = null; } else if (top.id === 'viewer') top.classList.add('hidden'); else top.remove(); } scrHead(); }
-function closeAllPages(){ if (S.pcur && !$('#page').classList.contains('hidden')) VST.page = { pcur: Object.assign({}, S.pcur), stack: (S.stack || []).slice() }; if (SCR.length) closeOverlays(); /* 書類・見比べなど重ねた画面も閉じる（メニューから移動したとき） */ S.stack = []; if (!$('#page').classList.contains('hidden')) closeWork(); }
+function closeAllPages(){ NAVN++; S.sheetRet = null; if (S.pcur && !$('#page').classList.contains('hidden')) VST.page = { pcur: Object.assign({}, S.pcur), stack: (S.stack || []).slice() }; if (SCR.length) closeOverlays(); /* 書類・見比べなど重ねた画面も閉じる（メニューから移動したとき） */ S.stack = []; if (!$('#page').classList.contains('hidden')) closeWork(); }
 const SQ = {album:['q','作品名・番号・年・美術館名で探す'], list:['q','作品名・番号・年・美術館名で探す'], ex:['xq','展覧会名・会場・年で探す'], pb:['pq','書名・発行元・年で探す'], ot:['oq','名前・年・場所で探す']};
 function openSearch(){
   hidePop(); closeAllPages();
@@ -5690,6 +5699,8 @@ document.addEventListener('click', e => {
   if (t.dataset.pdfopen){ openPdf(t.dataset.pdfopen, t.dataset.pdfp, t.dataset.pdfq ? { q: t.dataset.pdfq, line: t.dataset.pdfl || '' } : null); return; }
   if (t.dataset.spine){ showSpine(t, t.dataset.spine); return; }
   if (t.dataset.rec){ if (canEdit() && !recInline(t)) sheetRec(t.dataset.rec, t.dataset.rid, t.dataset.rf); return; } // 展覧会・画集なども、鉛筆でその場で直す
+  if (t.dataset.ex && inDocSheet(t)){ openPageFromDoc('ex', t.dataset.ex, S.sheetDoc); return; }
+  if (t.dataset.pb && inDocSheet(t)){ openPageFromDoc('pb', t.dataset.pb, S.sheetDoc); return; }
   if (t.dataset.ex){ openEx(t.dataset.ex); return; }
   if (t.dataset.pb){ openPb(t.dataset.pb); return; }
   if (t.dataset.otcol){ setCols(+t.dataset.otcol); return; }
@@ -5698,13 +5709,13 @@ document.addEventListener('click', e => {
   if (t.dataset.cf){ S.cf=t.dataset.cf; render(); return; }
   if (t.dataset.cmain){ S.cmain=!S.cmain; render(); return; }
   if (t.dataset.dec){ jumpDec(t.dataset.dec); return; }
-  if (t.dataset.no && t.closest('#sheetbox') && S.sheetDoc){ cmpView(S.sheetDoc, t.dataset.no); return; }
+  if (t.dataset.no && inDocSheet(t)){ openPageFromDoc(isOtNo(t.dataset.no) ? 'ot' : 'w', t.dataset.no, S.sheetDoc); return; } /* 作品の札は、どこでも作品ページへ（見比べるは「📑 見比べる」から） */
   if (t.dataset.cmp){ const [did, no] = t.dataset.cmp.split('|'); cmpView(did, no); return; }
   if (t.dataset.no){ if (t.closest('#sheetbox')) closeSheet(); if (t.closest('#aip') && !aiCol()) closeAI(); openWork(t.dataset.no); return; } // PCはチャットを右に残したまま、左に作品を開く
   if (t.id==='back'){ closeWork(); return; }
   if (t.dataset.fill !== undefined && S.cur){ if (!inlineEdit(t, S.cur, t.dataset.fill)) sheetEdit(S.cur, t.dataset.fill); return; } // 鉛筆を押すと、その場で直せる
   if (t.dataset.evedit){ sheetEventEdit(t.dataset.evedit); return; }
-  if (t.dataset.evfix){ const [eid, did] = t.dataset.evfix.split('|'); sheetEventEdit(eid); S.sheetRet = () => sheetDocReview(did); return; }
+  if (t.dataset.evfix){ sheetEventEdit(t.dataset.evfix.split('|')[0]); return; } /* 閉じると書類に戻る（openSheet が覚える） */
   if (t.dataset.act){ const no=S.cur; ({move:sheetMove,event:sheetEvent,photo:sheetPhoto,edit:sheetEdit,flag:sheetFlag,merge:sheetMerge,doc:sheetDoc})[t.dataset.act](no); return; }
   if (t.hasAttribute('data-close')){ if (askLeave()) closeSheet(); return; } // 入力中なら「保存されていません」を確認
   if (t.dataset.mo !== undefined){ t.classList.toggle('on'); return; } // 画材：複数選べる
