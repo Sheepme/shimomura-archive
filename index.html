@@ -1837,7 +1837,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'dee30d114c', APP_URL = location.origin + location.pathname;
+const BUILD = 'fb7f6f5b78', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2564,7 +2564,7 @@ function dfAct(t){ if (t.dataset.dfopen) { const [did0, si0] = t.dataset.dfopen.
   return false; }
 /* 食い違いを確かめる画面：書類を見て、2枚のカード（台帳／書類）を見比べ、「どっちが正しい？」を選んで保存 */
 function dfReview(list, cur){
-  const el = document.createElement('div'); el.className = 'noteview dfrv'; el.innerHTML = '<div class="nvin"></div>'; document.body.appendChild(el); hpush('n'); scrPush(el);
+  const el = document.createElement('div'); el.className = 'noteview dfrv'; el._reopen = () => dfReview(list, cur); el.innerHTML = '<div class="nvin"></div>'; document.body.appendChild(el); hpush('n'); scrPush(el);
   const box = el.firstChild; let pos = Math.max(0, list.indexOf(cur));
   try { const pid = k => { const [a, b] = k.split('|'), dd = docById(a), xx = dd && (docRes(dd)['食い違い'] || [])[+b], o = dd && PIMG[docPdfFid(dd)], pg = o && o.pages[(xx && xx.at && xx.at.p) || 1]; return pg && pg.id; };
     pimgPrefetch([cur].concat(list.filter(k => k !== cur)).map(pid)); } catch(e){}
@@ -2713,7 +2713,7 @@ function cmpWork(d, no){ const w = workOf(no); if (!w) return '<p class="hint">�
     ${evs.length ? `<h4 class="cwh">この書類からの来歴</h4>${evs.map(e => `<button type="button" class="cwev" data-cmpev="${esc(e['出来事ID'])}"><span>${esc(e['日付'] || '')}</span><b>${esc(e['種類'] || '')}</b><span>${esc(e['相手先・場所'] || '')}</span></button>`).join('')}` : ''}
     <div class="cwacts"><button type="button" class="act" data-cmpopen="${esc(no)}">作品ページを開く ›</button><button type="button" class="act" data-wfix="${esc(did)}|${esc(no)}">作品が違う？</button></div>`; }
 function cmpView(did, no, fi, back){ const d = docById(did), d0 = d; if (!d) return; const nos = String(d['作品番号'] || '').split(',').map(x => x.trim()).filter(Boolean); if (!no || !nos.includes(String(no))) no = nos[0];
-  const el = document.createElement('div'); el.className = 'noteview cmpv';
+  const el = document.createElement('div'); el.className = 'noteview cmpv'; el._reopen = () => cmpView(did, no, fi);
   el.innerHTML = `<div class="cmpin"><button type="button" class="cmpback" aria-label="戻る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><div class="cmpdoc"></div><div class="cmpside"><div class="cmpws"></div><div class="cmpw"></div></div></div>`;
   document.body.appendChild(el); hpush('n'); scrPush(el); document.body.classList.add('cmpon'); if (back) { try { el.getAnimations().forEach(a => a.cancel()); } catch(e){} scrAnim(el, '-100', '0'); }
   const mo = new MutationObserver(() => { if (!el.isConnected) { mo.disconnect(); if (!document.querySelector('.noteview.cmpv')) document.body.classList.remove('cmpon'); pinDrawer(); } }); mo.observe(document.body, { childList: true }); pinDrawer();
@@ -2812,7 +2812,7 @@ function dfFind(text, v){ const parts = String(text || '').split(/【\s*p\.?\s*(
     if (parts.length === 1 && re.test(parts[0])) return { p: '1', q }; }
   return null; }
 async function noteView(id, startP, qq){ const d = docById(id); if (!d) return;
-  const el = document.createElement('div'); el.className = 'noteview' + (DOCUI2 ? ' dv2' : '');
+  const el = document.createElement('div'); el.className = 'noteview' + (DOCUI2 ? ' dv2' : ''); el._reopen = () => noteView(id, startP, qq);
   el.innerHTML = `<div class="nvin"><h2 class="nvt">${esc(docTitle(d))}</h2><div class="nvbody"><div class="ldwrap"><span class="ldspin"></span>ノートを読み込んでいます…</div></div></div>`;
   document.body.appendChild(el); hpush('n'); scrPush(el);
   let t = ''; try { t = DTEXT[id] != null ? DTEXT[id] : (DTEXT[id] = await call('getDocText', id)); } catch(e){ el.querySelector('.nvbody').innerHTML = `<p class="hint">ノートを読み込めませんでした（${esc(e.message || e)}）</p>`; return; }
@@ -2835,7 +2835,7 @@ async function noteView(id, startP, qq){ const d = docById(id); if (!d) return;
     el.querySelectorAll('.nvsel').forEach(sl => sl.onchange = () => { cur = +sl.value; draw(); el.scrollTop = 0; }); };
   draw();
   /* 左右にスワイプでページをめくる */
-  let sx = null, sy = 0; el.addEventListener('touchstart', e => { if (e.touches.length === 1) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; } }, {passive: true});
+  let sx = null, sy = 0; el.addEventListener('touchstart', e => { if (e.touches.length === 1) { const x = e.touches[0].clientX; sx = (x <= 24 || x >= innerWidth - 24) ? null : x; sy = e.touches[0].clientY; } }, {passive: true}); /* 端からのスワイプは戻る・進む用 */
   el.addEventListener('touchend', e => { if (sx === null) return; if (e.target.closest && e.target.closest('.dtopv')) { sx = null; return; } const t2 = e.changedTouches[0], dx = t2.clientX - sx, dy = t2.clientY - sy; sx = null;
     if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.5 && sx !== 0) { const n = cur + (dx < 0 ? 1 : -1); if (n >= 0 && n < parts.length) { cur = n; draw(); el.scrollTop = 0; } } }, {passive: true});
 }
@@ -2891,14 +2891,14 @@ function prefetchWorkPdfs(no){ try { const ids = new Set(); (S.events || []).for
   (S.docs || []).forEach(d => { if (String(d['作品番号'] || '').split(',').map(x => x.trim()).includes(String(no))) ids.add(d['書類ID']); });
   pdfPrefetch([...ids].map(id => docById(id)).filter(Boolean).map(docPdfFid)); } catch(e){} }
 function docView(fid){
-  const el = document.createElement('div'); el.className = 'docview';
+  const el = document.createElement('div'); el.className = 'docview'; el._reopen = () => docView(fid);
   el.innerHTML = `<div class="dvbar"><button type="button" class="vclose scrback" style="position:static">← 戻る</button><span>指で広げると書類が拡大できます（2回タップでも）</span></div><div class="dvsc">${docImg(fid, 1600)}</div>`;
   el.querySelector('button').onclick = () => docClose(el);
   dvZoom(el.querySelector('.dvsc'));
   document.body.appendChild(el); hpush('d'); scrPush(el); hydrateDocs(el);
 }
 /* スマホの「大きく」：元のファイルを開いたときと同じ形（ページを縦に並べてスクロール、指2本で拡大） */
-function bigView(fid, title, page, real){ const el = document.createElement('div'); el.className = 'docview bigv';
+function bigView(fid, title, page, real){ const el = document.createElement('div'); el.className = 'docview bigv'; el._reopen = () => bigView(fid, title, page, real);
   el.dataset.title = title || ''; el.innerHTML = `<div class="dvbar"><span class="bvn"></span>${canEdit() ? `<button type="button" class="bvd" data-drive="${esc(fid)}" aria-label="元のファイルを確認">${DRV_IC}</button>` : ''}</div><div class="dvsc"><div class="ldwrap"><span class="ldspin"></span>${real ? '元のファイルを読み込んでいます…（大きいPDFは時間がかかります）' : '開いています…'}</div></div><button type="button" class="bvfx" aria-label="閉じる">✕</button>`;
   el.querySelector('.bvfx').onclick = () => docClose(el); if (real) bvName(el, fid); const sc = el.querySelector('.dvsc'), nEl = el.querySelector('.bvn'); dvZoom(sc);
   document.body.appendChild(el); hpush('d'); scrPush(el);
@@ -4624,7 +4624,7 @@ function vzReset(){ VZ.s = 1; VZ.x = 0; VZ.y = 0; vzApply(); }
 function vzToggle(){ if (VZ.s > 1) vzReset(); else { VZ.s = 2.5; vzApply(); } }
 (function(){ const v = $('#viewer'); let st = null, lastTap = 0;
   const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
-  v.addEventListener('touchstart', e => { if (e.target.closest('button')) { st = null; return; } const t = e.touches;
+  v.addEventListener('touchstart', e => { if (e.target.closest('button') || (e.touches.length === 1 && (e.touches[0].clientX <= 24 || e.touches[0].clientX >= innerWidth - 24) && VZ.s === 1)) { st = null; return; } /* 画面の端は「戻る・進む」のスワイプに使う */ const t = e.touches;
     if (t.length === 2) st = { m: 'pinch', d0: dist(t) || 1, s0: VZ.s, x0: VZ.x, y0: VZ.y };
     else if (t.length === 1) st = { m: 'pan', px: t[0].clientX, py: t[0].clientY, x0: VZ.x, y0: VZ.y, dx: 0, dy: 0, moved: false }; }, {passive: true});
   v.addEventListener('touchmove', e => { if (!st) return; e.preventDefault(); const t = e.touches;
@@ -4773,9 +4773,11 @@ const EDGE = { t: 0 };
 /* 左端から右へスワイプ：戻れる画面があれば戻る（ホーム画面に追加したアプリのとき）、これ以上戻れないときはメニューを開く */
 (function(){ let sx = null, sy = 0, dx = 0, dy = 0;
   const busyUI = () => document.body.classList.contains('wide') || $('#drawer').classList.contains('open') || !$('#confirm').classList.contains('hidden') || !!document.querySelector('#quiz:not(.hidden), .brief, #tour') || (typeof VZ !== 'undefined' && VZ.s > 1);
-  addEventListener('touchstart', e => { const t = e.touches[0]; sx = (e.touches.length === 1 && t.clientX <= 24 && !busyUI()) ? t.clientX : null; sy = t.clientY; dx = dy = 0; }, {passive: true});
+  let side = 0; addEventListener('touchstart', e => { const t = e.touches[0]; side = t.clientX <= 24 ? -1 : t.clientX >= innerWidth - 24 ? 1 : 0; sx = (e.touches.length === 1 && side && !busyUI()) ? t.clientX : null; sy = t.clientY; dx = dy = 0; }, {passive: true});
   addEventListener('touchmove', e => { if (sx === null) return; const t = e.touches[0]; dx = t.clientX - sx; dy = t.clientY - sy; }, {passive: true});
-  addEventListener('touchend', () => { if (sx === null) return; const ok = dx > 70 && Math.abs(dy) < 60; sx = null; if (!ok) return;
+  addEventListener('touchend', () => { if (sx === null) return; if (side === 1) { const okf = dx < -70 && Math.abs(dy) < 60; sx = null; if (!okf || !FW.length) return; /* 右端から左へ：進む */
+      if (!document.documentElement.classList.contains('sa')) return; if (Date.now() - EDGE.t < 450) return; EDGE.t = Date.now(); if (hist_()) history.forward(); else fwdGo(); return; }
+    const ok = dx > 70 && Math.abs(dy) < 60; sx = null; if (!ok) return;
     const canBack = SCR.length > 0 || !$('#page').classList.contains('hidden') || (typeof VH !== 'undefined' && VH.length > 0);
     if (!canBack) { openDrawer(); return; } /* メニューは、いちばん上の階層（戻る先がない）ときだけ */
     if (!document.documentElement.classList.contains('sa')) return; /* ブラウザでは、ブラウザ自身の「戻る」スワイプに任せる（二重に戻らないように） */
@@ -4806,9 +4808,20 @@ function closeSheet(fromHist){ if (!$('#sheet').classList.contains('hidden')) sc
 
 /* ---------- スワイプで戻る（ブラウザの「戻る」と連動） ---------- */
 /* 画面を開くたびに履歴を1つ積み、戻る操作で一番上の画面を閉じる */
-const HIST = { skip: 0 };
+const HIST = { skip: 0, idx: 0, noPush: 0 };
 function hist_(){ try { return google.script.history; } catch(e){ return null; } }
-function hpush(tag){ const h = hist_(); if (h) try { h.push({ o: tag, t: Date.now() }, {}, tag); } catch(e){} }
+function hpush(tag){ if (HIST.noPush) return; FW.length = 0; const h = hist_(); if (h) try { HIST.idx++; h.push({ o: tag, t: Date.now(), i: HIST.idx }, {}, tag); } catch(e){} } /* 新しく進んだら「進む」の先は消える */
+/* ---- 「進む」：戻るときに閉じた画面を覚えておき、進むでもう一度開く ---- */
+const FW = [];
+function fwdRecord(){ let f = null;
+  if (SCR.length) { const top = SCR[SCR.length - 1];
+    if (top._reopen) f = top._reopen;
+    else if (top.id === 'sheet' && S.sheetDoc) { const id = S.sheetDoc; f = () => sheetDocReview(id); }
+    else if (top.id === 'viewer') { const i = V.i; f = () => openViewer(i); } }
+  else if (!$('#page').classList.contains('hidden') && S.pcur) { const p = Object.assign({}, S.pcur), st = (S.stack || []).slice(); f = () => { S.stack = st; ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[p.t](p.id); }; }
+  else if (typeof VH !== 'undefined' && VH.length) { const s = vsnap(); f = () => { Object.assign(S, { view: s.view, wmode: s.wmode, filter: s.filter, mus: s.mus, dmode: s.dmode, dpath: s.dpath, otk: s.otk, q: s.q }); render(); setTimeout(() => window.scrollTo(0, s.y || 0), 30); }; }
+  FW.push(f); if (FW.length > 60) FW.shift(); }
+function fwdGo(){ const f = FW.pop(); if (!f) return; HIST.noPush = 1; try { f(); } catch(e){} finally { HIST.noPush = 0; } }
 function hback(){ if (!hist_()) return; HIST.skip++; try { history.back(); } catch(e){ HIST.skip--; } setTimeout(() => { if (HIST.skip > 0) HIST.skip = Math.max(0, HIST.skip - 1); }, 1500); }
 function closeTop(){
   if (!$('#confirm').classList.contains('hidden')) return closeConfirm(true), true;
@@ -4816,7 +4829,10 @@ function closeTop(){
   if (!$('#page').classList.contains('hidden')) return closeWork(true), true;
   return false;
 }
-(function(){ const h = hist_(); if (h) try { h.setChangeHandler(() => { if (HIST.skip > 0) { HIST.skip--; return; } if (!closeTop()) vBack(); }); } catch(e){} })();
+(function(){ const h = hist_(); if (h) try { h.setChangeHandler(ev => { const st = ev && ev.state, i = st && typeof st.i === 'number' ? st.i : null;
+      if (HIST.skip > 0) { HIST.skip--; HIST.idx = i != null ? i : Math.max(0, HIST.idx - 1); FW.length = 0; return; } /* ボタンで閉じたときは「進む」の先を残さない */
+      if (i != null && i > HIST.idx) { HIST.idx = i; fwdGo(); return; } /* ブラウザの「進む」 */
+      HIST.idx = i != null ? i : Math.max(0, HIST.idx - 1); fwdRecord(); if (!closeTop()) vBack(); }); } catch(e){} })();
 /* 日付：書き方は自由（2001/01/12・H260912・2012.09.23・平成26年9月12日・20120923 など）、保存は「YYYY/MM/DD」にそろえる。読めないときはそのまま */
 const ERA = { '明治': 1867, '大正': 1911, '昭和': 1925, '平成': 1988, '令和': 2018, M: 1867, T: 1911, S: 1925, H: 1988, R: 2018 };
 function normDate(v){ const s0 = String(v == null ? '' : v).normalize('NFKC').trim(); if (!s0) return null; const s = s0.replace(/\s+/g, '').replace(/[（(][月火水木金土日祝・]+[)）]/g, '');
@@ -5873,7 +5889,7 @@ async function openOrigFile(id){ const d = (S.docs || []).find(x => docPages(x).
 /* 写真・画像の書類：元の画像（縮小していないもの）をアプリの中の全画面で見る */
 /* 上のバーに、ドライブでの元のファイル名を出す */
 function bvName(el, id){ call('getFileName', id).then(n => { if (n && el.isConnected) { el.dataset.title = n; try { abRender(); } catch(e){} } }).catch(() => {}); }
-function origImgView(id, title){ const el = document.createElement('div'); el.className = 'docview bigv';
+function origImgView(id, title){ const el = document.createElement('div'); el.className = 'docview bigv'; el._reopen = () => origImgView(id, title);
   el.dataset.title = title || ''; el.innerHTML = `<div class="dvsc"><div class="ldwrap"><span class="ldspin"></span>元のファイルを読み込んでいます…</div></div><button type="button" class="bvfx" aria-label="閉じる">✕</button>`;
   el.querySelector('.bvfx').onclick = () => docClose(el); bvName(el, id); const sc = el.querySelector('.dvsc'); dvZoom(sc);
   document.body.appendChild(el); hpush('d'); scrPush(el);
