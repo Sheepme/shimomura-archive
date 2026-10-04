@@ -1763,6 +1763,7 @@ body:has(#tedbar) .cbar{display:none!important}
 .noteview.dv2 .dtopv{border:0;border-radius:0;background:none}.noteview.dv2 .dtpbar{padding:0 0 8px}
 .noteview.dv2 .act.pdfopen{display:flex;justify-content:space-between;width:100%;padding:15px 2px;background:none!important;color:var(--ink)!important;border:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);border-radius:0;font-size:16px;font-weight:500}
 .noteview.dv2 .act.pdfopen::after{content:'›';color:var(--sub);font-size:20px}
+.bigv .dvsc{background:#3a3a38;padding:10px 0}.bigv .dvsc canvas{display:block;width:100%;height:auto;margin:0 auto 10px;background:#fff}.bigv .dvbar{display:flex;align-items:center;gap:10px}.bigv .bvt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}.bigv .bvn{flex:none;font-size:13px;color:var(--sub);font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
@@ -1832,7 +1833,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '80265e48d2', APP_URL = location.origin + location.pathname;
+const BUILD = '3e7e037251', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2887,11 +2888,24 @@ function docView(fid){
   dvZoom(el.querySelector('.dvsc'));
   document.body.appendChild(el); hpush('d'); scrPush(el); hydrateDocs(el);
 }
+/* スマホの「大きく」：元のファイルを開いたときと同じ形（ページを縦に並べてスクロール、指2本で拡大） */
+function bigView(fid, title, page){ const el = document.createElement('div'); el.className = 'docview bigv';
+  el.innerHTML = `<div class="dvbar"><button type="button" class="vclose scrback" style="position:static">← 戻る</button><span class="bvt">${esc(title || '')}</span><span class="bvn"></span></div><div class="dvsc"><div class="ldwrap"><span class="ldspin"></span>開いています…</div></div>`;
+  el.querySelector('button').onclick = () => docClose(el); const sc = el.querySelector('.dvsc'), nEl = el.querySelector('.bvn'); dvZoom(sc);
+  document.body.appendChild(el); hpush('d'); scrPush(el);
+  (async () => { try { const doc = await pdfDocOf(fid); if (!el.isConnected) return; sc.innerHTML = ''; const N = doc.numPages, dpr = Math.min(2, window.devicePixelRatio || 1), cvs = [];
+      for (let i = 1; i <= N; i++) { const pg = await doc.getPage(i), v0 = pg.getViewport({ scale: 1 }), cv = document.createElement('canvas'); cv.className = 'bvpg'; cv.dataset.p = i; cv.width = 4; cv.height = 4; cv.style.aspectRatio = v0.width + ' / ' + v0.height; sc.appendChild(cv); cvs.push({ cv, pg, v0 }); }
+      const draw = async o => { if (o.done) return; o.done = 1; const W = (sc.clientWidth || 360) * 2 * dpr, vp = o.pg.getViewport({ scale: W / o.v0.width }); const c2 = document.createElement('canvas'); c2.width = Math.round(vp.width); c2.height = Math.round(vp.height);
+        await o.pg.render({ canvasContext: c2.getContext('2d'), viewport: vp }).promise; o.cv.width = c2.width; o.cv.height = c2.height; o.cv.getContext('2d').drawImage(c2, 0, 0); };
+      const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) draw(cvs[+e.target.dataset.p - 1]).catch(() => {}); }), { root: sc, rootMargin: '800px 0px' }); cvs.forEach(o => io.observe(o.cv));
+      const cur = () => { const top = sc.getBoundingClientRect().top + 60; let k = 1; cvs.forEach(o => { if (o.cv.getBoundingClientRect().top <= top) k = +o.cv.dataset.p; }); nEl.textContent = k + ' / ' + N; };
+      sc.addEventListener('scroll', cur, { passive: true }); const st = cvs[Math.min(N, Math.max(1, page || 1)) - 1]; if (st && page > 1) st.cv.scrollIntoView({ block: 'start' }); cur(); }
+    catch(e){ sc.innerHTML = '<p class="hint" style="padding:16px">開けませんでした（' + esc(e.message || e) + '）</p>'; } })(); }
 /* 書類の拡大：画面全体ではなく、書類の画像だけを指2本で拡大・縮小する（拡大中は指1本でスクロール、2回タップで拡大／元に戻す） */
 function dvZoom(sc){ let w = 100, st = null, lastTap = 0;
   const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY) || 1;
   const setW = (nw, cx, cy) => { nw = Math.min(600, Math.max(100, nw)); const r = sc.getBoundingClientRect(), ox = cx - r.left, oy = cy - r.top, px = sc.scrollLeft + ox, py = sc.scrollTop + oy, k = nw / w; w = nw;
-    sc.querySelectorAll('img').forEach(im => { im.style.width = w + '%'; im.style.maxWidth = 'none'; }); sc.scrollLeft = px * k - ox; sc.scrollTop = py * k - oy; };
+    sc.querySelectorAll('img,canvas').forEach(im => { im.style.width = w + '%'; im.style.maxWidth = 'none'; }); sc.scrollLeft = px * k - ox; sc.scrollTop = py * k - oy; };
   sc.addEventListener('touchstart', e => { if (e.touches.length === 2) { st = { d0: dist(e.touches), w0: w }; e.preventDefault(); } }, { passive: false });
   sc.addEventListener('touchmove', e => { if (st && e.touches.length === 2) { e.preventDefault(); e.stopPropagation(); const t = e.touches; setW(st.w0 * dist(t) / st.d0, (t[0].clientX + t[1].clientX) / 2, (t[0].clientY + t[1].clientY) / 2); } }, { passive: false });
   sc.addEventListener('touchend', e => { if (e.touches.length < 2) st = null; });
@@ -5833,7 +5847,7 @@ function pdfQuick(fid, title, page, hint){ const el = document.createElement('di
   document.body.appendChild(el); hpush('n'); scrPush(el); pdfMount(h, fid, title, page, hint);
   const esc_ = e => { if (!el.isConnected) return document.removeEventListener('keydown', esc_); if (e.key === 'Escape' && SCR[SCR.length - 1] === el) { e.preventDefault(); scrBack(); } }; document.addEventListener('keydown', esc_); }
 async function openPdf(fid, page, hint){
-  if (pdfDesk() || page) { const d = (S.docs || []).find(x => docPages(x)[0] === fid); return pdfQuick(fid, d ? docTitle(d) : 'PDF', page, hint); } /* ページを指定したとき（食い違いの確認など）はスマホでもアプリの中で開く */
+  if (pdfDesk() || page) { const d = (S.docs || []).find(x => docPages(x)[0] === fid); if (!pdfDesk()) return bigView(fid, d ? docTitle(d) : 'PDF', +page || 1); return pdfQuick(fid, d ? docTitle(d) : 'PDF', page, hint); } /* ページを指定したとき（食い違いの確認など）はスマホでもアプリの中で開く */
   const w = window.open('', '_blank'); busy(true, 'PDFを開いています…');
   try { const url = await pdfBlobUrl(fid);
     if (w) w.location = url; else location.href = url; }
