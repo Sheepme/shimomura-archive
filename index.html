@@ -1836,13 +1836,13 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '58fdc133c4', APP_URL = location.origin + location.pathname;
+const BUILD = '6507a673b6', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
   call('appBuild').then(b => { if (!b || b === BUILD || $('#updBar')) return;
     // 入力中でなければ、そのまま新しい版に切り替える（古い画面が残らないように）
-    const busyEdit = CALLS.n > 0 || !$('#loading').classList.contains('hidden') || !$('#sheet').classList.contains('hidden') || (document.activeElement && /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) || S.aiOpen || !!document.querySelector('.quiz:not(.hidden)');
+    const busyEdit = CALLS.n > 0 || !$('#loading').classList.contains('hidden') || (!$('#sheet').classList.contains('hidden') && !!$('#sheetbox').querySelector('#ok, textarea, input:not([type=hidden]):not([type=search]), select')) || /* 書類の詳細など、見るだけの画面は入力中に数えない */ (document.activeElement && /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) || S.aiOpen || !!document.querySelector('.quiz:not(.hidden)');
     let tried = ''; try { tried = sessionStorage.getItem('smr_upd') || ''; } catch(e){}
     if (!busyEdit && tried !== b) { try { sessionStorage.setItem('smr_upd', b); } catch(e){} location.replace(APP_URL + '?r=' + Date.now()); return; }
     let snz = 0; try { snz = +sessionStorage.getItem('smr_updsnz') || 0; } catch(e){} if (Date.now() - snz < 30 * 60000) return; /* 「あとで」を押したら30分は出さない */
