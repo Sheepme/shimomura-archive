@@ -2013,7 +2013,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '9bc0a5f450', APP_URL = location.origin + location.pathname;
+const BUILD = '7edd1ad4b7', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2670,6 +2670,7 @@ const qcTtsPref = () => { try { return localStorage.getItem('smr_qctts') !== '0'
 function qcDrawDiff(el, c){
   const d = docById(c.did), x = d && (docRes(d)['食い違い'] || [])[c.i];
   if (!d || !x || x.r) { QC.i++; return qcDraw(); }
+  if (QC.step === 'dfo') return qcDrawDiffOther(el, c, x);
   const w = workOf(c.no) || {}, ph = photoBy[c.no] || [], FL = { '幅cm': '幅', '高さcm': '高さ', '所在': 'いまの場所' }, lab = FL[x.f] || x.f, u = /cm$/.test(x.f) ? ' cm' : '';
   const pdf = !!(docPages(d)[0] && docRes(d).PDF);
   const kd = x.f === '作品名' ? 'name' : /日$|制作年|cm$/.test(x.f) ? '' : 'same', pg = x.at && x.at.p ? x.at.p + 'ページ目' : '';
@@ -2683,6 +2684,7 @@ function qcDrawDiff(el, c){
     + `<div class="qc-op2"><b>どちらも正しい</b><span>どちらかをメインに、もう一方をサブ（別名）にします</span><div class="qc-mn"><button type="button" data-qa="df:alias"><small>メインにする</small><b>${esc(x.cur || '（空）')}</b></button><button type="button" data-qa="df:same-doc"><small>メインにする</small><b>${esc(x.doc)}</b></button></div></div>` + two;
   else if (kd === 'same') opts = two + go('df:same-ledger', '同じもの（書き方の違い）', '台帳のまま。書類の書き方も覚えて、次からは聞きません');
   else opts = two;
+  opts += go('df:other', 'どちらも違う', x.f === '所在' || x.loc ? 'いまの場所を選びなおします' : '正しい' + lab + 'を入れて、台帳を直します');
   QC.q = 'どちらが正しい？';
   { const sv = t => '「' + String(t) + (u && /\d$/.test(t) ? 'センチ' : '') + '」', who = x.f === '作品名' ? 'この作品の名前、' : x.f === '所在' ? 'この作品の場所、' : lab + 'が、';
     QC.sp = (x.cur ? `${who}台帳では${sv(x.cur)}、書類では${sv(x.doc)}になってるみたいやねん。` : `${who}台帳には入ってへんけど、書類では${sv(x.doc)}になってるんえ。`) + 'どっちが合うてるやろ？'; }
@@ -2700,13 +2702,31 @@ function qcDrawDiff(el, c){
   const box = pdf && $('#qcDf'); if (box) dfPreview(box, d, x, true).catch(() => {});
   if (QV.tts) say(QC.sp || QC.q);
 }
+/* 書類の違い：「どちらも違う」→ 正しい内容を入れる（場所は種類のボタン）。わからなければ、作品を要確認にする */
+function qcDrawDiffOther(el, c, x){
+  const w = workOf(c.no) || {}, ph = photoBy[c.no] || [], lab = { '幅cm': '幅', '高さcm': '高さ', '所在': '場所' }[x.f] || x.f, cm = /cm$/.test(x.f), isLoc = x.f === '所在' || !!x.loc;
+  const v = t => (t || '（空）') + (t && cm && /\d$/.test(t) ? ' cm' : '');
+  QC.q = `正しい${lab}は？`; QC.sp = `ほな、ほんまの${lab}はなんやろ？`;
+  const media = ph.length ? `<button type="button" class="qc-ph" data-qa="php" aria-label="写真を大きく">${thImg(ph[0]['ファイルID'], QCW)}${wm(ph[0])}${QCZM}</button>` : `<div class="qc-ph qc-nop">${QCSVG.cam}<b>写真がまだありません</b></div>`;
+  const inp = (ph_, im) => `<div class="qc-in"><input id="qcDfo" type="text"${im ? ` inputmode="${im}"` : ''} autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" placeholder="${ph_}" aria-label="正しい${lab}"></div>`;
+  const K = (kd, t) => `<button type="button" class="qc-c" data-qa="dfk" data-k="${kd}">${t}</button>`;
+  const mic = QV.micOk ? `<button type="button" class="qc-mic" data-qa="micdfo" aria-label="話して答える"><span>話して答える</span><i>${QCSVG.mic}</i></button>` : '';
+  const body = isLoc ? `<div class="qc-ch">${K('自宅', '自宅')}${K('美術館', '美術館・学校')}${K('個人蔵', '個人の方')}${K('委託中', '思文閣（委託）')}${K('その他', 'そのほか')}</div><label class="qc-lbl" for="qcDfo">くわしい場所（なくてもよい）</label>${inp('例：玄関の棚、京都市美術館')}`
+    : inp(cm ? '数字を入れる（例：45.5）' : x.f === '制作年' ? '例：1975' : `正しい${lab}をここに入れる`, cm ? 'decimal' : x.f === '制作年' ? 'numeric' : '');
+  el.innerHTML = `<div class="qc-w inp">${qcTop()}
+    ${qcTask('diff', isLoc ? '場所' : lab)}${QC.test ? '<p class="qc-test">練習モード：答えは保存しません</p>' : ''}${media}<div class="qc-wk row"><small>${esc(nol(c.no))}</small><b>${esc(w['作品名'] || '作品名なし')}</b></div>
+    <div><h1 class="qc-q">${esc(QC.q)}</h1><p class="qc-hint">${esc(`台帳「${v(x.cur)}」も書類「${v(x.doc)}」も違う。` + (isLoc ? '種類を押すと、台帳の場所を直します' : '入れた内容で、台帳を直します'))}</p></div>${body}
+    <div class="qc-btm">${isLoc ? '' : '<button type="button" class="hg-go" data-qa="dfo:ok">これで台帳を直す</button>'}<button type="button" class="hg-btn2" data-qa="dfo:unk">正しいのはわからない</button>${qcFoot(mic, 1)}</div></div>`;
+  hydrate(el); el.scrollTop = 0;
+}
+const qcDiffX = c => { const d = docById(c.did); return d && (docRes(d)['食い違い'] || [])[c.i]; };
 const QDD = new Set(); /* この画面で決めた違い（保存の返事が来る前に同じものを出さない） */
 function qcDiffLeft(){ let all = 0, left = 0; const dd = QDD;
   (S.docs||[]).forEach(d => { if (d['状態'] !== '登録済み') return; (docRes(d)['食い違い']||[]).forEach((x, i) => { if (x.t !== 'w' || !workOf(x.id)) return; all++; if (!x.r && !dd.has(d['書類ID'] + '|' + i)) left++; }); });
   return { all, left }; }
-async function qcDiffSave(c, fn, pk){
+async function qcDiffSave(c, fn, pk, kind){
   const key = c.did + '|' + c.i; if (!QC.test) QDD.add(key); QC.n++; QC.i++; QC.step = '';
-  qcHoldSet(QC.test ? null : async () => { try { const res = await call(fn, c.did, c.i, pk); if (res && res.works) setData(res); }
+  qcHoldSet(QC.test ? null : async () => { try { const res = await call(fn, c.did, c.i, pk, kind || ''); if (res && res.works) setData(res); }
       catch(e){ QDD.delete(key); if (isLoginErr(e)) { alert('ログインの有効期限が切れました。もう一度ログインしてください。'); if (QC) qcEnd(); return; } toast('保存できませんでした：' + (e.message || e)); } },
     () => { QDD.delete(key); QC.n--; });
   qcDraw();
@@ -2771,6 +2791,15 @@ function qcAct(a, btn){ const c = QC && QC.L[QC.i]; if (!c) return; const no = c
   if (a === 'home') return L('自宅', '自宅');
   if (a === 'priv') return L('個人蔵', '個人蔵');
   if (a === 'shibun') return L('委託中', '思文閣');
+  if (a === 'df:other') { QC.step = 'dfo'; return qcDraw(); }
+  if (a === 'dfo:ok') { const x = qcDiffX(c) || {}, cm = /cm$/.test(x.f || ''), v = (($('#qcDfo') || {}).value || '').trim().normalize(cm ? 'NFKC' : 'NFC');
+    if (!v) return toast('正しい内容を入れてください（わからなければ「正しいのはわからない」）');
+    if (cm && !/^\d+(\.\d+)?$/.test(v)) return toast('数字だけを入れてください（例：45.5）');
+    return qcDiffSave(c, 'resolveDiffOther', v, ''); }
+  if (a === 'dfo:unk') return qcDiffSave(c, 'resolveDiffOther', '', '');
+  if (a === 'dfk') { const kd = btn && btn.dataset.k, det = (($('#qcDfo') || {}).value || '').trim();
+    if ((kd === '美術館' || kd === 'その他') && !det) return toast(kd === '美術館' ? '美術館・学校の名前を入れてください' : '場所を入れてください');
+    return qcDiffSave(c, 'resolveDiffOther', kd === '自宅' ? (det ? ('自宅 ' + det.replace(/^(自宅|家|うち)(の|で)?\s*/, '')).trim() : '自宅') : kd === '委託中' ? '思文閣' : det, kd); }
   if (a.indexOf('df:') === 0) { const m = { 'df:ledger': ['resolveDiff', 'ledger'], 'df:doc': ['resolveDiff', 'doc'], 'df:alias': ['learnAlias', 'alias'], 'df:same-ledger': ['learnAlias', 'ledger'], 'df:same-doc': ['learnAlias', 'doc'] }[a]; if (m) return qcDiffSave(c, m[0], m[1]); }
   if (a === 'mus') { QC.step = 'mus'; return qcDraw(); }
   if (a === 'other') { QC.step = 'hear'; QC.heard = ''; QC.pend = null; return qcDraw(); }
@@ -2800,11 +2829,12 @@ function qcAct(a, btn){ const c = QC && QC.L[QC.i]; if (!c) return; const no = c
   if (a === 'later') return qcSave(no, { item, value: '', answer: '保留' });
   if (a === 'skip') { QC.i++; QC.step = ''; QC.heard = ''; QC.pend = null; QC.pn = null; QC.draft = ''; QC.dr = ''; qcHoldSet(null, null); return qcDraw(); }
   if (a === 'name') { const v = (($('#qcTtl') || {}).value || '').trim(); if (!v) return toast('名前を入れてください'); return ask({ item: '作品名', value: v, answer: 'はい' }, { '作品名': v }, null, v); }
-  if (a === 'mic' || a === 'micname' || a === 'micpl' || a === 'micdr') { ttsUnlock(); const sp = btn && btn.querySelector('span'), relabel = on => { if (sp) { if (on && !sp.dataset.t) sp.dataset.t = sp.textContent; sp.textContent = on ? '話し終わったら押す' : (sp.dataset.t || sp.textContent); } };
+  if (a === 'mic' || a === 'micname' || a === 'micpl' || a === 'micdr' || a === 'micdfo') { ttsUnlock(); const sp = btn && btn.querySelector('span'), relabel = on => { if (sp) { if (on && !sp.dataset.t) sp.dataset.t = sp.textContent; sp.textContent = on ? '話し終わったら押す' : (sp.dataset.t || sp.textContent); } };
     if (btn) btn.classList.add('on'); if (!(MIC.r && !MIC.r.__killed)) relabel(true);
     const ok = listen(text => { if (!QC) return;
       if (a === 'micname') { const v = text.replace(/^(たしか|えーと|ええと|えっと|うーん)[、,\s]*/, '').replace(/[「」『』]/g, '').replace(/(やったと思う|だったと思う|だと思う|と思う|です|かな)[。.]?$/, '').trim();
         const i = $('#qcTtl'); if (i) i.value = v; QC.heard = text; const h = $('#qcHeard'); if (h) h.textContent = '話した言葉：「' + text + '」'; return; }
+      if (a === 'micdfo') { const i = $('#qcDfo'); if (!i) return; let v = qcClean(text).replace(/(やったと思う|だったと思う)$/, ''); if (i.inputMode) { const n = v.normalize('NFKC').replace(/[^\d.]/g, ''); if (n) v = n; } i.value = v; return; }
       if (a === 'micdr') { const v = qcClean(text).replace(/(から|ので|やから|さかい)$/, ''), i = $('#qcDr'); if (i) i.value = v; QC.dr = v; qcNoteBtn(); const h = $('#qcDrH'); if (h) h.textContent = '話した言葉：「' + text + '」。よければ「この内容で登録」を押してください'; return; }
       if (UNK.test(text)) return qcSave(no, { item, value: '', answer: '不明' });
       QC.heard = text; QC.pend = qcPlaceFrom(text) || { kind: '', det: qcClean(text) }; QC.step = 'hear'; qcDraw(); }, () => { if (btn) btn.classList.remove('on'); relabel(false); });
@@ -3196,7 +3226,7 @@ function evHighlight(btn){ const e = (S.events || []).find(x => x['出来事ID']
 function dfCard(d, x, i, inWork){ const did = esc(d['書類ID']), w = x.t === 'w' && workOf(x.id);
   const th = w && !inWork ? `<span class="dfwth">${(photoBy[x.id]||[]).length ? thumbHTML(x.id, 200) : '<span class="dfwnp">写真なし</span>'}</span>` : '';
   const ttl = inWork ? esc(x.f) : esc(x.name) + '：' + esc(x.f), src = inWork ? `<small class="dfsrcs">📄 ${esc(docTitle(d))}</small>` : '';
-  if (x.r) return `<div class="dfx dfsumr" data-did="${did}">${th}<span class="dfsumt"><b>${ttl}</b>${src}<small>${({doc:'✓ 書類に合わせて直しました', ledger:'✓ 台帳のまま（書類の誤りとして記録）', same:'✓ 同じもの（表記ゆれ）' + (x.auto ? '：自動で判定' : ''), swap:'✓ 縦と横が逆なだけ（自動で判定）', alias:'✓ 作品の別名として登録'})[x.r] || '✓ 確認済み'}</small></span></div>`;
+  if (x.r) return `<div class="dfx dfsumr" data-did="${did}">${th}<span class="dfsumt"><b>${ttl}</b>${src}<small>${({doc:'✓ 書類に合わせて直しました', ledger:'✓ 台帳のまま（書類の誤りとして記録）', same:'✓ 同じもの（表記ゆれ）' + (x.auto ? '：自動で判定' : ''), swap:'✓ 縦と横が逆なだけ（自動で判定）', alias:'✓ 作品の別名として登録', other:'✓ どちらも違う（「' + esc(x.val || '') + '」に直しました）', neither:'✓ どちらも違う（正しい内容はわからない・要確認）'})[x.r] || '✓ 確認済み'}</small></span></div>`;
   return `<button type="button" class="dfx dfsum" data-did="${did}" data-dfopen="${did}|${i}">${th}<span class="dfsumt"><b>${ttl}</b>${src}<span class="dfvs"><span><small>台帳</small>${esc(x.cur || '（空）')}</span><i>⇄</i><span><small>書類</small>${esc(x.doc)}</span></span></span><em class="dfgo">📑 見比べる ›</em></button>`; }
 /* 食い違いのボタン（書類の画面・作品ページ共通）：押されたボタンから書類と項目を決める */
 function dfDone(did, msg){ return x => { setData(x); busy(false); render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
