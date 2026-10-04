@@ -1774,6 +1774,59 @@ body.pgopen #nav .cbin,body.scr #nav .cbin{display:none!important}body.pgopen #n
 body.pgopen.pgtuck:not(.dwopen):not(.scr) .cbar{transform:translateY(calc(100% + 24px + env(safe-area-inset-bottom)));opacity:0;pointer-events:none}body.pgopen .cbar{transition:transform .25s,opacity .25s}
 .devw{margin:0!important;padding:10px 12px 4px;border-top:1px solid var(--line)}.devw .wfixw{margin:0 6px 6px 0}.devw>.wfix{margin:0 0 6px}
 .pen.pen-s{position:static!important;transform:none!important;width:28px;height:28px;margin-left:6px;vertical-align:middle;display:inline-flex}.evfix.wfix{display:inline-block;width:auto;margin:8px 0 2px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:var(--paper);color:var(--sub);font-size:12.5px}
+/* ===== 新しいホーム（2026/10/04）：白地・立体ボタン・ダークモード対応 ===== */
+.hm2{--hg-g:#58A700;--hg-g2:#3F7A00;--hg-gl:#58CC02;--hg-h:#3C3C3C;--hg-t:#4B4B4B;--hg-s:#777777;--hg-f:#AFAFAF;--hg-ln:#E5E5E5;--hg-sf:#F7F7F7;--hg-bg:#FFFFFF;--hg-dash:#CECECE;--hg-lk:#2B70C9;color:var(--hg-t)}
+html[data-theme=dark] .hm2{--hg-h:#F1F7FB;--hg-t:#DCE6EC;--hg-s:#93A6B0;--hg-f:#6F838D;--hg-ln:#37464F;--hg-sf:#202F36;--hg-bg:#131F24;--hg-dash:#52656D;--hg-lk:#49C0F8}
+body.vhome{background:#FFFFFF}html[data-theme=dark] body.vhome{background:#131F24}
+.hm2 .hg-date{margin:0;font-size:15px;font-weight:700;color:var(--hg-s)}
+.hm2 .hg-hello{margin:2px 0 18px;font-size:clamp(25px,7.4vw,30px);font-weight:800;line-height:1.25;color:var(--hg-h);text-wrap:balance}
+.hm2 .hg-card{display:flex;flex-direction:column;gap:12px;margin:0 0 20px;padding:18px;border-radius:20px;border:2px solid var(--hg-ln);border-bottom-width:5px;background:var(--hg-bg)}
+.hm2 .hg-ttl{font-size:clamp(22px,6.6vw,26px);font-weight:800;color:var(--hg-h)}
+.hm2 .hg-sub{margin-top:4px;font-size:16px;line-height:1.5;color:var(--hg-s)}
+.hm2 .hg-go,.hm2 .hg-btn2{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:16px;font-family:inherit;font-weight:800;cursor:pointer}
+.hm2 .hg-go{min-height:60px;border:0;border-bottom:5px solid var(--hg-g2);background:var(--hg-g);color:#FFFFFF;font-size:21px;letter-spacing:.06em}
+.hm2 .hg-go svg{width:20px;height:20px;fill:currentColor}
+.hm2 .hg-btn2{min-height:54px;border:2px solid var(--hg-ln);border-bottom-width:5px;background:var(--hg-bg);color:var(--hg-s);font-size:17px}
+.hm2 .hg-go:active,.hm2 .hg-btn2:active,.hm2 .hg-row:active{transform:translateY(3px);border-bottom-width:2px}
+.hm2 .hg-memo .mmhd{margin:0}
+.hm2 .hg-memo .mmlist{margin:0}
+.hm2 .hg-sec{display:flex;flex-direction:column;gap:10px;margin:0 0 24px}
+.hm2 .hg-h2{margin:0;font-size:22px;font-weight:800;color:var(--hg-h)}
+.hm2 .hg-numrow{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.hm2 .hg-num{font-size:clamp(34px,10vw,42px);font-weight:800;line-height:1;color:var(--hg-h);font-variant-numeric:tabular-nums}
+.hm2 .hg-of{font-size:18px;font-weight:700;color:var(--hg-s);font-variant-numeric:tabular-nums}
+.hm2 .hg-bar{height:18px;border-radius:9px;background:var(--hg-ln);overflow:hidden}
+.hm2 .hg-bar i{display:block;height:100%;border-radius:9px;background:var(--hg-gl)}
+.hm2 .hg-note{margin:0;font-size:14px;line-height:1.6;color:var(--hg-s)}
+.hm2 .hg-rh{display:flex;align-items:center;gap:8px}
+.hm2 .hg-rh>div{flex:1;min-width:0;text-align:center}
+.hm2 .hg-rh h3{margin:0;font-size:19px;font-weight:800;color:var(--hg-h);font-variant-numeric:tabular-nums}
+.hm2 .hg-rh small{font-size:14px;font-weight:700;color:var(--hg-s)}
+.hm2 .hg-pg{flex:none;width:48px;height:48px;border-radius:14px;border:2px solid var(--hg-ln);border-bottom-width:4px;background:var(--hg-bg);color:var(--hg-h);font-size:24px;font-weight:800;cursor:pointer}
+.hm2 .hg-pg:disabled{opacity:.35;cursor:default}
+.hm2 .hg-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 8px}
+@media (min-width:560px){.hm2 .hg-grid{grid-template-columns:repeat(6,minmax(0,1fr))}}
+.hm2 .hg-t{display:flex;flex-direction:column;gap:4px;min-width:0;padding:0;border:0;background:none;font:inherit;text-align:center;cursor:pointer}
+.hm2 .hg-ph{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;aspect-ratio:1;max-width:100%;border-radius:12px;overflow:hidden;background:var(--hg-sf)}
+.hm2 .hg-ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hm2 .hg-t.hg-miss .hg-ph img{opacity:.3}
+.hm2 .hg-t.hg-nop .hg-ph{box-sizing:border-box;border:2px dashed var(--hg-dash);color:var(--hg-s)}
+.hm2 .hg-t.hg-nop svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.hm2 .hg-t.hg-nop small{font-size:11px;font-weight:800}
+.hm2 .hg-ok{position:absolute;right:4px;top:4px;width:22px;height:22px;border-radius:50%;background:var(--hg-gl);border:2px solid #FFFFFF;display:grid;place-items:center}
+.hm2 .hg-ok svg{width:12px;height:12px;fill:none;stroke:#FFFFFF;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.hm2 .hg-lb{position:absolute;left:4px;right:4px;bottom:5px;padding:2px 4px;border-radius:8px;background:var(--hg-bg);color:var(--hg-h);font-size:12px;font-weight:800;line-height:1.3}
+.hm2 .hg-no{font-size:13px;font-weight:700;color:var(--hg-f);font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hm2 .hg-t.hg-done .hg-no{color:var(--hg-h)}
+.hm2 .hg-link{align-self:flex-start;padding:4px 0;border:0;background:none;font:inherit;font-size:17px;font-weight:800;color:var(--hg-lk);cursor:pointer}
+.hm2 .hg-row{display:flex;align-items:center;gap:12px;width:100%;min-height:66px;padding:10px 14px;box-sizing:border-box;border-radius:16px;border:2px solid var(--hg-ln);border-bottom-width:4px;background:var(--hg-bg);color:var(--hg-h);font:inherit;text-align:left;cursor:pointer}
+.hm2 .hg-ic{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:#FFFFFF}
+.hm2 .hg-ic svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.hm2 .hg-row b{flex:1;min-width:0;font-size:17px;font-weight:800}
+.hm2 .hg-row em{font-style:normal;font-size:17px;font-weight:800;color:var(--hg-s);font-variant-numeric:tabular-nums}
+.hm2 .hg-more summary{padding:12px 4px;font-size:16px;font-weight:800;color:var(--hg-s);cursor:pointer}
+.hm2 .hg-more .todos{margin-top:6px}
+.hm2 .mmadd{white-space:nowrap}
 </style>
 </head>
 <body>
@@ -1843,7 +1896,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'c765b5b1a5', APP_URL = location.origin + location.pathname;
+const BUILD = 'e23dfdc11e', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2247,29 +2300,58 @@ const IC = {
 };
 const ico = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${IC[k]}</svg>`;
 function renderHome(){
-  const W = S.works;
-  const nFlag = W.filter(w => w['要確認']).length, nPh = W.filter(w => !(photoBy[w['作品番号']]||[]).length).length, nLoc = W.filter(needLoc).length;
-  const nEx = S.exhibits.filter(x => !(worksByEx[x['展覧会ID']]||[]).length).length, nPb = S.pubs.filter(p => !(worksByPb[p['資料ID']]||[]).length).length;
+  const OTn = no => /^[YHZ]\d{3,}$/.test(String(no));
+  const W = S.works.filter(w => !OTn(w['作品番号']) && !['廃棄','統合済み'].includes(w['所在区分']));
+  const done = w => hasPh(w['作品番号']) && hasName(w) && hasLoc(w), ed = canEdit();
+  const N = W.length, nDone = W.filter(done).length;
+  const nPh = W.filter(w => !hasPh(w['作品番号'])).length, nNm = W.filter(w => !hasName(w)).length, nLc = W.filter(w => !hasLoc(w)).length;
+  const nDf = (S.docs||[]).filter(d => d['状態']==='登録済み').reduce((s, d) => s + (docRes(d)['食い違い']||[]).filter(x => !x.r).length, 0);
+  /* 図鑑は50点ずつ。最初は、まだそろっていない作品がある所から */
+  const PG = 50, pages = Math.max(1, Math.ceil(N / PG));
+  if (S.hgPage == null || S.hgPage >= pages) { const i = W.findIndex(w => !done(w)); S.hgPage = i < 0 ? 0 : Math.floor(i / PG); }
+  const P = W.slice(S.hgPage * PG, S.hgPage * PG + PG), pDone = P.filter(done).length;
+  const OK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  const CAM = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.6-2.2h6.8L17 8h3v11H4z"/><circle cx="12" cy="13.2" r="3.6"/></svg>';
+  const tile = w => { const no = w['作品番号'], ph = hasPh(no), ok = done(w), lb = (hasName(w) ? '' : '名前？') + (hasLoc(w) ? '' : '場所？');
+    return `<button type="button" class="hg-t ${ok ? 'hg-done' : ph ? 'hg-miss' : 'hg-nop'}" data-hgw="${esc(no)}" aria-label="${esc(nol(no) + ' ' + (w['作品名']||'無題') + (ok ? '（そろっています）' : ''))}">
+      <span class="hg-ph">${ph ? thumbHTML(no, 200) : CAM + '<small>写真なし</small>'}${ok ? `<i class="hg-ok">${OK}</i>` : ''}${ph && lb ? `<b class="hg-lb">${lb}</b>` : ''}</span><span class="hg-no">${esc(nol(no))}</span></button>`; };
+  const NAMEIC = '<path d="M3.5 12.5V5.5a2 2 0 0 1 2-2h7l8 8-9 9-8-8z"/><circle cx="8" cy="8" r="1.6"/>';
+  const row = (attr, color, ic, label, n) => `<button type="button" class="hg-row" ${attr}><span class="hg-ic" style="background:${color}"><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg></span><b>${label}</b><em>${n ? n : '✓'}</em></button>`;
+  /* 以前の「やること」のうち、上の一覧にないもの */
+  const nFlag = W.filter(w => w['要確認']).length, nEx = S.exhibits.filter(x => !(worksByEx[x['展覧会ID']]||[]).length).length, nPb = S.pubs.filter(p => !(worksByPb[p['資料ID']]||[]).length).length;
   const nOt = (S.others||[]).length, nDoc = docsOf('まだ').length + docsOf('確認待ち').length;
-  const todo = [
-    ['doc', '書類を撮って登録する', nDoc ? `あと${nDoc}通` : '預かり書・寄贈書など', -1],
-    ['flag', '要確認リストを片付ける', nFlag ? `あと${nFlag}点` : '', nFlag],
-    ['photo', '作品の写真を探す', nPh ? `あと${nPh}点` : '', nPh],
-    ['loc', '作品の場所を確認する', nLoc ? `あと${nLoc}点` : '', nLoc],
-    ['link', '画集と展覧会に作品をひも付ける', (nEx + nPb) ? `あと${nEx + nPb}件` : '', nEx + nPb],
-    ['ot', 'その他の作品を追加する', `いま${nOt}点`, -1]
-  ];
+  const todo = [['doc', '書類を撮って登録する', nDoc ? `あと${nDoc}通` : '預かり書・寄贈書など', -1], ['flag', '要確認リストを片付ける', nFlag ? `あと${nFlag}点` : '', nFlag],
+    ['link', '画集と展覧会に作品をひも付ける', (nEx + nPb) ? `あと${nEx + nPb}件` : '', nEx + nPb], ['ot', 'その他の作品を追加する', `いま${nOt}点`, -1]];
   const card = ([k, t, sub, n]) => `<button class="todo ${n===0?'done':''}" data-todo="${k}"><span class="ti">${ico(k)}</span><span class="tt">${t}<small>${n===0 ? '完了しました' : sub}</small></span><span class="tg">›</span></button>`;
-  const ban = [['works','作品一覧',W.length+'点'],['ex','展覧会',S.exhibits.length+'件'],['pb','画集',S.pubs.length+'冊'],['chrono','年表','年ごとに見る'],['ai','AIに質問','文章で聞ける']];
-  $('#main').innerHTML = `<div class="homegrid"><div class="home">
-    <p class="hello">${esc(S.user && S.user.name || '')}さん、こんにちは</p>
-    ${memoHTML()}
-    ${basicsHTML()}
-    <div class="qzrow ${canEdit()?'':'one'}">${canEdit() ? `<button class="qzhome q" data-qzmenu="1"><span class="qzhi qq">Q</span><span><b>クイズ</b><small>はい・いいえで確認</small></span><span class="tg">›</span></button>` : ''}<button class="qzhome iv" data-ivgo="1"><span class="qzhi">🎤</span><span><b>インタビュー</b><small>声でおしゃべり</small></span><span class="tg">›</span></button></div>
-    ${canEdit() ? `<h2 class="hsec">やること</h2><div class="todos">${todo.map(card).join('')}</div>` : ''}
+  const d = new Date(), PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>';
+  $('#main').innerHTML = `<div class="homegrid"><div class="home hm2">
+    <p class="hg-date">${d.getMonth() + 1}月${d.getDate()}日（${'日月火水木金土'[d.getDay()]}）</p>
+    <h1 class="hg-hello">${esc(S.user && S.user.name || '')}さん、こんにちは</h1>
+    <section class="hg-card">${ed ? `<div><div class="hg-ttl">今日の10作品</div><div class="hg-sub">保管場所の確認から・5分ほど。ボタンでも声でも答えられます</div></div>
+      <button type="button" class="hg-go" data-hg10="1">${PLAY}はじめる</button>` : ''}
+      <button type="button" class="${ed ? 'hg-btn2' : 'hg-go'}" data-ivgo="1">声でおしゃべり（インタビュー）</button></section>
+    ${ed ? `<section class="hg-card hg-memo">${memoHTML()}</section>` : ''}
+    <section class="hg-sec"><h2 class="hg-h2">作品図鑑</h2>
+      <div class="hg-numrow"><span class="hg-num">${nDone}</span><span class="hg-of">/ ${N}点 そろった</span></div>
+      <div class="hg-bar"><i style="width:${Math.round(nDone / Math.max(N, 1) * 1000) / 10}%"></i></div>
+      <p class="hg-note">写真・作品名・保管場所の3つがそろうと、図鑑にのります</p></section>
+    <section class="hg-sec" id="hgGrid"><div class="hg-rh"><button type="button" class="hg-pg" data-hgpg="-1" ${S.hgPage ? '' : 'disabled'} aria-label="前の50点">‹</button>
+      <div><h3>${P.length ? esc(nol(P[0]['作品番号'])) + '〜' + esc(nol(P[P.length - 1]['作品番号'])) : ''}</h3><small>${pDone} / ${P.length} そろった</small></div>
+      <button type="button" class="hg-pg" data-hgpg="1" ${S.hgPage < pages - 1 ? '' : 'disabled'} aria-label="次の50点">›</button></div>
+      <div class="hg-grid">${P.map(tile).join('')}</div>
+      <p class="hg-note">はっきりした写真が、そろった作品です。うすい写真は足りないものがあります。押すとその作品のページを開きます。</p>
+      <button type="button" class="hg-link" data-v="works">すべての作品を見る</button></section>
+    ${ed ? `<section class="hg-sec"><h2 class="hg-h2">ひとつずつ片付ける</h2>
+      ${row('data-bsgo="noloc"', '#1CB0F6', IC.loc, '場所がわからない', nLc)}${row('data-bsgo="noname"', '#CE82FF', NAMEIC, '作品名がない', nNm)}${row('data-bsgo="nophoto"', '#FF4B4B', IC.photo, '写真がない', nPh)}${row('data-todo="doc"', '#2B70C9', IC.doc, '書類と台帳の違い', nDf)}
+      <details class="hg-more"><summary>そのほかの作業</summary><div class="todos">${todo.map(card).join('')}</div></details></section>` : ''}
     <button class="tourlink" data-v="help">使い方を見る</button></div><aside class="dash">${dashHTML()}</aside></div>`;
   hydrate($('#main'));
   window.scrollTo(0, 0);
+  if (!renderHome.bound) { renderHome.bound = 1;
+    document.addEventListener('click', e => { if (S.view !== 'home') return;
+      if (e.target.closest('[data-hg10]')) { const L = qzTargets('all').slice(0, 10); if (!L.length) return toast('確認する作品はありません'); return startQuiz('all', L); }
+      const p = e.target.closest('[data-hgpg]'); if (p) { S.hgPage = Math.max(0, (S.hgPage || 0) + (+p.dataset.hgpg)); renderHome(); const g = $('#hgGrid'); if (g) g.scrollIntoView({ block: 'start' }); return; }
+      const t = e.target.closest('[data-hgw]'); if (t) openWork(t.dataset.hgw); }); }
 }
 (function(){ const L = [['album','作品アルバム','works'],['list','作品リスト','list'],['ex','展覧会','ex'],['pb','画集','pb'],['ot','その他','ot'],['chrono','年表','chrono'],['doc','書類','doc']];
   document.getElementById('fmInline').innerHTML = L.map(([v, t, k]) => `<button data-v="${v}"${v==='doc'?' class="edonly"':''}><span class="ic">${ico(k)}</span><span>${t}</span></button>`).join('');
