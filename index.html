@@ -1769,6 +1769,7 @@ body.bigon #top{display:none!important}body.bigon .bigv{padding-top:0!important;
 .bvfx{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(20px + env(safe-area-inset-bottom));z-index:5;width:56px;height:56px;border-radius:50%;border:0;background:var(--ink);color:var(--inv);font-size:22px;box-shadow:0 6px 20px rgba(0,0,0,.35);cursor:pointer}.bigv .dvbar{justify-content:space-between}
 .bigv .dvsc{background:#3a3a38;padding:10px 0}.bigv .dvsc canvas{display:block;width:100%;height:auto;margin:0 auto 10px;background:#fff}.bigv .dvbar{display:flex;align-items:center;gap:10px}.bigv .bvt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}.bigv .bvn{flex:none;font-size:13px;color:var(--sub);font-variant-numeric:tabular-nums}
 .drvbtn{gap:10px}.drvbtn .drvic{width:22px;height:22px;flex:none}.drvbtn span{flex:1;text-align:left}#sheetbox.dv2 .drvbtn,.noteview.dv2 .drvbtn{justify-content:flex-start!important}.bvd{flex:none;width:38px;height:38px;border:0;border-radius:50%;background:rgba(255,255,255,.12);color:#faf9f5;display:flex;align-items:center;justify-content:center}.bvd .drvic{width:22px;height:22px}
+.bigv .dvbar{height:0;padding:0!important;border:0;background:none!important;position:relative;z-index:3;justify-content:center!important;align-items:flex-start!important;overflow:visible;pointer-events:none}.bigv .bvn{transform:translateY(10px);background:rgba(20,20,19,.72);color:#faf9f5!important;font-size:12px!important;padding:3px 11px;border-radius:999px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}.bigv .bvn:empty{display:none}.bigv .dvsc{padding-top:44px!important}a.bvd{position:fixed;right:calc(max(16px,env(safe-area-inset-right)) + 6px);bottom:calc(88px + env(safe-area-inset-bottom));z-index:5;width:44px;height:44px;background:#faf9f5;color:#141413;box-shadow:0 4px 14px rgba(0,0,0,.35);text-decoration:none}.bvhd{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -1838,7 +1839,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '0c4047cd9a', APP_URL = location.origin + location.pathname;
+const BUILD = '2e008852a2', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2900,7 +2901,7 @@ function docView(fid){
 }
 /* スマホの「大きく」：元のファイルを開いたときと同じ形（ページを縦に並べてスクロール、指2本で拡大） */
 function bigView(fid, title, page, real){ const el = document.createElement('div'); el.className = 'docview bigv'; el._reopen = () => bigView(fid, title, page, real);
-  el.dataset.title = title || ''; el.innerHTML = `<div class="dvbar"><span class="bvn"></span>${canEdit() ? `<button type="button" class="bvd" data-drive="${esc(fid)}" aria-label="元のファイルを確認">${DRV_IC}</button>` : ''}</div><div class="dvsc"><div class="ldwrap"><span class="ldspin"></span>${real ? '元のファイルを読み込んでいます…（大きいPDFは時間がかかります）' : '開いています…'}</div></div><button type="button" class="bvfx" aria-label="閉じる">✕</button>`;
+  el.dataset.title = title || ''; el.innerHTML = `<div class="dvbar"><span class="bvn"></span></div>${canEdit() ? `<a class="bvd" href="https://drive.google.com/file/d/${encodeURIComponent(fid)}/view" target="_blank" rel="noopener" aria-label="Googleドライブで開く">${DRV_IC}</a>` : ''}<div class="dvsc"><div class="ldwrap"><span class="ldspin"></span>${real ? '元のファイルを読み込んでいます…（大きいPDFは時間がかかります）' : '開いています…'}</div></div><button type="button" class="bvfx" aria-label="閉じる">✕</button>`;
   el.querySelector('.bvfx').onclick = () => docClose(el); if (real) bvName(el, fid); const sc = el.querySelector('.dvsc'), nEl = el.querySelector('.bvn'); dvZoom(sc);
   document.body.appendChild(el); hpush('d'); scrPush(el);
   if (real) el.querySelector('.bvn').dataset.real = '1';
@@ -4808,7 +4809,7 @@ const EDGE = { t: 0 };
     if (hist_()) history.back(); else if (!closeTop()) vBack(); }, {passive: true}); /* 戻るはブラウザの履歴に一本化（ボタン・スワイプで同じ動き） */
 })();
 /* パンくずの最後に、開いている画面の名前を足す（元のページの名前は押すと戻れる） */
-function scrCrumb(){ if (!SCR.length) return; const h = $('#abTitle'); if (!h || h.className.indexOf('st-') === 0) return;
+function scrCrumb(){ if (!SCR.length) return; const h = $('#abTitle'); if (!h || h.className.indexOf('st-') === 0) return; const top = SCR[SCR.length - 1]; if (top && top.classList.contains('bigv')) { h.innerHTML = '<span class="crumb cur cscr bvhd">' + esc(scrTitle(top)) + '</span>'; return; } /* 大きく見る画面：ヘッダーはファイル名だけ */
   h.querySelectorAll('.crumb.cur').forEach(c => { c.classList.remove('cur'); c.classList.add('cpscr'); });
   h.insertAdjacentHTML('beforeend', '<span class="absep">›</span><span class="crumb cur cscr">' + esc(scrTitle(SCR[SCR.length - 1]) || '編集') + '</span>'); }
 /* 上のバーの「←」：いちばん上の画面を閉じる */
@@ -5911,7 +5912,7 @@ async function openOrigFile(id){ const d = (S.docs || []).find(x => docPages(x).
   origImgView(id, d ? docTitle(d) : '元の写真'); }
 /* 写真・画像の書類：元の画像（縮小していないもの）をアプリの中の全画面で見る */
 /* 上のバーに、ドライブでの元のファイル名を出す */
-function bvName(el, id){ call('getFileName', id).then(n => { if (n && el.isConnected) { el.dataset.title = n; try { abRender(); } catch(e){} } }).catch(() => {}); }
+function bvName(el, id){ call('getFileName', id).then(n => { if (typeof n === 'string' && n && el.isConnected) { el.dataset.title = n; try { abRender(); } catch(e){} } }).catch(() => {}); }
 function origImgView(id, title){ const el = document.createElement('div'); el.className = 'docview bigv'; el._reopen = () => origImgView(id, title);
   el.dataset.title = title || ''; el.innerHTML = `<div class="dvsc"><div class="ldwrap"><span class="ldspin"></span>元のファイルを読み込んでいます…</div></div><button type="button" class="bvfx" aria-label="閉じる">✕</button>`;
   el.querySelector('.bvfx').onclick = () => docClose(el); bvName(el, id); const sc = el.querySelector('.dvsc'); dvZoom(sc);
