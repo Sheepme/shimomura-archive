@@ -1887,6 +1887,15 @@ html[data-theme=dark] .qc-chip{background:#16384A;color:#9ADDFF}
 .qc-dpt{flex:none;display:flex;gap:8px;overflow-x:auto;margin-top:-4px}.qc-dpt button{flex:none;width:56px;height:56px;padding:0;border:2px solid transparent;border-radius:10px;overflow:hidden;background:var(--hg-sf);cursor:pointer}
 .qc-dpt button.on{border-color:#1CB0F6}.qc-dpt img{width:100%;height:100%;object-fit:cover;display:block}
 .qc-nph{font-size:13px;color:var(--hg-s)}
+.qc-sl{flex:none;margin:0;display:flex;justify-content:space-between;font-size:15px;font-weight:800;color:var(--hg-h)}.qc-sl span{font-size:13px;color:var(--hg-s)}
+.qc-rec{flex:none;display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:16px;border:2px solid #FFC800;background:#FFF8DC;color:#4B4B4B}
+.qc-rec small{font-size:13px;font-weight:800;color:#A56A00}.qc-rec b{font-size:18px;color:#3C3C3C}.qc-rec p{margin:0;font-size:14px;line-height:1.55}
+.qc-rec .qc-rt{font-size:16px;font-weight:700;color:#3C3C3C}.qc-rec .qc-rt span{font-weight:500;margin-left:6px}.qc-rec .qc-rp,.qc-rec .qc-rm{font-size:13px;color:#6B6450}
+.qc-rec .qc-rw{margin-top:4px;font-size:13px;line-height:1.5;color:#6B6450}.qc-rec a{align-self:flex-start;margin-top:2px;font-size:15px;font-weight:800;color:#1F5FAD;text-decoration:none}
+.qc-rec.biz{border-color:var(--hg-ln);background:var(--hg-sf)}.qc-rec.biz small{color:var(--hg-s)}
+html[data-theme=dark] .qc-rec{background:#3D3418;border-color:#7A6420;color:#E8E1C8}html[data-theme=dark] .qc-rec b,html[data-theme=dark] .qc-rec .qc-rt{color:#FFF4D0}
+html[data-theme=dark] .qc-rec small{color:#FFC800}html[data-theme=dark] .qc-rec .qc-rw,html[data-theme=dark] .qc-rec .qc-rp,html[data-theme=dark] .qc-rec .qc-rm{color:#CFC6A8}html[data-theme=dark] .qc-rec a{color:#6CB4FF}
+html[data-theme=dark] .qc-rec.biz{background:var(--hg-sf);border-color:var(--hg-ln);color:var(--hg-t)}html[data-theme=dark] .qc-rec.biz b,html[data-theme=dark] .qc-rec.biz .qc-rt{color:var(--hg-h)}
 .qc-th{flex:none;width:64px;height:64px;border-radius:12px;overflow:hidden;background:var(--hg-sf)}.qc-th img{width:100%;height:100%;object-fit:cover;display:block}
 .qc-sec{display:flex;flex-direction:column;gap:8px}
 .qc-sh{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}.qc-sh b{font-size:16px;color:var(--hg-h)}.qc-sh small{font-size:14px;color:var(--hg-s)}
@@ -1984,7 +1993,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '5b2cc2e39c', APP_URL = location.origin + location.pathname;
+const BUILD = '795f2b88a5', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2065,7 +2074,7 @@ function docCacheSync(docs){ let V = {}; try { V = JSON.parse(localStorage.getIt
   if (del.length) thDel(del); try { localStorage.setItem('smr_dver', JSON.stringify(N)); } catch(e){} }
 function setData(d){ if (S.upd) S.upd.t = 0; try { if (d && d.docs && d.docs.length) docCacheSync(d.docs); } catch(e){}
   const allW = d.works || []; d = Object.assign({}, d, {works: allW.filter(w => !OTRE.test(w['作品番号'])), others: allW.filter(w => OTRE.test(w['作品番号']))});
-  Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], memoChecker:d.memoChecker||'直美', marks:d.marks||[], pimg:d.pimg||S.pimg||[], user:d.user, ai:d.ai, publicView:d.publicView}); if (S.token && !d.user) setToken(''); index(); try { pimgIndex(); } catch(e){} renderUser();  if (d.user) setTimeout(prefetchThumbs, 0); }
+  Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], finds:d.finds||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], memoChecker:d.memoChecker||'直美', marks:d.marks||[], pimg:d.pimg||S.pimg||[], user:d.user, ai:d.ai, publicView:d.publicView}); if (S.token && !d.user) setToken(''); index(); try { pimgIndex(); } catch(e){} renderUser();  if (d.user) setTimeout(prefetchThumbs, 0); }
 const canRole = () => !!(S.user && ['編集','管理'].includes(S.user.role));
 const canEdit = () => canRole();
 try { S.edit = localStorage.getItem('smr_edit') === '1'; } catch(e){ S.edit = false; }
@@ -2411,10 +2420,11 @@ function startCards(test, mode){
   if (test) { /* 練習モード：保存しない。4種類が全部出るよう、本物の作品から3点ずつ */
     const by = { loc: [], name: [], photo: [], conf: [] };
     hgPick(5000).forEach(no => { const w = workOf(no); if (!w) return; const ph = hasPh(no), k = !ph ? (hasName(w) ? 'photo' : null) : !hasLoc(w) ? 'loc' : !hasName(w) ? 'name' : needLoc(w) ? 'conf' : null; if (k && by[k].length < 3) by[k].push({ no, k }); });
-    ['loc', 'name', 'photo', 'conf'].forEach(k => L = L.concat(by[k])); L = L.concat(qcDiffs(3)); }
+    ['loc', 'name', 'photo', 'conf'].forEach(k => L = L.concat(by[k])); L = L.concat(qcDiffs(3), qcFinds(4, true)); }
   else if (mode === 'diff') L = qcDiffs(10);
+  else if (mode === 'find') L = qcFinds(10);
   else hgPick(400).forEach(no => { if (L.length < 10) { const k = qcKind(no); if (k) L.push({ no, k }); } });
-  if (!L.length) return toast(mode === 'diff' ? 'いま決める書類の違いはありません' : 'いま確かめる作品はありません');
+  if (!L.length) return toast(mode === 'diff' ? 'いま決める書類の違いはありません' : mode === 'find' ? 'いま確かめる調べの記録はありません' : 'いま確かめる作品はありません');
   closeSheet(); closeAllPages(); ttsUnlock();
   QC = { L, i: 0, step: '', heard: '', pend: null, n: 0, test: !!test, mode: mode || '', before: new Set(L.filter(c => qcComplete(c.no)).map(c => c.no)) };
   let el = $('#qc'); if (!el) { el = document.createElement('div'); el.id = 'qc'; el.className = 'qc hm2'; document.body.appendChild(el); el.addEventListener('click', qcClick); el.addEventListener('change', qcChange);
@@ -2433,11 +2443,110 @@ if (window.visualViewport) { visualViewport.addEventListener('resize', qcVV); vi
 function qcDiffs(max){ const out = [], pri = f => f === '所在' ? 0 : f === '作品名' ? 1 : 2;
   (S.docs||[]).forEach(d => { if (d['状態'] !== '登録済み') return; (docRes(d)['食い違い']||[]).forEach((x, i) => { if (!x.r && x.t === 'w' && workOf(x.id) && !QDD.has(d['書類ID'] + '|' + i)) out.push({ no: String(x.id), k: 'diff', did: d['書類ID'], i, p: pri(x.f) }); }); });
   return out.sort((a, b) => a.p - b.p).slice(0, max); }
+/* ===== 調べで見つかった記録（収集チャットの結果）：台帳の作品との照合はアプリの中だけで行う ===== */
+const FDIC = '<circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/>';
+const FDS = new Set(); /* この画面で決めた記録（保存の返事が来る前に同じものを出さない） */
+/* 表記ゆれ（収集チャットのメモから） */
+const FD_PH = [['鳥の社', '鳥のほこら'], ['闘鶏b', '闘鶏捻'], ['闘鶏c', '闘鶏逸']];
+const FD_CH = { '遙': '遥', '鷙': '鷲', '棒': '捧', '昹': '哋', 'ル': 'る', '翔遥': '遥翔' };
+function fdN(s){ let t = String(s || '').normalize('NFKC').toLowerCase().replace(/直訳[:：]/g, '').replace(/[\s《》「」『』()（）\[\]【】〈〉"'“”・･.,，、。\-－ー―~〜&!?！？]/g, '');
+  t = t.replace(/翔遥/g, '遥翔').replace(/[遙鷙棒昹ル]/g, ch => FD_CH[ch] || ch); FD_PH.forEach(([a, b]) => { t = t.split(a).join(b); }); return t; }
+/* 題の書き方いろいろ：全体／かっこの中を外したもの／かっこの中（外国語の題の訳など） */
+function fdTitles(s){ const r = String(s || ''), base = r.replace(/[（(「『][^）)」』]*[）)」』]/g, ''), inner = (r.match(/[（(「『]([^）)」』]*)[）)」』]/g) || []).map(x => x.slice(1, -1));
+  const out = [[fdN(r), 1]]; if (fdN(base) && fdN(base) !== out[0][0]) out.push([fdN(base), .8]); inner.forEach(x => { const n = fdN(x); if (n.length >= 1) out.push([n, .9]); }); return out.filter(x => x[0]); }
+function fdBig(a){ const m = new Map(); for (let i = 0; i < a.length - 1; i++) { const k = a.slice(i, i + 2); m.set(k, (m.get(k) || 0) + 1); } return m; }
+function fdSim(a, b){ if (!a || !b) return 0; if (a === b) return 1;
+  const s = a.length <= b.length ? a : b, l = s === a ? b : a; if (s.length >= 2 && l.includes(s)) return .55 + .35 * s.length / l.length;
+  if (a.length < 2 || b.length < 2) return 0; const A = fdBig(a), B = fdBig(b); let n = 0; A.forEach((v, k) => { n += Math.min(v, B.get(k) || 0); }); return 2 * n / (a.length + b.length - 2); }
+const fdY = s => { const m = String(s || '').normalize('NFKC').match(/(1[89]\d\d|20\d\d)/); return m ? +m[1] : 0; };
+const fdSz = s => { const m = String(s || '').normalize('NFKC').replace(/[x＊*]/g, '×').match(/(\d+(?:\.\d+)?)\s*×\s*(\d+(?:\.\d+)?)/); return m ? [+m[1], +m[2]] : null; };
+function fdWorkTitles(w){ const L = [w['作品名']]; String(w['作品名メモ'] || '').split(/[、,，／\/\n]|別名[:：]?/).forEach(x => { if (x.trim().length >= 1 && x.trim().length <= 30) L.push(x.trim()); }); return L.filter(Boolean); }
+function fdScore(f, w){
+  const T = fdTitles(f['作品名']); let ts = 0;
+  fdWorkTitles(w).forEach(x => { const n = fdN(x); T.forEach(([t, k]) => { ts = Math.max(ts, fdSim(t, n) * k); }); });
+  if (ts < .34) return 0;
+  let sc = ts; const y1 = fdY(f['制作年']), y2 = fdY(w['制作年']);
+  if (y1 && y2) { const d = Math.abs(y1 - y2); sc += d === 0 ? .25 : d <= 1 ? .1 : d >= 3 ? -.25 : 0; }
+  const z = fdSz(f['サイズ']), h = parseFloat(w['高さcm']), wd = parseFloat(w['幅cm']);
+  if (z && h > 0 && wd > 0) { const r = (a, b) => Math.abs(a - b) / Math.max(a, b), e = Math.min(Math.max(r(z[0], h), r(z[1], wd)), Math.max(r(z[0], wd), r(z[1], h)));
+    sc += e <= .04 ? .35 : e <= .1 ? .15 : e > .25 ? -.2 : 0; }
+  return sc; }
+let FDC = null;
+function fdCands(f){ const key = (S.works || []).length + '|' + (S.others || []).length + '|' + (S.finds || []).length;
+  if (!FDC || FDC.key !== key) FDC = { key, m: {} }; const id = f['候補ID']; if (FDC.m[id]) return FDC.m[id];
+  const strict = f['区分'] !== '一次', pool = (S.works || []).concat(S.others || []).filter(w => !['廃棄', '統合済み'].includes(w['所在区分']));
+  const L = pool.map(w => ({ no: String(w['作品番号']), s: fdScore(f, w) })).filter(x => strict ? x.s >= 1 : x.s >= .85).sort((a, b) => b.s - a.s).slice(0, 3);
+  return FDC.m[id] = L; }
+const fdOpen = f => !f['状態'] && !FDS.has(f['候補ID']);
+/* カードにする記録：美術館の記録はすべて、業者の記録は台帳に似た作品があるものだけ */
+function qcFinds(max, mix){ const A = [], B = [], C = [];
+  (S.finds || []).forEach(f => { if (!fdOpen(f)) return; const cs = fdCands(f), it = { no: cs[0] ? cs[0].no : '', k: 'find', id: f['候補ID'], cands: cs, j: 0 };
+    if (f['区分'] === '一次') (cs.length ? A : B).push(it); else if (cs.length) C.push(it); });
+  A.sort((a, b) => b.cands[0].s - a.cands[0].s); C.sort((a, b) => b.cands[0].s - a.cands[0].s);
+  if (mix) return [A[0], A[1], B[0], C[0]].filter(Boolean).slice(0, max);
+  return A.concat(B, C).slice(0, max); }
+function qcFindLeft(){ let all = 0, left = 0; (S.finds || []).forEach(f => { if (f['区分'] !== '一次' && !fdCands(f).length) return; all++; if (fdOpen(f)) left++; }); return { all, left }; }
+const fdById = id => (S.finds || []).find(f => f['候補ID'] === id);
+const fdPrint = f => /エッチング|銅版|版画|アクア|木版|リト|シルク/.test(f['技法・素材'] || '') || /^〈/.test(f['作品名'] || '');
+const fdCanNew = f => f['区分'] === '一次' && !fdPrint(f) && !/同じ作家かどうか未確認/.test(f['メモ'] || '');
+function fdWhere(f){ const u = String(f['根拠URL'] || ''), p = f['相手先'] || '';
+  if (/artplatform\.go\.jp/.test(u)) return '全国の美術館の所蔵品データベース（アートプラットフォームジャパン）に、この記録がありました。';
+  if (/jmapps\.ne\.jp/.test(u)) return p + 'の収蔵品データベースに、この記録がありました。';
+  if (f['区分'] === '一次') return p.replace(/（.*$/, '') + 'のホームページに、この記録がありました。';
+  return p.replace(/（.*$/, '') + 'のページにあった記録です。業者の記録なので、本物かどうかは確かめていません。'; }
+function qcDrawFind(el, c){
+  const f = fdById(c.id); if (!f || !fdOpen(f)) { QC.i++; return qcDraw(); }
+  const mus = f['区分'] === '一次', cand = c.cands[c.j], no = cand && cand.no, w = no ? workOf(no) || {} : {}, ph = no ? photoBy[no] || [] : [];
+  const place = (f['相手先'] || '').replace(/（.*$/, ''), cur = w['所在'] || (w['所在区分'] && w['所在区分'] !== '不明' ? w['所在区分'] : '');
+  const go = (a, t) => `<button type="button" class="hg-go" data-qa="${a}">${t}</button>`, sub = (a, t) => `<button type="button" class="hg-btn2" data-qa="${a}">${t}</button>`;
+  const facts = [f['制作年'] ? esc(f['制作年']) + (/^\d{4}$/.test(f['制作年']) ? '年' : '') : '', f['サイズ'] ? esc(f['サイズ']) + (/\d$/.test(f['サイズ']) ? ' cm' : '') : ''].filter(Boolean).join('・');
+  const rec = `<div class="qc-rec${mus ? '' : ' biz'}"><small>${mus ? '美術館の記録' : '販売の記録'}</small><b>${esc(f['相手先'])}</b>
+    <p class="qc-rt">《${esc(f['作品名'])}》${facts ? `<span>${facts}</span>` : ''}</p>${f['技法・素材'] ? `<p>${esc(f['技法・素材'])}</p>` : ''}${f['番号・来歴'] ? `<p>${esc(f['番号・来歴'])}</p>` : ''}
+    ${f['担当者・連絡先'] ? `<p class="qc-rp">${esc(f['担当者・連絡先'])}</p>` : ''}${f['メモ'] ? `<p class="qc-rm">メモ：${esc(f['メモ'])}</p>` : ''}
+    <span class="qc-rw">どこから：${esc(fdWhere(f))}</span>${f['根拠URL'] ? `<a href="${esc(f['根拠URL'])}" target="_blank" rel="noopener">記録を開く ›</a>` : ''}</div>`;
+  let body, q, hint, btm;
+  if (no) {
+    const wf = [w['制作年'] ? esc(w['制作年']) + (/^\d{4}$/.test(w['制作年']) ? '年' : '') : '', w['高さcm'] && w['幅cm'] ? esc(w['高さcm']) + ' × ' + esc(w['幅cm']) + ' cm' : ''].filter(Boolean).join('・');
+    body = `<p class="qc-sl">台帳の作品${c.cands.length > 1 ? `<span>候補 ${c.j + 1} / ${c.cands.length}</span>` : ''}</p>
+    ${ph.length ? `<button type="button" class="qc-dph" id="qcDph" data-qa="dph" aria-label="写真を大きく">${thImg(ph[0]['ファイルID'], 800)}${wm(ph[0])}</button>` : ''}
+    ${ph.length > 1 ? `<div class="qc-dpt">${ph.slice(0, 6).map((p, k) => `<button type="button" class="${k ? '' : 'on'}" data-qa="dpi:${k}">${thImg(p['ファイルID'], 200)}</button>`).join('')}</div>` : ''}
+    <div class="qc-wk"><small>${esc(nol(no))}</small><b>${esc(w['作品名'] || '作品名なし')}</b>${wf ? `<span class="qc-nph">${wf}</span>` : ''}<span class="qc-nph">場所：${esc(cur || 'わからない')}</span>${ph.length ? '' : '<span class="qc-nph">写真はまだありません</span>'}</div>${rec}`;
+    q = '台帳のこの作品と、同じもの？';
+    hint = mus ? (cur && cur !== place ? `同じなら、保管場所を「${place}」にします（いまの台帳：${cur}）` : `同じなら、保管場所を「${place}」にします`) : '同じなら、売りに出ていた記録として残します（場所は変えません）';
+    btm = `${go('fd:same', '同じ作品')}<div class="qc-row">${sub('fd:diff', c.j + 1 < c.cands.length ? 'ちがう<br>（次の候補へ）' : 'ちがう作品')}${sub('fd:unk', 'わからない')}</div>`;
+    QC.sp = mus ? `この作品、${place}にあるっていう記録が見つかったよ。同じ作品かな？` : 'この作品が、売りに出ていた記録が見つかったよ。同じ作品かな？';
+  } else {
+    body = rec; q = '台帳にない作品かも'; const can = fdCanNew(f);
+    hint = c.cands.length ? '候補の作品は、どれもちがいました。' : '台帳には、似た作品が見つかりませんでした。';
+    hint += can ? `新しく台帳に入れると、場所は「${place}」になります（あとで重なりがないか確かめられるよう「要確認」の印を付けます）` : '版画・シリーズ・業者の記録などは、いまは記録だけ残します';
+    btm = `${can ? go('fd:new', '台帳に新しく入れる') : go('fd:none', '台帳にない作品')}<div class="qc-row">${can ? sub('fd:none', '入れない') : ''}${sub('fd:unk', 'わからない')}</div>`;
+    QC.sp = c.cands.length ? 'ほかに似た作品は見つからなかったの。台帳にない作品かな？' : 'この記録の作品、台帳には見つからなかったの。台帳にない作品かな？';
+  }
+  QC.q = q;
+  el.innerHTML = `<div class="qc-w qc-dw">${qcTop()}${qcTask('find', mus ? '美術館' : '販売')}${QC.test ? '<p class="qc-test">練習モード：答えは保存しません</p>' : ''}
+    ${body}<div><h1 class="qc-q">${esc(q)}</h1>${hint ? `<p class="qc-hint">${esc(hint)}</p>` : ''}</div>
+    <div class="qc-btm">${btm}<button type="button" class="qc-skip" data-qa="skip">あとで決める</button></div></div>`;
+  hydrate(el); el.scrollTop = 0;
+  if (QV.tts) say(QC.sp);
+}
+async function qcFindSave(c, st, no){
+  FDS.add(c.id); QC.n++; QC.i++; QC.step = ''; qcDraw(); if (QC.test) { FDS.delete(c.id); return; }
+  try { const res = await call('setFind', c.id, st, no || ''); if (res && res.works) setData(res); }
+  catch(e){ FDS.delete(c.id); if (isLoginErr(e)) { alert('ログインの有効期限が切れました。もう一度ログインしてください。'); qcEnd(); return; } toast('保存できませんでした：' + (e.message || e)); }
+}
+function qcFindAct(a, c){
+  if (a === 'fd:same') return qcFindSave(c, '承認', c.cands[c.j].no);
+  if (a === 'fd:diff') { c.j++; return qcDraw(); }
+  if (a === 'fd:new') return qcFindSave(c, '新規', '');
+  if (a === 'fd:none') return qcFindSave(c, '台帳にない', '');
+  if (a === 'fd:unk') return qcFindSave(c, '保留', c.cands[c.j] ? c.cands[c.j].no : '');
+}
 /* カードのいちばん上：いまやっている作業（ホームの行と同じ色・アイコン） */
 const QCTAG = '<path d="M3.5 12.5V5.5a2 2 0 0 1 2-2h7l8 8-9 9-8-8z"/><circle cx="8" cy="8" r="1.6"/>';
 function qcTask(k, lab){ const L = ['#1CB0F6', IC.loc, '場所がわからない', 'いまある場所をおしえてください'];
   const [c, ic, t, sm] = { loc: L, mus: L, hear: L, conf: ['#1CB0F6', IC.loc, '場所の確認', '台帳の場所でいいか、確かめます'], name: ['#CE82FF', QCTAG, '作品名がない', '作品の名前をおしえてください'],
-    photo: ['#FF4B4B', IC.photo, '写真がない', '見つけたら写真を撮ってください'], diff: ['#2B70C9', IC.doc, (lab || '') + 'の食い違い', '書類と台帳で、ちがうことが書いてあります'] }[k] || L;
+    photo: ['#FF4B4B', IC.photo, '写真がない', '見つけたら写真を撮ってください'], diff: ['#2B70C9', IC.doc, (lab || '') + 'の食い違い', '書類と台帳で、ちがうことが書いてあります'],
+    find: ['#FF9600', FDIC, '調べで見つかった記録', lab === '販売' ? '売りに出ていた記録が見つかりました' : '美術館の記録が見つかりました'] }[k] || L;
   return `<div class="qc-task"><span class="hg-ic" style="background:${c}"><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg></span><b>${esc(t)}<small>${esc(sm)}</small></b></div>`; }
 function qcTop(){ return `<div class="qc-top"><button type="button" class="qc-x" data-qc="end" aria-label="やめる">${QCSVG.x}</button>
     <div class="qc-bar" role="progressbar" aria-label="${QC.i + 1}問目 / ${QC.L.length}問" aria-valuenow="${QC.i}" aria-valuemax="${QC.L.length}"><i style="width:${Math.max(4, Math.round(QC.i / QC.L.length * 100))}%"></i></div>
@@ -2488,7 +2597,7 @@ function qcEnd(){ stopMic(); sayStop(); const el = $('#qc'); if (el) { el.classL
 function qcDraw(){
   const el = $('#qc'); if (!el || !QC) return;
   if (QC.i >= QC.L.length) return qcFinish();
-  const c = QC.L[QC.i]; if (c.k === 'diff') return qcDrawDiff(el, c);
+  const c = QC.L[QC.i]; if (c.k === 'diff') return qcDrawDiff(el, c); if (c.k === 'find') return qcDrawFind(el, c);
   const no = c.no, w = workOf(no) || {}, ph = photoBy[no] || [], k = QC.step || c.k;
   const loc = w['所在'] || (w['所在区分'] && w['所在区分'] !== '不明' ? w['所在区分'] : '');
   const q = { loc: 'この作品、いまどこにある？', conf: `この作品、いまも「${loc}」にある？`, name: 'この作品の名前、わかる？', photo: 'この作品、写真を撮れる？',
@@ -2530,6 +2639,7 @@ function qcClick(e){ if (!QC) return; const t = e.target.closest('[data-qc],[dat
   if (t.dataset.qa) qcAct(t.dataset.qa, t); }
 function qcChange(e){ if (e.target.id === 'qcCam' && e.target.files && e.target.files[0]) qcPhoto(e.target.files[0]); }
 function qcAct(a, btn){ const c = QC && QC.L[QC.i]; if (!c) return; const no = c.no, w = workOf(no) || {}, k = QC.step || c.k, item = QCITEM[c.k];
+  if (a.indexOf('fd:') === 0) return qcFindAct(a, c);
   if (a === 'dph') return btn.classList.toggle('big'); /* 写真をタップで大きく・もう一度で戻す */
   if (a.startsWith('dpi:')) { const f = (photoBy[no] || [])[+a.slice(4)], box = $('#qcDph'); if (f && box) { box.innerHTML = thImg(f['ファイルID'], 800) + wm(f); hydrate(box); } btn.parentNode.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === btn)); return; }
   const L = (kind, place, v) => qcSave(no, { item: '場所', value: v || place, answer: 'はい' }, null, { kind, place });
@@ -2590,9 +2700,9 @@ function qcFinish(){
   const el = $('#qc'); sayStop();
   const fresh = QC.L.filter(c => qcComplete(c.no) && !QC.before.has(c.no)).map(c => c.no);
   const W = S.works.filter(w => !/^[YHZ]\d{3,}$/.test(String(w['作品番号'])) && !['廃棄','統合済み'].includes(w['所在区分'])), N = W.length, nd = W.filter(w => qcComplete(w['作品番号'])).length;
-  if (QC.mode === 'diff' && !QC.test) { const D = qcDiffLeft(), dn = D.all - D.left;
+  if ((QC.mode === 'diff' || QC.mode === 'find') && !QC.test) { const D = QC.mode === 'find' ? qcFindLeft() : qcDiffLeft(), dn = D.all - D.left;
     el.innerHTML = `<div class="qc-w qc-end"><div class="qc-star">${QCSVG.star}</div>
-    <h1 class="qc-q">書類の違い${QC.L.length}件、${QC.n >= QC.L.length ? 'クリア！' : 'おつかれさま！'}</h1>
+    <h1 class="qc-q">${QC.mode === 'find' ? '調べの記録' : '書類の違い'}${QC.L.length}件、${QC.n >= QC.L.length ? 'クリア！' : 'おつかれさま！'}</h1>
     <div class="qc-stats"><div class="y"><span>決めた</span><b>${QC.n}件</b></div><div class="g"><span>あとで</span><b>${QC.L.length - QC.n}件</b></div><div class="b"><span>のこり</span><b>${D.left}件</b></div></div>
     <div class="hg-bar"><i style="width:${Math.round(dn / Math.max(D.all, 1) * 1000) / 10}%"></i></div><p class="hg-note">${dn} / ${D.all}件 決まった</p>
     <div class="qc-btm">${D.left ? `<button type="button" class="hg-go" data-qc="again">つづけて${Math.min(10, D.left)}件</button>` : ''}<button type="button" class="hg-btn2" data-qc="end">ホームにもどる</button></div></div>`;
@@ -2649,7 +2759,7 @@ function renderHome(){
       <p class="hg-note">ここには、まだ足りないものがある作品だけを出しています。番号の下に、足りないものを出しています。押すとその作品のページを開きます。</p>
       <button type="button" class="hg-link" data-v="works">すべての作品を見る</button></section>
     ${ed ? `<section class="hg-sec"><h2 class="hg-h2">ひとつずつ片付ける</h2>
-      ${row('data-bsgo="noloc"', '#1CB0F6', IC.loc, '場所がわからない', nLc)}${row('data-bsgo="noname"', '#CE82FF', NAMEIC, '作品名がない', nNm)}${row('data-bsgo="nophoto"', '#FF4B4B', IC.photo, '写真がない', nPh)}${row('data-hgdiff="1"', '#2B70C9', IC.doc, '書類と台帳の違い', nDf)}
+      ${row('data-bsgo="noloc"', '#1CB0F6', IC.loc, '場所がわからない', nLc)}${row('data-bsgo="noname"', '#CE82FF', NAMEIC, '作品名がない', nNm)}${row('data-bsgo="nophoto"', '#FF4B4B', IC.photo, '写真がない', nPh)}${row('data-hgdiff="1"', '#2B70C9', IC.doc, '書類と台帳の違い', nDf)}${(S.finds || []).length ? row('data-hgfind="1"', '#FF9600', FDIC, '調べで見つかった記録', qcFindLeft().left) : ''}
       <details class="hg-more"><summary>そのほかの作業</summary><div class="todos">${todo.map(card).join('')}</div></details></section>` : ''}
     <button class="tourlink" data-v="help">使い方を見る</button></div><aside class="dash">${dashHTML()}</aside></div>`;
   hydrate($('#main'));
@@ -2659,6 +2769,7 @@ function renderHome(){
       if (e.target.closest('[data-hg10]')) return startCards();
       if (e.target.closest('[data-hgtest]')) return startCards(true);
       if (e.target.closest('[data-hgdiff]')) return startCards(false, 'diff');
+      if (e.target.closest('[data-hgfind]')) return startCards(false, 'find');
       const p = e.target.closest('[data-hgpg]'); if (p) { S.hgPage = Math.max(0, (S.hgPage || 0) + (+p.dataset.hgpg)); renderHome(); const g = $('#hgGrid'); if (g) g.scrollIntoView({ block: 'start' }); return; }
       const t = e.target.closest('[data-hgw]'); if (t) openWork(t.dataset.hgw); }); }
 }
@@ -2778,7 +2889,7 @@ function sheetEvMergeN(ids){
   };
   draw();
 }
-const EV_SURE = ['確認済み','書類で確認','資料で確認','家族の記憶','推定','自動変換（要確認）','不明'];
+const EV_SURE = ['確認済み','書類で確認','資料で確認','美術館の記録','家族の記憶','推定','自動変換（要確認）','不明'];
 const EV_F = ['日付','種類','相手先・場所','内容','担当者・連絡先','確かさ','根拠・出典'];
 function evScore(e){ return ['日付','相手先・場所','内容','根拠・出典','担当者・連絡先'].filter(k => e[k]).length + evDocs(e).length * 2; }
 /* a側・b側の2つをまとめる計画。pick[項目] = 'a' | 'b' | 'ab'（両方）。決まっていない食い違いは conf に入る */
@@ -4926,7 +5037,7 @@ const dd2 = (k, v) => v ? `<dt>${k}</dt><dd>${v}</dd>` : '';
 /* ---------- 展覧会・画集の編集 ---------- */
 const EX_T = ['個展','グループ展','パンリアル展','公募展','回顧展・遺作展','収蔵品展','その他'];
 const PB_T = ['画集','図録','書籍','雑誌','新聞','案内状・チラシ','映像','その他'];
-const SURE_T = ['確認済み','公式サイト（要確認）','旧リストから（要確認）','家族の記憶','不明'];
+const SURE_T = ['確認済み','美術館の記録','公式サイト（要確認）','業者の記録（要確認）','旧リストから（要確認）','家族の記憶','不明'];
 const EYE = '<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
 const PEN = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.6"/></svg>';
 const EXF = [['名称','名称','text'],['種類','種類','pick',EX_T],['開始日','開始日','text','例：1964/08/31 または 1964'],['終了日','終了日','text','例：1964/09/06'],['会場','会場','text'],['都市','都市','text'],['国','国','text'],['主催','主催','text'],['図録','図録の資料ID','pb'],['主要','主要','main'],['出典','出典','text'],['出典のURL','出典URL','url','https:\/\/… （なくても大丈夫）'],['確かさ','確かさ','pick',SURE_T],['メモ','メモ','area']];
