@@ -1871,6 +1871,7 @@ body.qcopen #toast,body.qcopen #loading,body.qcopen #confirm{visibility:visible!
 .qc-ch.qc-ar{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.qc-ch.qc-ar .qc-c{min-height:46px;font-size:16px;padding:4px 6px}
 .qc-arn{padding:4px 4px 4px 14px}.qc-arn input{font-size:18px}.qc-arb{flex:none;border:0;border-radius:12px;background:#1CB0F6;color:#FFFFFF;font:inherit;font-size:16px;font-weight:800;padding:10px 16px;cursor:pointer}
 .area-new{margin-top:8px}
+.dfpg{position:relative}.dfpld{position:absolute;left:0;right:0;top:0;height:min(100%,260px);display:flex;align-items:center;justify-content:center;gap:10px;padding:0 16px;text-align:center;color:#6B6B6B;font-size:14px;line-height:1.5;background:#FFFFFF;z-index:1}
 .wquiz{padding:14px 16px;border:1px solid var(--line);border-radius:14px;margin:0 0 8px}.wquiz p{margin:0 0 10px;color:var(--sub);font-size:15px;line-height:1.6}.wquiz .act{width:100%}
 .qc-ch.qc-mu{max-height:34vh;overflow-y:auto;gap:8px;padding:2px}.qc-ch.qc-mu .qc-c{min-height:46px;font-size:15px;line-height:1.3;padding:6px 8px}.qc.kb .qc-ch.qc-mu{max-height:22vh}
 html[data-theme=dark] .qc-c.sel{background:#16384A;color:#9ADDFF}
@@ -2021,7 +2022,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'f7399b66a6', APP_URL = location.origin + location.pathname;
+const BUILD = 'd9ecb0ac39', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3512,7 +3513,7 @@ async function dfPreview(card, d, x, inline){
     const W = Math.max(200, v.clientWidth), vp0 = pg.getViewport({ scale: 1 }), H = W * vp0.height / vp0.width, dpr = Math.min(window.devicePixelRatio || 1, 2), vp = pg.getViewport({ scale: W / vp0.width * dpr });
     const hre = q ? fzRe(esc(q), 'gi') : null;
     v.innerHTML = `<div class="dfpbar"><b>p.${pn}</b><span>${x.toc ? '' : nf ? '「' + esc(x.doc) + '」の場所は見つかりませんでした（1ページ目）' : at.box ? '' : (q ? '「' + esc(q) + '」がこのページにあります' : 'このページに書いてあります')}</span>${at.box ? '<button type="button" class="dfpzoom">全体</button>' : ''}<button type="button" class="dfpbig">大きく</button></div>`
-      + (line ? `<p class="dfpline">${hre ? esc(line).replace(hre, m => '<mark>' + m + '</mark>') : esc(line)}</p>` : '') + `<div class="dfpw"><div class="dfpg" style="width:${W}px;height:${H}px"><canvas></canvas>${at.box ? `<div class="pqmark" style="top:calc(${at.box[0] / 10}% - 4px);left:calc(${at.box[1] / 10}% - 4px);height:calc(${(at.box[2] - at.box[0]) / 10}% + 8px);width:calc(${(at.box[3] - at.box[1]) / 10}% + 8px)"></div>` : ''}</div></div>`;
+      + (line ? `<p class="dfpline">${hre ? esc(line).replace(hre, m => '<mark>' + m + '</mark>') : esc(line)}</p>` : '') + `<div class="dfpw"><div class="dfpg" style="width:${W}px;height:${H}px"><canvas></canvas><div class="dfpld"><span class="ldspin"></span><span>ページを読み込んでいます…</span></div>${at.box ? `<div class="pqmark" style="top:calc(${at.box[0] / 10}% - 4px);left:calc(${at.box[1] / 10}% - 4px);height:calc(${(at.box[2] - at.box[0]) / 10}% + 8px);width:calc(${(at.box[3] - at.box[1]) / 10}% + 8px)"></div>` : ''}</div></div>`;
     const w = v.querySelector('.dfpw'), g = v.querySelector('.dfpg'), zb = v.querySelector('.dfpzoom');
     const zMark = at.box ? Math.max(2, Math.min(4, .92 / Math.max(.05, (at.box[3] - at.box[1]) / 1000))) : 1;
     let zk = 0, rq = 0;
@@ -3524,7 +3525,9 @@ async function dfPreview(card, d, x, inline){
       zk = k; g.querySelector('canvas').replaceWith(c); g.style.transform = ''; g.style.width = W2 + 'px'; g.style.height = H2 + 'px'; w.classList.toggle('full', k <= 1.01);
       const ox = cx == null ? w.clientWidth / 2 : cx - wr.left, oy = cy == null ? w.clientHeight / 2 : cy - wr.top;
       w.scrollLeft = Math.max(0, W2 * fx - ox); w.scrollTop = Math.max(0, H2 * fy - oy); if (zb) zb.textContent = k > 1.01 ? '全体' : 'ズーム'; };
-    await setZ(zMark); /* 最初からマーカーに寄った状態 */
+    const ld = v.querySelector('.dfpld'), slow = setTimeout(() => { if (ld && ld.isConnected) ld.lastChild.textContent = '時間がかかっています。もう少し待つか、電波のよいところで開き直してください'; }, 20000);
+    try { await setZ(zMark); } finally { clearTimeout(slow); } /* 最初からマーカーに寄った状態 */
+    if (ld) ld.remove();
     if (zb) zb.onclick = e => { e.stopPropagation(); setZ(zk > 1.01 ? 1 : zMark); };
     /* 2本指で拡大・縮小 */
     let pin = null;
@@ -6421,9 +6424,14 @@ function pimgIndex(){ PIMG = {}; Object.keys(PDOCI).forEach(k => delete PDOCI[k]
   const o = PIMG[pdf] = PIMG[pdf] || { did, pages: {}, n: 0 }; o.pages[p] = { id, w, h }; o.n = Math.max(o.n, +p); });
   Object.keys(PIMG).forEach(k => { const o = PIMG[k]; for (let i = 1; i <= o.n; i++) if (!o.pages[i]) { delete PIMG[k]; break; } }); }
 /* 何件も続けて見る画面では、使うページの画像を先にまとめて取っておく（1回の通信で10枚まで） */
-function pimgPrefetch(ids){ ids = [...new Set(ids)].filter(id => id && !PIU[id]); for (let i = 0; i < ids.length; i += 10) { const g = ids.slice(i, i + 10), pr = call('getThumbs', g, 1600);
-  g.forEach(id => { PIU[id] = pr.then(m => { const u = m && m[id]; if (!u) throw new Error('no image'); return u; }).catch(e => { delete PIU[id]; throw e; }); PIU[id].catch(() => {}); }); } }
-function pimgUrl(id){ return PIU[id] || (PIU[id] = call('getThumbs', [id], 1600).then(m => { const u = m && m[id]; if (!u) throw new Error('no image'); return u; }).catch(e => { delete PIU[id]; throw e; })); }
+/* 書類のページ画像は、一度見たらスマホの中（IndexedDB）に保存して、次からすぐ出す（Googleから取ると1枚7秒ほどかかる） */
+const pimgKeep = (id, u) => { const k = '1600_' + id; TH[k] = u; thPut({ [k]: u }); return u; };
+async function pimgPrefetch(ids){ try { ids = [...new Set(ids)].filter(id => id && !PIU[id]); if (!ids.length) return; const c = await thGet(ids.map(id => '1600_' + id));
+  ids = ids.filter(id => { const u = TH['1600_' + id] || c['1600_' + id]; if (u && !PIU[id]) { TH['1600_' + id] = u; PIU[id] = Promise.resolve(u); } return !PIU[id]; });
+  for (let i = 0; i < ids.length; i += 10) { const g = ids.slice(i, i + 10), pr = call('getThumbs', g, 1600);
+    g.forEach(id => { PIU[id] = pr.then(m => { const u = m && m[id]; if (!u) throw new Error('no image'); return pimgKeep(id, u); }).catch(e => { delete PIU[id]; throw e; }); PIU[id].catch(() => {}); }); } } catch(e){} }
+function pimgUrl(id){ return PIU[id] || (PIU[id] = (async () => { const k = '1600_' + id; if (TH[k]) return TH[k]; const c = await thGet([k]); if (c[k]) return TH[k] = c[k];
+  const m = await call('getThumbs', [id], 1600), u = m && m[id]; if (!u) throw new Error('no image'); return pimgKeep(id, u); })().catch(e => { delete PIU[id]; throw e; })); }
 function imgDoc(o){ return { numPages: o.n, img: true, getPage: async n => { const pg = o.pages[n]; let im = null; const load = () => im || (im = pimgUrl(pg.id).then(u => new Promise((ok, ng) => { const x = new Image(); x.onload = () => ok(x); x.onerror = ng; x.src = u; })));
   return { getViewport: ({ scale }) => ({ width: pg.w * scale, height: pg.h * scale }), render: ({ canvasContext: c, viewport: vp }) => ({ promise: load().then(x => { c.fillStyle = '#fff'; c.fillRect(0, 0, vp.width, vp.height); c.drawImage(x, 0, 0, vp.width, vp.height); }) }), prefetch: load }; } }; }
 function pdfDocOf(fid){ const o = PIMG[fid]; if (o) return PDOCI[fid] || (PDOCI[fid] = Promise.resolve(imgDoc(o))); return pdfRealDoc(fid); }
