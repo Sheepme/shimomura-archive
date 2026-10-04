@@ -1876,9 +1876,17 @@ html[data-theme=dark] .qc-c.sel{background:#16384A;color:#9ADDFF}
 .qc.kb .qc-q{font-size:20px}
 .qc.kb .qc-w{gap:10px;padding-top:8px}
 .qc.kb .qc-btm{margin-top:0}
+.qc-task{flex:none;display:flex;align-items:center;gap:12px}.qc-task b{display:flex;flex-direction:column;gap:2px;font-size:21px;font-weight:800;line-height:1.3;color:var(--hg-h)}
+.qc-task small{font-size:13px;font-weight:700;color:var(--hg-s)}.qc.kb .qc-task small{display:none}.qc.kb .qc-task b{font-size:17px}.qc.kb .qc-task .hg-ic{width:32px;height:32px}
 .qc-chip{align-self:flex-start;padding:6px 12px;border-radius:12px;background:#DDF4FF;color:#1F5FAD;font-size:15px;font-weight:800}
 html[data-theme=dark] .qc-chip{background:#16384A;color:#9ADDFF}
 .qc-wkr{display:flex;align-items:center;gap:12px}
+.qc-dph{flex:none;position:relative;display:block;width:100%;height:clamp(200px,42vh,360px);padding:0;border:0;border-radius:16px;overflow:hidden;background:var(--hg-sf);cursor:zoom-in;transition:height .25s}
+.qc-dph.big{height:min(78vh,720px);cursor:zoom-out}.qc-dph img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.qc-dph .wm{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+.qc-dpt{flex:none;display:flex;gap:8px;overflow-x:auto;margin-top:-4px}.qc-dpt button{flex:none;width:56px;height:56px;padding:0;border:2px solid transparent;border-radius:10px;overflow:hidden;background:var(--hg-sf);cursor:pointer}
+.qc-dpt button.on{border-color:#1CB0F6}.qc-dpt img{width:100%;height:100%;object-fit:cover;display:block}
+.qc-nph{font-size:13px;color:var(--hg-s)}
 .qc-th{flex:none;width:64px;height:64px;border-radius:12px;overflow:hidden;background:var(--hg-sf)}.qc-th img{width:100%;height:100%;object-fit:cover;display:block}
 .qc-sec{display:flex;flex-direction:column;gap:8px}
 .qc-sh{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}.qc-sh b{font-size:16px;color:var(--hg-h)}.qc-sh small{font-size:14px;color:var(--hg-s)}
@@ -1976,7 +1984,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '51147bb7ac', APP_URL = location.origin + location.pathname;
+const BUILD = '5b2cc2e39c', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2425,9 +2433,15 @@ if (window.visualViewport) { visualViewport.addEventListener('resize', qcVV); vi
 function qcDiffs(max){ const out = [], pri = f => f === '所在' ? 0 : f === '作品名' ? 1 : 2;
   (S.docs||[]).forEach(d => { if (d['状態'] !== '登録済み') return; (docRes(d)['食い違い']||[]).forEach((x, i) => { if (!x.r && x.t === 'w' && workOf(x.id) && !QDD.has(d['書類ID'] + '|' + i)) out.push({ no: String(x.id), k: 'diff', did: d['書類ID'], i, p: pri(x.f) }); }); });
   return out.sort((a, b) => a.p - b.p).slice(0, max); }
+/* カードのいちばん上：いまやっている作業（ホームの行と同じ色・アイコン） */
+const QCTAG = '<path d="M3.5 12.5V5.5a2 2 0 0 1 2-2h7l8 8-9 9-8-8z"/><circle cx="8" cy="8" r="1.6"/>';
+function qcTask(k, lab){ const L = ['#1CB0F6', IC.loc, '場所がわからない', 'いまある場所をおしえてください'];
+  const [c, ic, t, sm] = { loc: L, mus: L, hear: L, conf: ['#1CB0F6', IC.loc, '場所の確認', '台帳の場所でいいか、確かめます'], name: ['#CE82FF', QCTAG, '作品名がない', '作品の名前をおしえてください'],
+    photo: ['#FF4B4B', IC.photo, '写真がない', '見つけたら写真を撮ってください'], diff: ['#2B70C9', IC.doc, (lab || '') + 'の食い違い', '書類と台帳で、ちがうことが書いてあります'] }[k] || L;
+  return `<div class="qc-task"><span class="hg-ic" style="background:${c}"><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg></span><b>${esc(t)}<small>${esc(sm)}</small></b></div>`; }
 function qcTop(){ return `<div class="qc-top"><button type="button" class="qc-x" data-qc="end" aria-label="やめる">${QCSVG.x}</button>
     <div class="qc-bar" role="progressbar" aria-label="${QC.i + 1}問目 / ${QC.L.length}問" aria-valuenow="${QC.i}" aria-valuemax="${QC.L.length}"><i style="width:${Math.max(4, Math.round(QC.i / QC.L.length * 100))}%"></i></div>
-    <button type="button" class="qc-say" data-qc="say" aria-label="もう一度読み上げる">${QCSVG.say}</button></div>${QC.test ? '<p class="qc-test">練習モード：答えは保存しません</p>' : ''}`; }
+    <button type="button" class="qc-say" data-qc="say" aria-label="もう一度読み上げる">${QCSVG.say}</button></div>`; }
 function qcDrawDiff(el, c){
   const d = docById(c.did), x = d && (docRes(d)['食い違い'] || [])[c.i];
   if (!d || !x || x.r) { QC.i++; return qcDraw(); }
@@ -2444,10 +2458,14 @@ function qcDrawDiff(el, c){
     + `<div class="qc-op2"><b>どちらも正しい</b><span>どちらかをメインに、もう一方をサブ（別名）にします</span><div class="qc-mn"><button type="button" data-qa="df:alias"><small>メインにする</small><b>${esc(x.cur || '（空）')}</b></button><button type="button" data-qa="df:same-doc"><small>メインにする</small><b>${esc(x.doc)}</b></button></div></div>` + two;
   else if (kd === 'same') opts = two + go('df:same-ledger', '同じもの（書き方の違い）', '台帳のまま。書類の書き方も覚えて、次からは聞きません');
   else opts = two;
-  QC.q = `${lab}は、どうする？`;
+  QC.q = 'どちらが正しい？';
+  { const sv = t => '「' + String(t) + (u && /\d$/.test(t) ? 'センチ' : '') + '」', who = x.f === '作品名' ? 'この作品の名前、' : x.f === '所在' ? 'この作品の場所、' : lab + 'が、';
+    QC.sp = (x.cur ? `${who}台帳では${sv(x.cur)}、書類では${sv(x.doc)}になってるみたい。` : `${who}台帳には入ってないけど、書類では${sv(x.doc)}になってるよ。`) + 'どっちが正しいかな？'; }
   el.innerHTML = `<div class="qc-w qc-dw">${qcTop()}
-    <span class="qc-chip">書類と台帳の違い・${esc(lab)}</span>
-    <div class="qc-wkr">${ph.length ? `<span class="qc-th">${thumbHTML(c.no, 200)}</span>` : ''}<div class="qc-wk"><small>${esc(nol(c.no))}</small><b>${esc(w['作品名'] || '作品名なし')}</b></div></div>
+    ${qcTask('diff', x.f === '所在' ? '場所' : lab)}${QC.test ? '<p class="qc-test">練習モード：答えは保存しません</p>' : ''}
+    ${ph.length ? `<button type="button" class="qc-dph" id="qcDph" data-qa="dph" aria-label="写真を大きく">${thImg(ph[0]['ファイルID'], 800)}${wm(ph[0])}</button>` : ''}
+    ${ph.length > 1 ? `<div class="qc-dpt">${ph.slice(0, 6).map((f, k) => `<button type="button" class="${k ? '' : 'on'}" data-qa="dpi:${k}">${thImg(f['ファイルID'], 200)}</button>`).join('')}</div>` : ''}
+    <div class="qc-wk"><small>${esc(nol(c.no))}</small><b>${esc(w['作品名'] || '作品名なし')}</b>${ph.length ? '' : '<span class="qc-nph">写真はまだありません</span>'}</div>
     <div class="qc-sec"><div class="qc-sh"><b>読み取った書類</b><small>${esc(docTitle(d))}${pg ? '・' + pg : ''}</small></div>${pdf ? '<div class="dfx qc-dfx" id="qcDf"></div>' : ''}</div>
     <div class="qc-ab"><small>A　台帳</small><b>${v(x.cur)}</b><span>どこから：${esc(led)}</span></div>
     <div class="qc-ab"><small>B　書類</small><b class="hl">${v(x.doc)}</b><span>どこから：「${esc(docTitle(d))}」${pg ? 'の' + pg : ''}をAIが読み取りました。${x.note ? esc(x.note) : ''}</span></div>
@@ -2455,7 +2473,7 @@ function qcDrawDiff(el, c){
     <div class="qc-btm">${opts}<button type="button" class="qc-skip" data-qa="skip">あとで決める</button></div></div>`;
   hydrate(el); el.scrollTop = 0;
   const box = pdf && $('#qcDf'); if (box) dfPreview(box, d, x, true).catch(() => {});
-  if (QV.tts) say(QC.q);
+  if (QV.tts) say(QC.sp || QC.q);
 }
 const QDD = new Set(); /* この画面で決めた違い（保存の返事が来る前に同じものを出さない） */
 function qcDiffLeft(){ let all = 0, left = 0; const dd = QDD;
@@ -2477,7 +2495,9 @@ function qcDraw(){
     mus: 'どこの美術館・学校？', hear: 'どこにある？' }[k];
   const hint = { loc: loc ? `台帳では「${loc}」になっています` : '台帳では、場所がわかっていません', conf: 'あれば、確かめた日を記録します', name: '漢字で入れてください。マイクを押すと声でも入れられます',
     photo: '見つけたら、その場で撮ってください', mus: '名前を入れて「決める」を押してください', hear: QC.heard ? `聞き取った言葉：「${QC.heard}」。直してから、種類を押してください` : 'くわしい場所を入れて、種類を押してください' }[k];
-  QC.q = q;
+  QC.q = q; /* 読み上げは、少しやわらかい言い方にする */
+  QC.sp = { loc: 'この作品、いまどこにあるか、わかるかな？', conf: `この作品、いまも「${loc}」にあるかな？`, name: 'この作品の名前、わかるかな？', photo: 'この作品、見つかったら写真を撮ってもらえる？',
+    mus: 'どこの美術館か学校か、教えてくれる？', hear: 'どこにあるか、教えてくれる？' }[k] || q;
   const media = ph.length ? `<div class="qc-ph">${thImg(ph[0]['ファイルID'], 800)}</div>` : `<div class="qc-ph qc-nop">${QCSVG.cam}<b>写真がまだありません</b>${qzClues(no, w)}</div>`;
   const C = (a, t, cls) => `<button type="button" class="qc-c ${cls||''}" data-qa="${a}">${t}</button>`;
   const mic = (a, t) => QV.micOk ? `<button type="button" class="qc-mic" data-qa="${a}" aria-label="${t || '声で答える'}">${t ? `<span>${t}</span>` : ''}<i>${QCSVG.mic}</i></button>` : '';
@@ -2498,18 +2518,20 @@ function qcDraw(){
   el.innerHTML = `<div class="qc-w"><div class="qc-top"><button type="button" class="qc-x" data-qc="end" aria-label="やめる">${QCSVG.x}</button>
       <div class="qc-bar" role="progressbar" aria-label="${QC.i + 1}問目 / ${QC.L.length}問" aria-valuenow="${QC.i}" aria-valuemax="${QC.L.length}"><i style="width:${Math.max(4, Math.round(QC.i / QC.L.length * 100))}%"></i></div>
       <button type="button" class="qc-say" data-qc="say" aria-label="もう一度読み上げる">${QCSVG.say}</button></div>
-    ${QC.test ? '<p class="qc-test">練習モード：答えは保存しません</p>' : ''}${media}<div class="qc-wk"><small>${esc(nol(no))}</small><b>${esc(w['作品名'] || '作品名なし')}</b></div>
+    ${qcTask(k)}${QC.test ? '<p class="qc-test">練習モード：答えは保存しません</p>' : ''}${media}<div class="qc-wk"><small>${esc(nol(no))}</small><b>${esc(w['作品名'] || '作品名なし')}</b></div>
     <div><h1 class="qc-q">${esc(q)}</h1>${hint ? `<p class="qc-hint">${esc(hint)}</p>` : ''}</div>${body}<div class="qc-btm">${btm}</div></div>`;
   hydrate(el); el.scrollTop = 0;
-  if (QV.tts && !QC.step) say(q);
+  if (QV.tts && !QC.step) say(QC.sp);
 }
 function qcClick(e){ if (!QC) return; const t = e.target.closest('[data-qc],[data-qa]'); if (!t) return;
   if (t.dataset.qc === 'end') return qcEnd();
   if (t.dataset.qc === 'again') { const tm = QC.test, md = QC.mode; qcEnd(); return setTimeout(() => startCards(tm, md), 50); }
-  if (t.dataset.qc === 'say') { ttsUnlock(); const was = QV.tts; QV.tts = true; say(QC.q || ''); QV.tts = was; return; }
+  if (t.dataset.qc === 'say') { ttsUnlock(); const was = QV.tts; QV.tts = true; say(QC.sp || QC.q || ''); QV.tts = was; return; }
   if (t.dataset.qa) qcAct(t.dataset.qa, t); }
 function qcChange(e){ if (e.target.id === 'qcCam' && e.target.files && e.target.files[0]) qcPhoto(e.target.files[0]); }
 function qcAct(a, btn){ const c = QC && QC.L[QC.i]; if (!c) return; const no = c.no, w = workOf(no) || {}, k = QC.step || c.k, item = QCITEM[c.k];
+  if (a === 'dph') return btn.classList.toggle('big'); /* 写真をタップで大きく・もう一度で戻す */
+  if (a.startsWith('dpi:')) { const f = (photoBy[no] || [])[+a.slice(4)], box = $('#qcDph'); if (f && box) { box.innerHTML = thImg(f['ファイルID'], 800) + wm(f); hydrate(box); } btn.parentNode.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === btn)); return; }
   const L = (kind, place, v) => qcSave(no, { item: '場所', value: v || place, answer: 'はい' }, null, { kind, place });
   if (a === 'home') return L('自宅', '自宅');
   if (a === 'priv') return L('個人蔵', '個人蔵');
