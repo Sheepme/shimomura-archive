@@ -2022,7 +2022,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd9ecb0ac39', APP_URL = location.origin + location.pathname;
+const BUILD = 'fcd7df1f5c', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6579,7 +6579,7 @@ function pdfCard(i){ const el = $('#pc' + i); if (!el || !PDFQ) return; const x 
       <div class="field"><label>展覧会</label><select data-k="exId">${exOpts}</select></div>
       ${(r.d.pbs||[]).length ? `<div class="field"><label>関係する画集・本（チェックしたものにつなぐ）</label>${r.d.pbs.map(b => `<label class="pdfck"><input type="checkbox" data-pbid="${esc(b.id)}" ${b.s >= 0.8 ? 'checked' : ''}> ${esc(b['タイトル'])}${b['発行年月'] ? '（' + esc(fmtDate(b['発行年月'])) + '）' : ''}</label>`).join('')}</div>` : ''}
       <div class="field"><label>下村良之介の作品</label>${(r.d.works||[]).length ? '<p class="hint">いちばん近い作品に自動でチェックしました。登録すると、書類に「要確認（紐付け作品を確認）」が付きます。</p>' + r.d.works.map((w, wi) => `<div class="pdfw"><b>${esc(w['作品名'])}</b>${[w['制作年'], w['高さcm'] || w['幅cm'] ? (w['高さcm']||'?') + '×' + (w['幅cm']||'?') + 'cm' : '', w['画材'], w['メモ']].filter(Boolean).length ? `<small>${esc([w['制作年'], w['高さcm'] || w['幅cm'] ? (w['高さcm']||'?') + '×' + (w['幅cm']||'?') + 'cm' : '', w['画材'], w['メモ']].filter(Boolean).join('　'))}</small>` : ''}
-        ${w.multi ? `<p class="hint susw" style="margin:4px 0">⚠ 番号が複数書かれています（${esc(w.multi)}）。どれが作品番号か確かめて、選んでください</p>` : ''}${w.cands.length ? w.cands.map((c, j) => { const cm = candMis(w, c); return `<label class="pdfck"><input type="checkbox" data-no="${esc(c.no)}" data-wi="${wi}" ${j===candPick(w) ? 'checked' : ''}> No.${esc(c.no)} ${esc(c['作品名'])}${c.byNo ? ' <small class="nobadge">番号一致</small>' : ''}${cm.sc >= 2 ? ` <small class="susw">⚠ ${esc(cm.why.join('・'))}</small>` : ''}${c['制作年'] ? '（' + esc(c['制作年']) + '）' : ''}</label>`; }).join('') : '<small class="muted">台帳に同じ名前の作品が見つかりません（あとで作品ページからひも付けできます）</small>'}</div>`).join('') : '<p class="hint">下村良之介の作品は見つかりませんでした</p>'}</div>
+        ${w.multi ? `<p class="hint susw" style="margin:4px 0">⚠ 番号が複数書かれています（${esc(w.multi)}）。どれが作品番号か確かめて、選んでください</p>` : ''}${!w.multi && w.pair ? '<p class="hint susw" style="margin:4px 0">⚠ 2点以上（一双・A/B など）です。つなぐ作品をすべて選んでください</p>' : !w.multi && w.ambig ? '<p class="hint susw" style="margin:4px 0">⚠ 似た候補が複数あります。サイズ・年・いまの場所を見て選んでください</p>' : ''}${w.cands.length ? w.cands.map((c, j) => { const cm = candMis(w, c); return `<label class="pdfck"><input type="checkbox" data-no="${esc(c.no)}" data-wi="${wi}" ${j===candPick(w) ? 'checked' : ''}> No.${esc(c.no)} ${esc(c['作品名'])}${c.byNo ? ' <small class="nobadge">番号一致</small>' : ''}${cm.sc >= 2 ? ` <small class="susw">⚠ ${esc(cm.why.join('・'))}</small>` : ''}${c['制作年'] ? '（' + esc(c['制作年']) + '）' : ''}${(() => { const x = workOf(c.no) || {}, z = x['高さcm'] && x['幅cm'] ? x['高さcm'] + '×' + x['幅cm'] : ''; return z || c['所在'] ? ` <small class="muted">${esc([z, c['所在'] || x['所在'] || ''].filter(Boolean).join('・'))}</small>` : ''; })()}${c.sz === 1 ? ' <small class="nobadge">サイズ一致</small>' : ''}</label>`; }).join('') : '<small class="muted">台帳に同じ名前の作品が見つかりません（あとで作品ページからひも付けできます）</small>'}</div>`).join('') : '<p class="hint">下村良之介の作品は見つかりませんでした</p>'}</div>
       <div class="btns"><button type="button" data-pq="skip|${i}">あとで</button><button type="button" data-pq="again|${i}">読み直す</button><button type="button" class="primary" data-pq="reg|${i}">登録する</button></div>`;
   pdfSnap(); }
 async function pdfRead(i, again){ const x = PDFQ.list[i]; PDFQ.res[x.id] = {loading: 1}; pdfCard(i);
@@ -6643,7 +6643,7 @@ function pdfBg(fin){ let el = $('#pdfbg'); const L = PDFQ ? PDFQ.list : [], R = 
 /* 登録：画面のカードがあればその内容で、なければ（裏で読み取ったとき）読み取った内容のまま登録する */
 /* 読み取った作品と候補の中身を比べる：番号が合っていても中身が大きく違う候補は選ばない */
 const candMis = (w, c) => wkMis({ '作品名': w['作品名'], '制作年': w['制作年'], '高さcm': w['高さcm'], '幅cm': w['幅cm'] }, workOf(c.no) || c);
-const candPick = w => w.multi ? -1 : (w.cands || []).findIndex(c => candMis(w, c).sc < 2); /* 番号が複数書かれているカードは、毎回人が選ぶ */
+const candPick = w => (w.multi || w.ambig || w.pair) ? -1 : (w.cands || []).findIndex(c => candMis(w, c).sc < 2); /* 番号が複数・似た候補が複数・2点以上（一双・A/B）のときは、毎回人が選ぶ */
 async function pdfReg(i, auto){ const x = PDFQ.list[i], r = PDFQ.res[x.id], el = auto ? null : $('#pc' + i); if (!r || !r.d || (!auto && !el)) return;
   const a = r.d.r || {}, ex = a['展覧会'] || {}, m = r.d.ex, W = r.d.works || [];
   const dflt = {'タイトル': a['資料名'] || String(x.name).replace(/\.pdf$/i, ''), '種類': a['種類'] || '', '発行年月': a['発行年月'] || '', '発行元': a['発行元'] || '', '掲載内容': a['掲載内容'] || '', '保管番号': x.box || '', 'exId': m ? m.id : (ex['名称'] ? 'new' : '')};
@@ -6651,7 +6651,7 @@ async function pdfReg(i, auto){ const x = PDFQ.list[i], r = PDFQ.res[x.id], el =
   if (!v('タイトル')) return auto ? null : alert('資料名を入れてください');
   const picks = el ? [...el.querySelectorAll('input[data-no]:checked')].map(c => ({no: c.dataset.no, wi: +c.dataset.wi}))
     : W.map((w, wi) => { const k = candPick(w); return k >= 0 ? {no: w.cands[k].no, wi} : null; }).filter(Boolean);
-  const nf = W.filter(w => !w.cands.length).map(w => w['作品名']), sus = W.filter(w => w.cands.length && candPick(w) !== 0).map(w => w['作品名'] + '：' + (w.multi ? '番号が複数（' + w.multi + '）どれが作品番号か確認' : (w.cands[0].byNo ? '番号は合うが' : '') + candMis(w, w.cands[0]).why.join('・')));
+  const nf = W.filter(w => !w.cands.length).map(w => w['作品名']), sus = W.filter(w => w.cands.length && candPick(w) !== 0).map(w => w['作品名'] + '：' + (w.multi ? '番号が複数（' + w.multi + '）どれが作品番号か確認' : w.pair ? '2点以上（一双・A/B など）なので、つなぐ作品を確認' : w.ambig ? '似た候補が複数あるので確認（' + w.cands.slice(0, 3).map(c => 'No.' + c.no + (c['所在'] ? '・' + c['所在'] : '')).join('／') + '）' : (w.cands[0].byNo ? '番号は合うが' : '') + candMis(w, w.cands[0]).why.join('・')));
   const rec = { box: x.box || '', pub: {'タイトル': v('タイトル'), '種類': v('種類'), '発行年月': v('発行年月'), '発行元': v('発行元'), '掲載内容': v('掲載内容'), '保管番号': v('保管番号')},
     exId: v('exId'), ex: {'名称': ex['名称'] || '', '種類': ex['種類'] || '', '開始日': ex['開始日'] || '', '終了日': ex['終了日'] || '', '会場': ex['会場'] || '', '都市': ex['都市'] || ''},
     pbIds: el ? [...el.querySelectorAll('input[data-pbid]:checked')].map(c => c.dataset.pbid) : (r.d.pbs || []).filter(b => b.s >= 0.8).map(b => b.id),
