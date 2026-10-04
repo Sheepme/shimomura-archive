@@ -994,7 +994,7 @@ body.dropping::after{content:'ここに画像をドロップ';position:fixed;ins
 #vmain:disabled{opacity:1;background:#f2b33d;color:#fff;border-color:#f2b33d}
 
 /* ---------- 確認メモ（付箋） ---------- */
-:root{--note:#f3edd8;--note2:#f3edd8;--note-ink:#3a3629;--note-sub:#7d7560;--note-tape:rgba(255,255,255,.5);--note-shadow:0 1px 1px rgba(0,0,0,.06),0 6px 14px -8px rgba(60,50,20,.22);--note-done:#e3e8da;--note-done2:#e3e8da} /* 付箋は落ち着いた生成りの黄色 */
+:root{--note:#FFF59D;--note2:#f3edd8;--note-ink:#3a3629;--note-sub:#6B6450;--note-tape:rgba(255,255,255,.5);--note-shadow:0 1px 1px rgba(0,0,0,.06),0 6px 14px -8px rgba(60,50,20,.22);--note-done:#e3e8da;--note-done2:#e3e8da} /* 付箋は落ち着いた生成りの黄色 */
 :root[data-theme="dark"]{--note-shadow:0 8px 18px -6px rgba(0,0,0,.6)}
 .mmhd{display:flex;align-items:center;justify-content:space-between;margin:6px 0 12px}
 .mmhd .hsec{margin:0}
@@ -1897,7 +1897,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'aeed92282a', APP_URL = location.origin + location.pathname;
+const BUILD = '7f5d7daf91', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
