@@ -1876,6 +1876,27 @@ html[data-theme=dark] .qc-c.sel{background:#16384A;color:#9ADDFF}
 .qc.kb .qc-q{font-size:20px}
 .qc.kb .qc-w{gap:10px;padding-top:8px}
 .qc.kb .qc-btm{margin-top:0}
+.qc-chip{align-self:flex-start;padding:6px 12px;border-radius:12px;background:#DDF4FF;color:#1F5FAD;font-size:15px;font-weight:800}
+html[data-theme=dark] .qc-chip{background:#16384A;color:#9ADDFF}
+.qc-wkr{display:flex;align-items:center;gap:12px}
+.qc-th{flex:none;width:64px;height:64px;border-radius:12px;overflow:hidden;background:var(--hg-sf)}.qc-th img{width:100%;height:100%;object-fit:cover;display:block}
+.qc-sec{display:flex;flex-direction:column;gap:8px}
+.qc-sh{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}.qc-sh b{font-size:16px;color:var(--hg-h)}.qc-sh small{font-size:14px;color:var(--hg-s)}
+.qc-dfx:empty{display:none}
+.qc-ab{display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:16px;border:2px solid var(--hg-ln)}
+.qc-ab small{font-size:14px;font-weight:800;color:var(--hg-s)}.qc-ab b{font-size:21px;color:var(--hg-h);overflow-wrap:anywhere}
+.qc-ab b.hl{align-self:flex-start;padding:0 4px;border-radius:4px;background:rgba(255,200,0,.45)}
+.qc-ab span{font-size:14px;line-height:1.6;color:var(--hg-s)}
+.qc-op{display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:16px;text-align:left;font:inherit;cursor:pointer}
+.qc-op.g{background:var(--hg-g);border:0;border-bottom:5px solid var(--hg-g2);color:#FFFFFF}.qc-op b{font-size:18px}.qc-op span{font-size:14px;line-height:1.5}
+.qc-op.n{background:var(--hg-sf);border:2px solid var(--hg-ln);border-bottom-width:5px;color:var(--hg-h)}.qc-op.n span{color:var(--hg-s)}
+.qc-op2{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-radius:16px;border:2px solid var(--hg-ln);border-bottom-width:5px}
+.qc-op2>b{font-size:18px;color:var(--hg-h)}.qc-op2>span{font-size:14px;line-height:1.5;color:var(--hg-s)}
+.qc-mn{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.qc-mn button{min-height:56px;padding:6px 10px;border-radius:14px;border:2px solid #84D8FF;border-bottom-width:4px;background:#DDF4FF;color:#1F5FAD;font:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.qc-mn small{font-size:12px;font-weight:700}.qc-mn b{font-size:16px;overflow-wrap:anywhere}
+html[data-theme=dark] .qc-mn button{background:#16384A;color:#9ADDFF;border-color:#2E6E92}
+.qc-r2{min-height:66px;flex-direction:column;gap:2px;color:var(--hg-h)!important}.qc-r2 b{font-size:17px}.qc-r2 small{font-size:12px;color:var(--hg-s)}
 .qc-end{gap:16px}.qc-end .qc-q{text-align:center}
 .qc-star{align-self:center;width:88px;height:88px;border-radius:50%;background:#FFC800;border-bottom:6px solid #E5A800;box-sizing:border-box;display:grid;place-items:center;color:#FFFFFF;margin-top:12px}
 .qc-star svg{width:48px;height:48px;fill:currentColor}
@@ -1955,7 +1976,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '458ed90c66', APP_URL = location.origin + location.pathname;
+const BUILD = '51147bb7ac', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2376,17 +2397,18 @@ const QCSVG = {
   cam: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.6-2.2h6.8L17 8h3v11H4z"/><circle cx="12" cy="13.2" r="3.6"/></svg>',
   star: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2l2.6 5.5 6 .7-4.4 4.1 1.2 5.9L12 16.5l-5.4 2.9 1.2-5.9L3.4 9.4l6-.7z"/></svg>',
   ok: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' };
-function startCards(test){
+function startCards(test, mode){
   try { quizIndex(); } catch(e){}
   let L = [];
   if (test) { /* 練習モード：保存しない。4種類が全部出るよう、本物の作品から3点ずつ */
     const by = { loc: [], name: [], photo: [], conf: [] };
     hgPick(5000).forEach(no => { const w = workOf(no); if (!w) return; const ph = hasPh(no), k = !ph ? (hasName(w) ? 'photo' : null) : !hasLoc(w) ? 'loc' : !hasName(w) ? 'name' : needLoc(w) ? 'conf' : null; if (k && by[k].length < 3) by[k].push({ no, k }); });
-    ['loc', 'name', 'photo', 'conf'].forEach(k => L = L.concat(by[k])); }
+    ['loc', 'name', 'photo', 'conf'].forEach(k => L = L.concat(by[k])); L = L.concat(qcDiffs(3)); }
+  else if (mode === 'diff') L = qcDiffs(10);
   else hgPick(400).forEach(no => { if (L.length < 10) { const k = qcKind(no); if (k) L.push({ no, k }); } });
-  if (!L.length) return toast('いま確かめる作品はありません');
+  if (!L.length) return toast(mode === 'diff' ? 'いま決める書類の違いはありません' : 'いま確かめる作品はありません');
   closeSheet(); closeAllPages(); ttsUnlock();
-  QC = { L, i: 0, step: '', heard: '', pend: null, n: 0, test: !!test, before: new Set(L.filter(c => qcComplete(c.no)).map(c => c.no)) };
+  QC = { L, i: 0, step: '', heard: '', pend: null, n: 0, test: !!test, mode: mode || '', before: new Set(L.filter(c => qcComplete(c.no)).map(c => c.no)) };
   let el = $('#qc'); if (!el) { el = document.createElement('div'); el.id = 'qc'; el.className = 'qc hm2'; document.body.appendChild(el); el.addEventListener('click', qcClick); el.addEventListener('change', qcChange);
     el.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'qcTtl') { e.preventDefault(); qcAct('name'); } if (e.key === 'Enter' && e.target.id === 'qcMus') { e.preventDefault(); qcAct('musok'); } }); }
   el.classList.remove('hidden'); qcLock(true); qcVV(); qcDraw();
@@ -2399,11 +2421,57 @@ function qcLock(on){ const b = document.body;
 function qcVV(){ const el = $('#qc'), v = window.visualViewport; if (!el || !QC) return;
   if (v) { el.style.top = v.offsetTop + 'px'; el.style.height = v.height + 'px'; el.style.bottom = 'auto'; el.classList.toggle('kb', v.height < window.innerHeight * 0.78); } }
 if (window.visualViewport) { visualViewport.addEventListener('resize', qcVV); visualViewport.addEventListener('scroll', qcVV); }
+/* 書類と台帳の違い（作品の食い違いで、まだ決めていないもの）。場所・作品名を先に */
+function qcDiffs(max){ const out = [], pri = f => f === '所在' ? 0 : f === '作品名' ? 1 : 2;
+  (S.docs||[]).forEach(d => { if (d['状態'] !== '登録済み') return; (docRes(d)['食い違い']||[]).forEach((x, i) => { if (!x.r && x.t === 'w' && workOf(x.id) && !QDD.has(d['書類ID'] + '|' + i)) out.push({ no: String(x.id), k: 'diff', did: d['書類ID'], i, p: pri(x.f) }); }); });
+  return out.sort((a, b) => a.p - b.p).slice(0, max); }
+function qcTop(){ return `<div class="qc-top"><button type="button" class="qc-x" data-qc="end" aria-label="やめる">${QCSVG.x}</button>
+    <div class="qc-bar" role="progressbar" aria-label="${QC.i + 1}問目 / ${QC.L.length}問" aria-valuenow="${QC.i}" aria-valuemax="${QC.L.length}"><i style="width:${Math.max(4, Math.round(QC.i / QC.L.length * 100))}%"></i></div>
+    <button type="button" class="qc-say" data-qc="say" aria-label="もう一度読み上げる">${QCSVG.say}</button></div>${QC.test ? '<p class="qc-test">練習モード：答えは保存しません</p>' : ''}`; }
+function qcDrawDiff(el, c){
+  const d = docById(c.did), x = d && (docRes(d)['食い違い'] || [])[c.i];
+  if (!d || !x || x.r) { QC.i++; return qcDraw(); }
+  const w = workOf(c.no) || {}, ph = photoBy[c.no] || [], FL = { '幅cm': '幅', '高さcm': '高さ', '所在': 'いまの場所' }, lab = FL[x.f] || x.f, u = /cm$/.test(x.f) ? ' cm' : '';
+  const pdf = !!(docPages(d)[0] && docRes(d).PDF);
+  const kd = x.f === '作品名' ? 'name' : /日$|制作年|cm$/.test(x.f) ? '' : 'same', pg = x.at && x.at.p ? x.at.p + 'ページ目' : '';
+  const led = w['最終更新者'] === '旧リストから移行' ? '旧リスト（2017年ごろ作成）から移したままです。まだ誰も直していません。'
+    : `台帳にいま入っている内容です（最後に直した人：${w['最終更新者'] || '不明'}${w['最終更新日時'] ? '・' + String(w['最終更新日時']).slice(0, 10) : ''}）。`;
+  const v = t => esc(t || '（空）') + (t && u && /\d$/.test(t) ? u : '');
+  const go = (a, t, sub) => `<button type="button" class="qc-op n" data-qa="${a}"><b>${t}</b>${sub ? `<span>${sub}</span>` : ''}</button>`;
+  const two = `<div class="qc-row"><button type="button" class="hg-btn2 qc-r2" data-qa="df:ledger"><b>台帳が正しい</b><small>書類の書き間違いとして記録</small></button><button type="button" class="hg-btn2 qc-r2" data-qa="df:doc"><b>書類が正しい</b><small>台帳を直す</small></button></div>`;
+  let opts = '';
+  if (kd === 'name') opts = go('df:same-ledger', '同じ名前（書き方の違い）', `台帳は「${esc(x.cur)}」のまま。書類の書き方も覚えて、次からは聞きません`)
+    + `<div class="qc-op2"><b>どちらも正しい</b><span>どちらかをメインに、もう一方をサブ（別名）にします</span><div class="qc-mn"><button type="button" data-qa="df:alias"><small>メインにする</small><b>${esc(x.cur || '（空）')}</b></button><button type="button" data-qa="df:same-doc"><small>メインにする</small><b>${esc(x.doc)}</b></button></div></div>` + two;
+  else if (kd === 'same') opts = two + go('df:same-ledger', '同じもの（書き方の違い）', '台帳のまま。書類の書き方も覚えて、次からは聞きません');
+  else opts = two;
+  QC.q = `${lab}は、どうする？`;
+  el.innerHTML = `<div class="qc-w qc-dw">${qcTop()}
+    <span class="qc-chip">書類と台帳の違い・${esc(lab)}</span>
+    <div class="qc-wkr">${ph.length ? `<span class="qc-th">${thumbHTML(c.no, 200)}</span>` : ''}<div class="qc-wk"><small>${esc(nol(c.no))}</small><b>${esc(w['作品名'] || '作品名なし')}</b></div></div>
+    <div class="qc-sec"><div class="qc-sh"><b>読み取った書類</b><small>${esc(docTitle(d))}${pg ? '・' + pg : ''}</small></div>${pdf ? '<div class="dfx qc-dfx" id="qcDf"></div>' : ''}</div>
+    <div class="qc-ab"><small>A　台帳</small><b>${v(x.cur)}</b><span>どこから：${esc(led)}</span></div>
+    <div class="qc-ab"><small>B　書類</small><b class="hl">${v(x.doc)}</b><span>どこから：「${esc(docTitle(d))}」${pg ? 'の' + pg : ''}をAIが読み取りました。${x.note ? esc(x.note) : ''}</span></div>
+    <h1 class="qc-q">${esc(QC.q)}</h1>
+    <div class="qc-btm">${opts}<button type="button" class="qc-skip" data-qa="skip">あとで決める</button></div></div>`;
+  hydrate(el); el.scrollTop = 0;
+  const box = pdf && $('#qcDf'); if (box) dfPreview(box, d, x, true).catch(() => {});
+  if (QV.tts) say(QC.q);
+}
+const QDD = new Set(); /* この画面で決めた違い（保存の返事が来る前に同じものを出さない） */
+function qcDiffLeft(){ let all = 0, left = 0; const dd = QDD;
+  (S.docs||[]).forEach(d => { if (d['状態'] !== '登録済み') return; (docRes(d)['食い違い']||[]).forEach((x, i) => { if (x.t !== 'w' || !workOf(x.id)) return; all++; if (!x.r && !dd.has(d['書類ID'] + '|' + i)) left++; }); });
+  return { all, left }; }
+async function qcDiffSave(c, fn, pk){
+  const key = c.did + '|' + c.i; if (!QC.test) QDD.add(key); QC.n++; QC.i++; QC.step = ''; qcDraw(); if (QC.test) return;
+  try { const res = await call(fn, c.did, c.i, pk); if (res && res.works) setData(res); }
+  catch(e){ QDD.delete(key); if (isLoginErr(e)) { alert('ログインの有効期限が切れました。もう一度ログインしてください。'); qcEnd(); return; } toast('保存できませんでした：' + (e.message || e)); }
+}
 function qcEnd(){ stopMic(); sayStop(); const el = $('#qc'); if (el) { el.classList.add('hidden'); el.classList.remove('kb'); el.innerHTML = ''; el.style.top = el.style.height = el.style.bottom = ''; } qcLock(false); QC = null; refreshData().catch(() => {}); }
 function qcDraw(){
   const el = $('#qc'); if (!el || !QC) return;
   if (QC.i >= QC.L.length) return qcFinish();
-  const c = QC.L[QC.i], no = c.no, w = workOf(no) || {}, ph = photoBy[no] || [], k = QC.step || c.k;
+  const c = QC.L[QC.i]; if (c.k === 'diff') return qcDrawDiff(el, c);
+  const no = c.no, w = workOf(no) || {}, ph = photoBy[no] || [], k = QC.step || c.k;
   const loc = w['所在'] || (w['所在区分'] && w['所在区分'] !== '不明' ? w['所在区分'] : '');
   const q = { loc: 'この作品、いまどこにある？', conf: `この作品、いまも「${loc}」にある？`, name: 'この作品の名前、わかる？', photo: 'この作品、写真を撮れる？',
     mus: 'どこの美術館・学校？', hear: 'どこにある？' }[k];
@@ -2437,7 +2505,7 @@ function qcDraw(){
 }
 function qcClick(e){ if (!QC) return; const t = e.target.closest('[data-qc],[data-qa]'); if (!t) return;
   if (t.dataset.qc === 'end') return qcEnd();
-  if (t.dataset.qc === 'again') { const tm = QC.test; qcEnd(); return setTimeout(() => startCards(tm), 50); }
+  if (t.dataset.qc === 'again') { const tm = QC.test, md = QC.mode; qcEnd(); return setTimeout(() => startCards(tm, md), 50); }
   if (t.dataset.qc === 'say') { ttsUnlock(); const was = QV.tts; QV.tts = true; say(QC.q || ''); QV.tts = was; return; }
   if (t.dataset.qa) qcAct(t.dataset.qa, t); }
 function qcChange(e){ if (e.target.id === 'qcCam' && e.target.files && e.target.files[0]) qcPhoto(e.target.files[0]); }
@@ -2446,6 +2514,7 @@ function qcAct(a, btn){ const c = QC && QC.L[QC.i]; if (!c) return; const no = c
   if (a === 'home') return L('自宅', '自宅');
   if (a === 'priv') return L('個人蔵', '個人蔵');
   if (a === 'shibun') return L('委託中', '思文閣');
+  if (a.indexOf('df:') === 0) { const m = { 'df:ledger': ['resolveDiff', 'ledger'], 'df:doc': ['resolveDiff', 'doc'], 'df:alias': ['learnAlias', 'alias'], 'df:same-ledger': ['learnAlias', 'ledger'], 'df:same-doc': ['learnAlias', 'doc'] }[a]; if (m) return qcDiffSave(c, m[0], m[1]); }
   if (a === 'mus') { QC.step = 'mus'; return qcDraw(); }
   if (a === 'other') { QC.step = 'hear'; QC.heard = ''; QC.pend = null; return qcDraw(); }
   if (a === 'pl') { const kd = btn && btn.dataset.k, det = (($('#qcPl') || {}).value || '').trim();
@@ -2499,12 +2568,19 @@ function qcFinish(){
   const el = $('#qc'); sayStop();
   const fresh = QC.L.filter(c => qcComplete(c.no) && !QC.before.has(c.no)).map(c => c.no);
   const W = S.works.filter(w => !/^[YHZ]\d{3,}$/.test(String(w['作品番号'])) && !['廃棄','統合済み'].includes(w['所在区分'])), N = W.length, nd = W.filter(w => qcComplete(w['作品番号'])).length;
+  if (QC.mode === 'diff' && !QC.test) { const D = qcDiffLeft(), dn = D.all - D.left;
+    el.innerHTML = `<div class="qc-w qc-end"><div class="qc-star">${QCSVG.star}</div>
+    <h1 class="qc-q">書類の違い${QC.L.length}件、${QC.n >= QC.L.length ? 'クリア！' : 'おつかれさま！'}</h1>
+    <div class="qc-stats"><div class="y"><span>決めた</span><b>${QC.n}件</b></div><div class="g"><span>あとで</span><b>${QC.L.length - QC.n}件</b></div><div class="b"><span>のこり</span><b>${D.left}件</b></div></div>
+    <div class="hg-bar"><i style="width:${Math.round(dn / Math.max(D.all, 1) * 1000) / 10}%"></i></div><p class="hg-note">${dn} / ${D.all}件 決まった</p>
+    <div class="qc-btm">${D.left ? `<button type="button" class="hg-go" data-qc="again">つづけて${Math.min(10, D.left)}件</button>` : ''}<button type="button" class="hg-btn2" data-qc="end">ホームにもどる</button></div></div>`;
+    hydrate(el); el.scrollTop = 0; return; }
   el.innerHTML = `<div class="qc-w qc-end"><div class="qc-star">${QCSVG.star}</div>
-    <h1 class="qc-q">${QC.test ? '練習' : '今日の' + QC.L.length + '作品'}、${QC.n >= QC.L.length ? 'クリア！' : 'おつかれさま！'}</h1>${QC.test ? '<p class="qc-test">練習モードでした。台帳は変わっていません</p>' : ''}
+    <h1 class="qc-q">${QC.test ? '練習' : QC.mode === 'diff' ? '書類の違い' + QC.L.length + '件' : '今日の' + QC.L.length + '作品'}、${QC.n >= QC.L.length ? 'クリア！' : 'おつかれさま！'}</h1>${QC.test ? '<p class="qc-test">練習モードでした。台帳は変わっていません</p>' : ''}
     <div class="qc-stats"><div class="y"><span>答えた</span><b>${QC.n}点</b></div><div class="g"><span>図鑑に追加</span><b>+${fresh.length}</b></div><div class="b"><span>いまの図鑑</span><b>${nd}</b></div></div>
     <div class="hg-bar"><i style="width:${Math.round(nd / Math.max(N, 1) * 1000) / 10}%"></i></div><p class="hg-note">${nd} / ${N}点 そろった</p>
     ${fresh.length ? `<p class="qc-lbl">新しく図鑑にのった作品</p><div class="hg-grid">${fresh.map(no => `<div class="hg-t"><span class="hg-ph">${thumbHTML(no, 200)}<i class="hg-ok">${QCSVG.ok}</i></span><span class="hg-no">${esc(nol(no))}</span></div>`).join('')}</div>` : ''}
-    <div class="qc-btm"><button type="button" class="hg-go" data-qc="again">${QC.test ? 'もう一度練習' : 'つづけて10作品'}</button><button type="button" class="hg-btn2" data-qc="end">ホームにもどる</button></div></div>`;
+    <div class="qc-btm"><button type="button" class="hg-go" data-qc="again">${QC.test ? 'もう一度練習' : QC.mode === 'diff' ? 'つづけて10件' : 'つづけて10作品'}</button><button type="button" class="hg-btn2" data-qc="end">ホームにもどる</button></div></div>`;
   hydrate(el); el.scrollTop = 0;
 }
 function renderHome(){
@@ -2513,7 +2589,7 @@ function renderHome(){
   const done = w => hasPh(w['作品番号']) && hasName(w) && hasLoc(w), ed = canEdit();
   const N = W.length, nDone = W.filter(done).length;
   const nPh = W.filter(w => !hasPh(w['作品番号'])).length, nNm = W.filter(w => !hasName(w)).length, nLc = W.filter(w => !hasLoc(w)).length;
-  const nDf = (S.docs||[]).filter(d => d['状態']==='登録済み').reduce((s, d) => s + (docRes(d)['食い違い']||[]).filter(x => !x.r).length, 0);
+  const nDf = qcDiffLeft().left; /* カードで決められる違いの数（作品の違いだけ） */
   /* 図鑑の一覧は、まだそろっていない作品だけ（40点ずつ） */
   const M = W.filter(w => !done(w)), PG = 40, pages = Math.max(1, Math.ceil(M.length / PG));
   if (S.hgPage == null || S.hgPage >= pages) S.hgPage = 0;
@@ -2551,7 +2627,7 @@ function renderHome(){
       <p class="hg-note">ここには、まだ足りないものがある作品だけを出しています。番号の下に、足りないものを出しています。押すとその作品のページを開きます。</p>
       <button type="button" class="hg-link" data-v="works">すべての作品を見る</button></section>
     ${ed ? `<section class="hg-sec"><h2 class="hg-h2">ひとつずつ片付ける</h2>
-      ${row('data-bsgo="noloc"', '#1CB0F6', IC.loc, '場所がわからない', nLc)}${row('data-bsgo="noname"', '#CE82FF', NAMEIC, '作品名がない', nNm)}${row('data-bsgo="nophoto"', '#FF4B4B', IC.photo, '写真がない', nPh)}${row('data-todo="doc"', '#2B70C9', IC.doc, '書類と台帳の違い', nDf)}
+      ${row('data-bsgo="noloc"', '#1CB0F6', IC.loc, '場所がわからない', nLc)}${row('data-bsgo="noname"', '#CE82FF', NAMEIC, '作品名がない', nNm)}${row('data-bsgo="nophoto"', '#FF4B4B', IC.photo, '写真がない', nPh)}${row('data-hgdiff="1"', '#2B70C9', IC.doc, '書類と台帳の違い', nDf)}
       <details class="hg-more"><summary>そのほかの作業</summary><div class="todos">${todo.map(card).join('')}</div></details></section>` : ''}
     <button class="tourlink" data-v="help">使い方を見る</button></div><aside class="dash">${dashHTML()}</aside></div>`;
   hydrate($('#main'));
@@ -2560,6 +2636,7 @@ function renderHome(){
     document.addEventListener('click', e => { if (S.view !== 'home') return;
       if (e.target.closest('[data-hg10]')) return startCards();
       if (e.target.closest('[data-hgtest]')) return startCards(true);
+      if (e.target.closest('[data-hgdiff]')) return startCards(false, 'diff');
       const p = e.target.closest('[data-hgpg]'); if (p) { S.hgPage = Math.max(0, (S.hgPage || 0) + (+p.dataset.hgpg)); renderHome(); const g = $('#hgGrid'); if (g) g.scrollIntoView({ block: 'start' }); return; }
       const t = e.target.closest('[data-hgw]'); if (t) openWork(t.dataset.hgw); }); }
 }
