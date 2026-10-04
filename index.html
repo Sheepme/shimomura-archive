@@ -1862,7 +1862,8 @@ body.qcopen #toast,body.qcopen #loading,body.qcopen #confirm{visibility:visible!
 .qc-wk.row{flex-direction:row;align-items:baseline;flex-wrap:wrap;column-gap:10px}.qc-nop>svg{width:40px;height:40px;stroke-width:2}.qc-nop b{font-size:16px}.qc-nop .qzinfo{width:100%;margin-top:4px}
 .qc-wk{display:flex;flex-direction:column;gap:2px}.qc-wk small{font-size:14px;font-weight:700;color:var(--hg-s)}.qc-wk b{font-size:18px;color:var(--hg-h)}
 .qc-q{margin:0;font-size:clamp(22px,6.4vw,26px);font-weight:800;line-height:1.35;color:var(--hg-h)}
-.qc-hint{margin:4px 0 0;font-size:15px;line-height:1.5;color:var(--hg-s)}
+.qc-hint{margin:4px 0 0;font-size:16px;line-height:1.55;color:var(--hg-s)}
+.qc-hint.qc-body{margin-top:12px;font-size:20px;line-height:1.8;font-weight:500;color:var(--hg-h);letter-spacing:.01em}
 .qc-ch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .qc-c{min-height:52px;padding:6px 8px;border-radius:16px;border:2px solid var(--hg-ln);border-bottom-width:5px;background:var(--hg-bg);color:var(--hg-t);font:inherit;font-size:18px;font-weight:800;cursor:pointer}
 .qc-c.wide{grid-column:1/-1;min-height:52px;background:var(--hg-sf);color:var(--hg-s);font-size:17px}
@@ -1872,8 +1873,8 @@ body.qcopen #toast,body.qcopen #loading,body.qcopen #confirm{visibility:visible!
 .qc-ch.qc-ar{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.qc-ch.qc-ar .qc-c{min-height:46px;font-size:16px;padding:4px 6px}
 .qc-arn{padding:4px 4px 4px 14px}.qc-arn input{font-size:18px}.qc-arb{flex:none;border:0;border-radius:12px;background:#1CB0F6;color:#FFFFFF;font:inherit;font-size:16px;font-weight:800;padding:10px 16px;cursor:pointer}
 .area-new{margin-top:8px}
-.qc-rel{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}.qc-rel>small{width:100%;color:var(--hg-s);font-size:13px}.qc-relw{display:flex;flex-direction:column;align-items:center;gap:2px;width:84px;text-align:center}
-.qc-relt{width:72px;height:72px;border-radius:10px;overflow:hidden;background:var(--hg-sf);display:grid;place-items:center}.qc-relt img{width:100%;height:100%;object-fit:cover}.qc-relt i{font-style:normal;font-size:11px;color:var(--hg-s)}.qc-relw b{font-size:12px}.qc-relw small{font-size:11px;color:var(--hg-s);line-height:1.3}
+.qc-rel{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}.qc-rel>small{width:100%;color:var(--hg-s);font-size:16px}.qc-relw{display:flex;flex-direction:column;align-items:center;gap:4px;width:120px;text-align:center}
+.qc-relt{width:104px;height:104px;border-radius:12px;overflow:hidden;background:var(--hg-sf);display:grid;place-items:center}.qc-relt img{width:100%;height:100%;object-fit:cover}.qc-relt i{font-style:normal;font-size:13px;color:var(--hg-s)}.qc-relw b{font-size:16px}.qc-relw small{font-size:15px;color:var(--hg-h);line-height:1.4}
 .dfpg{position:relative}.dfpld{position:absolute;left:0;right:0;top:0;height:min(100%,260px);display:flex;align-items:center;justify-content:center;gap:10px;padding:0 16px;text-align:center;color:#6B6B6B;font-size:14px;line-height:1.5;background:#FFFFFF;z-index:1}
 .wquiz{padding:14px 16px;border:1px solid var(--line);border-radius:14px;margin:0 0 8px}.wquiz p{margin:0 0 10px;color:var(--sub);font-size:15px;line-height:1.6}.wquiz .act{width:100%}
 .qc-ch.qc-mu{max-height:34vh;overflow-y:auto;gap:8px;padding:2px}.qc-ch.qc-mu .qc-c{min-height:46px;font-size:15px;line-height:1.3;padding:6px 8px}.qc.kb .qc-ch.qc-mu{max-height:22vh}
@@ -2048,7 +2049,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'faa0045455', APP_URL = location.origin + location.pathname;
+const BUILD = 'd174ec8973', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2971,7 +2972,7 @@ function qcDraw(){
       <div class="qc-bar" role="progressbar" aria-label="${QC.i + 1}問目 / ${QC.L.length}問" aria-valuenow="${QC.i}" aria-valuemax="${QC.L.length}"><i style="width:${Math.max(4, Math.round(QC.i / QC.L.length * 100))}%"></i></div>
       ${qcSayBtn()}</div>
     ${qcTask(k === 'note' ? c.k : k)}${QC.test ? '<p class="qc-test">練習モード：答えは保存しません</p>' : ''}${media}<div class="qc-wk row"><small>${esc(nol(no))}</small><b>${esc(w['作品名'] || '作品名なし')}</b></div>
-    <div><h1 class="qc-q">${esc(q)}</h1>${hint ? `<p class="qc-hint">${esc(hint)}</p>` : ''}</div>${body}<div class="qc-btm">${btm}</div></div>`;
+    <div><h1 class="qc-q">${esc(q)}</h1>${hint ? `<p class="qc-hint${k === 'ask' ? ' qc-body' : ''}">${esc(hint)}</p>` : ''}</div>${body}<div class="qc-btm">${btm}</div></div>`;
   hydrate(el); el.scrollTop = 0; qcMusFilter();
   if (QV.tts && !QC.step) say(QC.sp);
 }
