@@ -1771,6 +1771,7 @@ body.bigon #top{display:none!important}body.bigon .bigv{padding-top:0!important;
 .drvbtn{gap:10px}.drvbtn .drvic{width:22px;height:22px;flex:none}.drvbtn span{flex:1;text-align:left}#sheetbox.dv2 .drvbtn,.noteview.dv2 .drvbtn{justify-content:flex-start!important}.bvd{flex:none;width:38px;height:38px;border:0;border-radius:50%;background:rgba(255,255,255,.12);color:#faf9f5;display:flex;align-items:center;justify-content:center}.bvd .drvic{width:22px;height:22px}
 .bigv .dvbar{height:0;padding:0!important;border:0;background:none!important;position:relative;z-index:3;justify-content:center!important;align-items:flex-start!important;overflow:visible;pointer-events:none}.bigv .bvn{transform:translateY(10px);background:rgba(20,20,19,.72);color:#faf9f5!important;font-size:12px!important;padding:3px 11px;border-radius:999px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}.bigv .bvn:empty{display:none}.bigv .dvsc{padding-top:44px!important}a.bvd{position:fixed;right:calc(max(16px,env(safe-area-inset-right)) + 6px);bottom:calc(88px + env(safe-area-inset-bottom));z-index:5;width:44px;height:44px;background:#faf9f5;color:#141413;box-shadow:0 4px 14px rgba(0,0,0,.35);text-decoration:none}.bvhd{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 body.pgopen #nav .cbin,body.scr #nav .cbin{display:none!important}body.pgopen #nav,body.scr #nav{justify-content:flex-end;pointer-events:none}body.pgopen #nav .cbask,body.scr #nav .cbask{pointer-events:auto;margin-left:auto!important;order:9}
+body.pgopen.pgtuck:not(.dwopen):not(.scr) .cbar{transform:translateY(calc(100% + 24px + env(safe-area-inset-bottom)));opacity:0;pointer-events:none}body.pgopen .cbar{transition:transform .25s,opacity .25s}
 </style>
 </head>
 <body>
@@ -1840,7 +1841,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'c7ba79baa4', APP_URL = location.origin + location.pathname;
+const BUILD = '1da2d1c4fd', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5804,6 +5805,13 @@ $('#askq').addEventListener('keydown', e => { if (e.key==='Enter' && !e.shiftKey
     });
   }, {passive:true});
   document.addEventListener('focusin', e => { if (e.target.id === 'q') $('#top').classList.remove('tuck'); });
+})();
+/* 詳細ページ（作品・展覧会など）でも、下にスクロールでAIボタンを隠し、上にスクロールで出す（一覧と同じ） */
+(function(){ const pg = $('#page'); if (!pg) return; let lastY = 0, tk = false;
+  pg.addEventListener('scroll', () => { if (tk) return; tk = true; requestAnimationFrame(() => { const y = pg.scrollTop;
+    if (y < 80 || y < lastY - 6) document.body.classList.remove('pgtuck'); else if (y > lastY + 6) document.body.classList.add('pgtuck');
+    lastY = y; tk = false; }); }, {passive:true});
+  new MutationObserver(() => { if (pg.classList.contains('hidden')) { document.body.classList.remove('pgtuck'); lastY = 0; } }).observe(pg, {attributes:true, attributeFilter:['class']});
 })();
 
 /* ---------- 検索窓の × （入力を消す） ---------- */
