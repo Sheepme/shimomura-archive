@@ -931,6 +931,8 @@ body.briefing nav.fmenu{display:none}
 .drow .db{grid-area:b;align-self:center}.drow .dp{grid-area:p;font-size:13px;color:var(--sub);min-width:3em;text-align:right}
 .drow.full .dn{color:#2e9d6a}
 .dsep{height:1px;background:var(--line);margin:4px -14px}
+.dquiz{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.dquiz>div{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.dquiz b{font-size:26px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}.dquiz b small{font-size:14px;margin-left:2px}.dquiz span{font-size:13px;color:var(--sub)}
 .dweek{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;height:130px;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:12px}
 .dwk{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;min-height:0}
 .dwk i{display:block;width:70%;max-width:26px;border-radius:4px 4px 0 0;background:#2e9d6a;min-height:0}
@@ -2010,7 +2012,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '63b5193ed7', APP_URL = location.origin + location.pathname;
+const BUILD = '880e7f9913', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4515,8 +4517,15 @@ function dashHTML(){
     <div class="dhero"><b>${Math.round(tot * 100)}<small>%</small></b><span>写真・場所・要確認・クイズの平均</span><span class="db big"><i style="width:${Math.round(tot*100)}%"></i></span></div>
     <div class="dshcard">${rows.map(bar).join('')}</div>
     <h2 class="hsec">この7日間に更新した箇所</h2>
-    <div id="dUpd">${updWeekHTML()}</div>`;
+    <div id="dUpd">${updWeekHTML()}</div>${quizCountHTML()}`;
 }
+/* クイズ（今日の10作品・作品ページのクイズ・調べの記録）に答えた数。シート「クイズ」と「調べ」から数える */
+function quizCountHTML(){ const today = Utilities_ymd(new Date()), from = Utilities_ymd(new Date(Date.now() - 6 * 864e5));
+  const R = (S.quiz || []).map(r => ({ d: String(r['日時'] || '').slice(0, 10) || today, w: r['答えた人'] || '?' }))
+    .concat((S.finds || []).filter(f => f['状態'] && f['確認日時']).map(f => ({ d: String(f['確認日時']).slice(0, 10), w: f['確認者'] || '?' })));
+  const wk = R.filter(r => r.d >= from), td = R.filter(r => r.d === today).length, by = {}; wk.forEach(r => { by[r.w] = (by[r.w] || 0) + 1; });
+  const who = Object.entries(by).sort((a, b) => b[1] - a[1]).map(([n, c]) => esc(n) + ' ' + c + '問').join('　');
+  return `<h2 class="hsec">クイズに答えた数</h2><div class="dquiz"><div><b>${td}<small>問</small></b><span>今日</span></div><div><b>${wk.length}<small>問</small></b><span>この7日間</span></div><div><b>${R.length.toLocaleString()}<small>問</small></b><span>これまで</span></div></div>${who ? `<p class="muted" style="margin:8px 0 0;font-size:13px">7日間で（${who}）</p>` : ''}`; }
 function updWeekHTML(){
   if (!S.upd) return '<p class="muted" style="padding:8px 0">読み込んでいます…</p>';
   const days = Array.from({length: 7}, (_, i) => Utilities_ymd(new Date(Date.now() - (6 - i) * 864e5)));
