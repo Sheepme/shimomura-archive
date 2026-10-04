@@ -1868,6 +1868,7 @@ body.qcopen::before{content:'';position:fixed;left:0;right:0;top:-50vh;bottom:-5
 .qc-ch.qc-ar{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.qc-ch.qc-ar .qc-c{min-height:46px;font-size:16px;padding:4px 6px}
 .qc-arn{padding:4px 4px 4px 14px}.qc-arn input{font-size:18px}.qc-arb{flex:none;border:0;border-radius:12px;background:#1CB0F6;color:#FFFFFF;font:inherit;font-size:16px;font-weight:800;padding:10px 16px;cursor:pointer}
 .area-new{margin-top:8px}
+.wquiz{padding:14px 16px;border:1px solid var(--line);border-radius:14px;margin:0 0 8px}.wquiz p{margin:0 0 10px;color:var(--sub);font-size:15px;line-height:1.6}.wquiz .act{width:100%}
 .qc-ch.qc-mu{max-height:34vh;overflow-y:auto;gap:8px;padding:2px}.qc-ch.qc-mu .qc-c{min-height:46px;font-size:15px;line-height:1.3;padding:6px 8px}.qc.kb .qc-ch.qc-mu{max-height:22vh}
 html[data-theme=dark] .qc-c.sel{background:#16384A;color:#9ADDFF}
 .qc-btm{margin-top:auto;display:flex;flex-direction:column;gap:10px}
@@ -2017,7 +2018,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '6ce970f484', APP_URL = location.origin + location.pathname;
+const BUILD = 'a8ab093dd0', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2098,7 +2099,7 @@ function docCacheSync(docs){ let V = {}; try { V = JSON.parse(localStorage.getIt
   if (del.length) thDel(del); try { localStorage.setItem('smr_dver', JSON.stringify(N)); } catch(e){} }
 function setData(d){ if (S.upd) S.upd.t = 0; try { if (d && d.docs && d.docs.length) docCacheSync(d.docs); } catch(e){}
   const allW = d.works || []; d = Object.assign({}, d, {works: allW.filter(w => !OTRE.test(w['作品番号'])), others: allW.filter(w => OTRE.test(w['作品番号']))});
-  Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], finds:d.finds||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], faces:d.faces||[], memoChecker:d.memoChecker||'直美', marks:d.marks||[], pimg:d.pimg||S.pimg||[], user:d.user, ai:d.ai, publicView:d.publicView}); if (S.token && !d.user) setToken(''); index(); try { pimgIndex(); } catch(e){} renderUser(); try { faceInit(); } catch(e){}  if (d.user) setTimeout(prefetchThumbs, 0); }
+  Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, museums:d.museums||[], exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], finds:d.finds||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], faces:d.faces||[], memoChecker:d.memoChecker||'直美', marks:d.marks||[], pimg:d.pimg||S.pimg||[], user:d.user, ai:d.ai, publicView:d.publicView}); if (S.token && !d.user) setToken(''); index(); try { pimgIndex(); } catch(e){} renderUser(); try { faceInit(); } catch(e){}  if (d.user) setTimeout(prefetchThumbs, 0); }
 const canRole = () => !!(S.user && ['編集','管理'].includes(S.user.role));
 const canEdit = () => canRole();
 try { S.edit = localStorage.getItem('smr_edit') === '1'; } catch(e){ S.edit = false; }
@@ -2222,7 +2223,7 @@ function filtered(){
     if (['自宅','美術館','個人蔵','委託中','廃棄'].includes(f) && w['所在区分']!==f) return false;
     if (SUBF[f] && S.mus && (w['所在']||SUBF[f].none)!==S.mus) return false;
     if (!q) return true;
-    const hay = [w['作品番号'],w['作品名'],w['作品名メモ'],w['制作年'],w['画材'],w['種別'],w['シリーズ'],w['所在'],w['補足'],w['状態メモ']]
+    const hay = [w['作品番号'],w['作品名'],w['作品名メモ'],w['制作年'],w['画材'],w['種別'],w['シリーズ'],w['所在'],w['所在区分']==='美術館' ? musNames(w['所在']) : '',w['補足'],w['状態メモ']]
       .concat((eventBy[w['作品番号']]||[]).map(e=>e['相手先・場所']+' '+e['内容']+' '+e['日付'])).join(' ').normalize('NFKC').toLowerCase();
     return q.split(/\s+/).every(t => hay.includes(t));
   });
@@ -2481,7 +2482,18 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) qcFlu
 function qcFoot(m, back){ return `<div class="qc-microw"><button type="button" class="qc-skip" data-qa="${back ? 'back' : 'skip'}">${back ? 'もどる' : 'とばす'}</button>${m || ''}</div>`; }
 function qcPrefetch(nos){ const seen = new Set(); nos.forEach(no => { const p = no && (photoBy[no] || [])[0], id = p && p['ファイルID'];
     if (!id || seen.has(id) || seen.size >= 10 || TH[QCW + '_' + id]) return; seen.add(id); const i = new Image(); i.dataset.tid = id; i.dataset.w = String(QCW); queueThumb(i); }); }
-function startCards(test, mode){
+/* 作品ページの「クイズで埋める」：その作品の足りないところだけをカードで聞く（場所・作品名・写真・書類の違い・調べの記録） */
+function qcWorkCards(no){ const w = workOf(no); if (!w) return []; const L = [];
+  if (!hasLoc(w)) L.push({ no, k: 'loc' }); else if (needLoc(w)) L.push({ no, k: 'conf' });
+  if (!hasName(w)) L.push({ no, k: 'name' });
+  if (!hasPh(no)) L.push({ no, k: 'photo' });
+  (S.docs || []).forEach(d => { if (d['状態'] !== '登録済み') return; (docRes(d)['食い違い'] || []).forEach((x, i) => { if (!x.r && x.t === 'w' && String(x.id) === String(no) && !QDD.has(d['書類ID'] + '|' + i) && !(x.f === '所在' && musSame(x.cur, x.doc))) L.push({ no, k: 'diff', did: d['書類ID'], i }); }); });
+  (S.finds || []).forEach(f => { if (!fdOpen(f)) return; const cs = fdCands(f), j = cs.findIndex(c => c.no === no); if (j >= 0) L.push({ no, k: 'find', id: f['候補ID'], cands: cs, j }); });
+  return L; }
+const QCWK = { loc: '場所', conf: '場所の確認', name: '作品名', photo: '写真', diff: '書類との違い', find: '調べの記録' };
+function workQuizHTML(no){ const L = qcWorkCards(no), K = [...new Set(L.map(c => QCWK[c.k]))];
+  return `<h3 class="sec">クイズで埋める</h3><div class="wquiz">${L.length ? `<p>この作品で足りないところを、カードで1つずつ聞きます（${L.length}問：${esc(K.join('・'))}）</p><button type="button" class="act main" data-wquiz="${esc(no)}">クイズを始める（${L.length}問）</button>` : '<p>この作品で聞くことはありません。場所・作品名・写真がそろっています</p>'}</div>`; }
+function startCards(test, mode, wno){
   try { quizIndex(); } catch(e){}
   let L = [];
   if (test) { /* 練習モード：保存しない。4種類が全部出るよう、本物の作品から3点ずつ */
@@ -2490,15 +2502,16 @@ function startCards(test, mode){
     ['loc', 'name', 'photo', 'conf'].forEach(k => L = L.concat(by[k])); L = L.concat(qcDiffs(3), qcFinds(4, true)); }
   else if (mode === 'diff') L = qcDiffs(10);
   else if (mode === 'find') L = qcFinds(10);
+  else if (mode === 'work') L = qcWorkCards(wno);
   else { /* 今日の10作品：同じ種類が続かないよう、場所・調べの記録・作品名・書類の違い・写真・場所の確認を順番にまぜる */
     const by = { loc: [], name: [], photo: [], conf: [] };
     hgPick(400).forEach(no => { const k = qcKind(no); if (k && by[k].length < 10) by[k].push({ no, k }); });
     const P = [by.loc, qcFinds(3), by.name, qcDiffs(3), by.photo, by.conf];
     for (let r = 0; L.length < 10 && P.some(x => x.length); r++) P.forEach(x => { if (L.length < 10 && x.length) L.push(x.shift()); }); }
-  if (!L.length) return toast(mode === 'diff' ? 'いま決める書類の違いはありません' : mode === 'find' ? 'いま確かめる調べの記録はありません' : 'いま確かめる作品はありません');
+  if (!L.length) return toast(mode === 'work' ? 'この作品で聞くことはありません' : mode === 'diff' ? 'いま決める書類の違いはありません' : mode === 'find' ? 'いま確かめる調べの記録はありません' : 'いま確かめる作品はありません');
   closeSheet(); closeAllPages(); ttsUnlock();
   const tts0 = QV.tts; QV.tts = !test && !mode ? qcTtsPref() : false;
-  QC = { tts0, L, i: 0, step: '', heard: '', pend: null, n: 0, test: !!test, mode: mode || '', before: new Set(L.filter(c => qcComplete(c.no)).map(c => c.no)) };
+  QC = { tts0, L, i: 0, step: '', heard: '', pend: null, n: 0, test: !!test, mode: mode || '', wno: wno || '', before: new Set(L.filter(c => qcComplete(c.no)).map(c => c.no)) };
   let el = $('#qc'); if (!el) { el = document.createElement('div'); el.id = 'qc'; el.className = 'qc hm2'; document.body.appendChild(el); el.addEventListener('click', qcClick); el.addEventListener('change', qcChange);
     el.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'qcTtl') { e.preventDefault(); qcAct('name'); } if (e.key === 'Enter' && e.target.id === 'qcMus') { e.preventDefault(); qcAct('muadd'); } if (e.key === 'Enter' && e.target.id === 'qcAr') { e.preventDefault(); qcAct('aradd'); } }); }
   el.classList.remove('hidden'); qcLock(true); qcVV();
@@ -2735,7 +2748,7 @@ async function qcDiffSave(c, fn, pk, kind, area){
     () => { QDD.delete(key); QC.n--; });
   qcDraw();
 }
-function qcEnd(){ qcFlush(); stopMic(); sayStop(); if (QC && QC.tts0 != null) QV.tts = QC.tts0; const el = $('#qc'); if (el) { el.classList.add('hidden'); el.classList.remove('kb'); el.innerHTML = ''; el.style.top = el.style.height = el.style.bottom = ''; } qcLock(false); QC = null; refreshData().catch(() => {}); }
+function qcEnd(){ const wno = QC && QC.mode === 'work' ? QC.wno : ''; if (wno) setTimeout(() => openWork(wno), 60); qcFlush(); stopMic(); sayStop(); if (QC && QC.tts0 != null) QV.tts = QC.tts0; const el = $('#qc'); if (el) { el.classList.add('hidden'); el.classList.remove('kb'); el.innerHTML = ''; el.style.top = el.style.height = el.style.bottom = ''; } qcLock(false); QC = null; refreshData().catch(() => {}); }
 function qcDraw(){
   const el = $('#qc'); if (!el || !QC) return;
   if (QC.i >= QC.L.length) return qcFinish();
@@ -2901,6 +2914,12 @@ function qcFinish(){
   const el = $('#qc'); sayStop();
   const fresh = QC.L.filter(c => qcComplete(c.no) && !QC.before.has(c.no)).map(c => c.no);
   const W = S.works.filter(w => !/^[YHZ]\d{3,}$/.test(String(w['作品番号'])) && !['廃棄','統合済み'].includes(w['所在区分'])), N = W.length, nd = W.filter(w => qcComplete(w['作品番号'])).length;
+  if (QC.mode === 'work') { const w = workOf(QC.wno) || {}, left = qcWorkCards(QC.wno).length;
+    el.innerHTML = `<div class="qc-w qc-end">${qcBackBtn()}<div class="qc-star">${QCSVG.star}</div>
+    <h1 class="qc-q">${esc(nol(QC.wno))}　${esc(w['作品名'] || '')}、${QC.n >= QC.L.length ? 'クリア！' : 'おつかれさま！'}</h1>
+    <div class="qc-stats"><div class="y"><span>答えた</span><b>${QC.n}問</b></div><div class="g"><span>あとで</span><b>${QC.L.length - QC.n}問</b></div><div class="b"><span>のこり</span><b>${left}問</b></div></div>
+    <div class="qc-btm"><button type="button" class="hg-go" data-qc="end">作品ページにもどる</button></div></div>`;
+    hydrate(el); el.scrollTop = 0; return; }
   if ((QC.mode === 'diff' || QC.mode === 'find') && !QC.test) { const D = QC.mode === 'find' ? qcFindLeft() : qcDiffLeft(), dn = D.all - D.left;
     el.innerHTML = `<div class="qc-w qc-end">${qcBackBtn()}<div class="qc-star">${QCSVG.star}</div>
     <h1 class="qc-q">${QC.mode === 'find' ? '調べの記録' : '書類の違い'}${QC.L.length}件、${QC.n >= QC.L.length ? 'クリア！' : 'おつかれさま！'}</h1>
@@ -4064,7 +4083,7 @@ function listen(onText, onDone, auto){
     let stream;
     try { stream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true}}); }
     catch(e){ end(); if (r.__killed) return; if (IV) { IV.listening = false; try { ivDraw(); } catch(x){} }
-      if (auto) toast('🎤ボタンを押して話してね'); else { QV.micOk = false; if (IV) ivDraw(); else qzDraw(); toast('マイクが使えません。設定でマイクを許可するか、ボタン・キーボードで答えてください'); } return; }
+      if (auto) toast('🎤ボタンを押して話してね'); else { QV.micOk = false; if (IV) ivDraw(); else if (QC) qcDraw(); toast('マイクが使えません。設定でマイクを許可するか、ボタン・キーボードで答えてください'); } return; }
     if (r.__killed) { stream.getTracks().forEach(t => t.stop()); return; }
     const ac = vrCtx(); if (!ac) { stream.getTracks().forEach(t => t.stop()); end(); QV.micOk = false; return; }
     try { await ac.resume(); } catch(e){}
@@ -4096,30 +4115,6 @@ function listen(onText, onDone, auto){
 }
 const YES = /^(はい|ok|オッケー|おっけー|そう|そうです|合って|あって|正解|うん|ええ|イエス)/i, NO = /(いいえ|違う|ちがう|違います|ノー|^no|間違|まちが)/i, UNK = /(分から|わから|知らない|しらない|不明)/, SKIP = /(あとで|後で|スキップ|とばす|飛ばす)/;
 
-/* 状態：Q = { list:[作品番号], wi, steps, i, mode, sum, first } */
-let Q = null;
-function openQuizMenu(){
-  const nAll = qzTargets('all').length, nLoc = qzTargets('loc').length, nFlag = qzTargets('flag').length;
-  openSheet(`<h3>クイズモード</h3>
-    <div class="actions one">
-      <button class="act main" data-qzgo="all">まだ確認していない作品から（${nAll}点）</button>
-      <button class="act" data-qzgo="loc">場所の確認がまだの作品（${nLoc}点）</button>
-      <button class="act" data-qzgo="flag">要確認の作品（${nFlag}点）</button></div>
-    <label class="qzsw"><input type="checkbox" id="qzTts" ${QV.tts?'checked':''}> 質問を声で読み上げる</label>
-    <div class="btns"><button type="button" data-close>やめる</button></div>`);
-  $('#qzTts').onchange = e => { QV.tts = e.target.checked; try { localStorage.setItem('smr_qztts', QV.tts ? '1' : '0'); } catch(err){} };
-}
-function startQuiz(first, nos){
-  const list = nos || qzTargets(first);
-  if (!list.length) return toast('確認する作品はありません');
-  closeSheet(); closeAllPages(); ttsUnlock();
-  Q = { list, wi: 0, first, steps: qzSteps(list[0], first), i: 0, mode: 'ask', sum: {はい:0, ちがう:0, 不明:0, 保留:0}, tts0: QV.tts }; QV.tts = false; try { qcPrefetch(list.slice(0, 10)); } catch(e){}
-  let el = $('#quiz'); if (!el) { el = document.createElement('div'); el.id = 'quiz'; el.className = 'quiz'; document.body.appendChild(el); }
-  el.classList.remove('hidden'); document.body.style.overflow = 'hidden';
-  if (window.speechSynthesis) { try { speechSynthesis.speak(new SpeechSynthesisUtterance('')); } catch(e){} } /* iPhone：最初のタップで声を使えるようにする */
-  qzDraw(true);
-}
-function endQuiz(){ stopMic(); if (Q && Q.tts0 != null) QV.tts = Q.tts0; const el = $('#quiz'); if (el) el.classList.add('hidden'); document.body.style.overflow = ''; sayStop(); Q = null; refreshData().catch(() => {}); }
 /* 写真がない作品の手がかり（サイズ・年・画材・台帳の場所・展覧会など） */
 function qzClues(no, w){ const loc = w['所在'] || (w['所在区分'] && w['所在区分'] !== '不明' ? w['所在区分'] : '');
   const L = [w['制作年'], dimTxt(w, true), w['画材'], loc ? '台帳の場所：' + loc : ''].filter(Boolean)
@@ -4128,151 +4123,6 @@ function qzClues(no, w){ const loc = w['所在'] || (w['所在区分'] && w['所
 function qzHead(no, small){ const w = workOf(no) || {}, ph = photoBy[no] || [];
   return `<div class="qzmedia ${small?'sm':''}">${ph.length ? thImg(ph[0]['ファイルID'], QCW) : `<div class="qznoph"><b>${esc(w['作品名'] || '作品名なし')}</b><small>写真はまだありません</small>${qzClues(no, w)}</div>`}</div>
     <div class="qztitle"><b>${esc(w['作品名'] || '無題')}</b><span>${esc(nol(no))}${w['制作年'] ? '・' + esc(w['制作年']) : ''}</span></div>`; }
-const QZSTAT = () => { const d = new Date().toISOString().slice(0,10); let o = {}; try { o = JSON.parse(localStorage.getItem('smr_qzday')||'{}'); } catch(e){} return o.d===d ? o : {d, n:0}; };
-function qzCount(){ const o = QZSTAT(); o.n++; try { localStorage.setItem('smr_qzday', JSON.stringify(o)); } catch(e){} return o.n; }
-function qzBeep(ok){ if (!QV.tts) return; try { const A = window.AudioContext || window.webkitAudioContext; if (!A) return; QV.ac = QV.ac || new A(); const c = QV.ac, t = c.currentTime;
-  (ok ? [660, 990] : [440]).forEach((f, i) => { const o = c.createOscillator(), g = c.createGain(); o.type = 'sine'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t + i*.09); g.gain.exponentialRampToValueAtTime(0.18, t + i*.09 + .02); g.gain.exponentialRampToValueAtTime(0.0001, t + i*.09 + .18); o.connect(g).connect(c.destination); o.start(t + i*.09); o.stop(t + i*.09 + .2); }); } catch(e){} }
-function qzDraw(speak){
-  const el = $('#quiz'); if (!el || !Q) return;
-  const no = Q.list[Q.wi], n = Q.steps.length, s = Q.steps[Q.i];
-  const segs = Array.from({length: n}, (_, j) => `<i class="${j < Q.i ? 'd' : j===Q.i && Q.mode!=='done' ? 'c' : ''}"></i>`).join('');
-  const top = `<div class="qztop"><button type="button" class="qzx" data-qz="close" aria-label="終わる">✕</button>
-    <span class="qzstar">⭐ 今日 ${QZSTAT().n}問</span>
-    <button type="button" class="qztts ${QV.tts?'on':''}" data-qz="tts" aria-label="読み上げ">${QV.tts ? '🔊' : '🔈'}</button></div>
-    <div class="qzsegs">${segs}</div>`;
-  const mic = QV.micOk ? `<button type="button" class="qzmic" id="qzMic" data-qz="mic">🎤 声で答える</button><div class="srlive qz"></div>` : '';
-  let body = '';
-  if (Q.mode==='done' || !s) {
-    const S_ = Q.sum; Q.mode = 'done';
-    body = `${qzHead(no, true)}<div class="qzfin"><div class="qzbig">✓</div><b>よくできました！</b>
-      <div class="qzchips"><span style="color:#2e9d6a">◯ ${S_['はい']}</span><span style="color:#e0564c">✕ ${S_['ちがう']}</span><span style="color:#d9982a">？ ${S_['不明']}</span>${S_['保留'] ? `<span>⏭ ${S_['保留']}</span>` : ''}</div></div>
-      <div class="qzfoot col">${Q.wi < Q.list.length - 1 ? '<button class="qzwide yes" data-qz="next">つぎの作品へ ›</button>' : ''}${!(photoBy[no]||[]).length ? '<button class="qzwide" data-qz="photo">📷 この作品の写真を撮る</button>' : ''}<button class="qzwide" data-qz="doc">📄 この作品の書類や古い写真を撮る</button><button class="qzlink" data-qz="close">きょうは終わる</button></div>
-      <div class="qzconf">${Array.from({length: 18}, (_, j) => `<i style="--x:${(j*37)%100}%;--d:${(j%6)*.08}s;--c:${['#f2b33d','#2e9d6a','#e0564c','#4a7fd6'][j%4]}"></i>`).join('')}</div>`;
-    if (speak) { qzBeep(true); say(Q.wi < Q.list.length - 1 ? 'よくできました。つぎの作品へ進みますか？' : 'すべての作品が終わりました。おつかれさまでした。'); }
-  } else if (Q.mode==='ask') {
-    const kn = !s.value && s.kind!=='yn' && s.kind!=='flag';
-    body = `${qzHead(no)}<div class="qzcard"><span class="qzn">Q${Q.i + 1}</span><div class="qzq">${esc(s.q)}</div></div>
-      <div class="qzans">
-        ${s.kind==='nophoto' ? `<button class="qzo yes" data-qz="shoot"><span>📷</span><b>撮る</b></button><button class="qzo unk" data-qz="skip"><span>›</span><b>あとで</b></button>` : s.kind==='loc' ? `<button class="qzo yes" data-qz="yes"><span>◯</span><b>はい</b></button><button class="qzo no" data-qz="locno"><span>✕</span><b>いいえ</b></button>` : `
-        <button class="qzo yes" data-qz="yes"><span>◯</span><b>${kn ? '知ってる' : 'はい'}</b></button>
-        ${kn ? '' : '<button class="qzo no" data-qz="no"><span>✕</span><b>ちがう</b></button>'}
-        <button class="qzo unk" data-qz="unk"><span>？</span><b>分からない</b></button>`}</div>
-      <div class="qzfoot">${Q.i ? '<button type="button" class="qzlink" data-qz="back">‹ まえへ</button>' : '<span></span>'}${mic}<button type="button" class="qzlink" data-qz="skip">あとで ›</button></div>`;
-    if (speak) say(s.q);
-  } else if (Q.mode==='locwhere' || Q.mode==='locno') {
-    const where = Q.mode==='locwhere', ask = where ? 'どこにありましたか？' : 'どこにあるか、心当たりはありますか？';
-    body = `${qzHead(no, true)}<div class="qzcard in"><div class="qzq">${ask}</div>
-      <div class="qzopts big one">${where
-        ? `<button class="qzb" data-qz="locsame">「${esc(s.value)}」にあった ✓</button><button class="qzb" data-qz="locother">別の場所にあった</button>`
-        : `<button class="qzb" data-qz="lochint">心当たりがある（書く）</button><button class="qzb" data-qz="locunk">分からない（「不明」にする）</button>`}</div></div>
-      <div class="qzfoot"><button type="button" class="qzlink" data-qz="cancel">‹ もどる</button>${mic}<span></span></div>`;
-    if (speak) say(ask);
-  } else if (Q.mode==='lochint') {
-    const ask = '心当たりを書いてください（例：京都の親戚の家かも）';
-    body = `${qzHead(no, true)}<div class="qzcard in"><div class="qzq">${ask}</div>
-      <textarea id="qzIn" class="qzin qzta" rows="3" placeholder="ここに書く（声でも入れられます）">${esc(Q.txt||'')}</textarea>
-      ${Q.heard ? `<p class="qzheard">聞き取った言葉：「${esc(Q.heard)}」</p>` : ''}</div>
-      <button class="qzwide yes" data-qz="lochintsave">これで保存する ✓</button>
-      <div class="qzfoot"><button type="button" class="qzlink" data-qz="cancel">‹ もどる</button>${mic}<button type="button" class="qzlink" data-qz="locunk">分からない</button></div>`;
-    if (speak) say(ask);
-  } else if (Q.mode==='why') {
-    const isEv = /^あゆみ:/.test(s.item);
-    const opts = isEv ? [['日付','年がちがう'],['相手先・場所','場所・相手がちがう'],['内容','内容がちがう'],['none','この出来事はなかった']]
-      : [['other','別の作品の写真'],['part','一部しか写っていない・見えにくい'],['rot','向きがちがう'],['memo','そのほか（書く）']];
-    const ask = 'どこがちがいますか？';
-    body = `${qzHead(no, true)}<div class="qzcard in"><div class="qzq">${ask}</div><p class="qzsub">${esc(isEv ? '来歴：' + s.value : 'この写真')}</p>
-      <div class="qzopts big one">${opts.map(([k, t]) => `<button class="qzb" data-qzwhy="${esc(k)}">${esc(t)}</button>`).join('')}</div></div>
-      <div class="qzfoot"><button type="button" class="qzlink" data-qz="cancel">‹ もどる</button><button type="button" class="qzlink" data-qz="nomemo">くわしくは分からない</button></div>`;
-    if (speak) say(ask);
-  } else if (Q.mode==='why2' || Q.mode==='evin') {
-    const isFlag = s.kind==='flag', ev = Q.mode==='evin';
-    const ask = isFlag ? 'まだ分からないことは何ですか？（書き直せます）' : ev ? ({'日付':'正しい年は？（昭和でも大丈夫です）','相手先・場所':'正しい場所・相手は？','内容':'正しい内容は？'}[Q.evf]) : 'どこがちがうか、ひとこと書いてください';
-    body = `${qzHead(no, true)}<div class="qzcard in"><div class="qzq">${esc(ask)}</div>
-      <textarea id="qzIn" class="qzin qzta" rows="3" placeholder="ここに書く（声でも入れられます）">${esc(Q.txt||'')}</textarea>
-      ${Q.heard ? `<p class="qzheard">聞き取った言葉：「${esc(Q.heard)}」</p>` : ''}</div>
-      <button class="qzwide yes" data-qz="save2">これで保存する ✓</button>
-      <div class="qzfoot"><button type="button" class="qzlink" data-qz="cancel">‹ もどる</button>${mic}<button type="button" class="qzlink" data-qz="nomemo">分からない</button></div>`;
-    if (speak) say(ask);
-  } else {
-    const wv = workOf(no) || {};
-    const cands = (vals, cur) => vals.filter(v => v && v!==cur).slice(0, 6);
-    const cbtn = v => `<button class="qzb" data-qzc="${esc(v)}">${esc(v)}</button>`;
-    const inBox = (ph, dl) => `<input id="qzIn" class="qzin" list="qzDl" placeholder="${esc(ph)}" value="${esc(Q.txt||'')}"><datalist id="qzDl">${dl.map(v => `<option value="${esc(v)}">`).join('')}</datalist>`;
-    let ask = s.ask, inputs = '', saveBtn = true;
-    if (s.kind==='pick') { inputs = `<div class="qzopts">${s.opts.map(o => `<button class="qzb" data-qzpick="${esc(o)}">${esc(o)}</button>`).join('')}</div>`; saveBtn = false; }
-    else if (s.kind==='loc' && !Q.lk) {
-      ask = s.value ? 'どこにありましたか？' : 'どこにありますか？'; saveBtn = false;
-      inputs = `<div class="qzopts big">${['自宅','美術館','個人蔵','委託中','貸出中','その他'].map(o => `<button class="qzb" data-qzlk="${o}">${o}</button>`).join('')}<button class="qzb unk" data-qzlk="分からない">分からない</button></div>`;
-    } else if (s.kind==='loc') {
-      const k = Q.lk, used = usedVals(S.works.filter(w => w['所在区分']===(k==='貸出中' ? 'その他' : k)), '所在').filter(v => v!==k);
-      const opts = k==='自宅' ? S.places.map(p => p['名称'] || p['場所コード']).filter(Boolean) : k==='委託中' ? ['思文閣'].concat(used.filter(v => v!=='思文閣')) : used;
-      ask = { 自宅: '自宅のどこにありますか？', 美術館: 'どこの美術館ですか？', 個人蔵: 'どなたがお持ちですか？', 委託中: 'どこに預けていますか？' }[k] || 'どこにありますか？';
-      inputs = `${opts.length ? `<div class="qzopts">${opts.slice(0, 8).map(cbtn).join('')}</div>` : ''}${inBox('ほかの場所を書く', usedVals(S.works, '所在'))}
-        <button type="button" class="qzlink" data-qzc="">くわしくは分からない（「${esc(k)}」だけ記録）</button>`;
-    } else if (s.kind==='size') inputs = `<div class="qzsz"><label>幅<input id="qzW" inputmode="decimal" value="${esc(Q.sw!=null?Q.sw:wv['幅cm']||'')}"></label><span>×</span><label>高さ<input id="qzH" inputmode="decimal" value="${esc(Q.sh!=null?Q.sh:wv['高さcm']||'')}"></label><span>cm</span></div>`;
-    else if (s.field==='制作年' && !Q.txt) {
-      if (!Q.dec) { ask = '描いたのは、何年代ですか？'; saveBtn = false;
-        inputs = `<div class="qzopts big">${[1940,1950,1960,1970,1980,1990].map(d => `<button class="qzb" data-qzdec="${d}">${d}年代</button>`).join('')}</div>${inBox('年が分かれば書く（例：昭和40年）', [])}`; if (Q.txt===undefined) Q.txt = ''; saveBtn = true; }
-      else { ask = Q.dec + '年代の、何年ですか？'; saveBtn = false;
-        inputs = `<div class="qzopts yrs">${Array.from({length: 10}, (_, i) => cbtn((+Q.dec + i) + '年')).join('')}</div><button type="button" class="qzlink" data-qzc="${Q.dec}年代">年までは分からない（${Q.dec}年代）</button>`; }
-    }
-    else if (s.field==='画材' || s.field==='シリーズ') inputs = `${cands(usedVals(S.works, s.field), s.value).length ? `<div class="qzopts">${cands(usedVals(S.works, s.field), s.value).map(cbtn).join('')}</div>` : ''}${inBox('ほかを書く', usedVals(S.works, s.field))}`;
-    else inputs = inBox('ここに書く（手でも入れられます）', usedVals(S.works, s.field));
-    body = `${qzHead(no, true)}<div class="qzcard in"><div class="qzq">${esc(ask)}</div>${inputs}
-      ${Q.heard ? `<p class="qzheard">聞き取った言葉：「${esc(Q.heard)}」</p>` : ''}</div>
-      ${saveBtn ? '<button class="qzwide yes" data-qz="save">これで保存する ✓</button>' : ''}
-      <div class="qzfoot"><button type="button" class="qzlink" data-qz="cancel">‹ もどる</button>${s.kind!=='pick' ? mic : ''}<button type="button" class="qzlink" data-qz="unk">分からない</button></div>`;
-    if (speak) say(ask);
-    Q.lastAsk = ask;
-  }
-  el.innerHTML = `<div class="qzbox qzm-${Q.mode}">${top}${body}</div>`; hydrate(el);
-  if (QV.tts && S.ai && ttsBad < 3 && Q.mode==='ask') { const nx = Q.steps[Q.i + 1]; if (nx) ttsGet(nx.q).catch(() => {}); }
-}
-async function qzSave(recs, patch, loc, flag){
-  const no = Q.list[Q.wi], w = workOf(no);
-  recs.forEach((r, ri) => { S.quiz = S.quiz || []; const row = { '日時': '', '答えた人': S.user && S.user.name || '', '種類': '作品', '対象': no, '項目': r.item, '値': String(r.value||''), '答え': r.answer }; S.quiz.push(row); QZI[no + '|' + r.item] = row; if (!ri) Q.sum[r.answer] = (Q.sum[r.answer]||0) + 1; });
-  if (w && patch) Object.assign(w, patch);
-  const me = S.user && S.user.name || '';
-  if (w && loc && loc.kind) Object.assign(w, { '所在区分': loc.kind, '所在': loc.place || loc.kind, '場所確認日': today(), '場所確認者': me });
-  if (w && loc && loc.confirm) Object.assign(w, { '場所確認日': today(), '場所確認者': me });
-  if (w && loc && loc.unknown) Object.assign(w, { '所在区分': '不明', '所在': '' });
-  if (w && flag) Object.assign(w, { '要確認': flag.on ? '要確認' : '', '要確認メモ': flag.on ? flag.memo : '' });
-  const done = () => { $('#quiz') && $('#quiz').querySelector('.qzok') && $('#quiz').querySelector('.qzok').remove(); };
-  qzCount(); qzBeep(recs[0] && recs[0].answer==='はい'); const ok = document.createElement('div'); ok.className = 'qzok'; const a0 = recs[0] && recs[0].answer; ok.textContent = a0==='はい' ? '◯' : a0==='不明' ? '？' : a0==='保留' ? '›' : '✓'; ok.style.color = a0==='はい' ? '#2e9d6a' : a0==='不明' ? '#d9982a' : a0==='保留' ? 'var(--sub)' : '#e0564c'; $('#quiz').appendChild(ok); setTimeout(done, 700);
-  try { await call('quizSave', no, recs, patch || null, loc || null, flag || null); }
-  catch(e){ if (isLoginErr(e)) { alert('ログインの有効期限が切れました。もう一度ログインしてください。'); endQuiz(); return; } toast('保存できませんでした：' + (e.message || e)); }
-}
-function qzNext(){ Q.i++; Q.mode = 'ask'; Q.txt = ''; Q.heard = ''; Q.lk = ''; Q.dec = ''; Q.sw = Q.sh = null; qzDraw(true); }
-function qzAnswer(a){
-  const no = Q.list[Q.wi], s = Q.steps[Q.i], w = workOf(no) || {};
-  if (a==='yes') {
-    if (s.kind==='q' && s.clean) { qzSave([{item:s.item, value:s.value, answer:'はい'}], {[s.field]: s.clean}); return qzNext(); }
-    if (s.kind==='loc') { Q.mode = s.value ? 'locwhere' : 'input'; Q.lk = ''; return qzDraw(true); }
-    if (!s.value && s.kind!=='yn' && s.kind!=='flag') { Q.mode = 'input'; return qzDraw(true); }
-    if (s.kind==='flag') { qzSave([{item:s.item, value:s.value, answer:'はい'}], null, null, {on:false}); return qzNext(); }
-    qzSave([{item:s.item, value:s.value, answer:'はい'}], null, s.kind==='loc' ? {confirm:true} : null); return qzNext();
-  }
-  if (a==='no') {
-    if (s.kind==='yn' || s.kind==='flag') { Q.mode = s.kind==='flag' ? 'why2' : 'why'; Q.txt = s.kind==='flag' ? (w['要確認メモ']||'') : ''; return qzDraw(true); }
-    Q.mode = 'input'; return qzDraw(true);
-  }
-  if (a==='unk') { qzSave([{item:s.item, value:s.value, answer:'不明'}]); return qzNext(); }
-  if (a==='skip') {
-    if (!s.skipped && Q.i < Q.steps.length - 1) { s.skipped = true; Q.steps.splice(Q.i, 1); Q.steps.push(s); Q.mode = 'ask'; Q.txt = ''; toast('最後にもう一度聞きます'); return qzDraw(true); }
-    qzSave([{item:s.item, value:s.value, answer:'保留'}]); return qzNext();
-  }
-  if (a==='locno') { if (s.value) { qzSave([{item:s.item, value:s.value, answer:'保留'}]); toast('確認できたときに、また聞きます'); return qzNext(); } Q.mode = 'locno'; return qzDraw(true); }
-  if (a==='locsame') { qzSave([{item:s.item, value:s.value, answer:'はい'}], null, {confirm:true}); return qzNext(); }
-  if (a==='locother') { Q.mode = 'input'; Q.lk = ''; return qzDraw(true); }
-  if (a==='locunk') return qzLocUnknown();
-  if (a==='lochint') { Q.mode = 'lochint'; Q.txt = ''; Q.heard = ''; return qzDraw(true); }
-  if (a==='lochintsave') { const t = ($('#qzIn').value||'').trim(); if (!t) return alert('心当たりを書いてください');
-    const memo = [w['要確認メモ'], '場所の心当たり：' + t].filter(Boolean).join('／');
-    qzSave([{item:s.item, value:t, answer:'不明'}], null, {unknown:true}, {on:true, memo}); return qzNext(); }
-  if (a==='nomemo') { const memo = [w['要確認メモ'], s.noMemo].filter(Boolean).join('／');
-    qzSave([{item:s.item, value:s.value, answer:'ちがう'}], null, null, s.kind==='yn' ? {on:true, memo} : null); return qzNext(); }
-}
-/* ========== 問い合わせ用のまとめ（貸し出し・販売の問い合わせにすぐ答える） ========== */
 const briefLoc = w => w['所在'] ? (String(w['所在']).startsWith(w['所在区分'] || '\u0000') ? w['所在'] : [w['所在区分'], w['所在']].filter(Boolean).join('　')) : (w['所在区分'] || '');
 function briefText(no, withLoc){
   const w = workOf(no) || {}, ev = (eventBy[no]||[]).filter(e => !['エピソード','移動','所在確認'].includes(e['種類'])).sort((a, b) => dateKey(a['日付']) - dateKey(b['日付']));
@@ -4478,101 +4328,9 @@ document.addEventListener('click', e => {
 });
 
 /* 候補ボタン：押したらすぐ保存 */
-function qzSaveVal(v){
-  const s = Q.steps[Q.i], pre = s.value ? [{item:s.item, value:s.value, answer:'ちがう'}] : [];
-  if (s.kind==='loc') { const k = Q.lk; const place = !v ? k : k==='自宅' ? '自宅 ' + v : v;
-    qzSave(pre.concat([{item:s.item, value:place, answer:'はい'}]), null, {kind: k==='貸出中' ? 'その他' : k, place, date: today()}); return qzNext(); }
-  if (!v) return;
-  qzSave(pre.concat([{item:s.item, value:v, answer:'はい'}]), {[s.field]: v}); qzNext();
-}
-function qzLocUnknown(){
-  const s = Q.steps[Q.i];
-  qzSave((s.value ? [{item:s.item, value:s.value, answer:'ちがう'}] : []).concat([{item:s.item, value:'', answer:'不明'}]), null, {unknown:true}); qzNext();
-}
-function qzCommit(){
-  const s = Q.steps[Q.i], ans = s.value ? 'ちがう' : 'はい';
-  if (s.kind==='size') { const W = ($('#qzW').value||'').trim(), H = ($('#qzH').value||'').trim(); if (!W && !H) return alert('幅か高さを入れてください');
-    const v = `幅${W||'?'}センチ、高さ${H||'?'}センチ`; qzSave((s.value ? [{item:s.item, value:s.value, answer:ans}] : []).concat([{item:s.item, value:v, answer:'はい'}]), {'幅cm': W, '高さcm': H}); return qzNext(); }
-  if (s.kind==='loc') { const k = Q.lk, p = ($('#qzIn').value||'').trim(); if (!k) return alert('どこにあるか、ボタンから選んでください');
-    const place = k==='自宅' ? ['自宅', p].filter(Boolean).join(' ') : (p || k);
-    qzSave((s.value ? [{item:s.item, value:s.value, answer:ans}] : []).concat([{item:s.item, value:place, answer:'はい'}]), null, {kind: k==='貸出中' ? 'その他' : k, place, date: today()}); return qzNext(); }
-  let v = ($('#qzIn').value||'').trim(); if (!v) return alert('入力してください（声でも、手でも入れられます）');
-  if (s.field==='制作年') v = toSeireki(v);
-  qzSave((s.value ? [{item:s.item, value:s.value, answer:ans}] : []).concat([{item:s.item, value:v, answer:'はい'}]), {[s.field]: v}); qzNext();
-}
-function qzHeard(t){
-  const s = Q && Q.steps[Q.i]; if (!s) return;
-  if (Q.mode==='ask') { if (UNK.test(t)) return qzAnswer('unk'); if (SKIP.test(t)) return qzAnswer('skip'); if (NO.test(t)) return qzAnswer(s.kind==='loc' ? 'locno' : s.value ? 'no' : 'unk'); if (YES.test(t) || /知って/.test(t)) return qzAnswer('yes');
-    return toast('「はい」「ちがう」「分からない」で答えてください'); }
-  if (Q.mode==='done') { if (YES.test(t) || /次/.test(t)) return qzGoNext(); if (NO.test(t) || /終わ/.test(t)) return endQuiz(); return; }
-  if (Q.mode==='locwhere') { if (YES.test(t) || /同じ|そのまま|あった/.test(t) && !/別/.test(t)) return qzAnswer('locsame'); return qzAnswer('locother'); }
-  if (Q.mode==='locno') { if (UNK.test(t) || NO.test(t)) return qzAnswer('locunk'); return qzAnswer('lochint'); }
-  if (Q.mode==='lochint') { Q.txt = t; Q.heard = t; qzDraw(); return say('「' + t + '」。よければ、保存を押してください'); }
-  if (Q.mode==='why') { if (UNK.test(t)) return qzAnswer('nomemo'); const m = [['年','日付'],['場所','相手先・場所'],['相手','相手先・場所'],['内容','内容'],['なかった','none'],['別の','other'],['向き','rot'],['見えにく','part'],['一部','part']].find(([x]) => t.includes(x)); if (m) return qzWhy(m[1]); return toast('ボタンから選んでください'); }
-  if (Q.mode==='why2' || Q.mode==='evin') { if (UNK.test(t)) return qzAnswer('nomemo'); Q.txt = Q.mode==='evin' && Q.evf==='日付' ? toSeireki(t) : t; Q.heard = t; qzDraw(); return say('「' + Q.txt + '」。よければ、保存を押してください'); }
-  if (UNK.test(t)) return s.kind==='loc' ? qzLocUnknown() : qzAnswer('unk');
-  if (s.kind==='pick') { const o = s.opts.find(o => t.includes(o)); if (o) return qzPick(o); return toast('「' + s.opts.join('」「') + '」から選んでください'); }
-  if (s.kind==='size') { const m = String(t).normalize('NFKC').match(/(\d+(?:\.\d+)?)\D+(\d+(?:\.\d+)?)/); if (m) { Q.sw = m[1]; Q.sh = m[2]; } Q.heard = t; qzDraw(); return say('幅' + (Q.sw||'?') + '、高さ' + (Q.sh||'?') + '。よければ、保存を押してください'); }
-  if (s.kind==='loc') { const k = LOC_KINDS.find(k => t.includes(k)) || (/破棄|捨て|処分|焼却/.test(t) ? '廃棄' : '') || (/美術館|博物館|記念館|大学/.test(t) ? '美術館' : ''); if (k) Q.lk = k; Q.txt = t.replace(/^(自宅の?)/, ''); Q.heard = t; qzDraw(); return say('「' + t + '」。よければ、保存を押してください'); }
-  Q.txt = s.field==='制作年' ? toSeireki(t) : t; Q.heard = t; qzDraw(); say('「' + Q.txt + '」。よければ、保存を押してください。ちがうときは、手で直せます');
-}
-/* 「ちがう」の深掘り */
-function qzWhy(k){
-  const no = Q.list[Q.wi], s = Q.steps[Q.i], w = workOf(no) || {};
-  if (/^あゆみ:/.test(s.item)) {
-    if (k==='none') { const memo = [w['要確認メモ'], '来歴「' + s.value + '」はなかったかもしれない'].filter(Boolean).join('／'); qzSave([{item:s.item, value:s.value, answer:'ちがう'}], null, null, {on:true, memo}); return qzNext(); }
-    const e = S.events.find(x => x['出来事ID']===s.item.slice(4)) || {};
-    Q.mode = 'evin'; Q.evf = k; Q.txt = k==='日付' ? (yr(e['日付']) ? yr(e['日付']) + '年' : '') : (e[k]||''); Q.heard = ''; return qzDraw(true);
-  }
-  const M = { other: '写真が別の作品のものかもしれない', part: '写真が一部だけ・見えにくい（撮り直したい）', rot: '写真の向きがちがう' };
-  if (k==='memo') { Q.mode = 'why2'; Q.txt = ''; Q.heard = ''; return qzDraw(true); }
-  const memo = [w['要確認メモ'], M[k]].filter(Boolean).join('／');
-  qzSave([{item:s.item, value:s.value, answer:'ちがう'}], null, null, {on:true, memo}); qzNext();
-}
-function qzCommit2(){
-  const no = Q.list[Q.wi], s = Q.steps[Q.i], w = workOf(no) || {};
-  let v = ($('#qzIn').value||'').trim(); if (!v) return alert('入力してください（声でも、手でも入れられます）');
-  if (Q.mode==='evin') {
-    const id = s.item.slice(4), e = S.events.find(x => x['出来事ID']===id); if (Q.evf==='日付') v = toSeireki(v);
-    if (e) e[Q.evf] = v;
-    qzSave([{item:s.item, value:s.value, answer:'ちがう'}, {item:s.item + ':' + Q.evf, value:v, answer:'はい'}]);
-    call('updateEvent', id, {[Q.evf]: v}).catch(err => toast('来歴を保存できませんでした：' + (err.message || err)));
-    return qzNext();
-  }
-  if (s.kind==='flag') { qzSave([{item:s.item, value:s.value, answer:'ちがう'}], null, null, {on:true, memo:v}); return qzNext(); }
-  const memo = [w['要確認メモ'], v].filter(Boolean).join('／');
-  qzSave([{item:s.item, value:s.value, answer:'ちがう'}], null, null, {on:true, memo}); qzNext();
-}
-function qzPick(o){ const s = Q.steps[Q.i]; qzSave((s.value ? [{item:s.item, value:s.value, answer:'ちがう'}] : []).concat([{item:s.item, value:o, answer:'はい'}]), {[s.field]: o}); qzNext(); }
-function qzGoNext(){ Q.wi++; if (Q.wi >= Q.list.length) return endQuiz(); Q.steps = qzSteps(Q.list[Q.wi], Q.first); Q.i = 0; Q.mode = 'ask'; Q.sum = {はい:0, ちがう:0, 不明:0, 保留:0}; qzDraw(true); }
-document.addEventListener('click', e => {
-  const b = e.target.closest('#quiz [data-qz], #quiz [data-qzpick], #quiz [data-qzlk], #quiz [data-qzdec], #quiz [data-qzc], #quiz [data-qzwhy]'); if (!b || !Q) return;
-  if (b.dataset.qzpick) return qzPick(b.dataset.qzpick);
-  if (b.dataset.qzlk) { if (b.dataset.qzlk==='分からない') return qzLocUnknown(); Q.lk = b.dataset.qzlk; Q.txt = ''; return qzDraw(true); }
-  if (b.dataset.qzdec) { Q.dec = b.dataset.qzdec; return qzDraw(true); }
-  if (b.dataset.qzc !== undefined) return qzSaveVal(b.dataset.qzc);
-  if (b.dataset.qzwhy) return qzWhy(b.dataset.qzwhy);
-  const k = b.dataset.qz;
-  if (k==='close') return endQuiz();
-  if (k==='tts') { QV.tts = !QV.tts; if (!QV.tts) sayStop(); return qzDraw(); } /* クイズの中だけの切りかえ（終わったら元にもどす） */
-  if (k==='mic') { if (!listen(qzHeard)) { QV.micOk = false; qzDraw(); toast('マイクが使えません。ボタンか、キーボードのマイクで答えてください'); } return; }
-  if (k==='next') return qzGoNext();
-  if (k==='doc') { const no = Q.list[Q.wi]; endQuiz(); setTimeout(() => { openWork(no); setTimeout(() => sheetDoc(no), 300); }, 300); return; }
-  if (k==='photo' || k==='shoot') { const no = Q.list[Q.wi]; endQuiz(); setTimeout(() => { openWork(no); setTimeout(() => sheetPhoto(no), 300); }, 300); return; }
-  if (k==='back') { Q.i = Math.max(0, Q.i - 1); Q.mode = 'ask'; return qzDraw(true); }
-  if (k==='cancel' && Q.mode==='lochint') { Q.mode = 'locno'; return qzDraw(); }
-  if (k==='cancel' && (Q.mode==='locwhere' || Q.mode==='locno')) { Q.mode = 'ask'; return qzDraw(); }
-  if (k==='cancel' && Q.mode==='input' && (Q.steps[Q.i]||{}).kind==='loc' && !Q.lk && (Q.steps[Q.i]||{}).value) { Q.mode = 'locwhere'; return qzDraw(); }
-  if (k==='cancel' && Q.mode==='evin') { Q.mode = 'why'; Q.txt = ''; Q.heard = ''; return qzDraw(); }
-  if (k==='cancel') { if (Q.dec) { Q.dec = ''; return qzDraw(true); } if (Q.lk) { Q.lk = ''; Q.txt = ''; return qzDraw(true); } Q.mode = 'ask'; Q.txt = ''; Q.heard = ''; return qzDraw(); }
-  if (k==='save') return qzCommit();
-  if (k==='save2') return qzCommit2();
-  if (k==='unk' && Q.mode==='input' && (Q.steps[Q.i]||{}).kind==='loc') return qzLocUnknown();
-  qzAnswer(k);
-});
-document.addEventListener('click', e => { const b = e.target.closest('[data-qzgo]'); if (b) startQuiz(b.dataset.qzgo); });
 document.addEventListener('click', e => { const iw = e.target.closest('[data-ivwork]'); if (iw) return startInterview([iw.dataset.ivwork]); if (e.target.closest('[data-ivgo]')) return startInterview(); });
-document.addEventListener('click', e => { if (e.target.closest('[data-qzmenu]')) openQuizMenu(); const w = e.target.closest('[data-qzwork]'); if (w) startQuiz('all', [w.dataset.qzwork]); });
+/* 進み具合の「クイズ」の行 → 今日の10作品。作品ページの下の「クイズで埋める」→ その作品だけのカード */
+document.addEventListener('click', e => { if (e.target.closest('[data-qcstart]')) return startCards(); const w = e.target.closest('[data-wquiz]'); if (w) startCards(false, 'work', w.dataset.wquiz); });
 
 
 /* ---------- 進み具合（ダッシュボード） ---------- */
@@ -4600,7 +4358,7 @@ function dashHTML(){
   const main = rows.slice(0, 4), tot = main.reduce((a, r) => a + r[2] / r[3], 0) / main.length;
   const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
   const bar = r => { if (!r) return '<div class="dsep"></div>'; const [k, t, a, b] = r, p = pct(a, b);
-    return `<button class="drow ${p===100?'full':''}" ${k==='quiz' ? 'data-qzmenu="1"' : k==='works' ? 'data-dlack="1"' : `data-todo="${k}"`} title="${esc(t)}：${a} / ${b}（${p}%）">
+    return `<button class="drow ${p===100?'full':''}" ${k==='quiz' ? 'data-qcstart="1"' : k==='works' ? 'data-dlack="1"' : `data-todo="${k}"`} title="${esc(t)}：${a} / ${b}（${p}%）">
       <span class="dl">${esc(t)}</span><span class="dn">${p===100 ? '✓ ' : ''}${a.toLocaleString()}<small> / ${b.toLocaleString()}</small></span>
       <span class="db"><i style="width:${p}%"></i></span><span class="dp">${p}%</span></button>`; };
   /* 最近7日間に更新した箇所（変更記録から数える。読み込みは10分に1回まで） */
@@ -4964,6 +4722,7 @@ function openWork(no, keepScroll, restoreSc){
         ${ot ? `<button class="act" data-tomain="${esc(no)}">→ 本作（本画の一覧）に移す</button>` : `<button class="act" data-toot="${esc(no)}">→ その他の作品（やけもの・版画など）に移す</button>`}
         ${delBtn('w', no, 'この作品')}
       </div>` : ''}
+      ${canEdit() && !ot ? workQuizHTML(no) : ''}
       <p style="color:var(--faint);font-size:14px;margin-top:40px;letter-spacing:.04em">最終更新：${esc(w['最終更新日時'])}（${esc(w['最終更新者'])}）</p>
     </div></div>`;
   showPage({t:'w', id:no}, html, keepScroll, restoreSc);
@@ -5654,7 +5413,15 @@ const MUS_DB = [
   [/宇都宮美/, '宇都宮美術館'], [/広島市現代美/, '広島市現代美術館'], [/和歌山県立近代美|和歌山近美/, '和歌山県立近代美術館'],
   [/山口県立?美術館|山口県美$/, '山口県立美術館'], [/徳島県立近代美|徳島近美/, '徳島県立近代美術館'],
   [/セルヌスキ|チェルヌスキ|cernuschi/i, 'パリ、セルヌスキー美術館'], [/メトロポリタン美/, 'メトロポリタン美術館'], [/フィラデルフィア美/, 'フィラデルフィア美術館']];
-const musOf = n => { const t = String(n || '').normalize('NFKC').replace(/\s+/g, ''); const m = MUS_DB.find(([re]) => re.test(t)); return m ? m[1] : ''; };
+/* スプレッドシート「美術館名」（正式名・ほかの名前＝旧名や略称）。シートで足した名前も使える。シートが先、なければ上の辞書 */
+let MUSS = null, MUSS_SRC = null;
+function musSheet(){ if (MUSS && MUSS_SRC === S.museums) return MUSS; const m = {}, subs = {};
+  (S.museums || []).forEach(r => { const o = String(r['正式名'] || '').trim(); if (!o) return; const L = String(r['ほかの名前'] || '').split(/[、,，\/／]/).map(x => x.trim()).filter(Boolean);
+    subs[o] = L; [o].concat(L).forEach(x => { const k = fdN(x); if (k) m[k] = o; }); });
+  MUSS_SRC = S.museums; return MUSS = { m, subs }; }
+const musOf = n => { const k = fdN(n), sh = k && musSheet().m[k]; if (sh) return sh; const t = String(n || '').normalize('NFKC').replace(/\s+/g, ''); const m = MUS_DB.find(([re]) => re.test(t)); return m ? m[1] : ''; };
+/* 検索用：その館の正式名とほかの名前（旧名・略称）。「京都市美術館」で探しても京都市京セラ美術館の作品が出る */
+const musNames = n => { const o = musOf(n); return o ? [o].concat(musSheet().subs[o] || []).join(' ') : ''; };
 /* 同じ館かを見る鍵：辞書にあれば正式名。なければ「〜美術館」などの名前から県・市・立などを外したもの（富山水墨美術館＝富山県水墨美術館） */
 const musKey = n => { const o = musOf(n); if (o) return o; const t = fdN(n); return /(美術館|博物館|ミュージアム)$/.test(t) && t.length >= 5 ? '#' + t.replace(/[県市立町都府区]/g, '') : ''; };
 const musSame = (a, b) => { const x = musKey(a); return !!x && x === musKey(b); };
