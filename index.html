@@ -1933,6 +1933,9 @@ html[data-theme=dark] .fdb-tx .fdb-r{color:#FFC800}.fdb-b{position:sticky;bottom
 html[data-theme=dark] .qc-cr.ok .qc-cl i,html[data-theme=dark] .qc-cr.same .qc-cl i{background:#2B4A12;color:#A8E07A}html[data-theme=dark] .qc-cr.near .qc-cl i{background:#4A3B10;color:#FFD866}html[data-theme=dark] .qc-cr.ng .qc-cl i{background:#4D1C1F;color:#FF8A8F}
 html[data-theme=dark] .qc-cr.ng>span{background:rgba(255,90,90,.10)}
 .qc-cmps{margin:-4px 2px 0;font-size:13px;color:var(--hg-s)}
+.qc-src{flex:none;display:flex;flex-direction:column;gap:10px;padding:12px 14px;border-radius:14px;background:var(--hg-sf);font-size:13px;line-height:1.55;color:var(--hg-h)}
+.qc-src>small{font-size:12px;font-weight:800;color:var(--hg-s)}.qc-sr{display:flex;flex-direction:column;gap:2px}.qc-sr b{font-size:14px;color:var(--hg-h)}
+.qc-sr em{display:block;font-style:normal;color:var(--hg-s);padding-left:1em}.qc-sl0{color:var(--hg-s)}
 .qc-rec.biz{border-color:var(--hg-ln);background:var(--hg-sf)}.qc-rec.biz small{color:var(--hg-s)}
 html[data-theme=dark] .qc-rec{background:#3D3418;border-color:#7A6420;color:#E8E1C8}html[data-theme=dark] .qc-rec b,html[data-theme=dark] .qc-rec .qc-rt{color:#FFF4D0}
 html[data-theme=dark] .qc-rec small{color:#FFC800}html[data-theme=dark] .qc-rec .qc-rw,html[data-theme=dark] .qc-rec .qc-rp,html[data-theme=dark] .qc-rec .qc-rm{color:#CFC6A8}html[data-theme=dark] .qc-rec a{color:#6CB4FF}
@@ -2034,7 +2037,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'cc0062e603', APP_URL = location.origin + location.pathname;
+const BUILD = 'faadc58f12', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2665,10 +2668,47 @@ function fdCmpHTML(f, w, cur, place, mus){
     ['画材', w['画材'], f['技法・素材'], !m1 || !m2 ? '' : m1 === m2 ? 'ok' : mset(m1, m2) >= .99 ? 'same' : mset(m1, m2) >= .6 ? 'near' : ''],
     ['場所', cur, mus ? place : '', !mus || !cur ? '' : (pa && pa === pb) || (typeof musSame === 'function' && musSame(cur, place)) ? 'ok' : 'ng']];
   const LB = { ok: '同じ', same: 'ほぼ同じ', near: '近い', ng: 'ちがう' };
+  FDSRC = { no: String(w['作品番号'] || ''), rows: R.filter(r => /^(ng|near|same)$/.test(r[3]) && r[1]).map(r => [r[0], r[1]]) };
   const n = R.filter(r => r[3]).length, g = R.filter(r => r[3] && r[3] !== 'ng').length;
   return `<div class="qc-cmp" role="table" aria-label="台帳と記録のくらべ"><div class="qc-cr qc-chd" role="row"><span role="columnheader">くらべる</span><span role="columnheader">台帳</span><span role="columnheader">${mus ? '美術館の記録' : '販売の記録'}</span></div>
     ${R.map(([k, a, b, m]) => `<div class="qc-cr ${m}" role="row"><span class="qc-cl" role="rowheader">${k}${m ? `<i>${LB[m]}</i>` : ''}</span><span role="cell">${a ? esc(a) : '<em>—</em>'}</span><span role="cell">${b ? esc(b) : '<em>—</em>'}</span></div>`).join('')}</div>
-    ${n ? `<p class="qc-cmps">くらべられる${n}つのうち、${g}つが合っています</p>` : ''}`;
+    ${n ? `<p class="qc-cmps">くらべられる${n}つのうち、${g}つが合っています</p>` : ''}${FDSRC.rows.length ? `<div class="qc-src" id="qcSrc" data-no="${esc(FDSRC.no)}"></div>` : ''}`;
+}
+/* 台帳の情報の出どころ：作品の変更の記録（getWorkLog）・書類の食い違いでえらんだもの・カードの答えから見分ける */
+let FDSRC = { no: '', rows: [] }; const WLOG = {};
+const tms = v => { const m = String(v || '').match(/(\d{4})\D(\d{1,2})\D(\d{1,2})\D+(\d{1,2}):(\d{2})(?::(\d{2}))?/); return m ? new Date(+m[1], m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0)).getTime() : 0; };
+const tmd = v => { const m = String(v || '').match(/\d{4}\D(\d{1,2})\D(\d{1,2})/); return m ? +m[1] + '/' + +m[2] : ''; };
+const SRCF = { '作品名': ['作品名'], '制作年': ['制作年'], 'サイズ': ['高さcm', '幅cm'], '画材': ['画材'], '場所': ['所在', '所在区分'] };
+function srcOf(no, key, Lg){
+  const ks = SRCF[key] || [key], near = (a, b) => !!a && !!b && Math.abs(a - b) <= 90e3, nm = v => /@/.test(v) ? '' : v;
+  const ch = Lg.filter(r => r['対象'] === '作品' && String(r['作品番号']) === String(no) && ks.includes(r['項目']));
+  const G = []; ch.forEach(r => { const t = tms(r['日時']), g = G.find(x => near(x.t, t) && x.who === r['変更者']); if (g) g.rows.push(r); else G.push({ t, who: r['変更者'], at: r['日時'], rows: [r] }); });
+  const how = g => { const same = Lg.filter(r => near(tms(r['日時']), g.t)); let x;
+    if ((x = same.find(r => r['項目'] === 'スキャンした資料を登録'))) return `書類「${x['変更後']}」を登録したとき`;
+    for (const d of (S.docs || [])) { const y = (docRes(d)['食い違い'] || []).find(y => y.t === 'w' && String(y.id) === String(no) && y.r === 'doc' && (ks.includes(y.f) || (key === '場所' && y.loc)) && near(tms(y.at), g.t)); if (y) return `書類「${docTitle(d)}」とのちがいで、書類の方をえらんだとき`; }
+    if ((x = same.find(r => r['対象'] === '調べ'))) { const f = fdById(x['変更後']); return `調べの記録（${f ? (f['相手先'] || '').replace(/（.*$/, '') : '美術館など'}）で同じ作品としたとき`; }
+    if ((x = same.find(r => r['項目'] === '統合'))) return `${x['変更前']} と1つにまとめたとき`;
+    if (same.find(r => /^新規登録/.test(r['項目'])) ) return '新しく登録したとき';
+    if ((S.quiz || []).some(q => String(q['対象']) === String(no) && near(tms(q['日時']), g.t))) return 'カードで答えたとき';
+    return /@/.test(g.who) ? '管理者がまとめて直したとき' : '手で入力したとき'; };
+  const out = G.slice(0, 3).map(g => { const r = g.rows.find(x => x['項目'] === ks[0]) || g.rows[0]; return { t: how(g), who: nm(g.who), d: tmd(g.at), b: key === 'サイズ' ? '' : String(r['変更前'] || '').trim() }; });
+  const reg = Lg.find(r => r['対象'] === '作品' && String(r['作品番号']) === String(no) && /^新規登録/.test(r['項目'])), old = ch[ch.length - 1];
+  const bv = old ? String(old['変更前'] || '').trim() : '';
+  let base = '';
+  if (reg && (!ch.length || bv)) { const m = String(reg['変更後'] || '').match(/（([^（）]*から)）$/); base = '新しく登録したとき' + (m ? '（' + m[1] + '）' : '') + '（' + [nm(reg['変更者']), tmd(reg['日時'])].filter(Boolean).join('・') + '）'; }
+  else if (!ch.length) base = '旧リストのまま（変更の記録がありません）';
+  else if (bv) base = 'もとは旧リスト';
+  return { out, base, bv: ch.length && key !== 'サイズ' ? bv : '' };
+}
+function fdSrcLoad(){ const F = FDSRC, box = $('#qcSrc'); if (!box || !F.rows.length) return;
+  const H = '<small>台帳の情報は、どこから来た？</small>';
+  const draw = L => { const b = $('#qcSrc'); if (!b || b.dataset.no !== F.no) return;
+    b.innerHTML = H + F.rows.map(([k, a]) => { const r = srcOf(F.no, k, L);
+      return `<div class="qc-sr"><b>${esc(k)}「${esc(a)}」</b>${r.out.map(o => `<span>・${esc(o.t)}${o.who || o.d ? '（' + esc([o.who, o.d].filter(Boolean).join('・')) + '）' : ''}${o.b ? `<em>その前は「${esc(o.b)}」</em>` : ''}</span>`).join('')}${r.base ? `<span>・${esc(r.base)}${r.bv ? `<em>「${esc(r.bv)}」</em>` : ''}</span>` : ''}</div>`; }).join(''); };
+  const c = WLOG[F.no]; if (Array.isArray(c)) return draw(c);
+  box.innerHTML = H + '<span class="qc-sl0">調べています…</span>';
+  (c || (WLOG[F.no] = call('getWorkLog', F.no))).then(L => { WLOG[F.no] = Array.isArray(L) ? L : []; draw(WLOG[F.no]); })
+    .catch(e => { delete WLOG[F.no]; const b = $('#qcSrc'); if (b && b.dataset.no === F.no) b.innerHTML = H + '<span class="qc-sl0">' + (/この操作はできません|getWorkLog/.test(String(e && e.message || e)) ? 'まだ Google 側の更新（デプロイ）が済んでいません' : '読めませんでした（' + esc(e && e.message || e) + '）') + '</span>'; });
 }
 function qcDrawFind(el, c){
   const f = fdById(c.id); if (!f || !fdOpen(f)) { QC.i++; return qcDraw(); }
@@ -2701,7 +2741,7 @@ function qcDrawFind(el, c){
   el.innerHTML = `<div class="qc-w qc-dw">${qcTop()}${qcTask('find', mus ? '美術館' : '販売')}${QC.test ? '<p class="qc-test">練習モード：答えは保存しません</p>' : ''}
     ${body}<div><h1 class="qc-q">${esc(q)}</h1>${hint ? `<p class="qc-hint">${esc(hint)}</p>` : ''}</div>
     <div class="qc-btm">${btm}${qcFoot()}</div></div>`;
-  hydrate(el); el.scrollTop = 0;
+  hydrate(el); el.scrollTop = 0; if (no) fdSrcLoad();
   if (QV.tts) say(QC.sp);
 }
 async function qcFindSave(c, st, no){
@@ -2797,7 +2837,7 @@ async function qcDiffSave(c, fn, pk, kind, area){
     () => { QDD.delete(key); QC.n--; });
   qcDraw();
 }
-function qcEnd(){ const wno = QC && QC.mode === 'work' ? QC.wno : ''; if (wno) setTimeout(() => openWork(wno), 60); qcFlush(); stopMic(); sayStop(); if (QC && QC.tts0 != null) QV.tts = QC.tts0; const el = $('#qc'); if (el) { el.classList.add('hidden'); el.classList.remove('kb'); el.innerHTML = ''; el.style.top = el.style.height = el.style.bottom = ''; } qcLock(false); QC = null; refreshData().catch(() => {}); }
+function qcEnd(){ Object.keys(WLOG).forEach(k => delete WLOG[k]); const wno = QC && QC.mode === 'work' ? QC.wno : ''; if (wno) setTimeout(() => openWork(wno), 60); qcFlush(); stopMic(); sayStop(); if (QC && QC.tts0 != null) QV.tts = QC.tts0; const el = $('#qc'); if (el) { el.classList.add('hidden'); el.classList.remove('kb'); el.innerHTML = ''; el.style.top = el.style.height = el.style.bottom = ''; } qcLock(false); QC = null; refreshData().catch(() => {}); }
 function qcDraw(){
   const el = $('#qc'); if (!el || !QC) return;
   if (QC.i >= QC.L.length) return qcFinish();
