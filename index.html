@@ -819,6 +819,11 @@ html[data-theme=dark] .qzstar{color:#f2c464}
 .ivsc.m-confirm .ivopts{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:0}
 .ivsc.m-confirm .ivopts .qzwide{padding:12px 8px;font-size:17px}.ivsc.m-confirm .ivopts .yes{grid-column:1/-1;font-size:19px;padding:14px}
 .ivsc.m-confirm .ivhear{flex:none;font-size:14px;margin:8px 0 4px}.ivsc.m-confirm .srlive{flex:none;min-height:0;font-size:18px;padding:8px 12px;margin:0}
+.updcard{position:fixed;left:50%;transform:translateX(-50%);top:calc(var(--tb,0px) + var(--cap,0px) + var(--edge,0px) + 74px);z-index:1300;width:min(520px,calc(100% - 24px));box-sizing:border-box;display:flex;align-items:center;gap:10px;padding:10px 10px 10px 14px;border-radius:16px;background:var(--ink);color:var(--inv);box-shadow:0 8px 28px rgba(0,0,0,.28);animation:updin .28s cubic-bezier(.2,.8,.2,1)}
+@keyframes updin{from{opacity:0;transform:translate(-50%,-10px)}to{opacity:1;transform:translate(-50%,0)}}
+.updic{font-size:20px;font-weight:700;flex:none}.updtx{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}.updtx b{font-size:15px}.updtx small{font-size:12px;opacity:.72;line-height:1.35}
+.updgo{flex:none;border:0;border-radius:10px;padding:10px 14px;background:#d64e3a;color:#fff;font:inherit;font-size:14.5px;font-weight:700;cursor:pointer}.updcard.go .updgo{opacity:.7}
+.updx{flex:none;width:36px;height:36px;border:0;border-radius:50%;background:transparent;color:inherit;opacity:.65;font-size:16px;cursor:pointer}
 .updbar{background:rgba(224,83,61,.76);text-align:left;cursor:pointer}.updbar span{font-size:18px}.updbar b{line-height:1.3;font-size:14.5px}
 .micgate{text-align:center;padding:6px 4px 4px}.micgate .mgic{width:76px;height:76px;margin:4px auto 10px;border-radius:50%;background:linear-gradient(145deg,#d9ecff,#b9dcff);display:grid;place-items:center;font-size:40px}.micgate h3{margin:0 0 6px}.micgate p{margin:4px 0 10px;line-height:1.6}.micgate .qzwide{width:100%;margin-top:8px}.micgate .qzlink{margin-top:8px}
 .qznoph{display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px;text-align:center}.qznoph b{font-size:34px;line-height:1.3}.qznoph small{font-size:14px;color:var(--faint)}
@@ -1794,7 +1799,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'f39f5b93d3', APP_URL = location.origin + location.pathname;
+const BUILD = 'cfbc1df228', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -1803,10 +1808,13 @@ function checkBuild(){
     const busyEdit = !$('#sheet').classList.contains('hidden') || (document.activeElement && /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) || S.aiOpen || !!document.querySelector('.quiz:not(.hidden)');
     let tried = ''; try { tried = sessionStorage.getItem('smr_upd') || ''; } catch(e){}
     if (!busyEdit && tried !== b) { try { sessionStorage.setItem('smr_upd', b); } catch(e){} location.replace(APP_URL + '?r=' + Date.now()); return; }
-    const d = document.createElement('button'); d.type = 'button'; d.id = 'updBar'; d.className = 'updbar';
-    d.innerHTML = '<span>🔄</span><b>新しい版があります。ここをタップして更新してください</b>';
-    d.onclick = () => { d.classList.add('go'); d.querySelector('span').outerHTML = '<span class="ldsp"></span>'; d.querySelector('b').textContent = '更新しています…'; window.open(APP_URL + '?r=' + Date.now(), '_top'); };
-    document.body.appendChild(d); tbSync(); }).catch(() => {});
+    let snz = 0; try { snz = +sessionStorage.getItem('smr_updsnz') || 0; } catch(e){} if (Date.now() - snz < 30 * 60000) return; /* 「あとで」を押したら30分は出さない */
+    /* 新しい版のお知らせ：ヘッダーの下に浮かぶカード（どの画面の上でも押せる） */
+    const d = document.createElement('div'); d.id = 'updBar'; d.className = 'updcard'; d.setAttribute('role', 'status');
+    d.innerHTML = '<span class="updic" aria-hidden="true">↻</span><span class="updtx"><b>新しい版があります</b><small>入力中のものは保存してから更新してください</small></span><button type="button" class="updgo">更新する</button><button type="button" class="updx" aria-label="あとで">✕</button>';
+    d.querySelector('.updgo').onclick = e => { e.stopPropagation(); d.classList.add('go'); d.querySelector('.updgo').textContent = '更新中…'; window.open(APP_URL + '?r=' + Date.now(), '_top'); };
+    d.querySelector('.updx').onclick = e => { e.stopPropagation(); try { sessionStorage.setItem('smr_updsnz', String(Date.now())); } catch(x){} d.remove(); };
+    document.body.appendChild(d); }).catch(() => {});
 }
 setTimeout(checkBuild, 4000);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkBuild(); });
@@ -1834,7 +1842,6 @@ function abRender0(){ const h = $('#abTitle'); if (!h) return;
   let st = '', tx = h.dataset.t || '';
   if (ld && !ld.classList.contains('hidden')) { st = 'busy'; tx = ld.textContent.trim() || '読み込み中…'; }
   else if (ts && !ts.classList.contains('hidden')) { st = 'ok'; tx = ts.textContent.trim(); }
-  else if (up) { st = 'upd'; tx = up.classList.contains('go') ? '更新しています…' : '押して新しい版に更新'; }
   h.className = st ? 'st-' + st : '';
   if (st) { h.textContent = tx; return; }
   // ふだんは「下村良之介作品目録 › ページ名 › 作品名」を同じ大きさの文字で横に並べる（押すとそこへ戻る）
