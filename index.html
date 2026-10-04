@@ -1834,7 +1834,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'a869136636', APP_URL = location.origin + location.pathname;
+const BUILD = '6953d8f832', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5609,7 +5609,7 @@ document.addEventListener('click', e => {
   if (t.dataset.dfv){ S.dfv = t.dataset.dfv; try { localStorage.setItem('smr_dfv', S.dfv); } catch(e){} render(); return; }
   if (t.dataset.dfs){ S.dfsd = S.dfs === t.dataset.dfs ? -(S.dfsd || 1) : 1; S.dfs = t.dataset.dfs; render(); return; }
   if (t.dataset.dfgo !== undefined){ closeSheet(); closeAllPages(); S.view = 'doc'; S.dmode = 'files'; S.dfq = ''; S.dpath = t.dataset.dfgo ? t.dataset.dfgo.split('/') : [DF_NONE]; render(); window.scrollTo(0, 0); return; }
-  if (t.dataset.pdftab){ const fid = t.dataset.pdftab, wn = window.open('', '_blank'); pdfBlobUrl(fid).then(u => { if (wn) wn.location = u; else window.open(u, '_blank'); }).catch(e => { try { wn && wn.close(); } catch(x){} alert('開けませんでした：' + (e.message || e)); }); return; } // 元のPDFファイルを別のタブで
+  if (t.dataset.pdftab){ openOrigPdf(t.dataset.pdftab); return; } // 元のPDFファイルを開く
   if (t.dataset.pdfopen){ openPdf(t.dataset.pdfopen, t.dataset.pdfp, t.dataset.pdfq ? { q: t.dataset.pdfq, line: t.dataset.pdfl || '' } : null); return; }
   if (t.dataset.spine){ showSpine(t, t.dataset.spine); return; }
   if (t.dataset.rec){ if (canEdit() && !recInline(t)) sheetRec(t.dataset.rec, t.dataset.rid, t.dataset.rf); return; } // 展覧会・画集なども、鉛筆でその場で直す
@@ -5847,13 +5847,18 @@ async function pdfMount(host, fid, title, page, hint){
 function pdfQuick(fid, title, page, hint){ const el = document.createElement('div'); el.className = 'noteview pdfql'; const h = document.createElement('div'); el.appendChild(h);
   document.body.appendChild(el); hpush('n'); scrPush(el); pdfMount(h, fid, title, page, hint);
   const esc_ = e => { if (!el.isConnected) return document.removeEventListener('keydown', esc_); if (e.key === 'Escape' && SCR[SCR.length - 1] === el) { e.preventDefault(); scrBack(); } }; document.addEventListener('keydown', esc_); }
+/* 元のPDFファイルを開く。iPhone（ホーム画面のアプリ）では別のタブに渡せず白紙になるので、端末のPDF表示（共有・保存もできる）で開く */
+async function openOrigPdf(fid){ const d = (S.docs || []).find(x => docPages(x)[0] === fid), name = ((d ? docTitle(d) : '資料') + '.pdf').replace(/[\\/:*?"<>|]/g, '_');
+  const ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const w = ios ? null : window.open('', '_blank'); busy(true, 'PDFを開いています…');
+  try { const url = await pdfBlobUrl(fid);
+    if (ios) { const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => a.remove(), 1000); }
+    else if (w) w.location = url; else location.href = url; }
+  catch(e){ try { w && w.close(); } catch(x){} alert('PDFを開けませんでした（' + (e && e.message || e) + '）'); }
+  finally { busy(false); } }
 async function openPdf(fid, page, hint){
   if (pdfDesk() || page) { const d = (S.docs || []).find(x => docPages(x)[0] === fid); if (!pdfDesk()) return bigView(fid, d ? docTitle(d) : 'PDF', +page || 1); return pdfQuick(fid, d ? docTitle(d) : 'PDF', page, hint); } /* ページを指定したとき（食い違いの確認など）はスマホでもアプリの中で開く */
-  const w = window.open('', '_blank'); busy(true, 'PDFを開いています…');
-  try { const url = await pdfBlobUrl(fid);
-    if (w) w.location = url; else location.href = url; }
-  catch(e){ if (w) w.close(); alert('PDFを開けませんでした（' + (e && e.message || e) + '）'); }
-  finally { busy(false); }
+  return openOrigPdf(fid);
 }
 async function sheetPdfScan(){
   if (!canEdit()) return;
