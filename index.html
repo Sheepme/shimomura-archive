@@ -820,7 +820,7 @@ html[data-theme=dark] .qzstar{color:#f2c464}
 .ivsc.m-confirm .ivopts{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:0}
 .ivsc.m-confirm .ivopts .qzwide{padding:12px 8px;font-size:17px}.ivsc.m-confirm .ivopts .yes{grid-column:1/-1;font-size:19px;padding:14px}
 .ivsc.m-confirm .ivhear{flex:none;font-size:14px;margin:8px 0 4px}.ivsc.m-confirm .srlive{flex:none;min-height:0;font-size:18px;padding:8px 12px;margin:0}
-.updcard{position:fixed;left:50%;transform:translateX(-50%);top:calc(var(--tb,0px) + var(--cap,0px) + var(--edge,0px) + 74px);z-index:1300;width:min(520px,calc(100% - 24px));box-sizing:border-box;display:flex;align-items:center;gap:10px;padding:10px 10px 10px 14px;border-radius:16px;background:var(--ink);color:var(--inv);box-shadow:0 8px 28px rgba(0,0,0,.28);animation:updin .28s cubic-bezier(.2,.8,.2,1)}
+.updcard{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 8px);z-index:1300;width:min(520px,calc(100% - 24px));box-sizing:border-box;display:flex;align-items:center;gap:10px;padding:10px 10px 10px 14px;border-radius:16px;background:var(--ink);color:var(--inv);box-shadow:0 8px 28px rgba(0,0,0,.28);animation:updin .28s cubic-bezier(.2,.8,.2,1)}
 @keyframes updin{from{opacity:0;transform:translate(-50%,-10px)}to{opacity:1;transform:translate(-50%,0)}}
 .updic{font-size:20px;font-weight:700;flex:none}.updtx{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}.updtx b{font-size:15px}.updtx small{font-size:12px;opacity:.72;line-height:1.35}
 .updgo{flex:none;border:0;border-radius:10px;padding:10px 14px;background:#d64e3a;color:#fff;font:inherit;font-size:14.5px;font-weight:700;cursor:pointer}.updcard.go .updgo{opacity:.7}
@@ -1836,7 +1836,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '3531cd5edf', APP_URL = location.origin + location.pathname;
+const BUILD = 'a0f2b87b71', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5656,7 +5656,7 @@ document.addEventListener('click', e => {
   if (e.target.closest && e.target.closest('#confirm')) return;
   const sh = $('#sheet');
   if (!sh.classList.contains('hidden') && !e.target.closest('#sheetbox')) {
-    if (e.target.closest('.docview, .noteview, #viewer, #loading, #toast, #itemTip, #top, .appbar, #drawer, #mepop')) return; /* サイドメニュー・名前の吹き出しも使える */ // 写真の拡大・上のバー（戻る・パンくず）は使える
+    if (e.target.closest('.docview, .noteview, #viewer, #loading, #toast, #itemTip, #top, .appbar, #drawer, #mepop, #updBar')) return; /* サイドメニュー・名前の吹き出しも使える */ // 写真の拡大・上のバー（戻る・パンくず）は使える
     e.preventDefault(); e.stopPropagation(); return; } // 画面のほかの所を押しても閉じない
   const ie = document.querySelector('#page dd.iedit');
   if (ie && !ie.contains(e.target)) {
