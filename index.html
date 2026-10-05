@@ -2081,6 +2081,10 @@ button.ulrow{cursor:pointer}
 .srcbox>summary{cursor:pointer;font-size:15px;color:var(--sub);padding:4px 0}
 .srcbox[open]>summary{margin-bottom:6px}
 .cvcopy{margin-top:10px;font-size:14px}
+.phist{margin-top:40px;color:var(--faint);font-size:14px;letter-spacing:.04em;line-height:1.7}
+.phist p{margin:0}
+.phist .phb{margin-top:6px}
+.phist .phw{opacity:.7}
 </style>
 </head>
 <body>
@@ -2150,7 +2154,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '462ce1f545', APP_URL = location.origin + location.pathname;
+const BUILD = '40dc63443b', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5439,7 +5443,7 @@ function openWork(no, keepScroll, restoreSc){
         ${delBtn('w', no, 'この作品')}
       </div>` : ''}
       ${canEdit() && !ot ? workQuizHTML(no) : ''}
-      <p style="color:var(--faint);font-size:14px;margin-top:40px;letter-spacing:.04em">最終更新：${esc(w['最終更新日時'])}（${esc(w['最終更新者'])}）</p>
+      ${histBlock(no, w['最終更新日時'], w['最終更新者'])}
     </div></div>`;
   showPage({t:'w', id:no}, html, keepScroll, restoreSc);
   const gal = pg.querySelector('.gallery');
@@ -5448,6 +5452,38 @@ function openWork(no, keepScroll, restoreSc){
 
 /* ---------- ページの重ね表示（作品 → 展覧会 → 作品 … と進んで、もどるで1つずつ戻る） ---------- */
 let NAVN = 0; /* 新しく画面を移動した回数（書類に戻る予定を取り消すため） */
+/* ---------- 詳細ページのいちばん下：最終更新と更新履歴（変更記録から。日付だけ・時間は出さない。10/5 本人） ----------
+   1行＝1日・1人。その日に変えた項目を「・」でつなぐ。くわしい中身は「更新記録」のページで見る */
+const HISTC = {};
+const HIST_F = { '所在区分': '場所', '所在': '場所', '自宅エリア': '場所', '場所確認日': '場所の確認', '場所確認者': '場所の確認', '要確認': '要確認', '要確認メモ': '要確認', '幅cm': 'サイズ', '高さcm': 'サイズ', '奥行きcm': 'サイズ', '最終更新日時': '', '最終更新者': '', '登録者': '', '登録日時': '' };
+function histLab(r){ const t = r['対象'] || '', f = r['項目'] || '';
+  if (t === '作品' || t === '展覧会' || t === '資料') return f in HIST_F ? HIST_F[f] : f === '新規登録' || /^新規登録/.test(f) ? '新しく登録' : f;
+  if (t === '出来事' || t === '来歴') return '来歴（' + f.replace(/（ひも付け）$/, '') + '）';
+  if (t === '写真') return /追加/.test(f) ? '写真の追加' : /差し替え/.test(f) ? '写真の差し替え' : f === 'メイン画像' ? 'メイン画像' : '写真（' + f + '）';
+  if (t === '書類') return '書類';
+  if (t === '調べ') return '調べの記録';
+  return t + (f ? '（' + f + '）' : ''); }
+function histBlock(id, last, who){
+  setTimeout(() => histLoad(id), 0);
+  const d = String(last || '').slice(0, 10);
+  return `<div class="phist" data-phist="${esc(id)}">${d ? `<p>最終更新：${esc(d)}（${esc(who || '不明')}）</p>` : ''}<div class="phb">${histLines(id)}</div></div>`;
+}
+function histLines(id){ const c = HISTC[id];
+  if (!c) return '<p class="phw">更新履歴を読み込んでいます…</p>';
+  if (c.err) return '';
+  if (!c.g.length) return '';
+  const more = c.g.length > 40 ? `<p>ほかに ${c.g.length - 40}日分（くわしくは「更新記録」へ）</p>` : '';
+  return `<p>更新履歴：</p>` + c.g.slice(0, 40).map(x => `<p class="phr">${esc(x.d)}（${esc(x.w)}）${esc(x.it.join('・'))}</p>`).join('') + more; }
+async function histLoad(id){
+  const c = HISTC[id]; if (c && (c.busy || Date.now() - c.t < 15000)) return; /* 開き直しが続いたときは読み直さない（15秒） */
+  HISTC[id] = Object.assign(c || { g: [] }, { busy: true });
+  try { const L = await call('getWorkLog', id), g = [], at = {};
+    (L || []).forEach(r => { const d = String(r['日時'] || '').slice(0, 10), w = r['変更者'] || '不明', k = d + '|' + w, lab = histLab(r);
+      let x = at[k]; if (!x) { x = at[k] = { d: d || '日付なし', w, it: [] }; g.push(x); } if (lab && x.it.indexOf(lab) < 0) x.it.push(lab); });
+    HISTC[id] = { g, t: Date.now() }; }
+  catch(e){ HISTC[id] = { g: [], t: Date.now(), err: 1 }; }
+  document.querySelectorAll('[data-phist]').forEach(el => { if (el.dataset.phist === id) el.querySelector('.phb').innerHTML = histLines(id); });
+}
 function showPage(st, html, keepScroll, restoreSc){
   const pg = $('#page'), sc = pg.scrollTop, open = !pg.classList.contains('hidden'); if (!keepScroll) NAVN++;
   if (!open) { S.stack = []; hpush('w'); }
@@ -5845,7 +5881,7 @@ function openEx(id, keepScroll, restoreSc){
       ${cat ? dd2('図録', `<button class="golink" data-pb="${esc(cat['資料ID'])}">${esc(cat['タイトル']||'図録')} ›</button>`) : ''}
       ${rel.length ? dd2('関連資料', rel.map(p => `<button class="golink" data-pb="${esc(p['資料ID'])}">${esc(p['タイトル']||p['資料ID'])} ›</button>`).join('')) : ''}
       ${dd2('メモ', escU(x['メモ']))}${srcDD(x)}</dl>`}
-    ${canEdit() ? `<h3 class="sec">記録を更新する</h3><div class="actions bottomacts one"><button class="act main" data-link="ex|${esc(id)}">＋ 出品作品をひも付け</button><button class="act vadd" data-venue="${esc(id)}|">＋ 巡回先（会場）を追加</button><button class="act" data-mmadd="1">📝 お母さんへの確認メモを書く</button>${delBtn('ex', id, 'この展覧会')}</div>` : ''}</div>`;
+    ${canEdit() ? `<h3 class="sec">記録を更新する</h3><div class="actions bottomacts one"><button class="act main" data-link="ex|${esc(id)}">＋ 出品作品をひも付け</button><button class="act vadd" data-venue="${esc(id)}|">＋ 巡回先（会場）を追加</button><button class="act" data-mmadd="1">📝 お母さんへの確認メモを書く</button>${delBtn('ex', id, 'この展覧会')}</div>` : ''}${histBlock(id, x['登録日時'], x['登録者'])}</div>`;
   showPage({t:'ex', id}, html, keepScroll, restoreSc);
 }
 function openPb(id, keepScroll, restoreSc){
@@ -5863,7 +5899,7 @@ function openPb(id, keepScroll, restoreSc){
       ${dd2('家にある冊数', x['家にある冊数'] ? esc(x['家にある冊数']) + '冊' : '')}
       ${ex ? dd2('関連する展覧会', `<button class="golink" data-ex="${esc(ex['展覧会ID'])}">${PRM(ex['名称'])}${esc(ex['名称'])} ›</button>`) : ''}
       ${dd2('メモ', escU(x['メモ']))}${srcDD(x)}</dl>`}
-    ${canEdit() ? `<h3 class="sec">記録を更新する</h3><div class="actions bottomacts one"><button class="act main" data-link="pb|${esc(id)}">＋ 掲載作品をひも付け</button><button class="act" data-cover="${esc(id)}">${cover ? '表紙の写真を差し替える' : '表紙の写真を登録（カメラ・写真）'}</button><button class="act" data-mmadd="1">📝 お母さんへの確認メモを書く</button>${delBtn('pb', id, 'この資料')}</div>` : ''}</div>`;
+    ${canEdit() ? `<h3 class="sec">記録を更新する</h3><div class="actions bottomacts one"><button class="act main" data-link="pb|${esc(id)}">＋ 掲載作品をひも付け</button><button class="act" data-cover="${esc(id)}">${cover ? '表紙の写真を差し替える' : '表紙の写真を登録（カメラ・写真）'}</button><button class="act" data-mmadd="1">📝 お母さんへの確認メモを書く</button>${delBtn('pb', id, 'この資料')}</div>` : ''}${histBlock(id, x['登録日時'], x['登録者'])}</div>`;
   showPage({t:'pb', id}, html, keepScroll, restoreSc);
 }
 
