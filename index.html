@@ -2114,9 +2114,9 @@ button.ulrow{cursor:pointer}
 .cr-seg{display:flex;padding:3px;border-radius:12px;background:#3a3a38}
 .cr-seg button{flex:1;min-height:38px;border:0;border-radius:9px;background:transparent;color:#faf9f5;font:inherit;font-size:15px;font-weight:600;cursor:pointer}
 .cr-seg button.on{background:#faf9f5;color:#141413}
-.cr-seg.sm{flex:1}.cr-seg.sm button{min-height:34px;font-size:13.5px}
+.cr-seg.sm{flex:1;min-width:0}.cr-seg.sm button{min-height:34px;min-width:0;padding:0 2px;font-size:13.5px;white-space:nowrap}
 .cr-row{display:flex;align-items:center;gap:10px;font-size:14px;color:rgba(250,249,245,.85)}
-.cr-row>span{flex:none;min-width:5.6em}
+.cr-row>span{flex:none;min-width:4.6em}
 .cr-row input[type=range]{flex:1;min-width:0;accent-color:#1CB0F6;height:28px}
 .cr-row output{flex:none;min-width:2.6em;text-align:right;font-variant-numeric:tabular-nums}
 .cr-note{margin:0;font-size:12.5px;line-height:1.5;color:rgba(250,249,245,.65)}
@@ -2195,7 +2195,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '3e2ecccf60', APP_URL = location.origin + location.pathname;
+const BUILD = 'c67c6bb6f9', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6217,15 +6217,22 @@ async function rotatePhoto(deg){
   } finally { busy(false); }
 }
 /* ---------- 写真の切り抜き・補正（10/5 開発 v4）----------
-   1枚ずつ、四隅を手で合わせて、傾き・台形（斜めから撮ったゆがみ）・レンズのふくらみを直す。
+   1枚ずつ、角を手で合わせて、傾き・台形（斜めから撮ったゆがみ）・レンズのふくらみを直す。
+   屏風は「何曲か」を選び、折れ目ごとに上と下の点を合わせる → 1扇ずつ直して横に並べ、広げた形の1枚にする（扇の幅はみな同じ）。
+   点は CR.top（上の点：左から n+1 個）と CR.bot（下の点）で持つ。ふつうの作品は n=1（左上・右上／左下・右下）。
    補正した写真は新しい写真として保存し、元の写真は種類「記録写真」として残す（ファイルも行もそのまま）。
-   補正した写真のメモに「補正：元の写真 P…｜四隅 x,y x,y x,y x,y｜ふくらみ 0｜比率 台帳｜元の種類 表」を残す（あとで直し直せるように）。
-   縦横の比率は、台帳のサイズ（高さcm・幅cm）があればそれに合わせる（向きは写真から見た形に近い方）。 */
-const CR_RE = /補正：元の写真 (\S+?)｜四隅 ([-\d., ]+?)｜ふくらみ (-?[\d.]+)｜比率 (台帳|写真)｜元の種類 ([^｜]*)/;
-function crInfo(p){ const m = CR_RE.exec(String((p||{})['メモ']||'')); if (!m) return null;
-  const q = m[2].trim().split(/\s+/).map(s => s.split(',').map(Number));
-  if (q.length !== 4 || q.some(a => a.length !== 2 || a.some(x => !isFinite(x)))) return null;
-  return { orig: m[1], q, v: +m[3] || 0, ratio: m[4] === '写真' ? 'auto' : 'led', kind: (m[5] || '').trim() || '表' }; }
+   補正した写真のメモ：「補正：元の写真 P…｜四隅 x,y x,y x,y x,y｜ふくらみ 0｜比率 台帳｜元の種類 表」
+   （屏風は「四隅 …」の代わりに「屏風 6曲 上 x,y …（7つ） 下 x,y …（7つ）」。あとで直し直せるように）。
+   縦横の比率は、台帳のサイズ（高さcm・幅cm。屏風は広げた全体の幅）があればそれに合わせる（向きは写真から見た形に近い方）。 */
+function crInfo(p){ const m = /補正：元の写真 ([^｜\s]+)((?:｜[^｜]*)*)/.exec(String((p||{})['メモ']||'')); if (!m) return null;
+  const f = {}; m[2].split('｜').slice(1).forEach(x => { const i = x.indexOf(' '); if (i > 0) f[x.slice(0, i)] = x.slice(i + 1).trim(); });
+  const pts = s => String(s || '').trim().split(/\s+/).filter(Boolean).map(t => t.split(',').map(Number)), ok = a => a.every(v => v.length === 2 && v.every(x => isFinite(x)));
+  let n = 1, top, bot;
+  if (f['四隅']) { const q = pts(f['四隅']); if (q.length !== 4 || !ok(q)) return null; top = [q[0], q[1]]; bot = [q[3], q[2]]; }
+  else if (f['屏風']) { const mm = /^(\d+)曲 上 (.+?) 下 (.+)$/.exec(f['屏風']); if (!mm) return null; n = +mm[1]; top = pts(mm[2]); bot = pts(mm[3]);
+    if (!(n >= 2 && n <= 12) || top.length !== n + 1 || bot.length !== n + 1 || !ok(top) || !ok(bot)) return null; }
+  else return null;
+  return { orig: m[1], n, top, bot, v: +f['ふくらみ'] || 0, ratio: f['比率'] === '写真' ? 'auto' : 'led', kind: f['元の種類'] || '表' }; }
 /* 開いた写真から、元の写真（記録写真）と補正した写真を探す */
 function crTargets(p){
   const ci = crInfo(p), o = ci && S.photos.find(x => x['写真ID'] === ci.orig);
@@ -6241,27 +6248,29 @@ const crCam = (w, h, k) => ({ cx: w / 2, cy: h / 2, R2: (w * w + h * h) / 4, k }
 const crD = (x, y, c) => { const dx = x - c.cx, dy = y - c.cy, f = 1 + c.k * (dx * dx + dy * dy) / c.R2; return [c.cx + dx * f, c.cy + dy * f]; };
 const crU = (x, y, c) => { let ux = x, uy = y; for (let i = 0; i < 12; i++) { const dx = ux - c.cx, dy = uy - c.cy, f = 1 + c.k * (dx * dx + dy * dy) / c.R2; ux = c.cx + (x - c.cx) / f; uy = c.cy + (y - c.cy) / f; } return [ux, uy]; };
 const crK = () => -(CR ? CR.v : 0) / 100; /* つまみ「ふくらみ」＋ ＝ 縁が外にふくらんでいる（たる型 → k は負） */
+const crQuad = (top, bot, i) => [top[i], top[i + 1], bot[i + 1], bot[i]]; /* i 番目の扇（ふつうの作品は 0 だけ）：左上・右上・右下・左下 */
 /* 正方形（0〜1）→ 四角形（左上・右上・右下・左下）の射影（Heckbert） */
 function crSq(P){ const [[x0, y0], [x1, y1], [x2, y2], [x3, y3]] = P, sx = x0 - x1 + x2 - x3, sy = y0 - y1 + y2 - y3;
   if (Math.abs(sx) < 1e-9 && Math.abs(sy) < 1e-9) return { a: x1 - x0, b: x3 - x0, c: x0, d: y1 - y0, e: y3 - y0, f: y0, g: 0, h: 0 };
   const dx1 = x1 - x2, dx2 = x3 - x2, dy1 = y1 - y2, dy2 = y3 - y2, den = dx1 * dy2 - dx2 * dy1, g = (sx * dy2 - dx2 * sy) / den, h = (dx1 * sy - sx * dy1) / den;
   return { a: x1 - x0 + g * x1, b: x3 - x0 + h * x3, c: x0, d: y1 - y0 + g * y1, e: y3 - y0 + h * y3, f: y0, g, h }; }
-/* 補正した画像を作る：src（RGBA、sw×sh）の q（0〜1 の四隅）の中を、W×H のまっすぐな長方形にする */
-function crWarp(s, sw, sh, q, k, W, H){
-  const cam = crCam(sw, sh, k), M = crSq(q.map(([x, y]) => crU(x * sw, y * sh, cam)));
+/* 補正した画像を作る：src（RGBA、sw×sh）の扇 n 枚を、幅 W・高さ H の長方形に横に並べる（扇の幅はみな同じ） */
+function crWarp(s, sw, sh, top, bot, k, W, H){
+  const cam = crCam(sw, sh, k), n = top.length - 1, U = a => a.map(([x, y]) => crU(x * sw, y * sh, cam)), T = U(top), B = U(bot);
   const out = new ImageData(W, H), o = out.data, kk = k / cam.R2, cx = cam.cx, cy = cam.cy, mx = sw - 1, my = sh - 1;
-  for (let j = 0; j < H; j++) { const v = (j + .5) / H;
-    for (let i = 0; i < W; i++) { const u = (i + .5) / W, z = M.g * u + M.h * v + 1;
-      let X = (M.a * u + M.b * v + M.c) / z, Y = (M.d * u + M.e * v + M.f) / z;
-      if (kk) { const dx = X - cx, dy = Y - cy, f = 1 + kk * (dx * dx + dy * dy); X = cx + dx * f; Y = cy + dy * f; }
-      X -= .5; Y -= .5; if (X < 0) X = 0; else if (X > mx) X = mx; if (Y < 0) Y = 0; else if (Y > my) Y = my;
-      const x0 = X | 0, y0 = Y | 0, x1 = x0 < mx ? x0 + 1 : x0, y1 = y0 < my ? y0 + 1 : y0, fx = X - x0, fy = Y - y0;
-      const p00 = (y0 * sw + x0) * 4, p10 = (y0 * sw + x1) * 4, p01 = (y1 * sw + x0) * 4, p11 = (y1 * sw + x1) * 4, t = (j * W + i) * 4;
-      for (let c = 0; c < 3; c++) { const a = s[p00 + c] + (s[p10 + c] - s[p00 + c]) * fx, b = s[p01 + c] + (s[p11 + c] - s[p01 + c]) * fx; o[t + c] = a + (b - a) * fy; }
-      o[t + 3] = 255; } }
+  for (let pi = 0; pi < n; pi++) { const M = crSq(crQuad(T, B, pi)), xa = Math.round(pi * W / n), xb = Math.round((pi + 1) * W / n), pw = Math.max(1, xb - xa);
+    for (let j = 0; j < H; j++) { const v = (j + .5) / H;
+      for (let i = xa; i < xb; i++) { const u = (i - xa + .5) / pw, z = M.g * u + M.h * v + 1;
+        let X = (M.a * u + M.b * v + M.c) / z, Y = (M.d * u + M.e * v + M.f) / z;
+        if (kk) { const dx = X - cx, dy = Y - cy, f = 1 + kk * (dx * dx + dy * dy); X = cx + dx * f; Y = cy + dy * f; }
+        X -= .5; Y -= .5; if (X < 0) X = 0; else if (X > mx) X = mx; if (Y < 0) Y = 0; else if (Y > my) Y = my;
+        const x0 = X | 0, y0 = Y | 0, x1 = x0 < mx ? x0 + 1 : x0, y1 = y0 < my ? y0 + 1 : y0, fx = X - x0, fy = Y - y0;
+        const p00 = (y0 * sw + x0) * 4, p10 = (y0 * sw + x1) * 4, p01 = (y1 * sw + x0) * 4, p11 = (y1 * sw + x1) * 4, t = (j * W + i) * 4;
+        for (let c = 0; c < 3; c++) { const a = s[p00 + c] + (s[p10 + c] - s[p00 + c]) * fx, b = s[p01 + c] + (s[p11 + c] - s[p01 + c]) * fx; o[t + c] = a + (b - a) * fy; }
+        o[t + 3] = 255; } } }
   return out; }
 /* 写真から見た縦横の比率（幅÷高さ）。斜めから撮った四角形から、本当の形を計算する（Zhang・He の方法。カメラの中心は写真のまん中） */
-function crAuto(q, sw, sh, k){
+function crAuto1(q, sw, sh, k){
   const cam = crCam(sw, sh, k), P = q.map(([x, y]) => { const [u, v] = crU(x * sw, y * sh, cam); return [u - cam.cx, v - cam.cy, 1]; });
   const [m1, m2, m4, m3] = P, L = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
   const simple = (L(m1, m2) + L(m3, m4)) / Math.max(1e-6, L(m1, m3) + L(m2, m4));
@@ -6273,34 +6282,44 @@ function crAuto(q, sw, sh, k){
   if (!isFinite(f2) || f2 < Math.pow(.35 * dg, 2) || f2 > Math.pow(3 * dg, 2)) f2 = Math.pow(.6 * dg, 2); /* ほぼ正面から撮ったときは計算できないので、スマホの1倍のレンズの値を使う */
   const r = Math.sqrt((n2[0] * n2[0] + n2[1] * n2[1] + f2 * n2[2] * n2[2]) / (n3[0] * n3[0] + n3[1] * n3[1] + f2 * n3[2] * n3[2]));
   return isFinite(r) && r > 0 && r / simple < 2.5 && simple / r < 2.5 ? r : simple; }
+/* 全体の比率：扇ごとに計算して、まん中の値 × 扇の数（扇の幅はみな同じとみる） */
+function crAuto(top, bot, sw, sh, k){ const n = top.length - 1, r = [];
+  for (let i = 0; i < n; i++) r.push(crAuto1(crQuad(top, bot, i), sw, sh, k));
+  r.sort((a, b) => a - b); return (n % 2 ? r[(n - 1) / 2] : (r[n / 2 - 1] + r[n / 2]) / 2) * n; }
+const crAutoNow = () => crAuto(CR.top, CR.bot, CR.img.naturalWidth, CR.img.naturalHeight, crK());
 /* 使う比率：台帳のサイズ（向きは写真から見た形に近い方）か、写真から計算した形 */
-function crRatio(){ const a = crAuto(CR.q, CR.img.naturalWidth, CR.img.naturalHeight, crK());
+function crRatio(){ const a = crAutoNow();
   if (CR.ratio === 'led' && CR.led) { const r = CR.led.w / CR.led.h; return Math.abs(Math.log(r / a)) <= Math.abs(Math.log(1 / r / a)) ? r : 1 / r; }
   return a; }
-/* 仕上がりの大きさ：元の写真の中で四角形が占める大きさに合わせる（長い辺は3200pxまで） */
-function crSize(q, sw, sh, r, maxSide, maxPx){
-  const P = q.map(([x, y]) => [x * sw, y * sh]), L = (a, b) => Math.hypot(P[a][0] - P[b][0], P[a][1] - P[b][1]);
-  const A = Math.max(1, ((L(0, 1) + L(3, 2)) / 2) * ((L(0, 3) + L(1, 2)) / 2));
-  let W = Math.sqrt(A * r), H = Math.sqrt(A / r); const s = Math.min(1, maxSide / Math.max(W, H), Math.sqrt(maxPx / (W * H)));
+/* 仕上がりの大きさ：元の写真の中で作品が占める大きさに合わせる（長い辺は3200pxまで） */
+function crSize(top, bot, sw, sh, r, maxSide, maxPx){ let A = 0;
+  for (let i = 0; i < top.length - 1; i++) { const P = crQuad(top, bot, i).map(([x, y]) => [x * sw, y * sh]), L = (a, b) => Math.hypot(P[a][0] - P[b][0], P[a][1] - P[b][1]); A += ((L(0, 1) + L(3, 2)) / 2) * ((L(0, 3) + L(1, 2)) / 2); }
+  A = Math.max(1, A); let W = Math.sqrt(A * r), H = Math.sqrt(A / r); const s = Math.min(1, maxSide / Math.max(W, H), Math.sqrt(maxPx / (W * H)));
   return [Math.max(1, Math.round(W * s)), Math.max(1, Math.round(H * s))]; }
+/* 扇の数を変える：外側の4つの角はそのままで、折れ目の点を等間隔に置き直す */
+function crSetN(n, base){ const t = base ? base.top : CR.top, b = base ? base.bot : CR.bot, T0 = t[0], T1 = t[t.length - 1], B0 = b[0], B1 = b[b.length - 1], L = (a, c, s) => [a[0] + (c[0] - a[0]) * s, a[1] + (c[1] - a[1]) * s];
+  CR.n = n; CR.top = []; CR.bot = []; for (let i = 0; i <= n; i++) { CR.top.push(L(T0, T1, i / n)); CR.bot.push(L(B0, B1, i / n)); } }
 
 let CR = null;
-const CR_Q0 = [[.06, .06], [.94, .06], [.94, .94], [.06, .94]];
+const CR_P0 = { top: [[.06, .06], [.94, .06]], bot: [[.06, .94], [.94, .94]] };
+const CR_NS = [[1, 'ふつう'], [2, '二曲'], [4, '四曲'], [6, '六曲'], [8, '八曲']];
 async function openCrop(p){
   if (!crCan(p) || $('#crop')) return;
   const t = crTargets(p), w = workOf(S.cur) || {}, hh = parseFloat(w['高さcm']), ww = parseFloat(w['幅cm']);
   const kind = t.info ? t.info.kind : (t.orig['種類'] && t.orig['種類'] !== '記録写真' ? t.orig['種類'] : '表');
-  CR = { no: S.cur, orig: t.orig, corr: t.corr, kind, led: hh > 0 && ww > 0 ? { h: hh, w: ww } : null,
-    q: (t.info ? t.info.q : CR_Q0).map(a => a.slice()), v: t.info ? t.info.v : 0, ratio: t.info ? t.info.ratio : (/^(表|裏)$/.test(kind) ? 'led' : 'auto'),
-    mode: 'edit', img: null, full: null, drag: -1, sel: 0, dirty: false, saving: false };
+  CR = { no: S.cur, orig: t.orig, corr: t.corr, kind, led: hh > 0 && ww > 0 ? { h: hh, w: ww } : null, n: 1, top: null, bot: null,
+    v: t.info ? t.info.v : 0, ratio: t.info ? t.info.ratio : (/^(表|裏)$/.test(kind) ? 'led' : 'auto'), mode: 'edit', img: null, full: null, drag: null, sel: { a: 'top', i: 0 }, dirty: false, saving: false };
+  if (t.info) { CR.n = t.info.n; CR.top = t.info.top.map(a => a.slice()); CR.bot = t.info.bot.map(a => a.slice()); } else crSetN(1, CR_P0);
   if (!CR.led) CR.ratio = 'auto';
+  if (!CR_NS.some(x => x[0] === CR.n)) CR_NS.push([CR.n, CR.n + '曲']);
   const el = document.createElement('div'); el.id = 'crop'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', '切り抜き・補正');
   el.innerHTML = `<div class="cr-top"><button type="button" class="cr-x">やめる</button><b>切り抜き・補正</b><button type="button" class="cr-save" disabled>保存</button></div>
     <p class="cr-hint"></p>
     <div class="cr-stage"><canvas class="cr-img"></canvas><canvas class="cr-pv hidden"></canvas><div class="cr-grid hidden"></div><svg class="cr-svg" xmlns="http://www.w3.org/2000/svg"></svg><div class="cr-loupe hidden"><canvas></canvas></div><div class="cr-ld"><span class="ldspin"></span>写真を読み込んでいます…</div></div>
     <div class="cr-bot">
       <div class="cr-seg"><button type="button" data-crm="edit" class="on">角を合わせる</button><button type="button" data-crm="pv">仕上がりを見る</button></div>
-      <label class="cr-row"><span>ふくらみ</span><input type="range" min="-10" max="10" step="0.5" value="${CR.v}" id="crK"><output id="crKv">${CR.v}</output></label>
+      <div class="cr-row"><span>形</span><div class="cr-seg sm">${CR_NS.map(([n, lb]) => `<button type="button" data-crn="${n}">${lb}</button>`).join('')}</div></div>
+      <label class="cr-row"><span>ふくらみ</span><input type="range" min="-10" max="10" step="0.5" value="${CR.v}" id="crK"><output id="crKv">${CR.v > 0 ? '+' : ''}${CR.v}</output></label>
       <div class="cr-row"><span>縦横の比率</span><div class="cr-seg sm">${CR.led ? `<button type="button" data-crr="led">台帳のサイズ</button>` : ''}<button type="button" data-crr="auto">写真から計算</button></div></div>
       <p class="cr-note"></p>
       <div class="cr-links"><button type="button" data-crreset>角を最初の位置にもどす</button>${CR.corr ? '<button type="button" data-crundo>補正をやめて元の写真にもどす</button>' : ''}</div>
@@ -6309,18 +6328,20 @@ async function openCrop(p){
   el.querySelector('.cr-x').onclick = () => { if (CR && CR.dirty && !confirm('直した内容を保存せずに閉じますか？')) return; cropClose(); };
   el.querySelector('.cr-save').onclick = cropSave;
   el.querySelectorAll('[data-crm]').forEach(b => b.onclick = () => { CR.mode = b.dataset.crm; crUI(); crLayout(); });
+  el.querySelectorAll('[data-crn]').forEach(b => b.onclick = () => { const n = +b.dataset.crn; if (n === CR.n) return; crSetN(n); CR.sel = { a: 'top', i: 0 }; CR.dirty = true; crUI(); crDraw(); crNote(); crPreview(); });
   el.querySelectorAll('[data-crr]').forEach(b => b.onclick = () => { CR.ratio = b.dataset.crr; CR.dirty = true; crUI(); crNote(); crPreview(); });
   el.querySelector('#crK').oninput = e => { CR.v = +e.target.value; CR.dirty = true; $('#crKv').textContent = (CR.v > 0 ? '+' : '') + CR.v; crDraw(); crNote(); crPreview(); };
-  el.querySelector('[data-crreset]').onclick = () => { CR.q = CR_Q0.map(a => a.slice()); CR.v = 0; $('#crK').value = 0; $('#crKv').textContent = '0'; CR.dirty = true; crDraw(); crNote(); crPreview(); };
+  el.querySelector('[data-crreset]').onclick = () => { crSetN(CR.n, CR_P0); CR.v = 0; $('#crK').value = 0; $('#crKv').textContent = '0'; CR.dirty = true; crDraw(); crNote(); crPreview(); };
   if (el.querySelector('[data-crundo]')) el.querySelector('[data-crundo]').onclick = cropUndo;
   const st = el.querySelector('.cr-stage');
   st.addEventListener('pointerdown', e => { if (!CR || CR.mode !== 'edit' || !CR.L) return; const r = st.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
-    let bi = -1, bd = 56; CR.q.forEach(([qx, qy], i) => { const d = Math.hypot(CR.L.ox + qx * CR.L.w - x, CR.L.oy + qy * CR.L.h - y); if (d < bd) { bd = d; bi = i; } });
-    if (bi < 0) return; e.preventDefault(); try { st.setPointerCapture(e.pointerId); } catch(x){}
-    CR.drag = bi; CR.sel = bi; CR.g = { id: e.pointerId, dx: CR.L.ox + CR.q[bi][0] * CR.L.w - x, dy: CR.L.oy + CR.q[bi][1] * CR.L.h - y }; /* 指と丸のずれを保つ（丸が指の先から飛ばない） */
+    let best = null, bd = CR.n > 3 ? 40 : 56; ['top', 'bot'].forEach(a => CR[a].forEach(([qx, qy], i) => { const d = Math.hypot(CR.L.ox + qx * CR.L.w - x, CR.L.oy + qy * CR.L.h - y); if (d < bd) { bd = d; best = { a, i }; } }));
+    if (!best) return; e.preventDefault(); try { st.setPointerCapture(e.pointerId); } catch(x){}
+    const pt = CR[best.a][best.i]; CR.drag = best; CR.sel = best;
+    CR.g = { id: e.pointerId, dx: CR.L.ox + pt[0] * CR.L.w - x, dy: CR.L.oy + pt[1] * CR.L.h - y }; /* 指と丸のずれを保つ（丸が指の先から飛ばない） */
     crMove(x, y); });
-  st.addEventListener('pointermove', e => { if (!CR || CR.drag < 0 || !CR.g || e.pointerId !== CR.g.id) return; e.preventDefault(); const r = st.getBoundingClientRect(); crMove(e.clientX - r.left, e.clientY - r.top); });
-  const up = () => { if (!CR || CR.drag < 0) return; CR.drag = -1; CR.g = null; el.querySelector('.cr-loupe').classList.add('hidden'); crDraw(); crNote(); };
+  st.addEventListener('pointermove', e => { if (!CR || !CR.drag || !CR.g || e.pointerId !== CR.g.id) return; e.preventDefault(); const r = st.getBoundingClientRect(); crMove(e.clientX - r.left, e.clientY - r.top); });
+  const up = () => { if (!CR || !CR.drag) return; CR.drag = null; CR.g = null; el.querySelector('.cr-loupe').classList.add('hidden'); crDraw(); crNote(); };
   st.addEventListener('pointerup', up); st.addEventListener('pointercancel', up);
   document.addEventListener('keydown', crKey);
   try { CR.ro = new ResizeObserver(() => crLayout()); CR.ro.observe(st); } catch(e){ addEventListener('resize', crLayout); }
@@ -6334,11 +6355,13 @@ async function openCrop(p){
 function crSetImg(im){ CR.img = im; CR.pv = null; const ld = $('#crop .cr-ld'); if (ld) ld.remove(); $('#crop .cr-save').disabled = false; crLayout(); crNote(); }
 function crUI(){ const el = $('#crop'); if (!el || !CR) return;
   el.querySelectorAll('[data-crm]').forEach(b => b.classList.toggle('on', b.dataset.crm === CR.mode));
+  el.querySelectorAll('[data-crn]').forEach(b => b.classList.toggle('on', +b.dataset.crn === CR.n));
   el.querySelectorAll('[data-crr]').forEach(b => b.classList.toggle('on', b.dataset.crr === CR.ratio));
   const ed = CR.mode === 'edit';
   ['.cr-img', '.cr-svg'].forEach(s => el.querySelector(s).classList.toggle('hidden', !ed)); ['.cr-pv', '.cr-grid'].forEach(s => el.querySelector(s).classList.toggle('hidden', ed));
-  el.querySelector('.cr-hint').textContent = ed ? '4つの丸を、作品の角に合わせてください（額も残すなら額の角）。丸を動かすと拡大鏡が出ます' : '仕上がりです。縁がふくらんで見えたら「ふくらみ」を＋に、へこんで見えたら−にします';
-  const ld = el.querySelector('.cr-ld'); if (ld) ld.style.display = ''; }
+  el.querySelector('.cr-hint').textContent = !ed ? '仕上がりです。縁がふくらんで見えたら「ふくらみ」を＋に、へこんで見えたら−にします'
+    : CR.n > 1 ? '屏風の両端の角と、折れ目ごとの上と下に丸を合わせてください。丸を動かすと拡大鏡が出ます'
+    : '4つの丸を、作品の角に合わせてください（額も残すなら額の角）。丸を動かすと拡大鏡が出ます'; }
 function crLayout(){ const el = $('#crop'), st = el && el.querySelector('.cr-stage'); if (!st || !CR || !CR.img) return;
   const r = st.getBoundingClientRect(); if (r.width < 10 || r.height < 10) return;
   const dpr = Math.min(3, devicePixelRatio || 1), iw = CR.img.naturalWidth, ih = CR.img.naturalHeight, s = Math.min(r.width / iw, r.height / ih);
@@ -6347,27 +6370,36 @@ function crLayout(){ const el = $('#crop'), st = el && el.querySelector('.cr-sta
   if (c.width !== cw || c.height !== ch || c._img !== CR.img) { c.width = cw; c.height = ch; c._img = CR.img; const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(CR.img, 0, 0, cw, ch); }
   c.style.cssText = `left:${CR.L.ox}px;top:${CR.L.oy}px;width:${CR.L.w}px;height:${CR.L.h}px`;
   crDraw(); crPreview(); }
-/* 四辺を、ふくらみに合わせた曲線の点の列にする（T：0〜1 の位置 → 描く場所） */
-function crEdges(T){ const iw = CR.img.naturalWidth, ih = CR.img.naturalHeight, cam = crCam(iw, ih, crK()), U = CR.q.map(([x, y]) => crU(x * iw, y * ih, cam)), pts = [];
-  for (let e = 0; e < 4; e++) { const a = U[e], b = U[(e + 1) % 4]; for (let i = 0; i < 24; i++) { const t = i / 24, [dx, dy] = crD(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, cam); pts.push(T(dx / iw, dy / ih)); } }
-  return pts; }
+/* 線を、ふくらみに合わせた曲線の点の列にする（T：0〜1 の位置 → 描く場所）。外まわり（上の点 → 右の辺 → 下の点を逆に → 左の辺）と、折れ目の線 */
+function crEdges(T){ const iw = CR.img.naturalWidth, ih = CR.img.naturalHeight, cam = crCam(iw, ih, crK()), U = a => crU(a[0] * iw, a[1] * ih, cam);
+  const seg = (a, b, out) => { const A = U(a), B = U(b); for (let i = 0; i < 16; i++) { const t = i / 16, [dx, dy] = crD(A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t, cam); out.push(T(dx / iw, dy / ih)); } };
+  const n = CR.n, o = [], folds = [];
+  for (let i = 0; i < n; i++) seg(CR.top[i], CR.top[i + 1], o);
+  seg(CR.top[n], CR.bot[n], o);
+  for (let i = n; i > 0; i--) seg(CR.bot[i], CR.bot[i - 1], o);
+  seg(CR.bot[0], CR.top[0], o);
+  for (let i = 1; i < n; i++) { const f = []; seg(CR.top[i], CR.bot[i], f); const [ex, ey] = crD(...U(CR.bot[i]), cam); f.push(T(ex / iw, ey / ih)); folds.push(f); }
+  return { o, folds }; }
+const crPath = P => 'M' + P.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L');
 function crDraw(){ const svg = $('#crop .cr-svg'); if (!svg || !CR || !CR.L || CR.mode !== 'edit') return; const L = CR.L;
-  const T = (x, y) => [L.ox + x * L.w, L.oy + y * L.h], d = 'M' + crEdges(T).map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L') + 'Z';
+  const T = (x, y) => [L.ox + x * L.w, L.oy + y * L.h], E = crEdges(T), d = crPath(E.o) + 'Z', fd = E.folds.map(crPath).join(''), r = CR.n > 3 ? 12 : 16;
   svg.setAttribute('viewBox', `0 0 ${L.sw} ${L.sh}`);
-  svg.innerHTML = `<path d="M-4 -4H${L.sw + 4}V${L.sh + 4}H-4Z ${d}" fill="rgba(0,0,0,.5)" fill-rule="evenodd"/><path d="${d}" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="3.2"/><path d="${d}" fill="none" stroke="#1CB0F6" stroke-width="1.6"/>`
-    + CR.q.map(([x, y], i) => { const [X, Y] = T(x, y); return `<circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="16" fill="rgba(28,176,246,${i === CR.drag ? .5 : .22})" stroke="#fff" stroke-width="2.5"/><circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="2.5" fill="#fff"/>`; }).join(''); }
-function crMove(x, y){ const L = CR.L, i = CR.drag; if (i < 0) return;
-  CR.q[i] = [Math.min(1, Math.max(0, (x + CR.g.dx - L.ox) / L.w)), Math.min(1, Math.max(0, (y + CR.g.dy - L.oy) / L.h))]; CR.dirty = true;
-  crDraw(); crLoupe(i, x, y); }
-/* 拡大鏡：動かしている角のまわりを3倍で、指の上に出す */
-function crLoupe(i, fx, fy){ const L = CR.L, lp = $('#crop .cr-loupe'); if (!lp) return; const c = lp.querySelector('canvas'), S0 = 132, dpr = Math.min(3, devicePixelRatio || 1), n = Math.round(S0 * dpr);
+  svg.innerHTML = `<path d="M-4 -4H${L.sw + 4}V${L.sh + 4}H-4Z ${d}" fill="rgba(0,0,0,.5)" fill-rule="evenodd"/><path d="${d}${fd}" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="3.2"/><path d="${d}" fill="none" stroke="#1CB0F6" stroke-width="1.6"/>`
+    + (fd ? `<path d="${fd}" fill="none" stroke="#FFC800" stroke-width="1.6" stroke-dasharray="6 4"/>` : '')
+    + ['top', 'bot'].map(a => CR[a].map(([x, y], i) => { const [X, Y] = T(x, y), on = CR.drag && CR.drag.a === a && CR.drag.i === i, fold = i > 0 && i < CR.n;
+      return `<circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="${r}" fill="${fold ? 'rgba(255,200,0,' : 'rgba(28,176,246,'}${on ? .5 : .22})" stroke="#fff" stroke-width="2.5"/><circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="2.5" fill="#fff"/>`; }).join('')).join(''); }
+function crMove(x, y){ const L = CR.L, g = CR.drag; if (!g) return;
+  CR[g.a][g.i] = [Math.min(1, Math.max(0, (x + CR.g.dx - L.ox) / L.w)), Math.min(1, Math.max(0, (y + CR.g.dy - L.oy) / L.h))]; CR.dirty = true;
+  crDraw(); crLoupe(CR[g.a][g.i], x, y); }
+/* 拡大鏡：動かしている点のまわりを3倍で、指の上に出す */
+function crLoupe(pt, fx, fy){ const L = CR.L, lp = $('#crop .cr-loupe'); if (!lp) return; const c = lp.querySelector('canvas'), S0 = 132, dpr = Math.min(3, devicePixelRatio || 1), n = Math.round(S0 * dpr);
   lp.classList.remove('hidden'); if (c.width !== n) { c.width = c.height = n; }
-  const iw = CR.img.naturalWidth, ih = CR.img.naturalHeight, [qx, qy] = CR.q[i], sz = S0 / (3 * L.s), sx = qx * iw - sz / 2, sy = qy * ih - sz / 2, k = n / sz, g = c.getContext('2d');
+  const iw = CR.img.naturalWidth, ih = CR.img.naturalHeight, [qx, qy] = pt, sz = S0 / (3 * L.s), sx = qx * iw - sz / 2, sy = qy * ih - sz / 2, k = n / sz, g = c.getContext('2d');
   g.fillStyle = '#111'; g.fillRect(0, 0, n, n);
   const x0 = Math.max(0, sx), y0 = Math.max(0, sy), x1 = Math.min(iw, sx + sz), y1 = Math.min(ih, sy + sz);
   if (x1 > x0 && y1 > y0) g.drawImage(CR.img, x0, y0, x1 - x0, y1 - y0, (x0 - sx) * k, (y0 - sy) * k, (x1 - x0) * k, (y1 - y0) * k);
-  const P = crEdges((x, y) => [(x * iw - sx) * k, (y * ih - sy) * k]); g.beginPath(); P.forEach((p, j) => j ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.closePath();
-  g.lineWidth = 1.5 * dpr; g.strokeStyle = '#1CB0F6'; g.stroke();
+  const E = crEdges((x, y) => [(x * iw - sx) * k, (y * ih - sy) * k]), line = (P, col, close) => { g.beginPath(); P.forEach((p, j) => j ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); if (close) g.closePath(); g.lineWidth = 1.5 * dpr; g.strokeStyle = col; g.stroke(); };
+  line(E.o, '#1CB0F6', true); E.folds.forEach(f => line(f, '#FFC800'));
   const m = n / 2; g.strokeStyle = '#fff'; g.lineWidth = dpr; g.beginPath(); g.moveTo(m - 12 * dpr, m); g.lineTo(m + 12 * dpr, m); g.moveTo(m, m - 12 * dpr); g.lineTo(m, m + 12 * dpr); g.stroke();
   let lx = fx - S0 / 2, ly = fy - S0 - 60; if (ly < 4) ly = fy + 60; lx = Math.max(4, Math.min(L.sw - S0 - 4, lx));
   lp.style.cssText = `left:${lx}px;top:${ly}px;width:${S0}px;height:${S0}px`; }
@@ -6378,25 +6410,27 @@ function crPvSrc(){ if (CR.pv && CR.pv.img === CR.img) return CR.pv; const iw = 
 function crPreview(){ if (!CR || CR.mode !== 'pv' || !CR.L || !CR.img) return; cancelAnimationFrame(CR.raf); CR.raf = requestAnimationFrame(() => { if (!CR || CR.mode !== 'pv') return;
   const s = crPvSrc(), r = crRatio(), L = CR.L, dpr = Math.min(2, devicePixelRatio || 1); let W = L.sw, H = W / r; if (H > L.sh) { H = L.sh; W = H * r; }
   const pw = Math.max(1, Math.round(Math.min(W * dpr, 1000))), ph = Math.max(1, Math.round(pw / r)), c = $('#crop .cr-pv');
-  c.width = pw; c.height = ph; c.getContext('2d').putImageData(crWarp(s.d, s.w, s.h, CR.q, crK(), pw, ph), 0, 0);
+  c.width = pw; c.height = ph; c.getContext('2d').putImageData(crWarp(s.d, s.w, s.h, CR.top, CR.bot, crK(), pw, ph), 0, 0);
   const css = `left:${(L.sw - W) / 2}px;top:${(L.sh - H) / 2}px;width:${W}px;height:${H}px`; c.style.cssText = css; $('#crop .cr-grid').style.cssText = css; }); }
 function crNote(){ const n = $('#crop .cr-note'); if (!n || !CR || !CR.img) return;
-  const a = crAuto(CR.q, CR.img.naturalWidth, CR.img.naturalHeight, crK()), fmt = r => r >= 1 ? '縦1：横' + r.toFixed(2) : '縦' + (1 / r).toFixed(2) + '：横1';
+  const a = crAutoNow(), fmt = r => r >= 1 ? '縦1：横' + r.toFixed(2) : '縦' + (1 / r).toFixed(2) + '：横1';
   let t = '写真から見た形 ' + fmt(a), warn = false;
   if (CR.led) { const rl = CR.led.w / CR.led.h, use = Math.abs(Math.log(rl / a)) <= Math.abs(Math.log(1 / rl / a)) ? rl : 1 / rl;
     t += '　台帳 ' + CR.led.h + '×' + CR.led.w + 'cm（' + fmt(use) + '）'; warn = Math.abs(Math.log(use / a)) > Math.log(1.15); }
   else t += '　（台帳にサイズがないので、写真から計算します）';
+  if (CR.n > 1) t += '　扇の幅はみな同じとして並べます';
   n.textContent = (warn ? '⚠ 台帳のサイズと形が合いません。角の位置か、台帳のサイズを確かめてください。' : '') + t; n.classList.toggle('warn', warn); }
 function crKey(e){ if (!CR || !$('#crop') || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target || {}).tagName || '') && e.target.type !== 'range') return;
   if (e.key === 'Escape') { e.preventDefault(); $('#crop .cr-x').click(); return; }
   const dd = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key]; if (!dd || CR.mode !== 'edit' || !CR.L || e.target.type === 'range') return;
-  e.preventDefault(); const st = e.shiftKey ? 10 : 1, i = CR.sel; /* 矢印キーで、最後にさわった角を1画素ずつ（Shift で10） */
-  CR.q[i] = [Math.min(1, Math.max(0, CR.q[i][0] + dd[0] * st / CR.L.w)), Math.min(1, Math.max(0, CR.q[i][1] + dd[1] * st / CR.L.h))]; CR.dirty = true; crDraw(); crNote(); }
+  e.preventDefault(); const st = e.shiftKey ? 10 : 1, s = CR.sel, p = CR[s.a][s.i]; if (!p) return; /* 矢印キーで、最後にさわった点を1画素ずつ（Shift で10） */
+  CR[s.a][s.i] = [Math.min(1, Math.max(0, p[0] + dd[0] * st / CR.L.w)), Math.min(1, Math.max(0, p[1] + dd[1] * st / CR.L.h))]; CR.dirty = true; crDraw(); crNote(); }
 function cropClose(fromHist){ const el = $('#crop'); if (!el) return; el.remove(); document.removeEventListener('keydown', crKey); removeEventListener('resize', crLayout);
   if (CR && CR.ro) try { CR.ro.disconnect(); } catch(e){} CR = null; if (!fromHist) hback(); }
 /* 保存したあと：開いているページと写真の画面を新しくし、その写真を出す */
 function crAfter(no, pid){ render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
   S.cur = no; V.list = photoBy[no] || []; const i = V.list.findIndex(x => x['写真ID'] === pid); V.i = i >= 0 ? i : 0; if (V.list.length) showV(); }
+const crPts = a => a.map(([x, y]) => x.toFixed(4) + ',' + y.toFixed(4)).join(' ');
 async function cropSave(){ const c0 = CR; if (!c0 || c0.saving || !c0.img) return; c0.saving = true;
   busy(true, '補正した写真を作っています…'); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 30)));
   try {
@@ -6404,10 +6438,11 @@ async function cropSave(){ const c0 = CR; if (!c0 || c0.saving || !c0.img) retur
     const iw = im.naturalWidth, ih = im.naturalHeight, k = Math.min(1, Math.sqrt(9e6 / (iw * ih)));
     const sc = document.createElement('canvas'); sc.width = Math.round(iw * k); sc.height = Math.round(ih * k); const sg = sc.getContext('2d'); sg.drawImage(im, 0, 0, sc.width, sc.height);
     const src = sg.getImageData(0, 0, sc.width, sc.height); sc.width = sc.height = 1;
-    const r = crRatio(), [W, H] = crSize(c0.q, src.width, src.height, r, 3200, 8e6);
-    const oc = document.createElement('canvas'); oc.width = W; oc.height = H; oc.getContext('2d').putImageData(crWarp(src.data, src.width, src.height, c0.q, crK(), W, H), 0, 0);
+    const r = crRatio(), [W, H] = crSize(c0.top, c0.bot, src.width, src.height, r, 3200, 8e6);
+    const oc = document.createElement('canvas'); oc.width = W; oc.height = H; oc.getContext('2d').putImageData(crWarp(src.data, src.width, src.height, c0.top, c0.bot, crK(), W, H), 0, 0);
     const b64 = oc.toDataURL('image/jpeg', 0.92).split(',')[1]; oc.width = oc.height = 1;
-    const memo = (/^【仮】/.test(c0.orig['メモ'] || '') ? '【仮】' : '') + '補正：元の写真 ' + c0.orig['写真ID'] + '｜四隅 ' + c0.q.map(([x, y]) => x.toFixed(4) + ',' + y.toFixed(4)).join(' ')
+    const shape = c0.n > 1 ? '屏風 ' + c0.n + '曲 上 ' + crPts(c0.top) + ' 下 ' + crPts(c0.bot) : '四隅 ' + crPts(crQuad(c0.top, c0.bot, 0));
+    const memo = (/^【仮】/.test(c0.orig['メモ'] || '') ? '【仮】' : '') + '補正：元の写真 ' + c0.orig['写真ID'] + '｜' + shape
       + '｜ふくらみ ' + c0.v + '｜比率 ' + (c0.ratio === 'led' && c0.led ? '台帳' : '写真') + '｜元の種類 ' + c0.kind;
     busy(true, '保存しています…'); let pid;
     if (c0.corr) { setData(await call('replacePhoto', c0.corr['写真ID'], b64, 'image/jpeg', '', memo)); pid = c0.corr['写真ID']; } /* 直し直し：補正した写真の行を差し替える（前のファイルはドライブに残る） */
