@@ -2150,7 +2150,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '7f8caf2050', APP_URL = location.origin + location.pathname;
+const BUILD = '462ce1f545', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6950,7 +6950,7 @@ function openMe(anc){ /* 名前ボタンの上に出る小さな吹き出しメ�
   const esc1 = e => { if (e.key === 'Escape') close(); };
   setTimeout(() => { document.addEventListener('pointerdown', out, true); document.addEventListener('keydown', esc1, true); window.addEventListener('resize', close); }, 0);
   el.onclick = e => { const b = e.target.closest('[data-me]'); if (!b) return; const v = b.dataset.me; close(); if (!isWide()) closeDrawer(); if (v === 'mic') { location.href = 'mictest/'; return; }
-    if (v === 'upd') { toast('最新版を読み込んでいます…'); window.open(APP_URL + '?r=' + Date.now(), '_top'); }
+    if (v === 'upd') freshReload();
     else if (v === 'face') faceAddPick(); else if (v === 'log') showLog(); else if (v === 'rot') openRotTool(); else if (v === 'arc') openArchive(); else if (v === 'out') doLogout(); };
 }
 async function doLogout(){
@@ -7632,12 +7632,29 @@ function afterNav(n){
   try { if (n.pcur && ({w:1, ex:1, pb:1, ot:1})[n.pcur.t]) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[n.pcur.t](n.pcur.id); } catch(e){}
   setTimeout(() => { window.scrollTo(0, n.sy || 0); if (n.pcur && n.psy) $('#page').scrollTop = n.psy; }, 60);
 }
-/* 起動：端末に控えがあれば、まずそれをすぐ表示し、裏で最新に更新する（待ち時間をなくす） */
+/* 「最新版に更新」（名前のメニュー）：画面の版も、台帳の情報も最新にする。今の状況が分からなくなったときに押す（10/5 本人）。
+   端末の控え（前に読んだ台帳）を消し、新しい画面を読み込み直してから、Google から全部読み直す。終わったら「最新版になりました」と出す */
+async function freshReload(n){
+  busy(true, '最新版にしています…');
+  try { localStorage.setItem('smr_fresh', JSON.stringify({ t: Date.now(), n: n || 0 })); } catch(e){}
+  try { await new Promise(ok => { setTimeout(ok, 1500); const r = indexedDB.open('smr_cache', 1);
+    r.onupgradeneeded = () => { try { r.result.createObjectStore('kv'); } catch(e){} };
+    r.onsuccess = () => { try { const tx = r.result.transaction('kv', 'readwrite'); tx.objectStore('kv').delete('C'); tx.oncomplete = tx.onerror = tx.onabort = () => { try { r.result.close(); } catch(e){} ok(); }; } catch(e){ ok(); } };
+    r.onerror = r.onblocked = () => ok(); }); } catch(e){}
+  window.open(APP_URL + '?r=' + Date.now(), '_top');
+}
+async function freshDone(f){ let lb = ''; try { lb = await call('appBuild'); } catch(e){}
+  if (lb && BUILD && lb !== BUILD && (f.n || 0) < 2) { toast('新しい画面を読み込み直しています…'); return setTimeout(() => freshReload((f.n || 0) + 1), 800); } /* 古い画面が届いたときは、もう一度 */
+  const t = new Date(); toast('最新版になりました（情報は ' + t.getHours() + ':' + String(t.getMinutes()).padStart(2, '0') + ' 時点）'); }
+/* 起動：端末に控えがあれば、まずそれをすぐ表示し、裏で最新に更新する（待ち時間をなくす）。「最新版に更新」のあとは控えを使わない */
 (async () => {
-  let shown = false;
-  try { const c = S.token && window.__smrCached ? await window.__smrCached() : null; if (c) { setData(c); const nv = restoreNav(); applyStart(); render(); afterNav(nv); busy(false); shown = true; } } catch(e){}
-  call('getData').then(d => { setData(d); const nv = shown ? null : restoreNav(); applyStart(); render(); if (nv) afterNav(nv); else if (shown && S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); })
-    .catch(e => { if (isLoginErr(e)) { setToken(''); S.user = null; renderUser(); showLoginWall(); $('#finder').classList.add('hidden'); }
+  let shown = false, fresh = null;
+  try { fresh = JSON.parse(localStorage.getItem('smr_fresh') || 'null'); localStorage.removeItem('smr_fresh'); if (fresh && !(Date.now() - fresh.t < 120000)) fresh = null; } catch(e){ fresh = null; }
+  if (fresh) busy(true, '最新の情報を読み込んでいます…');
+  try { const c = !fresh && S.token && window.__smrCached ? await window.__smrCached() : null; if (c) { setData(c); const nv = restoreNav(); applyStart(); render(); afterNav(nv); busy(false); shown = true; } } catch(e){}
+  call('getData').then(d => { setData(d); const nv = shown ? null : restoreNav(); applyStart(); render(); if (nv) afterNav(nv); else if (shown && S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); if (fresh) freshDone(fresh); })
+    .catch(e => { if (fresh && !isLoginErr(e)) setTimeout(() => alert('最新の情報を読み込めませんでした。電波のよい所で、もう一度「最新版に更新」を押してください。\n（' + (e.message || e) + '）'), 300);
+      if (isLoginErr(e)) { setToken(''); S.user = null; renderUser(); showLoginWall(); $('#finder').classList.add('hidden'); }
       else if (!shown) $('#main').innerHTML = '<div class="flagbox">読み込めませんでした。時間をおいてもう一度開いてください。<br>' + esc(e.message||e) + '</div>'; })
     .finally(() => busy(false));
 })();
