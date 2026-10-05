@@ -2299,7 +2299,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'eef65dd868', APP_URL = location.origin + location.pathname;
+const BUILD = '80b38b594e', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -9674,10 +9674,11 @@ function exvCss(){ if (document.getElementById('exvcss')) return; const st = doc
 #exv .xwait{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;letter-spacing:.12em;color:#6f685f;z-index:2}
 #exv .xhint{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 78px);display:flex;justify-content:center;font-size:13px;line-height:1.65;pointer-events:none;transition:opacity .8s;z-index:3}
 #exv .xhint span{background:rgba(250,249,246,.93);border:1px solid rgba(51,48,44,.12);border-radius:10px;padding:8px 14px;max-width:24em;text-align:center}
-#exv .yrs{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);height:50px;z-index:3;overflow:hidden;touch-action:none;cursor:grab;-webkit-mask-image:linear-gradient(90deg,transparent,#000 24%,#000 76%,transparent);mask-image:linear-gradient(90deg,transparent,#000 24%,#000 76%,transparent)}
+#exv .yrs{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 4px);height:60px;z-index:3;overflow:hidden;touch-action:none;cursor:grab;-webkit-mask-image:linear-gradient(90deg,transparent,#000 24%,#000 76%,transparent);mask-image:linear-gradient(90deg,transparent,#000 24%,#000 76%,transparent)}
 #exv .yrs-in{position:absolute;top:0;left:50%;height:100%;display:flex;align-items:center;will-change:transform}
-#exv .yl{flex:0 0 76px;text-align:center;font-size:13px;letter-spacing:.14em;color:#7a736a;font-variant-numeric:tabular-nums;transition:color .3s,font-size .3s}
-#exv .yl.on{color:#33302c;font-size:15.5px;font-weight:600}
+#exv .yl{flex:0 0 76px;text-align:center;font-size:13px;letter-spacing:.14em;color:#7a736a;font-variant-numeric:tabular-nums;opacity:0;transform:scale(.8);transition:opacity .3s ease,transform .3s ease,color .3s,font-size .3s}
+#exv .yl.on{color:#33302c;font-size:15.5px;font-weight:600;opacity:1;transform:none}
+#exv .yrs.act .yl{transition:opacity .18s ease,transform .18s ease,color .2s,font-size .2s}
 body.exvopen{overflow:hidden}
 @media (prefers-reduced-motion: reduce){#exv .xhint,#exv .yrs-in,#exv .yl{transition:none}}`;
   document.head.appendChild(st); }
@@ -9697,7 +9698,7 @@ function exvClose(fromHist){ if (!EXV) return; const c = EXV.close; try { c(); }
 function exvBuild(root, L){
   const T3 = THREE, RM = matchMedia('(prefers-reduced-motion: reduce)').matches, TN = Math.tan(Math.PI / 8);
   const FONT = '"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif';
-  const CY = 1.45, DEPTH = 0.05, OFF = 0.025, CAPW = 300, CAPH = 124, TTW = 360, TTH = 150, CAPWm = 0.18, CAPHm = CAPWm * CAPH / CAPW, CAPX = 0.15, CAPTOP = 1.42;
+  const CY = 1.45, CAPW = 300, CAPH = 124, TTW = 360, TTH = 150, CAPWm = 0.18, CAPX = 0.15, CPAD = 30, CAPG = 0.07, PWm = (CAPW + 2 * CPAD) * CAPWm / CAPW, PHm = (CAPH + 2 * CPAD) * CAPWm / CAPW, CAPMIN = 0.85; /* キャプションは小さな四角いパネル（約22×11cm）。下の端を作品の下の端にそろえ、床から85cmより下にはしない */
   const stage = root.querySelector('.xst'), hint = root.querySelector('.xhint'), hintT = hint.firstChild;
   const cvs = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return [c, c.getContext('2d')]; };
   const mkTex = (c, srgb) => { const t = new T3.CanvasTexture(c); if (srgb !== false) t.encoding = T3.sRGBEncoding; t.anisotropy = 8; return t; };
@@ -9709,9 +9710,9 @@ function exvBuild(root, L){
   /* ごく少しマットに：細かい粒子を重ね、黒をほんの少し持ち上げる */
   const matte = (x, w, h) => { x.globalCompositeOperation = 'soft-light'; x.globalAlpha = 0.22; for (let yy = 0; yy < h; yy += 512) for (let xx = 0; xx < w; xx += 512) x.drawImage(GR, xx, yy);
     x.globalCompositeOperation = 'screen'; x.globalAlpha = 0.035; x.fillStyle = '#e9e4dc'; x.fillRect(0, 0, w, h); x.globalCompositeOperation = 'source-over'; x.globalAlpha = 1; };
-  const softShadow = (w, h, m) => { const W = 256, H = Math.max(32, Math.round(W * (h + 2 * m) / (w + 2 * m))), s = W / (w + 2 * m), [c, x] = cvs(W, H);
-    x.shadowColor = 'rgba(0,0,0,0.5)'; x.shadowBlur = Math.max(2, 0.035 * s); x.shadowOffsetX = W * 2; x.fillStyle = '#000'; x.fillRect(m * s - W * 2, m * s, w * s, h * s); return mkTex(c, false); };
-  const wallText = (lines, w, h) => { const K = 3, [c, x] = cvs(w * K, h * K); x.scale(K, K); x.textBaseline = 'top'; let y = 0;
+  const softShadow = (w, h, m, bl) => { const W = 256, H = Math.max(32, Math.round(W * (h + 2 * m) / (w + 2 * m))), s = W / (w + 2 * m), [c, x] = cvs(W, H);
+    x.shadowColor = 'rgba(0,0,0,0.5)'; x.shadowBlur = Math.max(2, (bl || 0.035) * s); x.shadowOffsetX = W * 2; x.fillStyle = '#000'; x.fillRect(m * s - W * 2, m * s, w * s, h * s); return mkTex(c, false); };
+  const wallText = (lines, w, h, pad, bg) => { const K = 3, P = pad || 0, [c, x] = cvs((w + 2 * P) * K, (h + 2 * P) * K); x.scale(K, K); if (bg) { x.fillStyle = bg; x.fillRect(0, 0, w + 2 * P, h + 2 * P); x.globalAlpha = 0.06; x.drawImage(GR, 0, 0, w + 2 * P, h + 2 * P); x.globalAlpha = 1; } x.translate(P, P); x.textBaseline = 'top'; let y = 0;
     lines.forEach(([t, size, wt, col, gap, ls]) => { if (!t) return; let sz = size; const f = () => { x.font = wt + ' ' + sz + 'px ' + FONT; }; f(); if ('letterSpacing' in x) x.letterSpacing = (ls || 0) + 'px';
       while (x.measureText(t).width > w && sz > 9) { sz -= 0.5; f(); } let s = t; while (x.measureText(s).width > w && s.length > 2) s = s.slice(0, -2) + '…';
       x.fillStyle = col; x.fillText(s, 0, y); y += sz * 1.35 + (gap || 0); });
@@ -9752,7 +9753,7 @@ function exvBuild(root, L){
   const fl = new T3.Mesh(new T3.PlaneGeometry(LW, 30), new T3.MeshStandardMaterial({ color: '#bab3a9', roughness: 0.8, dithering: true })); fl.rotation.x = -Math.PI / 2; fl.position.set(LW / 2 - 20, 0, 15); fl.receiveShadow = true; sc.add(fl);
   const gp = new T3.Mesh(new T3.PlaneGeometry(LW, 0.018), new T3.MeshBasicMaterial({ color: '#8d857b' })); gp.position.set(LW / 2 - 20, 0.009, 0.0008); sc.add(gp);
   const abm = bmap.clone(); abm.needsUpdate = true; abm.repeat.set(5, 5);
-  const side = new T3.MeshStandardMaterial({ color: '#cfc7bb', roughness: 0.85 }), edge = new T3.MeshStandardMaterial({ color: '#2a2421', roughness: 0.55, dithering: true });
+  const capS = new T3.MeshStandardMaterial({ color: '#e7e3dc', roughness: 0.9 }), side = new T3.MeshStandardMaterial({ color: '#cfc7bb', roughness: 0.85 }), edge = new T3.MeshStandardMaterial({ color: '#2a2421', roughness: 0.55, dithering: true });
 
   /* 作品 */
   const items = L.map((d, i) => { const w = d.wd / 100, h = d.h / 100, g = new T3.Group(), [cv, x0] = cvs(16, 16); x0.fillStyle = '#dcd6cd'; x0.fillRect(0, 0, 16, 16);
@@ -9764,11 +9765,13 @@ function exvBuild(root, L){
         pn.position.set(-W2 / 2 + (j + 0.5) * pw * c, h / 2 + 0.008, zb + (z0 + z1) / 2); pn.rotation.y = -Math.asin((z1 - z0) / pw); pn.castShadow = true; pn.receiveShadow = true; g.add(pn); }
       const ao = new T3.Mesh(new T3.PlaneGeometry(W2 + 0.3, dd + 0.34), new T3.MeshBasicMaterial({ transparent: true, opacity: 0.34, depthWrite: false })); ao.rotation.x = -Math.PI / 2; ao.position.set(0, 0.002, zb + dd / 2); ao.visible = false; ao.raycast = () => {}; g.add(ao);
       Object.assign(it, { W: W2, ao, aoMk: () => softShadow(W2, dd + 0.04, 0.15) }); }
-    else { const pn = new T3.Mesh(new T3.BoxGeometry(w, h, DEPTH), [side, side, side, side, artM(base), side]); pn.position.z = OFF + DEPTH / 2; pn.castShadow = true; g.add(pn);
-      const m = 0.12, ao = new T3.Mesh(new T3.PlaneGeometry(w + 2 * m, h + 2 * m), new T3.MeshBasicMaterial({ transparent: true, opacity: 0.28, depthWrite: false })); ao.position.set(0, -0.01, 0.0012); ao.visible = false; ao.raycast = () => {}; g.add(ao);
-      g.position.y = CY; Object.assign(it, { ao, aoMk: () => softShadow(w, h, m) }); }
+    else { /* 厚みと壁からの浮きは作品の大きさで（小さい作品は薄く・近く、大きい作品は厚く・浮く → 影の出方が変わる） */
+      const sF = Math.sqrt(w * h), dep = Math.min(0.035, Math.max(0.012, 0.01 + 0.014 * sF)), off = Math.min(0.035, Math.max(0.01, 0.006 + 0.016 * sF));
+      const pn = new T3.Mesh(new T3.BoxGeometry(w, h, dep), [side, side, side, side, artM(base), side]); pn.position.z = off + dep / 2; pn.castShadow = true; g.add(pn);
+      const m = 0.06 + 0.07 * sF, bl = 0.015 + 0.03 * sF, ao = new T3.Mesh(new T3.PlaneGeometry(w + 2 * m, h + 2 * m), new T3.MeshBasicMaterial({ transparent: true, opacity: Math.min(0.34, 0.2 + 0.08 * sF), depthWrite: false })); ao.position.set(0, -0.006 - 0.01 * sF, 0.0012); ao.visible = false; ao.raycast = () => {}; g.add(ao);
+      g.position.y = CY; Object.assign(it, { ao, aoMk: () => softShadow(w, h, m, bl) }); }
     sc.add(g);
-    const capM = new T3.Mesh(new T3.PlaneGeometry(1, 1), new T3.MeshStandardMaterial({ transparent: true, roughness: 0.95, depthWrite: false })); capM.scale.set(CAPWm, CAPHm, 1); capM.visible = false; sc.add(capM); it.capM = capM;
+    const capF = new T3.MeshStandardMaterial({ color: '#f6f4f0', roughness: 0.92, dithering: true }), capM = new T3.Mesh(new T3.BoxGeometry(PWm, PHm, 0.004), [capS, capS, capS, capS, capF, capS]); capM.castShadow = true; capM.visible = false; sc.add(capM); Object.assign(it, { capM, capF });
     return it; });
   const title = new T3.Mesh(new T3.PlaneGeometry(1, 1), new T3.MeshStandardMaterial({ map: wallText([['展示ビュー', 46, 300, '#2f2c28', 14, 6], ['下村良之介 作品目録 ・ テスト（管理者だけ）', 14, 400, '#4a4540', 4, 1.5], ['写真のある作品 ' + L.length + '点 ・ 制作年の古い順', 12, 400, '#8a8379', 0, 1]], TTW, TTH), transparent: true, roughness: 0.95, depthWrite: false }));
   sc.add(title);
@@ -9785,11 +9788,11 @@ function exvBuild(root, L){
     try { x.getImageData(0, 0, 1, 1); } catch(e){ c.width = c.height = 16; x.fillStyle = '#dcd6cd'; x.fillRect(0, 0, 16, 16); it.tx.forEach(t => { t.needsUpdate = true; }); return redraw(); }
     matte(x, cw, ch); it.tx.forEach(t => { t.needsUpdate = true; }); redraw(); };
   const warm = it => { if (it.req) return; it.req = 1;
-    if (!it.capM.material.map) { it.capM.material.map = wallText(capLines(it), CAPW, CAPH); it.capM.material.needsUpdate = true; } it.capM.visible = true;
+    if (!it.capF.map) { it.capF.map = wallText(capLines(it), CAPW, CAPH, CPAD, '#f6f4f0'); it.capF.color.set('#ffffff'); it.capF.needsUpdate = true; } it.capM.visible = true;
     if (!it.ao.material.map) { it.ao.material.map = it.aoMk(); it.ao.material.needsUpdate = true; } it.ao.visible = true;
     const im = new Image(); it.im = im; im.dataset.tid = it.d.id; im.dataset.w = '800'; im.onload = () => { if (it.im === im) paint(it, im); }; queueThumb(im); };
   const cool = it => { if (!it.req) return; it.req = 0; it.im = null; const c = it.cv, x = c.getContext('2d'); c.width = c.height = 16; x.fillStyle = '#dcd6cd'; x.fillRect(0, 0, 16, 16); it.tx.forEach(t => { t.needsUpdate = true; });
-    [it.capM, it.ao].forEach(m => { if (m.material.map) { m.material.map.dispose(); m.material.map = null; m.material.needsUpdate = true; } m.visible = false; }); };
+    [[it.capM, it.capF], [it.ao, it.ao.material]].forEach(([o, m]) => { if (m.map) { m.map.dispose(); m.map = null; m.needsUpdate = true; } o.visible = false; }); };
   const nearIdx = () => { let bi = 0; stops.forEach((s, i) => { if (Math.abs(s.x - st.x) < Math.abs(stops[bi].x - st.x)) bi = i; }); return bi; };
   const around = k => { items.forEach((it, i) => { const d = i + 1 - k; if (d >= -3 && d <= 4) warm(it); else if (d < -8 || d > 9) cool(it); }); };
   let wt = 0; const aroundLater = () => { clearTimeout(wt); wt = setTimeout(() => around(nearIdx()), 160); };
@@ -9801,13 +9804,18 @@ function exvBuild(root, L){
   const cl = () => { st.z = Math.min(zmax(), Math.max(zmin(), st.z)); st.x = Math.min(stops[stops.length - 1].x + 1, Math.max(stops[0].x - 1, st.x)); st.y = Math.min(3.2, Math.max(0.3, st.y)); };
 
   const layout = () => { W = stage.clientWidth || innerWidth; H = stage.clientHeight || innerHeight; r.setSize(W, H); cam.aspect = W / H; cam.updateProjectionMatrix();
-    const port = W / H < 1, kz = z => 2 * z * TN / H, kmin = kz(1.5), kmax = kz(14), mx = port ? 14 : 40, my = port ? 190 : 130; stops.length = 0; specs.length = 0; zoomed = false;
+    const port = W / H < 1, kz = z => 2 * z * TN / H, kmin = kz(1.5), kmax = kz(14), mx = port ? 22 : 40, my = port ? 280 : 200; stops.length = 0; specs.length = 0; zoomed = false;
     const TWm = 1.5, THm = TWm * TTH / TTW; title.scale.set(TWm, THm, 1); title.position.set(TWm / 2, 1.55, 0.0016);
     const kt = Math.max((TWm + 0.6) / (W - 2 * mx), (THm + 0.6) / (H - my)); stops.push({ x: TWm / 2, y: 1.55, z: kt * H / (2 * TN) }); addSpec(TWm / 2, 1.55, TWm, THm, 0);
     let x = TWm + 1.8;
-    items.forEach((it, ii) => { const h = it.h, w = it.W || it.w, cy = it.d.b ? h / 2 : CY, Lx = x, Rx = x + w, gr = Rx + CAPX + CAPWm; it.g.position.x = Lx + w / 2; addSpec(Lx + w / 2, cy, w, h, ii + 1);
-      it.capM.position.set(Rx + CAPX + CAPWm / 2, CAPTOP - CAPHm / 2, 0.0016);
-      const k = Math.min(kmax, Math.max(kmin, (w + 2 * (CAPX + CAPWm + 0.05)) / (W - 2 * mx), h / (H - my)));
+    items.forEach((it, ii) => { const h = it.h, w = it.W || it.w, cy = it.d.b ? h / 2 : CY, Lx = x, Rx = x + w; it.g.position.x = Lx + w / 2; addSpec(Lx + w / 2, cy, w, h, ii + 1);
+      const below = port && !it.d.b && CY - h / 2 - CAPG - PHm >= 0.55; let k, gr;
+      if (below) { /* スマホの縦：上下に余裕があるので、キャプションは作品の右下（作品の下で、右の端をそろえる）。床に近すぎるときは右横 */
+        it.capM.position.set(Rx - PWm / 2, CY - h / 2 - CAPG - PHm / 2, 0.003); gr = Rx;
+        k = Math.max(Math.max(w, 2 * PWm - w) / (W - 2 * mx), (h + 2 * (CAPG + PHm)) / (H - 200)); }
+      else { it.capM.position.set(Rx + CAPX + PWm / 2, Math.max(CAPMIN, it.d.b ? 0 : CY - h / 2) + PHm / 2, 0.003); gr = Rx + CAPX + PWm;
+        k = Math.max((w + 2 * (CAPX + PWm + 0.05)) / (W - 2 * mx), h / (H - my)); }
+      k = Math.min(kmax, Math.max(kmin, k));
       stops.push({ x: Lx + w / 2, y: cy, z: k * H / (2 * TN) }); x = gr + 1.0; });
     LS.forEach(l => { l.si = -1; l.intensity = 0; }); tid++; ci = Math.min(ci, stops.length - 1); Object.assign(st, { x: stops[ci].x, y: stops[ci].y, z: stops[ci].z }); cl(); draw(); };
 
@@ -9823,8 +9831,8 @@ function exvBuild(root, L){
   const ray = new T3.Raycaster(), v2 = new T3.Vector2(), wp = new T3.Plane(new T3.Vector3(0, 0, 1), 0), hit = new T3.Vector3();
   const tapZoom = e => { if (zoomed) { go(nearIdx()); return; }
     const b = el.getBoundingClientRect(); v2.set((e.clientX - b.left) / b.width * 2 - 1, -(e.clientY - b.top) / b.height * 2 + 1); ray.setFromCamera(v2, cam); if (!ray.ray.intersectPlane(wp, hit)) return;
-    const mg = Math.max(0.06, 26 * 2 * st.z * TN / H), c = items.find(it => it.capM.visible && Math.abs(hit.x - it.capM.position.x) < CAPWm / 2 + mg && Math.abs(hit.y - it.capM.position.y) < CAPHm / 2 + mg);
-    if (c) { zoomed = true; tw({ x: c.capM.position.x - CAPWm * 0.2, y: c.capM.position.y, z: Math.max(zmin(), (CAPWm * 0.62 / (0.72 * W)) * H / (2 * TN)) }, 850); return; }
+    const mg = Math.max(0.06, 26 * 2 * st.z * TN / H), c = items.find(it => it.capM.visible && Math.abs(hit.x - it.capM.position.x) < PWm / 2 + mg && Math.abs(hit.y - it.capM.position.y) < PHm / 2 + mg);
+    if (c) { zoomed = true; tw({ x: c.capM.position.x, y: c.capM.position.y, z: Math.max(zmin(), (PWm / (0.8 * W)) * H / (2 * TN)) }, 850); return; }
     const near = items.slice(Math.max(0, ci - 3), ci + 3).map(it => it.g), ph = ray.intersectObjects(near, true)[0];
     if (ph) { zoomed = true; tw({ x: ph.point.x, y: ph.point.y, z: Math.max(zmin(), st.z / 2.6) }, 850); return; }
     go((e.clientX - b.left) / b.width < 0.3 ? ci - 1 : ci + 1); };
@@ -9846,19 +9854,20 @@ function exvBuild(root, L){
   const LWp = 76, yk = d => d.y >= 99999 ? '—' : String(d.y), yrsU = [...new Set(L.map(yk))], uOf = [-1];
   { const cn = {}, seen = {}; L.forEach(d => { const y = yk(d); cn[y] = (cn[y] || 0) + 1; }); L.forEach(d => { const y = yk(d), j = yrsU.indexOf(y), q = seen[y] || 0; seen[y] = q + 1; uOf.push(j + (q + 0.5) / cn[y] - 0.5); }); }
   const yEl = root.querySelector('.yrs'), yIn = root.querySelector('.yrs-in'); yIn.innerHTML = yrsU.map(y => '<span class="yl">' + esc(y) + '</span>').join(''); const yls = [...yIn.children];
-  let U = -1, yd = false, yx = 0, yv = 0, yt = 0, ymv = 0; const uHi = () => uOf[uOf.length - 1];
-  const showU = (u, anim) => { U = u; yIn.style.transition = anim && !RM ? 'transform .9s cubic-bezier(.65,0,.35,1)' : 'none'; yIn.style.transform = 'translateX(' + (-(u + 0.5) * LWp).toFixed(1) + 'px)'; const j = Math.round(u); yls.forEach((e, i) => e.classList.toggle('on', i === j)); };
+  let U = -1, yd = false, yA = false, yx = 0, yv = 0, yt = 0, ymv = 0; const uHi = () => uOf[uOf.length - 1];
+  const showU = (u, anim) => { U = u; yIn.style.transition = anim && !RM ? 'transform .9s cubic-bezier(.65,0,.35,1)' : 'none'; yIn.style.transform = 'translateX(' + (-(u + 0.5) * LWp).toFixed(1) + 'px)'; const j = Math.round(u), act = yd || yA; yEl.classList.toggle('act', act);
+    yls.forEach((e, i) => { const d = Math.abs(i - u); e.classList.toggle('on', i === j); e.style.opacity = i === j ? '' : act ? Math.max(0, 1 - d * 0.28).toFixed(2) : '0'; e.style.transform = i === j ? '' : act ? 'scale(' + Math.max(0.8, 1 - d * 0.05).toFixed(3) + ')' : 'scale(.8)'; }); };
   const camU = u => { let k = 0; while (k < uOf.length - 2 && uOf[k + 1] < u) k++; const a = uOf[k], b = uOf[k + 1], t = Math.min(1, Math.max(0, (u - a) / ((b - a) || 1))), A = stops[k], B = stops[k + 1] || A;
     st.x = A.x + (B.x - A.x) * t; st.y = A.y + (B.y - A.y) * t; st.z = A.z + (B.z - A.z) * t; cl(); draw(); aroundLater(); };
   const nearK = u => { let k = 0; uOf.forEach((x, i) => { if (Math.abs(x - u) < Math.abs(uOf[k] - u)) k = i; }); return k; };
-  yEl.onpointerdown = e => { yd = true; try { yEl.setPointerCapture(e.pointerId); } catch(_){} tid++; zoomed = false; yx = e.clientX; yv = 0; ymv = 0; yt = performance.now(); showU(U, false); yEl.style.cursor = 'grabbing'; };
+  yEl.onpointerdown = e => { yd = true; try { yEl.setPointerCapture(e.pointerId); } catch(_){} tid++; zoomed = false; yx = e.clientX; yv = 0; ymv = 0; yt = performance.now(); yA = true; showU(U, false); yEl.style.cursor = 'grabbing'; };
   yEl.onpointermove = e => { if (!yd) return; const dx = e.clientX - yx, n = performance.now(); yx = e.clientX; ymv += Math.abs(dx); const du = -dx / LWp; yv = 0.7 * yv + 0.3 * du / Math.max(1, n - yt); yt = n;
     const u = Math.min(uHi(), Math.max(-1, U + du)); showU(u, false); camU(u); };
   yEl.onpointerup = yEl.onpointercancel = e => { if (!yd) return; yd = false; yEl.style.cursor = 'grab';
-    if (ymv < 6) { const b = yEl.getBoundingClientRect(); go(nearK(U + (e.clientX - (b.left + b.width / 2)) / LWp)); return; }
+    if (ymv < 6) { const b = yEl.getBoundingClientRect(), dx = e.clientX - (b.left + b.width / 2); yA = false; if (Math.abs(dx) < LWp / 2) { showU(U, false); return; } go(nearK(U + dx / LWp)); return; }
     const id = ++tid; let last = performance.now(), v = yv;
     const snap = () => { const k = nearK(U), u0 = U, u1 = uOf[k], t0 = performance.now();
-      const f = n => { if (id !== tid) return; const t = Math.min(1, (n - t0) / 420), q = 1 - Math.pow(1 - t, 3), u = u0 + (u1 - u0) * q; showU(u, false); camU(u); if (t < 1) requestAnimationFrame(f); else { ci = k; zoomed = false; around(ci); } }; requestAnimationFrame(f); };
+      const f = n => { if (id !== tid) return; const t = Math.min(1, (n - t0) / 420), q = 1 - Math.pow(1 - t, 3), u = u0 + (u1 - u0) * q; showU(u, false); camU(u); if (t < 1) requestAnimationFrame(f); else { ci = k; zoomed = false; around(ci); setTimeout(() => { if (!yd) { yA = false; showU(U, false); } }, 500); } }; requestAnimationFrame(f); };
     const m = n => { if (id !== tid) return; const dt = n - last; last = n; v *= Math.pow(0.95, dt / 16); let u = U + v * dt; if (u < -1 || u > uHi()) { u = Math.min(uHi(), Math.max(-1, u)); v = 0; } showU(u, false); camU(u); if (Math.abs(v) > 0.0005) requestAnimationFrame(m); else snap(); };
     if (RM || Math.abs(v) < 0.0005) snap(); else requestAnimationFrame(m); };
 
@@ -9866,13 +9875,14 @@ function exvBuild(root, L){
   const rs = () => layout(); addEventListener('resize', rs); addEventListener('keydown', key);
   const wait = root.querySelector('.xwait'); if (wait) wait.remove();
   layout(); around(0); setCnt();
-  hintT.textContent = '作品やキャプションをタップすると近づきます（もう一度タップでもどる）。壁をタップすると次の作品へ（左端は前へ）。下の年の数字を左右にスワイプすると早送りできます。';
+  hintT.textContent = '作品やキャプションをタップすると近づきます（もう一度タップでもどる）。壁をタップすると次の作品へ（左端は前へ）。下の年に指を当てて左右に動かすと早送りできます。';
   hint.style.opacity = 1; setTimeout(() => { hint.style.opacity = 0; }, 6500);
   const close0 = EXV.close;
   EXV.close = () => { tid++; clearTimeout(settle); clearTimeout(wt); if (rq) cancelAnimationFrame(rq); removeEventListener('resize', rs); removeEventListener('keydown', key);
     sc.traverse(o => { if (o.geometry) o.geometry.dispose(); const ms = o.material ? [].concat(o.material) : []; ms.forEach(m => { if (m.map) m.map.dispose(); if (m.bumpMap) m.bumpMap.dispose(); m.dispose(); }); });
     items.forEach(it => it.tx.forEach(t => t.dispose())); r.dispose(); if (r.forceContextLoss) r.forceContextLoss(); close0(); };
   EXV.go = go; EXV.cur = () => ci; EXV.n = items.length;
+  EXV.capAt = () => { const it = items[ci - 1]; if (!it) return null; const v = it.capM.position.clone().project(cam), b = el.getBoundingClientRect(); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }; /* 確かめ用 */
 }
 </script>
 </body>
