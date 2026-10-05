@@ -597,10 +597,10 @@ html,body{overflow-x:clip;max-width:100%}
 .modebtn{flex:none;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--paper);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;padding:0}
 .modebtn svg{width:19px;height:19px}
 .modebtn.on{background:var(--edit);border-color:var(--edit);color:#fff}
-.mas{display:flex;align-items:flex-start;gap:12px}
+.mas{display:flex;align-items:flex-start;gap:16px} /* スマホの2・3列：列のあいだ＝画面の左右の余白（16px）。4列以上（dense）は今のまま（10/6 本人） */
 @media(min-width:700px){.mas{gap:28px}}
 .mcol{flex:1;min-width:0;display:flex;flex-direction:column;gap:22px}
-.mas.mid{gap:8px}.mas.mid .mcol{gap:14px}.mas.mid .tile .cap{padding-top:6px}.mas.mid .tile .tt{font-size:13px}.mas.mid .tile .no{font-size:11px}
+.mas.mid{gap:16px}.mas.mid .mcol{gap:14px}.mas.mid .tile .cap{padding-top:6px}.mas.mid .tile .tt{font-size:13px}.mas.mid .tile .no{font-size:11px}
 .mright{display:flex;align-items:center;gap:8px;min-width:0}
 .zoomb{display:flex;border:1.5px solid var(--ink);border-radius:999px;overflow:hidden;flex:none}
 .zoomb button{width:40px;height:36px;border:0;background:var(--paper);color:var(--ink);font-size:20px;font-weight:600;line-height:1;padding:0;display:flex;align-items:center;justify-content:center}
@@ -2220,7 +2220,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '80b950a0c5', APP_URL = location.origin + location.pathname;
+const BUILD = '2f254d9b33', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -8208,7 +8208,7 @@ function masBase(){ const w = innerWidth; if (w < 700) return 2; if (w < 900) re
 const colKey = () => 'smr_cols_' + (innerWidth < 700 ? 'm' : innerWidth < 900 ? 't' : 'd');
 const colRange = () => innerWidth < 700 ? [1, 5] : innerWidth < 900 ? [2, 6] : [2, 10];
 /* アルバムの角の丸み：1列の幅に合わせる（列が多く小さいほど控えめに） */
-function masR(N){ const W = (document.getElementById('main') || {}).clientWidth || innerWidth; const g = innerWidth < 700 ? (N >= 4 ? 4 : N >= 3 ? 8 : 12) : 28;
+function masR(N){ const W = (document.getElementById('main') || {}).clientWidth || innerWidth; const g = innerWidth < 700 ? (N >= 4 ? 4 : 16) : 28;
   const cw = (W - g * (N - 1)) / Math.max(1, N); return Math.round(Math.min(14, Math.max(3, cw * 0.05)) / 4 * 10) / 10; } /* 10/6 本人：角の丸みを半分の半分（1/4）に */
 function masN(){ const [a, b] = colRange(); let u = 0; try { u = +localStorage.getItem(colKey()) || 0; } catch (e) { } return u ? Math.min(b, Math.max(a, u)) : masBase(); }
 function setCols(d){
