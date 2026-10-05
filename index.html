@@ -1836,7 +1836,7 @@ body.qcopen #top{visibility:hidden!important;pointer-events:none!important}
 html[data-theme=dark] .qc{background:var(--bg)}
 body.qcopen::before{content:'';position:fixed;left:0;right:0;top:-50vh;bottom:-50vh;z-index:107;background:#FFFFFF}html[data-theme=dark] body.qcopen::before{background:var(--bg)}body.qcopen #nav,body.qcopen #navAsk,body.qcopen #fmSearch{visibility:hidden!important}
 /* カードを開いている間は、後ろのホームなどを見えなくする（iPhone のキーボードの上のすき間から透けないように） */
-body.qcopen>*:not(#qc):not(#qclb):not(#fdb):not(#top){visibility:hidden!important}
+body.qcopen>*:not(#qc):not(#qclb):not(#fdb):not(#qcv):not(#top){visibility:hidden!important}
 body.qcopen #toast,body.qcopen #loading,body.qcopen #confirm{visibility:visible!important}
 .qc-w{max-width:560px;height:100%;margin:0 auto;box-sizing:border-box;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;flex-direction:column;gap:11px}
 .qc-top{display:flex;align-items:center;gap:10px}
@@ -1934,7 +1934,29 @@ html[data-theme=dark] .qc-lt{background:#1F3311;border-color:#3F6B1C;color:#DDEB
 .lb-os{display:flex;flex-direction:column;gap:9px}
 .qc-c.lb-c{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;width:100%;min-height:56px;padding:9px 14px;text-align:left}
 .lb-c b{font-size:17px;line-height:1.4;overflow-wrap:anywhere}.lb-c small{font-size:13px;font-weight:500;line-height:1.45;color:var(--hg-s);overflow-wrap:anywhere}
-.lb-c[hidden]{display:none}.qc-wk small+b+small{font-weight:500}
+.lb-c[hidden]{display:none}.fd-same{flex:none;display:flex;flex-direction:column;gap:8px}.fd-sr{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;border:2px solid var(--hg-ln);background:var(--hg-bg)}.fd-sr .fdb-tx{flex:1}.fd-sr .fdb-tx b{font-size:15.5px;color:var(--hg-h)}.fd-sr .fdb-tx small{font-size:13px}.fd-sb{flex:none;padding:9px 12px;border-radius:12px;border:2px solid var(--hg-ln);border-bottom-width:4px;background:var(--hg-bg);color:var(--hg-lk);font:inherit;font-size:14px;font-weight:800;cursor:pointer}.qc-wk small+b+small{font-weight:500}
+/* 声で答えるときの、下に固定した帯と、確かめの画面 */
+.qcv{position:fixed;left:0;right:0;bottom:0;z-index:112;padding:10px 12px calc(env(safe-area-inset-bottom,0px) + 12px);pointer-events:none}.qcv>*{pointer-events:auto}
+.qcv-in{max-width:536px;margin:0 auto;display:flex;align-items:stretch;gap:8px}
+.qcv-bar{flex:1;min-width:0;display:flex;align-items:center;gap:14px;min-height:88px;padding:12px 16px;border-radius:22px;border:0;border-bottom:5px solid #C23A32;background:#FF4B4B;color:#FFFFFF;font:inherit;text-align:left;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.3)}
+.qcv-bar:active{transform:translateY(3px);border-bottom-width:2px}.qcv-bar:disabled{opacity:1;cursor:default}
+.qcv-bar.busy{background:#1CB0F6;border-bottom-color:#1487BD}.qcv-bar.wait{background:#8E8E8E;border-bottom-color:#6E6E6E}
+.qcv-bar b{display:block;font-size:22px;font-weight:800;line-height:1.3}.qcv-bar small{display:block;margin-top:2px;font-size:14.5px;font-weight:700;line-height:1.4}
+.qcv-mic{flex:none;position:relative;width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.25);display:grid;place-items:center;font-style:normal}
+.qcv-mic>i{position:absolute;inset:0;border-radius:50%;background:rgba(255,255,255,.3);transform:scale(calc(1 + var(--lv,0) * .55));transition:transform .09s linear}
+.qcv-mic svg{position:relative;width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.qcv-mic.on::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:3px solid rgba(255,255,255,.65);animation:qcvp 1.3s ease-out infinite}
+.qcv-bar.busy .qcv-mic::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:3px solid rgba(255,255,255,.35);border-top-color:#FFFFFF;animation:qcvs .9s linear infinite}
+@keyframes qcvp{0%{transform:scale(.9);opacity:.9}100%{transform:scale(1.4);opacity:0}}@keyframes qcvs{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.qcv-mic.on::after,.qcv-bar.busy .qcv-mic::after{animation:none}}
+.qcv-x{flex:none;width:54px;border-radius:18px;border:2px solid var(--hg-ln);border-bottom-width:5px;background:var(--hg-bg);color:var(--hg-s);cursor:pointer;display:grid;place-items:center;box-shadow:0 6px 24px rgba(0,0,0,.2)}
+.qcv-x svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round}
+.qcv-cf{max-width:536px;margin:0 auto;box-sizing:border-box;display:flex;flex-direction:column;gap:10px;padding:18px 16px 14px;border-radius:24px;border:2px solid var(--hg-ln);background:var(--hg-bg);color:var(--hg-t);box-shadow:0 -6px 34px rgba(0,0,0,.35)}
+.qcv-cf>small{font-size:14px;font-weight:800;color:var(--hg-s)}.qcv-heard{margin:0;font-size:22px;font-weight:800;line-height:1.45;color:var(--hg-h);overflow-wrap:anywhere}
+.qcv-lab{margin:0;padding:10px 14px;border-radius:14px;background:var(--hg-sf);font-size:19px;font-weight:800;line-height:1.45;color:var(--hg-h);overflow-wrap:anywhere}
+.qcv-cf h2{margin:4px 0 0;font-size:22px;font-weight:800;color:var(--hg-h)}.qcv-st{margin:0;min-height:1.4em;font-size:14.5px;font-weight:700;line-height:1.4;color:var(--hg-s);text-align:center}
+.qc.vb .qc-w{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 124px)}
+.qc.vb .qc-microw{visibility:hidden}
 .qc-sl{flex:none;margin:0;display:flex;justify-content:space-between;font-size:15px;font-weight:800;color:var(--hg-h)}.qc-sl span{font-size:13px;color:var(--hg-s)}
 .qc-rec{flex:none;display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:16px;border:2px solid #FFC800;background:#FFF8DC;color:#4B4B4B}
 .qc-rec small{font-size:13px;font-weight:800;color:#A56A00}.qc-rec b{font-size:18px;color:#3C3C3C}.qc-rec p{margin:0;font-size:14px;line-height:1.55}
@@ -2083,7 +2105,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '4a50e517af', APP_URL = location.origin + location.pathname;
+const BUILD = '2a2bd2e030', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2290,7 +2312,8 @@ function filtered(){
     if (!q) return true;
     const hay = [w['作品番号'],w['作品名'],w['作品名メモ'],w['制作年'],w['画材'],w['種別'],w['シリーズ'],w['所在'],w['所在区分']==='美術館' ? musNames(w['所在']) : '',w['補足'],w['状態メモ']]
       .concat((eventBy[w['作品番号']]||[]).map(e=>e['相手先・場所']+' '+e['内容']+' '+e['日付'])).join(' ').normalize('NFKC').toLowerCase();
-    return q.split(/\s+/).every(t => hay.includes(t));
+    const mu = w['所在区分']==='美術館' ? musOf(w['所在']) : '', hay2 = hay.replace(/立/g, ''); /* 美術館は旧名・略称でも出す（京都市立美術館＝京都市美術館＝京都市京セラ美術館） */
+    return q.split(/\s+/).every(t => hay.includes(t) || (t.length >= 2 && hay2.includes(t.replace(/立/g, ''))) || (!!mu && musOf(t) === mu));
   });
   if (S.sort==='rand') { // ランダム（開くたびに変わる。同じ画面の中では順番を保つ）。写真のない作品は後ろへ
     const R = filtered.rk || (filtered.rk = {}), k = no => R[no] === undefined ? (R[no] = Math.random()) : R[no];
@@ -2541,7 +2564,7 @@ function qcLightbox(btn){ const im = btn && btn.querySelector('img'); if (!im) r
    次の問題に答えたとき・やめたとき・20秒たったとき・アプリを閉じたときに送る。「もどる」を押すと取り消して前の問題へ */
 function qcHoldSet(run, undo){ qcFlush(); if (!QC) return; QC.hold = { i: QC.i - 1, run, undo, t: setTimeout(qcFlush, 20000) }; /* 20秒たったら送る（アプリを閉じて答えが届かないことがないように短め） */ }
 function qcFlush(){ const h = QC && QC.hold; if (!h) return; clearTimeout(h.t); QC.hold = null; try { if (h.run) h.run(); } catch(e){} }
-function qcBack(){ const h = QC && QC.hold; if (!h || QC.i !== h.i + 1) return; clearTimeout(h.t); QC.hold = null; try { if (h.undo) h.undo(); } catch(e){}
+function qcBack(){ const h = QC && QC.hold; if (!h || QC.i !== h.i + 1) return; QVB.cf = null; qvbShow(''); clearTimeout(h.t); QC.hold = null; try { if (h.undo) h.undo(); } catch(e){}
   stopMic(true); sayStop(); QC.i = h.i; QC.step = ''; QC.heard = ''; QC.pend = null; QC.pn = null; QC.draft = ''; QC.dr = ''; qcDraw(); toast('前の問題にもどりました（答えは取り消しました）'); }
 const qcBackBtn = () => QC && QC.hold && QC.i === QC.hold.i + 1 ? `<button type="button" class="qc-bk" data-qc="back1" aria-label="前の問題にもどる（答えを取り消す）"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7 4 12l5 5M4.5 12H15a5 5 0 0 1 0 10h-2"/></svg><span>もどる</span></button>` : '';
 document.addEventListener('visibilitychange', () => { if (document.hidden) qcFlush(); });
@@ -2641,7 +2664,11 @@ function fdWorkTitles(w){ const L = [w['作品名']]; String(w['作品名メモ'
 function fdScore(f, w){
   const T = fdTitles(f['作品名']); let ts = 0;
   fdWorkTitles(w).forEach(x => { const n = fdN(x); T.forEach(([t, k]) => { ts = Math.max(ts, fdSim(t, n) * k); }); });
-  if (ts < .34) return 0;
+  if (ts < .34) { /* 題がちがっても（台帳の題は仮の名前のことがある）、同じ館で大きさがぴったり・年も食い違わないなら、候補に出して人が写真で決める */
+    const y1 = fdY(f['制作年']), y2 = fdY(w['制作年']), z = fdSz(f['サイズ']), h = parseFloat(w['高さcm']), wd = parseFloat(w['幅cm']);
+    if (!(z && h > 0 && wd > 0) || w['所在区分'] !== '美術館') return 0; const a = fdMus(f['相手先']), b = fdMus(w['所在']); if (!a || a !== b || (y1 && y2 && Math.abs(y1 - y2) >= 2)) return 0;
+    const r = (p, q) => Math.abs(p - q) / Math.max(p, q), e = Math.min(Math.max(r(z[0], h), r(z[1], wd)), Math.max(r(z[0], wd), r(z[1], h)));
+    return e <= .04 ? .9 + (y1 && y2 && y1 === y2 ? .15 : 0) : 0; }
   let sc = ts; const y1 = fdY(f['制作年']), y2 = fdY(w['制作年']);
   if (y1 && y2) { const d = Math.abs(y1 - y2); sc += d === 0 ? .25 : d <= 1 ? .1 : d >= 3 ? -.25 : 0; }
   const z = fdSz(f['サイズ']), h = parseFloat(w['高さcm']), wd = parseFloat(w['幅cm']);
@@ -2662,7 +2689,7 @@ const FD_MUS = [[/京都国立近代|京都国立近美|京都近美/, '京都�
   [/国立国際/, '国立国際'], [/東京国立近代/, '東京近美'], [/東京都現代/, '都現美'], [/愛知県/, '愛知県'], [/福井県/, '福井県'], [/新潟県立近代/, '新潟県近美'], [/宇都宮/, '宇都宮'],
   [/広島市現代/, '広島市現代'], [/和歌山/, '和歌山'], [/山口県/, '山口県'], [/徳島/, '徳島'], [/中之島/, '中之島'], [/藝術大学|藝大|芸大/, '藝大'], [/千葉市/, '千葉市'],
   [/メトロポリタン/, 'メトロポリタン'], [/フィラデルフィア/, 'フィラデルフィア'], [/ヴィクトリア国立/, 'NGV'], [/グレーター/, 'AGGV']];
-const fdMus = s => { const t = String(s || '').normalize('NFKC'); const m = FD_MUS.find(([re]) => re.test(t)); return m ? m[1] : ''; };
+const fdMus = s => { const k = musKey(String(s || '').replace(/（.*$/, '')); if (k) return k; const t = String(s || '').normalize('NFKC'); const m = FD_MUS.find(([re]) => re.test(t)); return m ? (musOf(m[1]) || m[1]) : ''; }; /* 旧名・略称は、いつも同じ館として扱う */
 /* 台帳でもう同じ美術館になっていて、題・年・サイズもほぼ同じ作品（管理者がまとめて確かめる） */
 function fdReg(f){ if (f['区分'] !== '一次') return null; const c = fdCands(f)[0], w = c && workOf(c.no);
   return c && c.s >= 1.6 && w && w['所在区分'] === '美術館' && fdMus(w['所在']) && fdMus(w['所在']) === fdMus(f['相手先']) ? c : null; }
@@ -2777,7 +2804,8 @@ function qcPhCap(no, k, rec){ const ph = photoBy[no] || [], p = ph[k]; if (!p) r
     return `<b>${esc(nol(no))} の写真${nth}</b>：${esc(cp.mu || 'Webサイト')}の画像（転載）${same ? '<em>この記録と同じところの画像です</em>' : ''}`; }
   return `<b>${esc(nol(no))} の写真${nth}</b>：家で撮った写真${by ? '（' + esc(by) + ' 登録）' : ''}${rec && rec.u ? '<em>記録の側の画像は「記録を開く」で見られます</em>' : ''}`; }
 function qcDrawFind(el, c){
-  const f = fdById(c.id); if (!f || !fdOpen(f)) { QC.i++; return qcDraw(); }
+  const f = fdById(c.id); if (!f || !fdOpen(f)) { QC.i++; QC.step = ''; return qcDraw(); }
+  if (QC.step === 'fdp') return qcDrawFindPick(el, c, f);
   const mus = f['区分'] === '一次', cand = c.cands[c.j], no = cand && cand.no, w = no ? workOf(no) || {} : {}, ph = no ? photoBy[no] || [] : [];
   const place = (f['相手先'] || '').replace(/（.*$/, ''), cur = w['所在'] || (w['所在区分'] && w['所在区分'] !== '不明' ? w['所在区分'] : '');
   const go = (a, t) => `<button type="button" class="hg-go" data-qa="${a}">${t}</button>`, sub = (a, t) => `<button type="button" class="hg-btn2" data-qa="${a}">${t}</button>`;
@@ -2798,10 +2826,11 @@ function qcDrawFind(el, c){
     btm = `${go('fd:same', '同じ作品')}<div class="qc-row">${sub('fd:diff', c.j + 1 < c.cands.length ? 'ちがう<br>（次の候補へ）' : 'ちがう作品')}${sub('fd:unk', 'わからない')}</div>`;
     QC.sp = mus ? `この作品、${place}にあるっていう記録が見つかったえ。おんなじ作品やろか？` : 'この作品、売りに出てたっていう記録が見つかったえ。おんなじ作品やろか？';
   } else {
-    body = rec; q = '台帳にない作品かも'; const can = fdCanNew(f);
-    hint = c.cands.length ? '候補の作品は、どれもちがいました。' : '台帳には、似た作品が見つかりませんでした。';
+    const same = fdSameTitle(f, c.cands.map(x => x.no)), can = fdCanNew(f);
+    body = rec + fdSameHTML(same); q = same.length ? '同じ名前の、別の作品かも' : '台帳にない作品かも';
+    hint = same.length ? `台帳に同じ名前の作品が${same.length}点ありますが、場所か大きさがこの記録とちがうので、別の作品とみています（同じ作品なら、その作品の「これと同じ」を押してください）。` : c.cands.length ? '候補の作品は、どれもちがいました。' : '台帳には、似た作品が見つかりませんでした。';
     hint += can ? `新しく台帳に入れると、場所は「${place}」になります（あとで重なりがないか確かめられるよう「要確認」の印を付けます）` : '版画・シリーズ・業者の記録などは、いまは記録だけ残します';
-    btm = `${can ? go('fd:new', '台帳に新しく入れる') : go('fd:none', '台帳にない作品')}<div class="qc-row">${can ? sub('fd:none', '入れない') : ''}${sub('fd:unk', 'わからない')}</div>`;
+    btm = `${can ? go('fd:new', '台帳に新しく入れる') : go('fd:none', '台帳にない作品')}${sub('fd:choose', '登録済みの作品から選ぶ')}<div class="qc-row">${can ? sub('fd:none', '入れない') : ''}${sub('fd:unk', 'わからない')}</div>`;
     QC.sp = c.cands.length ? 'ほかに似た作品は見つからへんかったわ。台帳にない作品やろか？' : 'この記録の作品、台帳には見つからへんかったんえ。台帳にない作品やろか？';
   }
   QC.q = q;
@@ -2819,6 +2848,8 @@ async function qcFindSave(c, st, no){
   qcDraw();
 }
 function qcFindAct(a, c){
+  if (a === 'fd:choose') { QC.step = 'fdp'; QC.draft = ''; return qcDraw(); }
+  if (a.indexOf('fd:pick:') === 0) { QC.draft = ''; return qcFindSave(c, '承認', a.slice(8)); }
   if (a === 'fd:same') return qcFindSave(c, '承認', c.cands[c.j].no);
   if (a === 'fd:diff') { c.j++; return qcDraw(); }
   if (a === 'fd:new') return qcFindSave(c, '新規', '');
@@ -2862,7 +2893,7 @@ function qcDrawLit(el, c){
   el.innerHTML = `<div class="qc-w${ex || k === 'ltn' ? ' inp' : ''}">${qcTop()}${qcTask('lit', ex ? '展覧会' : '本')}${card}
     <div><h1 class="qc-q">${esc(q)}</h1><p class="qc-hint">${esc(hint)}</p></div>${body}<div class="qc-btm">${btm}</div></div>`;
   hydrate(el); el.scrollTop = 0;
-  if (QV.tts) say(QC.sp);
+  if (QV.tts) say(QC.sp, qcAfterSay);
 }
 function qcLitAct(a, c){ const l = ltById(c.id); if (!l) return;
   if (a === 'back') { QC.step = ''; return qcDraw(); }
@@ -2891,7 +2922,7 @@ function qcLitSave(c, a){ const l = ltById(c.id), r = l && ltRec(l); if (!l || !
 function ltCands(l){ const ex = ltIsEx(l), nm = ltN(l['名称']), y = fdY(l['開始']), pl = ltN(l['相手先']), out = [];
   if (ex) (S.exhibits || []).forEach(x => { const xy = fdY(x['開始日']); if (y && xy && Math.abs(xy - y) > 1) return;
     const xn = ltN(x['名称']), xp = ltN(x['会場']); let s = Math.max(fdSim(nm, xn), xp ? fdSim(nm, ltN(String(x['名称'] || '') + x['会場'])) : 0);
-    if (pl && xp && (pl.includes(xp) || xp.includes(pl))) s += .5; else if (pl && xn.includes(pl)) s += .4;
+    if (pl && xp && (pl.includes(xp) || xp.includes(pl) || musSame(l['相手先'], x['会場']))) s += .5; /* 会場は旧名・略称でも同じ館とみる */ else if (pl && xn.includes(pl)) s += .4;
     if (y && xy) s += xy === y ? .5 : .2;
     if (String(l['開始']).length >= 10 && x['開始日'] === l['開始']) s += .3;
     if (s >= .95) out.push({ id: x['展覧会ID'], s, t: x['名称'] || '（名前なし）', sub: [x['展覧会ID'], ltWhen(x['開始日'], x['終了日']), x['会場']].filter(Boolean).join('・') }); });
@@ -2908,14 +2939,14 @@ function qcDrawLitB(el, c){
   const l = ltById(c.id); if (!l || l['状態'] || LTD.has(c.id)) { QC.i++; QC.step = ''; return qcDraw(); }
   const ex = ltIsEx(l), cs = ltCands(l), pair = l['組'] && ltById(l['組']), who = [l['相手先'], l['著者・主催'] && l['著者・主催'] !== l['相手先'] ? (ex ? '主催：' : '') + l['著者・主催'] : ''].filter(Boolean);
   if (QC.step === 'lbp') { /* 登録済みのものから選ぶ（別の名前で台帳に入っているとき）。年の近い順に全部ならべ、言葉でしぼる */
-    const y = fdY(l['開始']), all = ex ? (S.exhibits || []).map(x => ({ id: x['展覧会ID'], t: x['名称'] || '（名前なし）', sub: [x['展覧会ID'], ltWhen(x['開始日'], x['終了日']), x['会場']].filter(Boolean).join('・'), y: fdY(x['開始日']), d: String(x['開始日'] || '') }))
+    const y = fdY(l['開始']), all = ex ? (S.exhibits || []).map(x => ({ id: x['展覧会ID'], t: x['名称'] || '（名前なし）', sub: [x['展覧会ID'], ltWhen(x['開始日'], x['終了日']), x['会場']].filter(Boolean).join('・'), y: fdY(x['開始日']), d: String(x['開始日'] || ''), mu: musNames(x['会場']) }))
       : (S.pubs || []).map(p => ({ id: p['資料ID'], t: p['タイトル'] || '（題なし）', sub: [p['資料ID'], p['種類'], p['発行年月'], p['発行元']].filter(Boolean).join('・'), y: fdY(p['発行年月']), d: String(p['発行年月'] || '') }));
     all.sort((a, b) => (y ? Math.abs((a.y || 9999) - y) - Math.abs((b.y || 9999) - y) : 0) || a.d.localeCompare(b.d));
     el.innerHTML = `<div class="qc-w qc-dw inp">${qcTop()}${qcTask('litb', ex ? '展覧会' : '本')}
       <div class="qc-wk"><small>${ex ? '調べで見つかった展覧会' : '調べで見つかった本・図録'}</small><b>${esc(l['名称'])}</b><small>${esc([ltWhen(l['開始'], l['終了'])].concat(who).filter(Boolean).join('・'))}</small></div>
       <div><h1 class="qc-q">${ex ? '台帳のどの展覧会と同じ？' : '台帳のどの本・図録と同じ？'}</h1><p class="qc-hint">年の近い順に並んでいます。名前・年・会場の一部を入れると、しぼれます</p></div>
       <div class="qc-in qc-arn"><input id="qcLbQ" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" placeholder="名前・年・会場で探す" aria-label="探す言葉" value="${esc(QC.draft || '')}"></div>
-      <div class="lb-os lb-pl">${all.map(x => `<button type="button" class="qc-c lb-c" data-qa="lb:s:${esc(x.id)}" data-q="${esc(fdN(x.t + ' ' + x.sub))}"><b>${esc(x.t)}</b><small>${esc(x.sub)}</small></button>`).join('')}</div>
+      <div class="lb-os lb-pl">${all.map(x => `<button type="button" class="qc-c lb-c" data-qa="lb:s:${esc(x.id)}" data-q="${esc(fdN(x.t + ' ' + x.sub + ' ' + (x.mu || '')))}"><b>${esc(x.t)}</b><small>${esc(x.sub)}</small></button>`).join('')}</div>
       <p class="qc-hint lb-none" hidden>見つかりません。言葉を変えて探してください</p>
       <div class="qc-btm">${qcFoot('', 1)}</div></div>`;
     hydrate(el); el.scrollTop = 0; qcLbFilter(); return; }
@@ -2931,8 +2962,9 @@ function qcDrawLitB(el, c){
     <div class="qc-btm">${qcFoot()}</div></div>`;
   hydrate(el); el.scrollTop = 0;
 }
-function qcLbFilter(){ const i = $('#qcLbQ'); if (!i) return; if (QC) QC.draft = i.value; const qs = i.value.split(/[\s\u3000]+/).map(fdN).filter(Boolean); let n = 0;
-  document.querySelectorAll('#qc .lb-pl .lb-c').forEach(b => { const h = qs.some(q => !b.dataset.q.includes(q)); b.hidden = h; if (!h) n++; }); const e = document.querySelector('#qc .lb-none'); if (e) e.hidden = n > 0; }
+/* 一覧を言葉でしぼる（登録済みの展覧会・本・作品から選ぶ画面で共通）。美術館は旧名・略称でも当たる（「立」の有無も見ない） */
+function qcLbFilter(){ const i = $('#qcLbQ'); if (!i) return; if (QC) QC.draft = i.value; const qs = i.value.split(/[\s\u3000]+/).map(t => [fdN(t).replace(/立/g, ''), fdN(musOf(t))]).filter(x => x[0]); let n = 0;
+  document.querySelectorAll('#qc .lb-pl .lb-c').forEach(b => { const q0 = b.dataset.q.replace(/立/g, ''), h = qs.some(q => !q0.includes(q[0]) && !(q[1] && b.dataset.q.includes(q[1]))); b.hidden = h; if (!h) n++; }); const e = document.querySelector('#qc .lb-none'); if (e) e.hidden = n > 0; }
 document.addEventListener('input', e => { if (e.target && e.target.id === 'qcLbQ') qcLbFilter(); });
 function qcLitBAct(a, c){ const l = ltById(c.id); if (!l) return;
   if (a === 'lb:pick') { QC.step = 'lbp'; QC.draft = ''; return qcDraw(); }
@@ -2949,6 +2981,26 @@ function qcLitBAct(a, c){ const l = ltById(c.id); if (!l) return;
 }
 /* 台帳に入れたあと：カードを閉じたら、台帳を読み直す（新しい展覧会・本と、お母さんのカードを出すため） */
 function ltbSync(){ if (!LTDIRTY) return; LTDIRTY = false; refreshData().catch(() => {}); }
+/* 調べの記録のカード：台帳に同じ名前の作品があるのに候補に出ないとき（別の館・別の大きさ）、その作品を見せて理由を伝える。登録済みの作品から選ぶこともできる（10/5 本人） */
+function fdSameTitle(f, skip){ const T = fdTitles(f['作品名']), out = [];
+  (S.works || []).concat(S.others || []).forEach(w => { if (['廃棄', '統合済み'].includes(w['所在区分']) || (skip || []).includes(String(w['作品番号']))) return; let ts = 0;
+    fdWorkTitles(w).forEach(x => { const n = fdN(x); T.forEach(([t, k]) => { ts = Math.max(ts, fdSim(t, n) * k); }); }); if (ts >= .8) out.push({ no: String(w['作品番号']), w, ts }); });
+  return out.sort((a, b) => b.ts - a.ts).slice(0, 6); }
+const fdWLine = w => [w['制作年'], w['高さcm'] && w['幅cm'] ? w['高さcm'] + '×' + w['幅cm'] : '', w['所在'] || (w['所在区分'] && w['所在区分'] !== '不明' ? w['所在区分'] : '場所不明')].filter(Boolean).join('・');
+function fdSameHTML(L){ return L.length ? `<div class="fd-same"><p class="qc-sl">台帳にある、同じ名前の作品（${L.length}点）</p>${L.map(x => `<div class="fd-sr"><span class="fdb-th">${(photoBy[x.no] || []).length ? thumbHTML(x.no, 200) : ''}</span>
+    <span class="fdb-tx"><b>${esc(nol(x.no))}　${esc(x.w['作品名'] || '作品名なし')}</b><small>${esc(fdWLine(x.w))}</small></span><button type="button" class="fd-sb" data-qa="fd:pick:${esc(x.no)}">これと同じ</button></div>`).join('')}</div>` : ''; }
+/* 登録済みの作品から選ぶ：同じ館 → 名前の近さ → 年の近さ の順に全部ならべ、言葉でしぼる */
+function qcDrawFindPick(el, c, f){ const mk = fdMus(f['相手先']), T = fdTitles(f['作品名']), y = fdY(f['制作年']), place = (f['相手先'] || '').replace(/（.*$/, '');
+  const all = (S.works || []).concat(S.others || []).filter(w => !['廃棄', '統合済み'].includes(w['所在区分'])).map(w => { let ts = 0; fdWorkTitles(w).forEach(x => { const n = fdN(x); T.forEach(([t, k]) => { ts = Math.max(ts, fdSim(t, n) * k); }); });
+    const wy = fdY(w['制作年']); return { no: String(w['作品番号']), w, k: (mk && w['所在区分'] === '美術館' && fdMus(w['所在']) === mk ? 2 : 0) + ts + (y && wy ? Math.max(0, .3 - Math.abs(y - wy) * .1) : 0) }; }).sort((a, b) => b.k - a.k);
+  el.innerHTML = `<div class="qc-w qc-dw inp">${qcTop()}${qcTask('find', f['区分'] === '一次' ? '美術館' : '販売')}
+    <div class="qc-wk"><small>調べで見つかった記録</small><b>${esc(place)}《${esc(f['作品名'])}》</b><small>${esc([f['制作年'], f['サイズ']].filter(Boolean).join('・'))}</small></div>
+    <div><h1 class="qc-q">台帳のどの作品と同じ？</h1><p class="qc-hint">同じ館の作品・名前の近い作品から順に並んでいます。番号・名前・年・場所の一部を入れると、しぼれます${f['区分'] === '一次' ? `。選ぶと、その作品の場所は「${esc(place)}」になります` : ''}</p></div>
+    <div class="qc-in qc-arn"><input id="qcLbQ" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" placeholder="番号・名前・年・場所で探す" aria-label="探す言葉" value="${esc(QC.draft || '')}"></div>
+    <div class="lb-os lb-pl">${all.map(x => `<button type="button" class="qc-c lb-c" data-qa="fd:pick:${esc(x.no)}" data-q="${esc(fdN([x.no, x.w['作品名'], x.w['作品名メモ'], x.w['制作年'], x.w['所在'], x.w['所在区分'] === '美術館' ? musNames(x.w['所在']) : ''].join(' ')))}"><b>${esc(nol(x.no))}　${esc(x.w['作品名'] || '作品名なし')}</b><small>${esc(fdWLine(x.w))}</small></button>`).join('')}</div>
+    <p class="qc-hint lb-none" hidden>見つかりません。言葉を変えて探してください</p>
+    <div class="qc-btm">${qcFoot('', 1)}</div></div>`;
+  hydrate(el); el.scrollTop = 0; qcLbFilter(); }
 /* カードのいちばん上：いまやっている作業（ホームの行と同じ色・アイコン） */
 const QCTAG = '<path d="M3.5 12.5V5.5a2 2 0 0 1 2-2h7l8 8-9 9-8-8z"/><circle cx="8" cy="8" r="1.6"/>';
 function qcTask(k, lab){ const L = ['#1CB0F6', IC.loc, '場所がわからない', 'いまある場所をおしえてください'];
@@ -3178,7 +3230,7 @@ async function qcDiffSave(c, fn, pk, kind, area){
     () => { QDD.delete(key); QC.n--; });
   qcDraw();
 }
-function qcEnd(fromHist){ setTimeout(ltbSync, 300); Object.keys(WLOG).forEach(k => delete WLOG[k]); const wno = QC && QC.mode === 'work' ? QC.wno : '', was = !!QC; if (was && !fromHist) hback();
+function qcEnd(fromHist){ QVB.cf = null; qvbShow(''); setTimeout(ltbSync, 300); Object.keys(WLOG).forEach(k => delete WLOG[k]); const wno = QC && QC.mode === 'work' ? QC.wno : '', was = !!QC; if (was && !fromHist) hback();
   if (wno) { let n = 0; const go = () => { if (HIST.skip > 0 && n++ < 30) return setTimeout(go, 50); openWork(wno); }; setTimeout(go, 60); } /* 戻る（履歴）が終わってから作品ページを開く */ qcFlush(); stopMic(); sayStop(); if (QC && QC.tts0 != null) QV.tts = QC.tts0; const el = $('#qc'); if (el) { el.classList.add('hidden'); el.classList.remove('kb'); el.innerHTML = ''; el.style.top = el.style.height = el.style.bottom = ''; } qcLock(false); QC = null; refreshData().catch(() => {}); }
 function qcDraw(){
   const el = $('#qc'); if (!el || !QC) return;
@@ -3199,7 +3251,7 @@ function qcDraw(){
   const go = (a, t) => `<button type="button" class="hg-go" data-qa="${a}">${t}</button>`, sub = (a, t) => `<button type="button" class="hg-btn2" data-qa="${a}">${t}</button>`;
   let body = '', btm = '';
   if (k === 'loc') { body = `<div class="qc-ch">${C('home', '自宅')}${C('mus', '美術館・学校')}${C('priv', '個人の方')}${C('shibun', '思文閣（委託）')}${C('other', 'そのほか')}${C('unk', 'わからない', 'mut')}</div>`;
-    btm = `${qcFoot(mic('mic', '話して答える'))}<p class="qc-heard srlive"></p>`; }
+    btm = qcFoot(mic('mic', '話して答える')); }
   else if (k === 'conf') btm = `${go('yes', 'はい、ある')}<div class="qc-row">${sub('no', 'ちがう')}${sub('unk', 'わからない')}</div>${qcFoot()}`;
   else if (k === 'name') { body = `<div class="qc-in"><input id="qcTtl" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" placeholder="作品名をここに入れる" aria-label="作品名" value="${esc(QC.draft || '')}"></div><p class="qc-heard srlive" id="qcHeard">${QC.heard ? '話した言葉：「' + esc(QC.heard) + '」' : ''}</p>`;
     btm = `${go('name', 'この名前で登録')}${sub('unk', 'わからない')}${qcFoot(mic('micname', '話して答える'))}`; }
@@ -3221,7 +3273,7 @@ function qcDraw(){
     ${qcTask(k === 'note' ? c.k : k)}${QC.test ? '<p class="qc-test">練習モード：答えは保存しません</p>' : ''}${media}<div class="qc-wk row"><small>${esc(nol(no))}</small><b>${esc(w['作品名'] || '作品名なし')}</b></div>
     <div><h1 class="qc-q">${esc(q)}</h1>${hint ? `<p class="qc-hint${k === 'ask' ? ' qc-body' : ''}">${esc(hint)}</p>` : ''}</div>${body}<div class="qc-btm">${btm}</div></div>`;
   hydrate(el); el.scrollTop = 0; qcMusFilter();
-  if (QV.tts && !QC.step) say(QC.sp);
+  if (QV.tts && (!QC.step || k === 'note')) say(QC.sp, qcAfterSay);
 }
 function qcClick(e){ if (!QC) return; const t = e.target.closest('[data-qc],[data-qa]'); if (!t) return;
   if (t.dataset.qc === 'end') return qcEnd();
@@ -3232,6 +3284,7 @@ function qcClick(e){ if (!QC) return; const t = e.target.closest('[data-qc],[dat
   if (t.dataset.qa) qcAct(t.dataset.qa, t); }
 function qcChange(e){ if (e.target.id === 'qcCam' && e.target.files && e.target.files[0]) qcPhoto(e.target.files[0]); }
 function qcAct(a, btn){ const c = QC && QC.L[QC.i]; if (!c) return; const no = c.no, w = workOf(no) || {}, k = QC.step || c.k, item = QCITEM[c.k];
+  if (a.indexOf('mic') !== 0 && (QVB.st || MIC.r)) { QVB.cf = null; stopMic(true); qvbShow(''); }
   if (a.indexOf('fd:') === 0) return qcFindAct(a, c);
   if (c.k === 'lit' && (a.indexOf('lt:') === 0 || a === 'back')) return qcLitAct(a, c);
   if (c.k === 'litb' && (a.indexOf('lb:') === 0 || a === 'back')) return qcLitBAct(a, c);
@@ -3316,19 +3369,93 @@ function qcAct(a, btn){ const c = QC && QC.L[QC.i]; if (!c) return; const no = c
   if (a === 'later') return qcSave(no, { item, value: '', answer: '保留' });
   if (a === 'skip') { QC.i++; QC.step = ''; QC.heard = ''; QC.pend = null; QC.pn = null; QC.draft = ''; QC.dr = ''; qcHoldSet(null, null); return qcDraw(); }
   if (a === 'name') { const v = (($('#qcTtl') || {}).value || '').trim(); if (!v) return toast('名前を入れてください'); return ask({ item: '作品名', value: v, answer: 'はい' }, { '作品名': v }, null, v); }
-  if (a === 'mic' || a === 'micname' || a === 'micpl' || a === 'micdr' || a === 'micdfo' || a === 'micask' || a === 'miclt') { ttsUnlock(); const sp = btn && btn.querySelector('span'), relabel = on => { if (sp) { if (on && !sp.dataset.t) sp.dataset.t = sp.textContent; sp.textContent = on ? '話し終わったら押す' : (sp.dataset.t || sp.textContent); } };
-    if (btn) btn.classList.add('on'); if (!(MIC.r && !MIC.r.__killed)) relabel(true);
-    const ok = listen(text => { if (!QC) return;
-      if (a === 'micname') { const v = text.replace(/^(たしか|えーと|ええと|えっと|うーん)[、,\s]*/, '').replace(/[「」『』]/g, '').replace(/(やったと思う|だったと思う|だと思う|と思う|です|かな)[。.]?$/, '').trim();
-        const i = $('#qcTtl'); if (i) i.value = v; QC.heard = text; const h = $('#qcHeard'); if (h) h.textContent = '話した言葉：「' + text + '」'; return; }
-      if (a === 'miclt') { const i = $('#qcLt'); if (i) i.value = qcClean(text); const h = $('#qcLtH'); if (h) h.textContent = '話した言葉：「' + text + '」。よければ「この内容で答える」を押してください'; return; }
-      if (a === 'micask') { const i = $('#qcAsk'); if (i) i.value = qcClean(text); const h = $('#qcAskH'); if (h) h.textContent = '話した言葉：「' + text + '」。よければ「この内容で答える」を押してください'; return; }
-      if (a === 'micdfo') { const i = $('#qcDfo'); if (!i) return; let v = qcClean(text).replace(/(やったと思う|だったと思う)$/, ''); if (i.inputMode) { const n = v.normalize('NFKC').replace(/[^\d.]/g, ''); if (n) v = n; } i.value = v; return; }
-      if (a === 'micdr') { const v = qcClean(text).replace(/(から|ので|やから|さかい)$/, ''), i = $('#qcDr'); if (i) i.value = v; QC.dr = v; qcNoteBtn(); const h = $('#qcDrH'); if (h) h.textContent = '話した言葉：「' + text + '」。よければ「この内容で登録」を押してください'; return; }
-      if (UNK.test(text)) return qcSave(no, { item, value: '', answer: '不明' });
-      QC.heard = text; QC.pend = qcPlaceFrom(text) || { kind: '', det: qcClean(text) }; QC.step = 'hear'; qcDraw(); }, () => { if (btn) btn.classList.remove('on'); relabel(false); });
-    if (!ok && btn) { btn.classList.remove('on'); toast('マイクが使えません。ボタンで答えてください'); } }
+  if (a === 'micdfo') { ttsUnlock(); const ok = listen(text => { const i = $('#qcDfo'); if (!i) return; let v = qcClean(text).replace(/(やったと思う|だったと思う)$/, ''); if (i.inputMode) { const n = v.normalize('NFKC').replace(/[^\d.]/g, ''); if (n) v = n; } i.value = v; }, () => {}); if (!ok) toast('マイクが使えません。ボタンで答えてください'); return; }
+  if (a.indexOf('mic') === 0) { ttsUnlock(); QC.vOffAt = -1; if (!qcVoice(false)) toast('マイクが使えません。ボタンで答えてください'); return; }
 }
+/* ===== 声で答える（カード）：画面の下に固定した大きな帯と、会話の進め方 =====
+   10/5（本人）：「文字にしています…」が画面の下で見切れていた → 状態は、下に固定した帯に大きく出す。
+   今日の10作品など、読み上げがオンのときは、質問を読んだあと自動で聞く（会話の形）。
+   「はい」「ない」「わからない」「2冊」などは、そのまま進む。場所・名前・文章は「これでいい？」と確かめてから進む（「はい」「ちがう」と声でも答えられる） */
+const QVB = { st: '', cf: null };
+const qcPos = () => QC ? QC.i + '|' + (QC.step || '') : '';
+function qvbNote(t){ const e = document.querySelector('#qcv .qcv-st'); if (e) e.textContent = t || ''; }
+function qvbShow(st, o){ o = o || {}; let el = $('#qcv'); const q0 = $('#qc');
+  if (!st) { QVB.st = ''; if (el) { el.classList.add('hidden'); el.innerHTML = ''; } if (q0) q0.classList.remove('vb'); return; }
+  if (!el) { el = document.createElement('div'); el.id = 'qcv'; el.className = 'qcv hm2 hidden'; el.setAttribute('aria-live', 'polite'); document.body.appendChild(el); el.addEventListener('click', qvbClick); }
+  QVB.st = st;
+  if (st === 'confirm') el.innerHTML = `<div class="qcv-cf"><small>聞き取った言葉</small><p class="qcv-heard">「${esc(o.text)}」</p>${o.lab && o.lab !== o.text ? `<p class="qcv-lab">${esc(o.lab)}</p>` : ''}
+      <h2>これでいい？</h2><button type="button" class="hg-go" data-qcv="yes">はい、これで</button>
+      <div class="qc-row"><button type="button" class="hg-btn2" data-qcv="retry">もう一度話す</button><button type="button" class="hg-btn2" data-qcv="cancel">ボタンで答える</button></div><p class="qcv-st"></p></div>`;
+  else { const busy = st === 'busy', wait = st === 'wait';
+    el.innerHTML = `<div class="qcv-in"><button type="button" class="qcv-bar${busy ? ' busy' : wait ? ' wait' : ''}" data-qcv="stop" ${busy || wait ? 'disabled' : ''}><i class="qcv-mic${busy || wait ? '' : ' on'}"><i></i>${QCSVG.mic}</i>
+      <span><b>${busy ? '文字にしています…' : wait ? 'マイクの準備中…' : '話してください'}</b><small>${busy ? '少し待ってね' : wait ? '' : o.manual ? '話し終わったら、ここを押してください' : '話し終わると、自動で進みます'}</small></span></button>
+      <button type="button" class="qcv-x" data-qcv="cancel" aria-label="声で答えるのをやめる">${QCSVG.x}</button></div>`; }
+  el.classList.remove('hidden'); if (q0) q0.classList.toggle('vb', st !== 'confirm'); }
+/* 録音の側（listen）から呼ばれる。確かめの画面が出ているあいだは、画面を変えずに下の一言だけ変える */
+function vrUI(st, o){ try { if (!QC || IV) return; if (QVB.st === 'confirm') return qvbNote(st === 'busy' ? '文字にしています…' : st === 'listen' ? '🎤 聞いています…「はい」か「ちがう」と答えてください' : ''); qvbShow(st, o); } catch(e){} }
+function vrLevel(v){ const m = document.querySelector('#qcv .qcv-mic'); if (m) m.style.setProperty('--lv', Math.min(1, v * 7).toFixed(2)); }
+function qvbClick(e){ const t = e.target.closest('[data-qcv]'); if (!t) return; const a = t.dataset.qcv;
+  if (a === 'stop') { if (MIC.r && !MIC.r.done && MIC.r.stopNow) MIC.r.stopNow(); return; }
+  if (a === 'cancel') { QVB.cf = null; stopMic(true); sayStop(); qvbShow(''); if (QC) QC.vOffAt = QC.i; return; } /* このカードは、もう自動では聞かない */
+  if (a === 'yes') return qvbYes();
+  if (a === 'retry') return qvbRetry(); }
+function qvbYes(){ const cf = QVB.cf; QVB.cf = null; stopMic(true); sayStop(); qvbShow(''); if (cf && qcPos() === cf.at) cf.r.run(); }
+function qvbRetry(){ QVB.cf = null; stopMic(true); sayStop(); qvbShow(''); qcVoice(true); }
+/* いまのカードで、声で答えられる質問の種類（空なら声は使わない） */
+function qcVoiceKind(){ const c = QC && QC.L[QC.i]; if (!c) return ''; const k = QC.step || c.k;
+  if (c.k === 'lit') { const l = ltById(c.id); return !l ? '' : ltIsEx(l) ? 'litex' : QC.step === 'ltn' ? 'ltn' : 'litpb'; }
+  if (c.k === 'photo') return QC.step ? '' : 'photo';
+  if (!['loc', 'conf', 'name', 'ask'].includes(c.k)) return '';
+  return ['loc', 'conf', 'name', 'ask', 'note', 'hear'].includes(k) ? k : ''; }
+function qvNum(n){ const m = n.match(/\d+/); if (m) return +m[0]; const K = '一二三四五六七八九十'; for (let i = 0; i < K.length; i++) if (n.includes(K[i] + '冊') || n === K[i]) return i + 1;
+  const H = [['いっさつ', 1], ['にさつ', 2], ['さんさつ', 3], ['よんさつ', 4], ['ごさつ', 5], ['ひとつ', 1], ['ふたつ', 2], ['みっつ', 3]]; for (const h of H) if (n.includes(h[0])) return h[1]; return 0; }
+/* 聞き取った言葉を、いまの質問に合わせて読み解く。{ lab: 分かった内容, run: 進める, now: 確かめずにすぐ進む } か null（分からない） */
+function qcVoiceRead(text){ const vk = qcVoiceKind(), t = String(text || '').trim(), n = t.normalize('NFKC').replace(/^[\s、。「」]+/, ''); if (!vk || !t) return null;
+  const FB = ds => ({ dataset: ds || {}, querySelector: () => null, classList: { add(){}, remove(){} } });
+  const now = (lab, run) => ({ lab, run, now: true }), ask = (lab, run) => ({ lab, run }), act = (a, ds) => () => qcAct(a, FB(ds));
+  const fill = (id, v, a) => () => { const i = $(id); if (i) i.value = v; qcAct(a, FB()); };
+  const yes = YES.test(n) || /^(ある|あります|あるえ|あるよ|あるわ|おます|そうや|せや|持って)/.test(n), no = NO.test(n) || /^(ない|ありません|あらへん|ないえ|ないわ|ないよ|ないです)/.test(n);
+  const unk = UNK.test(n) || /(わか|分か|判)(りません|らへん|らん|んない)|(知|し)(りません|らん|らへん)|覚えて(ない|へん|いない|ません|おらん)|忘れ|さあ/.test(n), skip = SKIP.test(n);
+  if (skip && vk !== 'note') return now('あとで', act(vk === 'photo' ? 'later' : 'skip'));
+  if (vk === 'photo') return unk ? now('どこにあるか、わからない', act('unk')) : null;
+  if (vk === 'loc' || vk === 'hear' || vk === 'conf') {
+    const p = qcPlaceFrom(t);
+    if (vk === 'conf' && !p) { if (yes) return now('はい、ある', act('yes')); if (no) return now('ちがう', act('no')); }
+    if (unk) return now('わからない', act('unk'));
+    if (!p) return now('', () => { QC.heard = t; QC.pend = { kind: '', det: qcClean(t) }; QC.step = 'hear'; qcDraw(); toast('場所の種類を、ボタンで選んでください'); });
+    const put = () => { QC.heard = t; QC.pend = p; QC.step = 'hear'; qcDraw(); };
+    if (p.kind === '委託中') return ask('思文閣（委託）', act('shibun'));
+    if (p.kind === '美術館') { const v = musCanon(p.det); return ask('美術館・学校：' + v, act('mu', { m: v })); }
+    if (p.kind === '廃棄') return ask('もうない（廃棄）', () => { put(); qcAct('pl', FB({ k: '廃棄' })); });
+    if (p.kind === '個人蔵') return ask('個人の方' + (p.det ? '：' + p.det : ''), () => { put(); qcAct('pl', FB({ k: '個人蔵' })); });
+    return ask(homePlace(p.area || '', p.det), () => { QC.heard = t; QC.pend = { kind: '自宅', det: p.det || '', area: p.area || '' }; qcAct(p.area ? 'ar' : 'ar0', FB({ a: p.area || '' })); }); }
+  if (vk === 'name') { if (unk) return now('わからない', act('unk')); const v = n.replace(/^(たしか|えーと|ええと|えっと|うーん)[、,\s]*/, '').replace(/[「」『』。]/g, '').replace(/(やったと思う|だったと思う|だと思う|と思う|です|かな|やわ|やで)$/, '').trim(); return v ? ask('作品名：' + v, fill('#qcTtl', v, 'name')) : null; }
+  if (vk === 'ask') return unk ? now('わからない', act('askunk')) : ask(t, fill('#qcAsk', qcClean(t), 'askok'));
+  if (vk === 'litex') return unk ? now('覚えていない', act('lt:unk')) : ask(t, fill('#qcLt', qcClean(t), 'lt:ok'));
+  if (vk === 'litpb' || vk === 'ltn') { const k = /冊|さつ|\d/.test(n) || vk === 'ltn' ? qvNum(n) : 0; if (k > 0) return now(k + '冊ある', act('lt:n:' + k));
+    if (vk === 'ltn') return null; if (unk) return now('わからない', act('lt:unk')); if (no) return now('ない', act('lt:no')); if (yes) return now('ある', act('lt:yes')); return null; }
+  if (vk === 'note') { const setN = v => () => { const i = $('#qcDr'); if (i) i.value = v; QC.dr = v; qcAct('nok', FB()); };
+    if (unk || no || /^(なし|とくに|特に|べつに|別に|大丈夫|けっこう|結構)/.test(n)) return now('とくにない', setN('')); const v = qcClean(t).replace(/(から|ので|やから|さかい)$/, ''); return v ? ask('補足：' + v, setN(v)) : null; }
+  return null; }
+/* 聞く → 読み解く → （確かめる）→ 進める */
+function qcVoice(auto){ if (!QC || !qcVoiceKind() || !QV.micOk) return false; const at = qcPos(); let got = false;
+  return listen(text => { got = true; if (qcPos() !== at) return; const r = qcVoiceRead(text);
+      if (!r) return toast('「' + text.slice(0, 18) + '」… うまく分からなかったよ。もう一度話すか、ボタンで答えてね');
+      if (r.now) { if (r.lab) toast('「' + r.lab + '」'); return r.run(); }
+      qcVoiceConfirm(text, r, at); },
+    () => { if (!got && QVB.st !== 'confirm') qvbShow(''); }, auto); }
+function qcVoiceConfirm(text, r, at){ QVB.cf = { r, at }; qvbShow('confirm', { text, lab: r.lab });
+  const mine = () => QVB.st === 'confirm' && QVB.cf && QVB.cf.r === r && qcPos() === at;
+  const hear = () => { if (!mine() || !QV.micOk) return; listen(t2 => { if (!mine()) return; const n = String(t2 || '').normalize('NFKC').replace(/^[\s、。「」]+/, '');
+        if (YES.test(n) || /^(それで|合うて|おうて|せや|そうや|お願い|よろし)/.test(n)) return qvbYes();
+        if (NO.test(n) || /^(ちゃう|あかん|やり直|もう一(度|回|ぺん))/.test(n)) return qvbRetry();
+        const r2 = qcVoiceRead(t2); if (r2 && !r2.now) return qcVoiceConfirm(t2, r2, at); /* 言い直した */
+        qvbNote('「はい」か「ちがう」と答えてください（ボタンでも選べます）'); }, () => {}, true); };
+  /* 会話の形（読み上げがオン）のときは、「これでええ？」と聞いて、声の返事を待つ */
+  if (QV.tts) say('これでええ？', () => setTimeout(hear, 350)); }
+/* 質問を読み上げたあと、自動で聞く（読み上げがオンのとき。このカードで「ボタンで答える」を押したあとは聞かない） */
+function qcAfterSay(){ if (!QC || !QV.tts || !QV.micOk || QVB.st || MIC.r || document.hidden || QC.vOffAt === QC.i || !qcVoiceKind() || qcVoiceKind() === 'hear') return;
+  const at = qcPos(); setTimeout(() => { if (QC && qcPos() === at && !QVB.st && !MIC.r && QV.tts && !document.hidden) qcVoice(true); }, 400); }
 function qcMusHTML(){ return `<div class="qc-in qc-arn"><input id="qcMus" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" placeholder="名前で探す・新しく入れる" aria-label="美術館・学校の名前" value="${esc(QC && QC.draft || '')}"><button type="button" class="qc-arb" data-qa="muadd">追加</button></div>
     <div class="qc-ch qc-mu">${musList().map(m => `<button type="button" class="qc-c" data-qa="mu" data-m="${esc(m.label)}">${esc(m.label)}</button>`).join('')}</div>`; }
 /* 入れた文字で館のボタンをしぼる（京都近美 → 京都国立近代美術館 のような書き方のゆれも） */
@@ -3427,7 +3554,7 @@ function renderHome(){
     <h1 class="hg-hello">${esc(S.user && S.user.name || '')}さん、こんにちは</h1>
     <section class="hg-card">${ed ? `<div><div class="hg-ttl">今日の10作品</div><div class="hg-sub">保管場所の確認から・5分ほど。ボタンでも声でも答えられます</div></div>
       <button type="button" class="hg-go" data-hg10="1">${PLAY}はじめる</button>${S.user && S.user.role === '管理' ? '<button type="button" class="hg-link hg-test" data-hgtest="1">練習する（答えは保存しません）</button>' : ''}` : ''}
-      <button type="button" class="${ed ? 'hg-btn2' : 'hg-go'}" data-ivgo="1">声でおしゃべり（インタビュー）</button></section>
+      <button type="button" class="${ed ? 'hg-btn2' : 'hg-go'}" data-ivgo="1">インタビュー</button></section>
     ${ed ? `<section class="hg-card hg-memo">${memoHTML()}</section>` : ''}
     <section class="hg-sec"><h2 class="hg-h2">作品図鑑</h2>
       <div class="hg-numrow"><span class="hg-num">${nDone}</span><span class="hg-of">/ ${N}点 そろった</span></div>
@@ -4551,16 +4678,17 @@ function listen(onText, onDone, auto){
   sayStop();
   stopMic(true);
   try { if (TTSA) { TTSA.onended = null; TTSA.pause(); TTSA.removeAttribute('src'); TTSA.load(); } } catch(e){}
-  const r = { __killed: false, done: false, cleanup: null, stopNow: null }; r.abort = () => { r.__killed = true; if (r.cleanup) r.cleanup(); }; MIC.r = r;
+  const r = { __killed: false, done: false, cleanup: null, stopNow: null }; r.abort = () => { r.__killed = true; if (r.cleanup) r.cleanup(); vrUI(''); }; MIC.r = r;
   const b = $('#qzMic'); if (b) b.classList.add('on');
   const live = t => document.querySelectorAll('.srlive').forEach(el => { el.textContent = t || (el.classList.contains('qc-heard') ? '' : '…'); el.classList.toggle('on', !!t); });
   const end = () => { if (MIC.r === r) MIC.r = null; const bb = $('#qzMic'); if (bb) bb.classList.remove('on'); };
   const quiet = IV ? 2000 : 1100, maxMs = IV ? 60000 : 10000; // 話し終わって、これだけ静かなら区切る
+  vrUI('wait');
   vrLog('はじめ' + (auto ? '（自動）' : '') + (IV ? '・会話' : QC ? '・カード' : '') + (document.documentElement.classList.contains('sa') ? '・ホーム画面' : ''));
   (async () => {
     let stream;
     try { stream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true}}); }
-    catch(e){ vrLog('マイクが使えない：' + (e && e.name || e)); end(); if (r.__killed) return; if (IV) { IV.listening = false; try { ivDraw(); } catch(x){} }
+    catch(e){ vrLog('マイクが使えない：' + (e && e.name || e)); end(); vrUI(''); if (r.__killed) return; if (IV) { IV.listening = false; try { ivDraw(); } catch(x){} }
       if (auto) toast('🎤ボタンを押して話してね'); else { QV.micOk = false; if (IV) ivDraw(); else if (QC) qcDraw(); toast('マイクが使えません。設定でマイクを許可するか、ボタン・キーボードで答えてください'); } return; }
     let rec = null, mime = '', ac = null, src = null, an = null, proc = null, tick = null; const parts = [], chunks = [];
     const stopTracks = () => { try { stream.getTracks().forEach(t => t.stop()); } catch(e){} };
@@ -4576,18 +4704,19 @@ function listen(onText, onDone, auto){
     try { if (ac && ac.state === 'running') { src = ac.createMediaStreamSource(stream); an = ac.createAnalyser(); an.fftSize = 2048; src.connect(an); const mute = ac.createGain(); mute.gain.value = 0; an.connect(mute); mute.connect(ac.destination);
         if (!rec) { proc = ac.createScriptProcessor(4096, 1, 1); proc.onaudioprocess = ev => { if (!r.done && !r.__killed) chunks.push(new Float32Array(ev.inputBuffer.getChannelData(0))); }; src.connect(proc); proc.connect(ac.destination); } } } catch(e){ an = null; }
     vrLog('録音：' + (rec ? mime || 'MediaRecorder' : proc ? 'WAV（前の方法）' : 'なし') + '／音の準備：' + (ac ? ac.state + ' ' + ac.sampleRate : 'なし'));
-    if (!rec && !proc) { r.cleanup(); end(); if (IV) { IV.listening = false; IV.text = true; try { ivDraw(); } catch(x){} } QV.micOk = false; if (!IV && QC) qcDraw();
+    if (!rec && !proc) { r.cleanup(); end(); vrUI(''); if (IV) { IV.listening = false; IV.text = true; try { ivDraw(); } catch(x){} } QV.micOk = false; if (!IV && QC) qcDraw();
       toast('この端末では声の録音ができません。キーボードの🎤で入力してください'); if (onDone) onDone(); return; }
     const fb = an ? (an.getFloatTimeDomainData ? new Float32Array(an.fftSize) : new Uint8Array(an.fftSize)) : null, t0 = performance.now();
     let heard = false, lastLoud = 0, floor = 0, nf = 0, alive = false, manual = !an, told = false, why = '';
-    const tell = () => { if (told) return; told = true; live('🎤 聞いています… 話し終わったら、もう一度🎤を押してね'); };
-    const finish = async () => { if (r.done || r.__killed) return; r.done = true; clearInterval(tick);
+    const tell = () => { if (told) return; told = true; live('🎤 聞いています… 話し終わったら、もう一度🎤を押してね'); vrUI('listen', { manual: true }); };
+    vrUI('listen', { manual: manual });
+    const finish = async () => { if (r.done || r.__killed) return; r.done = true; clearInterval(tick); vrUI('busy');
       let blob = null;
       if (rec) blob = await new Promise(ok => { const mk = () => parts.length ? new Blob(parts, { type: (parts[0] && parts[0].type) || mime }) : null, t = setTimeout(() => ok(mk()), 2500);
         rec.onstop = () => { clearTimeout(t); setTimeout(() => ok(mk()), 0); }; try { if (rec.state !== 'inactive') rec.stop(); else { clearTimeout(t); ok(mk()); } } catch(e){ clearTimeout(t); ok(mk()); } });
       const rate = ac ? ac.sampleRate : 48000; r.cleanup();
       if (r.__killed) return;
-      const none = msg => { end(); stopMic(); live(''); toast(msg); if (onDone) onDone(); };
+      const none = msg => { end(); stopMic(); live(''); vrUI(''); toast(msg); if (onDone) onDone(); };
       if (!manual && !heard) { vrLog('声なし（' + why + '）'); return none('声が聞こえなかったよ。🎤を押して話してね'); }
       live('文字にしています…');
       let b64 = '', mt = 'audio/wav', info = '';
@@ -4605,10 +4734,10 @@ function listen(onText, onDone, auto){
       vrLog('区切り（' + why + '）' + info + ' → 送る ' + mt + ' ' + Math.round(b64.length / 1024) + 'KB');
       /* 25秒たっても返ってこなければ、あきらめて「もう一度」と出す（「文字にしています…」のまま止まらないように） */
       const slow = new Promise((_, ng) => setTimeout(() => ng(new Error('時間がかかっています。もう一度🎤を押して話してね')), 25000));
-      Promise.race([call('transcribe', b64, mt, ''), slow]).then(text => { end(); text = String(text || '').trim(); vrLog('文字：' + text.length + '字'); if (r.__killed) { if (!MIC.r) live(''); return; }
+      Promise.race([call('transcribe', b64, mt, ''), slow]).then(text => { end(); text = String(text || '').trim(); vrLog('文字：' + text.length + '字'); if (r.__killed) { if (!MIC.r) live(''); return; } vrUI('');
           if (text) { live(text); onText(text); } else { live(''); toast('うまく聞き取れなかったよ。もう一度話してね'); }
           if (onDone) onDone(); })
-        .catch(err => { end(); vrLog('文字にできない：' + String(err && err.message || err).slice(0, 60)); if (r.__killed) { if (!MIC.r) live(''); return; } live(''); toast(String(err && err.message || err).slice(0, 60) || '声を文字にできませんでした'); if (onDone) onDone(); }); };
+        .catch(err => { end(); vrLog('文字にできない：' + String(err && err.message || err).slice(0, 60)); if (r.__killed) { if (!MIC.r) live(''); return; } live(''); vrUI(''); toast(String(err && err.message || err).slice(0, 60) || '声を文字にできませんでした'); if (onDone) onDone(); }); };
     r.stopNow = () => { why = '押して区切った'; if (manual) heard = true; finish(); };
     if (manual) { vrLog('声の大きさが取れない → 押して区切る'); tell(); }
     tick = setInterval(() => { if (r.__killed || r.done) return; const now = performance.now(), el = now - t0;
@@ -4616,7 +4745,8 @@ function listen(onText, onDone, auto){
         if (fb instanceof Float32Array) { an.getFloatTimeDomainData(fb); for (let i = 0; i < fb.length; i += 4) { s += fb[i] * fb[i]; n++; if (fb[i] !== 0) mv = true; } }
         else { an.getByteTimeDomainData(fb); for (let i = 0; i < fb.length; i += 4) { const v = (fb[i] - 128) / 128; s += v * v; n++; if (fb[i] !== 128) mv = true; } }
         const rms = Math.sqrt(s / n);
-        if (mv && !alive) { alive = true; if (manual) { manual = false; told = false; vrLog('声の大きさが取れた（' + Math.round(el) + 'ms）→ 自動で区切る'); live(heard ? '🎤 聞いています…' : ''); } }
+        if (mv && !alive) { alive = true; if (manual) { manual = false; told = false; vrLog('声の大きさが取れた（' + Math.round(el) + 'ms）→ 自動で区切る'); live(heard ? '🎤 聞いています…' : ''); vrUI('listen', { manual: false }); } }
+        if (alive) vrLevel(rms);
         if (alive && !manual) { if (el < 400) { floor += rms; nf++; } else { const thr = Math.max(0.012, (nf ? floor / nf : 0) * 3); if (rms > thr) { if (!heard) { heard = true; live('🎤 聞いています…'); } lastLoud = now; } } }
         if (!alive && !manual && el > 1500) { manual = true; vrLog('声の大きさが取れない（' + (ac && ac.state) + '）→ 押して区切る'); tell(); } }
       if (!manual && heard && now - lastLoud > quiet) { why = '話し終わり'; return finish(); }
@@ -4708,7 +4838,7 @@ function ivBegin(list){
 }
 function ivReset(){ Object.assign(IV, { hist: [], pend: [], eps: [], qa: [], mode: 'confirm', busy: false, listening: false, text: !(SR && QV.micOk), last: '', q: '', lq: '' }); }
 function ivConfirm(){ IV.mode = 'confirm'; IV.last = ''; ivDraw(); const w = workOf(IV.list[IV.wi]) || {};
-  ivSpeak('この絵について聞いてもいい？' + (hasName(w) ? '「' + w['作品名'] + '」だよ。' : ''), '', () => { if (IV && IV.mode==='confirm' && !IV.text) ivAutoListen(); }); }
+  ivSpeak('この作品のこと、聞かせてもろてもよろしい？' + (hasName(w) ? '「' + w['作品名'] + '」え。' : ''), '', () => { if (IV && IV.mode==='confirm' && !IV.text) ivAutoListen(); }); }
 function endInterview(fromHist){ const was = !!IV && !!$('#quiz') && !$('#quiz').classList.contains('hidden'); stopMic(); sayStop(); const el = $('#quiz'); if (el) el.classList.add('hidden'); document.body.style.overflow = ''; IV = null; if (was && !fromHist) hback(); }
 function ivCur(no, f){ const w = workOf(no) || {}; if (f==='サイズ') return (w['幅cm']||w['高さcm']) ? `幅${w['幅cm']||'?'} × 高さ${w['高さcm']||'?'} cm` : '';
   if (f==='場所') return w['所在区分']==='不明' ? '' : (w['所在'] || w['所在区分'] || ''); return w[f] || ''; }
@@ -4749,7 +4879,7 @@ function ivDraw(){
       <div class="ivgrid">${hit.map(w => `<button class="ivpick" data-ivpick="${esc(w['作品番号'])}"><span class="ivth">${hasPh(w['作品番号']) ? thImg(photoBy[w['作品番号']][0]['ファイルID'], 200) : '📷'}</span><b>${esc(w['作品名'] || '無題')}</b><small>${esc(nol(w['作品番号']))}</small></button>`).join('') || '<p class="muted">見つかりません</p>'}</div>
       <div class="qzfoot"><button class="qzlink" data-iv="back">‹ もどる</button><span></span></div>`;
   } else if (IV.mode==='confirm') {
-    body = `<div class="ivmain"><span class="aiav">AI</span><div class="ivqt">この絵について聞いてもいい？</div></div>
+    body = `<div class="ivmain"><span class="aiav">AI</span><div class="ivqt">この作品のこと、聞かせてもろてもよろしい？</div></div>
       ${qzHead(no, true)}
       <div class="ivopts"><button class="qzwide yes" data-iv="ok">◯ この絵でいい</button><button class="qzwide" data-iv="other">別の絵にする ›</button><button class="qzwide" data-iv="list">一覧から選ぶ</button></div>
       ${IV.listening ? '<div class="ivhear">🎤 聞いてるよ…「いいよ」「別の絵」「一覧」</div><div class="srlive">…</div>' : !IV.text && SR && QV.micOk ? '<button class="srtap" data-iv="mic">🎤 押して話す</button>' : ''}`;
@@ -4785,7 +4915,7 @@ function ivTurn(answer){
     IV.q = r.q; IV.hist.push({ q: r.q, a: '' });
     if (r.end || IV.hist.length > 8) { IV.mode = 'sum'; ivDraw(); ivSpeak(r.q, r.audio); return; }
     ivDraw(); ivSpeak(r.q, r.audio, () => { if (IV && IV.mode==='talk' && !IV.text && !IV.busy) ivAutoListen(); });
-  }).catch(e => { if (!IV) return; IV.busy = false; IV.q = 'うまくいかなかった。もう一回話してみて。（' + (e.message || e) + '）'; ivDraw(); });
+  }).catch(e => { if (!IV) return; IV.busy = false; IV.q = 'うまいこといかへんかったわ。もういっぺん話してみてくれはる？（' + (e.message || e) + '）'; ivDraw(); });
 }
 /** 読み上げのあと自動で聞く：スピーカーを解放して少し待ってから（iPhoneで声が入らない対策） */
 function ivAutoListen(){ try { if (TTSA) { TTSA.pause(); TTSA.removeAttribute('src'); TTSA.load(); } } catch(e){}
@@ -4812,7 +4942,7 @@ function ivSave(){
   IV.pend.filter(p => p.on).forEach(p => patch[p.f] = p.v);
   const eps = IV.eps.filter(x => x.on).map(x => x.t);
   busy(true, '保存しています…');
-  call('interviewSave', no, patch, eps, IV.qa).then(d => { busy(false); setData(d); if (!IV) return; IV.mode = 'saved'; ivDraw(); ivSpeak('保存したよ。ありがとう！', ''); })
+  call('interviewSave', no, patch, eps, IV.qa).then(d => { busy(false); setData(d); if (!IV) return; IV.mode = 'saved'; ivDraw(); ivSpeak('保存したえ。おおきに！', ''); })
     .catch(e => { busy(false); alert('保存できませんでした：' + (e.message || e)); });
 }
 document.addEventListener('click', e => {
