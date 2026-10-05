@@ -1,22 +1,56 @@
 <!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes"><title>マイクのテスト</title>
-<style>body{font-family:system-ui,-apple-system,"Hiragino Sans",sans-serif;background:#f5f3ee;color:#222;margin:0;padding:calc(env(safe-area-inset-top) + 24px) 20px 40px;text-align:center}
-h1{font-size:24px}p{line-height:1.7;font-size:17px}button{font-size:20px;font-weight:700;border:0;border-radius:18px;padding:18px 20px;width:100%;max-width:420px;background:#2e9e68;color:#fff;margin:14px 0}
-#out{font-size:22px;min-height:60px;margin:18px 0;padding:14px;background:#fff;border-radius:14px}#st{color:#777;font-size:15px}
-@media (prefers-color-scheme:dark){body{background:#222;color:#eee}#out{background:#333}}</style></head>
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="robots" content="noindex, nofollow"><title>マイクのテスト</title>
+<style>body{font-family:system-ui,-apple-system,"Hiragino Sans",sans-serif;background:#f5f3ee;color:#222;margin:0;padding:calc(env(safe-area-inset-top) + 20px) 18px 40px}
+h1{font-size:23px;text-align:center}h2{font-size:17px;margin:26px 0 8px}p{line-height:1.7;font-size:16px}
+button{font-size:20px;font-weight:700;border:0;border-radius:18px;padding:18px 20px;width:100%;background:#2e9e68;color:#fff;margin:10px 0}button:disabled{opacity:.5}
+a.back{display:block;text-align:center;font-size:17px;font-weight:700;color:#1f5fad;margin:18px 0}
+#bar{height:16px;border-radius:8px;background:#ddd;overflow:hidden;margin:10px 0}#bar i{display:block;height:100%;width:0;background:#2e9e68}
+#out,#log{font-size:14.5px;line-height:1.75;background:#fff;border-radius:14px;padding:12px 14px;white-space:pre-wrap;word-break:break-all;min-height:40px}
+.ok{color:#1f8a4c;font-weight:700}.ng{color:#c8372d;font-weight:700}audio{width:100%;margin-top:10px}
+@media (prefers-color-scheme:dark){body{background:#222;color:#eee}#out,#log{background:#333}#bar{background:#444}}</style></head>
 <body><h1>🎤 マイクのテスト</h1>
-<p>下のボタンを押して、<br>「こんにちは」と話してください。</p>
-<button id="go">🎤 押して話す</button>
-<div id="out">（ここに聞き取った言葉が出ます）</div>
-<div id="st"></div>
-<p style="font-size:13px;color:#999">このページは何も保存・送信しません。</p>
+<p>ボタンを押して、5秒のあいだ「こんにちは」と話してください。録音できるかを順番に確かめます。</p>
+<button id="go">🎤 押して、5秒話す</button>
+<div id="bar"><i></i></div>
+<div id="out">（ここに結果が出ます）</div>
+<div id="play"></div>
+<h2>アプリでの最後の記録</h2>
+<div id="log">（まだありません）</div>
+<a class="back" href="../">‹ アプリにもどる</a>
+<p style="font-size:13px;color:#999">このページは、録音をどこにも保存・送信しません。うまくいかないときは、この画面の写真を撮って見せてください。</p>
 <script>
-const SR=window.SpeechRecognition||window.webkitSpeechRecognition,st=document.getElementById('st'),out=document.getElementById('out');
-const mode=(navigator.standalone||matchMedia('(display-mode: standalone)').matches)?'ホーム画面から開いています':'Safariで開いています';
-st.textContent=mode+(SR?'':'／この端末は聞き取り機能に対応していません');
-document.getElementById('go').onclick=()=>{if(!SR)return;const r=new SR();r.lang='ja-JP';r.interimResults=false;
- r.onstart=()=>{st.textContent=mode+'／聞いています…'};
- r.onresult=e=>{out.textContent='✅ '+e.results[0][0].transcript;st.textContent=mode+'／成功しました！'};
- r.onerror=e=>{out.textContent='❌ 使えませんでした';st.textContent=mode+'／エラー：'+e.error};
- try{r.start()}catch(e){st.textContent='エラー：'+e.message}};
+const $ = s => document.querySelector(s), out = $('#out'), L = [];
+const put = (t, c) => { L.push(c ? '<span class="' + c + '">' + t + '</span>' : t); out.innerHTML = L.join('\n'); };
+const sa = navigator.standalone || matchMedia('(display-mode: standalone)').matches;
+try { const g = localStorage.getItem('smr_miclog'); if (g) $('#log').textContent = g.split('\n').slice(-25).join('\n'); } catch(e){}
+$('#go').onclick = async () => { const btn = $('#go'); btn.disabled = true; L.length = 0; $('#play').innerHTML = '';
+  const ios = (navigator.userAgent.match(/OS (\d+[_\d]*) like Mac/) || [])[1];
+  put((sa ? 'ホーム画面のアプリ' : 'ブラウザ') + (ios ? '・iOS ' + ios.replace(/_/g, '.') : ''));
+  let stream, rec = null, parts = [], mime = '', ac = null, an = null, timer = null, peakLive = 0, alive = false;
+  const done = () => { clearInterval(timer); try { stream && stream.getTracks().forEach(t => t.stop()); } catch(e){} try { ac && ac.close(); } catch(e){} btn.disabled = false; $('#bar i').style.width = '0'; };
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }); put('1. マイク：使えます', 'ok'); }
+  catch(e){ put('1. マイク：使えません（' + (e && e.name) + '）→ 設定でマイクを許可してください', 'ng'); return done(); }
+  try { if (!window.MediaRecorder) throw new Error('この端末にはありません'); const m = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm'].find(t => { try { return MediaRecorder.isTypeSupported(t); } catch(e){ return false; } });
+    rec = m ? new MediaRecorder(stream, { mimeType: m }) : new MediaRecorder(stream); rec.ondataavailable = e => { if (e.data && e.data.size) parts.push(e.data); }; rec.start(); mime = rec.mimeType || m || ''; put('2. 録音：はじめました（' + mime + '）', 'ok'); }
+  catch(e){ rec = null; put('2. 録音：できません（' + (e && e.message || e) + '）', 'ng'); }
+  try { const A = window.AudioContext || window.webkitAudioContext; ac = new A(); const s0 = ac.state; if (ac.state !== 'running') await Promise.race([ac.resume(), new Promise(ok => setTimeout(ok, 700))]);
+    if (ac.state === 'running') { const src = ac.createMediaStreamSource(stream); an = ac.createAnalyser(); an.fftSize = 2048; src.connect(an); const g = ac.createGain(); g.gain.value = 0; an.connect(g); g.connect(ac.destination); }
+    put('3. 声の大きさを見る準備：' + s0 + ' → ' + ac.state + '（' + ac.sampleRate + '）', ac.state === 'running' ? 'ok' : 'ng'); }
+  catch(e){ put('3. 声の大きさを見る準備：できません（' + (e && e.message || e) + '）', 'ng'); }
+  const buf = an ? new Uint8Array(an.fftSize) : null, t0 = Date.now();
+  timer = setInterval(() => { if (!an) return; an.getByteTimeDomainData(buf); let s = 0; for (let i = 0; i < buf.length; i += 4) { const v = (buf[i] - 128) / 128; s += v * v; if (buf[i] !== 128) alive = true; } const rms = Math.sqrt(s / (buf.length / 4)); if (rms > peakLive) peakLive = rms; $('#bar i').style.width = Math.min(100, rms * 400) + '%'; }, 60);
+  await new Promise(ok => setTimeout(ok, 5000));
+  put('4. 話しているあいだの声の大きさ：' + (an ? (alive ? '取れました（最大 ' + peakLive.toFixed(3) + '）' : '取れません（音が流れてきません）') : '見られません'), an && alive && peakLive > 0.02 ? 'ok' : 'ng');
+  let blob = null;
+  if (rec) { blob = await new Promise(ok => { const mk = () => parts.length ? new Blob(parts, { type: (parts[0] && parts[0].type) || mime }) : null, t = setTimeout(() => ok(mk()), 2500); rec.onstop = () => { clearTimeout(t); setTimeout(() => ok(mk()), 0); }; try { rec.stop(); } catch(e){ clearTimeout(t); ok(mk()); } });
+    put('5. 録音したもの：' + (blob ? blob.size + ' バイト' : 'ありません'), blob && blob.size > 2000 ? 'ok' : 'ng'); }
+  done();
+  if (blob && blob.size) { try { const A = window.AudioContext || window.webkitAudioContext, c = new A(), ab = await blob.arrayBuffer();
+      const b = await new Promise((ok, ng) => { const p = c.decodeAudioData(ab, ok, ng); if (p && p.catch) p.catch(() => {}); setTimeout(() => ng(new Error('時間切れ')), 6000); });
+      const d = b.getChannelData(0); let pk = 0; for (let i = 0; i < d.length; i += 8) { const v = Math.abs(d[i]); if (v > pk) pk = v; } try { c.close(); } catch(e){}
+      put('6. 録音の中身：' + b.duration.toFixed(1) + '秒・声の大きさ 最大 ' + pk.toFixed(3), pk > 0.02 ? 'ok' : 'ng'); }
+    catch(e){ put('6. 録音の中身：読み出せません（' + (e && e.message || e) + '）※そのまま送る方法に切りかわります', 'ng'); }
+    const a = document.createElement('audio'); a.controls = true; a.src = URL.createObjectURL(blob); $('#play').appendChild(a);
+    put('▶ 下の再生ボタンで、自分の声が聞こえれば録音はできています'); }
+};
 </script></body></html>

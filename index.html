@@ -1836,7 +1836,7 @@ body.qcopen #top{visibility:hidden!important;pointer-events:none!important}
 html[data-theme=dark] .qc{background:var(--bg)}
 body.qcopen::before{content:'';position:fixed;left:0;right:0;top:-50vh;bottom:-50vh;z-index:107;background:#FFFFFF}html[data-theme=dark] body.qcopen::before{background:var(--bg)}body.qcopen #nav,body.qcopen #navAsk,body.qcopen #fmSearch{visibility:hidden!important}
 /* カードを開いている間は、後ろのホームなどを見えなくする（iPhone のキーボードの上のすき間から透けないように） */
-body.qcopen>*:not(#qc):not(#qclb):not(#fdb):not(#ltb):not(#top){visibility:hidden!important}
+body.qcopen>*:not(#qc):not(#qclb):not(#fdb):not(#top){visibility:hidden!important}
 body.qcopen #toast,body.qcopen #loading,body.qcopen #confirm{visibility:visible!important}
 .qc-w{max-width:560px;height:100%;margin:0 auto;box-sizing:border-box;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;flex-direction:column;gap:11px}
 .qc-top{display:flex;align-items:center;gap:10px}
@@ -1922,22 +1922,18 @@ html[data-theme=dark] .qc-chip{background:#16384A;color:#9ADDFF}
 .fdb-th{flex:none;width:52px;height:52px;border-radius:10px;overflow:hidden;background:var(--hg-sf)}.fdb-th img{width:100%;height:100%;object-fit:cover;display:block}
 .fdb-tx{min-width:0;display:flex;flex-direction:column;gap:2px}.fdb-tx b{font-size:15px}.fdb-tx small{font-size:12.5px;line-height:1.45;color:var(--hg-s)}.fdb-tx .fdb-r{color:#A56A00}
 html[data-theme=dark] .fdb-tx .fdb-r{color:#FFC800}.fdb-b{position:sticky;bottom:0;padding:10px 0 4px;background:var(--hg-bg)}
-/* 展覧会・本のカード（家族に聞く）と、管理者のまとめて確認 */
+/* 展覧会・本のカード（家族に聞く）と、管理者が1件ずつ確かめるカード */
 .qc-lt{flex:none;display:flex;align-items:center;gap:14px;padding:18px 18px;border-radius:16px;border:2px solid #A5D86A;background:#F3FBE8;color:#3C3C3C}
 .qc-lt>div{min-width:0;display:flex;flex-direction:column;gap:5px}.qc-lt small{font-size:14px;font-weight:800;color:#3F7D00}
 .qc-lt b{font-size:clamp(21px,6vw,25px);line-height:1.4;font-weight:800;color:#2B2B2B;overflow-wrap:anywhere}.qc-lt p{margin:0;font-size:17px;line-height:1.5;color:#4B4B4B}
 .qc-ltc{flex:none;width:92px;height:124px;border-radius:10px;overflow:hidden;background:var(--hg-sf)}.qc-ltc img{width:100%;height:100%;object-fit:cover;display:block}
 .qc.kb .qc-lt{padding:10px 14px}.qc.kb .qc-lt b{font-size:17px}.qc.kb .qc-lt p,.qc.kb .qc-ltc{display:none}
 html[data-theme=dark] .qc-lt{background:#1F3311;border-color:#3F6B1C;color:#DDEBCF}html[data-theme=dark] .qc-lt b{color:#F1F8E8}html[data-theme=dark] .qc-lt small{color:#9BD75A}html[data-theme=dark] .qc-lt p{color:#C9D9BA}
-.ltb-i{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:14px;border:2px solid var(--hg-ln);background:var(--hg-bg)}.ltb-i.set{border-color:#58CC02}
-.ltb-hd{display:flex;flex-direction:column;gap:3px;min-width:0}.ltb-hd b{font-size:16px;line-height:1.45;color:var(--hg-h);overflow-wrap:anywhere}.ltb-hd small{font-size:12.5px;line-height:1.5;color:var(--hg-s);overflow-wrap:anywhere}
-.ltb-k{display:inline-block;margin-right:7px;padding:1px 8px;border-radius:999px;background:#58A700;color:#FFFFFF;font-size:11.5px;font-style:normal;font-weight:800;vertical-align:2px}
-.ltb-hd a{align-self:flex-start;font-size:14px;font-weight:800;color:#1F5FAD;text-decoration:none}html[data-theme=dark] .ltb-hd a{color:#6CB4FF}
-.ltb-os{display:flex;flex-direction:column;gap:6px}
-.ltb-o{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:7px 10px;border-radius:12px;border:2px solid var(--hg-ln);background:var(--hg-bg);color:var(--hg-h);font:inherit;font-size:15px;font-weight:700;text-align:left;cursor:pointer}
-.ltb-o span{min-width:0;display:flex;flex-direction:column;gap:1px;overflow-wrap:anywhere}.ltb-o small{font-size:12.5px;font-weight:500;color:var(--hg-s)}
-.ltb-o.on{border-color:#58CC02;background:rgba(88,204,2,.07)}.ltb-o.on .fdb-ck{background:#58CC02;border-color:#58CC02}
-.ltb .hg-go:disabled{opacity:.45}
+.qc-lt a{align-self:flex-start;font-size:15px;font-weight:800;color:#1F5FAD;text-decoration:none}html[data-theme=dark] .qc-lt a{color:#6CB4FF}
+.qc-lt .lb-m{font-size:14px;line-height:1.55;color:#5B6B4B}html[data-theme=dark] .qc-lt .lb-m{color:#B7C7A6}
+.lb-os{display:flex;flex-direction:column;gap:9px}
+.qc-c.lb-c{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;width:100%;min-height:56px;padding:9px 14px;text-align:left}
+.lb-c b{font-size:17px;line-height:1.4;overflow-wrap:anywhere}.lb-c small{font-size:13px;font-weight:500;line-height:1.45;color:var(--hg-s);overflow-wrap:anywhere}
 .qc-sl{flex:none;margin:0;display:flex;justify-content:space-between;font-size:15px;font-weight:800;color:var(--hg-h)}.qc-sl span{font-size:13px;color:var(--hg-s)}
 .qc-rec{flex:none;display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:16px;border:2px solid #FFC800;background:#FFF8DC;color:#4B4B4B}
 .qc-rec small{font-size:13px;font-weight:800;color:#A56A00}.qc-rec b{font-size:18px;color:#3C3C3C}.qc-rec p{margin:0;font-size:14px;line-height:1.55}
@@ -2086,7 +2082,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '558ada001f', APP_URL = location.origin + location.pathname;
+const BUILD = '8b2eaf96f7', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2580,13 +2576,14 @@ function startCards(test, mode, wno){
   else if (mode === 'find') L = qcFinds(10);
   else if (mode === 'ask') L = qcAsks(10);
   else if (mode === 'lit') L = qcLits(10);
+  else if (mode === 'litb') L = qcLitB(10);
   else if (mode === 'work') L = qcWorkCards(wno);
   else { /* 今日の10作品：同じ種類が続かないよう、場所・調べの記録・作品名・書類の違い・写真・場所の確認を順番にまぜる */
     const by = { loc: [], name: [], photo: [], conf: [] };
     hgPick(400).forEach(no => { const k = qcKind(no); if (k && by[k].length < 10) by[k].push({ no, k }); });
     const P = [by.loc, qcFinds(3), by.name, qcDiffGroups(3), by.photo, qcAsks(2), qcLits(2), by.conf]; /* 書類の違いは、同じ書類と作品のものを続けて出す */
     for (let r = 0; L.length < 10 && P.some(x => x.length); r++) P.forEach(x => { if (L.length < 10 && x.length) { const it = x.shift(); if (Array.isArray(it)) L.push(...it); else L.push(it); } }); }
-  if (!L.length) return toast(mode === 'work' ? 'この作品で聞くことはありません' : mode === 'ask' ? 'いま聞きたいことはありません' : mode === 'lit' ? 'いま聞きたい展覧会・本はありません' : mode === 'diff' ? 'いま決める書類の違いはありません' : mode === 'find' ? 'いま確かめる調べの記録はありません' : 'いま確かめる作品はありません');
+  if (!L.length) return toast(mode === 'work' ? 'この作品で聞くことはありません' : mode === 'ask' ? 'いま聞きたいことはありません' : mode === 'lit' ? 'いま聞きたい展覧会・本はありません' : mode === 'litb' ? '確かめる記録はありません' : mode === 'diff' ? 'いま決める書類の違いはありません' : mode === 'find' ? 'いま確かめる調べの記録はありません' : 'いま確かめる作品はありません');
   closeSheet(); closeAllPages(); ttsUnlock();
   const tts0 = QV.tts; QV.tts = !test && !mode ? qcTtsPref() : false;
   QC = { tts0, L, i: 0, step: '', heard: '', pend: null, n: 0, test: !!test, mode: mode || '', wno: wno || '', before: new Set(L.filter(c => qcComplete(c.no)).map(c => c.no)) };
@@ -2836,12 +2833,13 @@ const ltRec = l => ltIsEx(l) ? (S.exhibits || []).find(x => x['展覧会ID'] ===
 const ltN = s => fdN(String(s || '').replace(/[:：／\/]/g, ''));
 const ltWhen = (a, b) => [a, b].filter(Boolean).join('〜');
 /* 家族に聞く記録：台帳に入っていて、まだ答えがないもの。本は「家にある冊数」が空のもの、展覧会は作品がまだひも付いていないもの */
-function ltAskOpen(l){ if (l['状態'] !== '承認' || !l['台帳ID'] || l['家族の答え'] || LTS.has(l['候補ID'])) return false; const r = ltRec(l); if (!r) return false;
+function ltAskOpen(l){ if (l['状態'] !== '承認' || !l['台帳ID'] || l['家族の答え'] || LTS.has(l['候補ID'])) return false;
+  if (l['確認日時'] === '2026/10/05 14:07') return false; /* まちがってまとめて登録した分（台帳はもどした。Google 側でもどしたら、この行は消してよい） */ const r = ltRec(l); if (!r) return false;
   return ltIsEx(l) ? !(worksByEx[l['台帳ID']] || []).length : !String(r['家にある冊数'] || '').trim(); }
 function qcLits(max){ const seen = new Set(), A = (S.lits || []).filter(l => { if (!ltAskOpen(l) || seen.has(l['台帳ID'])) return false; seen.add(l['台帳ID']); return true; });
   A.sort((a, b) => (ltIsEx(a) ? 1 : 0) - (ltIsEx(b) ? 1 : 0)); /* 本を先に（答えやすい） */
   return A.slice(0, max).map(l => ({ no: '', k: 'lit', id: l['候補ID'] })); }
-function ltLeft(){ let all = 0, left = 0; (S.lits || []).forEach(l => { if (l['状態'] !== '承認' || !l['台帳ID']) return; const o = ltAskOpen(l); if (o || l['家族の答え'] || LTS.has(l['候補ID'])) all++; if (o) left++; }); return { all, left }; }
+function ltLeft(){ let all = 0, left = 0; (S.lits || []).forEach(l => { if (l['状態'] !== '承認' || !l['台帳ID'] || l['確認日時'] === '2026/10/05 14:07') return; const o = ltAskOpen(l); if (o || l['家族の答え'] || LTS.has(l['候補ID'])) all++; if (o) left++; }); return { all, left }; }
 function qcDrawLit(el, c){
   const l = ltById(c.id), r = l && ltRec(l); if (!l || !r || !ltAskOpen(l)) { QC.i++; QC.step = ''; return qcDraw(); }
   const ex = ltIsEx(l), k = QC.step === 'ltn' && !ex ? 'ltn' : '';
@@ -2887,7 +2885,8 @@ function qcLitSave(c, a){ const l = ltById(c.id), r = l && ltRec(l); if (!l || !
     () => { undo(); QC.n -= dn; });
   qcDraw();
 }
-/* ===== 管理者：調べで見つかった展覧会・図録・本を、一覧でまとめて確かめて台帳に入れる ===== */
+/* ===== 管理者：調べで見つかった展覧会・図録・本を、1件ずつカードで確かめて台帳に入れる =====
+   （10/5：はじめは一覧でまとめて登録する形だったが、大きな登録ボタンをまちがって押してしまったため、1件ずつに変えた。まとめて登録はしない） */
 /* 台帳の候補（展覧会：同じ年〈前後1年まで〉で名前・会場が近いもの／本：題が近いもの） */
 function ltCands(l){ const ex = ltIsEx(l), nm = ltN(l['名称']), y = fdY(l['開始']), pl = ltN(l['相手先']), out = [];
   if (ex) (S.exhibits || []).forEach(x => { const xy = fdY(x['開始日']); if (y && xy && Math.abs(xy - y) > 1) return;
@@ -2900,44 +2899,39 @@ function ltCands(l){ const ex = ltIsEx(l), nm = ltN(l['名称']), y = fdY(l['開
     if (/不明/.test(p['タイトル'] || '') && p['種類'] === l['細分']) s = Math.max(s, .5);
     if (s >= .5) out.push({ id: p['資料ID'], s, t: p['タイトル'] || '（題なし）', sub: [p['資料ID'], p['種類'], p['発行年月'], p['発行元']].filter(Boolean).join('・') }); });
   return out.sort((a, b) => b.s - a.s).slice(0, 4); }
-/* はじめに選んでおくもの：候補がなければ「新しく入れる」、はっきり1つに決まるときだけその候補。迷うものは選ばない */
-const ltPick = (l, cs) => !cs.length ? 'new' : (cs[0].s >= (ltIsEx(l) ? 1.2 : 1) && (!cs[1] || cs[0].s - cs[1].s >= .25) ? cs[0].id : '');
-let LTB = null;
-function ltbOpen(){ const L = (S.lits || []).filter(l => !l['状態']); if (!L.length) return toast('まとめて確かめる記録はありません');
-  closeSheet(); closeAllPages(); const cs = {}, sel = {}; L.forEach(l => { const id = l['候補ID']; cs[id] = ltCands(l); sel[id] = ltPick(l, cs[id]); });
-  LTB = { L, cs, sel };
-  let el = $('#ltb'); if (!el) { el = document.createElement('div'); el.id = 'ltb'; el.className = 'qc hm2 fdb ltb'; document.body.appendChild(el);
-    el.addEventListener('click', e => { const t = e.target.closest('[data-ltb]'); if (!t || !LTB) return; const a = t.dataset.ltb;
-      if (a === 'end') return ltbEnd(); if (a === 'go') return ltbGo();
-      if (a.indexOf('p:') === 0) { const p = a.split(':'); LTB.sel[p[1]] = LTB.sel[p[1]] === p[2] ? '' : p[2]; return ltbDraw(); } }); }
-  el.classList.remove('hidden'); qcLock(true); ltbDraw(); hpushLater('f'); }
-function ltbEnd(fromHist){ const was = !!LTB, el = $('#ltb'); if (el) { el.classList.add('hidden'); el.innerHTML = ''; } qcLock(false); LTB = null; if (was && !fromHist) hback(); renderHome(); }
-function ltbDraw(){ const el = $('#ltb'); if (!el || !LTB) return; const y = el.scrollTop, n = LTB.L.filter(l => LTB.sel[l['候補ID']]).length;
-  const opt = (id, v, on, t, sm) => `<button type="button" class="ltb-o${on ? ' on' : ''}" data-ltb="p:${esc(id)}:${esc(v)}" aria-pressed="${on}"><i class="fdb-ck">${on ? QCSVG.ok : ''}</i><span>${t}${sm ? `<small>${sm}</small>` : ''}</span></button>`;
-  const item = l => { const id = l['候補ID'], ex = ltIsEx(l), cs = LTB.cs[id] || [], s = LTB.sel[id] || '', pair = l['組'] && ltById(l['組']);
-    return `<div class="ltb-i${s ? ' set' : ''}"><div class="ltb-hd"><b><i class="ltb-k">${esc(ex ? l['細分'] || '展覧会' : l['細分'] || '資料')}</i>${esc(l['名称'])}</b>
-      <small>${esc([ltWhen(l['開始'], l['終了']), l['相手先'], l['著者・主催']].filter(Boolean).join('・'))}</small>${pair ? `<small>${ex ? 'この展覧会の図録' : 'この図録の展覧会'}：${esc(pair['候補ID'])} ${esc(pair['名称'])}</small>` : ''}
-      ${l['メモ'] ? `<small>${esc(l['メモ'])}</small>` : ''}${l['根拠URL'] ? `<a href="${esc(l['根拠URL'])}" target="_blank" rel="noopener">記録を開く ›</a>` : ''}</div>
-      <div class="ltb-os">${cs.map(c => opt(id, c.id, s === c.id, `台帳の「${esc(c.t)}」と同じ`, esc(c.sub))).join('')}${opt(id, 'new', s === 'new', '台帳に新しく入れる')}${opt(id, 'no', s === 'no', '入れない')}</div></div>`; };
-  const EX = LTB.L.filter(ltIsEx), PB = LTB.L.filter(l => !ltIsEx(l));
-  el.innerHTML = `<div class="qc-w fdb-w"><div class="qc-top"><button type="button" class="qc-x" data-ltb="end" aria-label="閉じる">${QCSVG.x}</button><b class="fdb-h">まとめて確認（管理者）</b></div>
-    <div class="qc-task"><span class="hg-ic" style="background:#58A700"><svg viewBox="0 0 24 24" aria-hidden="true">${LTIC}</svg></span><b>調べで見つかった展覧会・図録・本<small>台帳に入れるものを選びます</small></b></div>
-    <p class="qc-hint">1件ずつ、台帳のどれと同じか・新しく入れるか・入れないかを選びます（もう一度押すと外れます）。選んでいないものは、この一覧に残ります。「同じ」を選んでも、台帳に書いてあることは変えません。台帳に入れたものは、お母さんのカードに出ます。</p>
-    ${EX.length ? `<p class="qc-lbl">展覧会（${EX.length}件）</p><div class="fdb-l">${EX.map(item).join('')}</div>` : ''}
-    ${PB.length ? `<p class="qc-lbl">図録・本（${PB.length}件）</p><div class="fdb-l">${PB.map(item).join('')}</div>` : ''}
-    <div class="qc-btm fdb-b"><button type="button" class="hg-go" data-ltb="go" ${n ? '' : 'disabled'}>選んだ${n}件を登録</button></div></div>`;
-  el.scrollTop = y; }
-async function ltbGo(){ if (!LTB) return;
-  const items = LTB.L.filter(l => LTB.sel[l['候補ID']]).map(l => { const v = LTB.sel[l['候補ID']]; return { id: l['候補ID'], st: v === 'new' ? '新規' : v === 'no' ? '入れない' : '同じ', ref: v === 'new' || v === 'no' ? '' : v }; });
-  if (!items.length) return; let done = 0; const ng = [], N = 5; /* 時間がかかるので5件ずつ送る */
-  try { for (let i = 0; i < items.length; i += N) { busy(true, `台帳に入れています…（${Math.min(i + N, items.length)} / ${items.length}件）`);
-      const res = await call('setLits', items.slice(i, i + N)); done += (res && res.litDone) || 0; ((res && res.litNg) || []).forEach(x => ng.push(x)); }
-    busy(true, '台帳を読み直しています…'); await refreshData(); busy(false);
-    if (ng.length) alert(ng.length + '件はできませんでした。\n' + ng.join('\n'));
-    toast(done + '件を登録しました'); if (LTB) ltbEnd(); }
-  catch(e){ busy(false); if (isLoginErr(e)) { alert('ログインの有効期限が切れました。もう一度ログインしてください。'); return ltbEnd(); }
-    toast(/この操作はできません|setLits/.test(String(e.message || e)) ? 'まだGoogle側の更新（デプロイ）が済んでいません' : (done ? done + '件まで登録しました。' : '') + '保存できませんでした：' + (e.message || e));
-    if (done) { try { await refreshData(); } catch(x){} if (LTB) { LTB.L = LTB.L.filter(l => { const c = ltById(l['候補ID']); return c && !c['状態']; }); ltbDraw(); } } } }
+const LTD = new Set(); /* この画面で決めた記録 */
+let LTDIRTY = false; /* 台帳に入れたあと、読み直しが要る */
+const ltbOpenL = () => (S.lits || []).filter(l => !l['状態'] && !LTD.has(l['候補ID']));
+function qcLitB(max){ return ltbOpenL().slice(0, max).map(l => ({ no: '', k: 'litb', id: l['候補ID'] })); }
+function ltbLeft(){ return { all: (S.lits || []).length, left: ltbOpenL().length }; }
+function qcDrawLitB(el, c){
+  const l = ltById(c.id); if (!l || l['状態'] || LTD.has(c.id)) { QC.i++; QC.step = ''; return qcDraw(); }
+  const ex = ltIsEx(l), cs = ltCands(l), pair = l['組'] && ltById(l['組']), who = [l['相手先'], l['著者・主催']].filter((v, i, a) => v && a.indexOf(v) === i);
+  const card = `<div class="qc-lt"><div><small>${esc(ex ? '展覧会' + (l['細分'] ? '（' + l['細分'] + '）' : '') : l['細分'] || '本')}</small><b>${esc(l['名称'])}</b><p>${esc([ltWhen(l['開始'], l['終了'])].concat(who).filter(Boolean).join('・'))}</p>
+    ${pair ? `<p class="lb-m">${ex ? 'この展覧会の図録' : 'この図録の展覧会'}：${esc(pair['名称'])}</p>` : ''}${l['メモ'] ? `<p class="lb-m">${esc(l['メモ'])}</p>` : ''}${l['根拠URL'] ? `<a href="${esc(l['根拠URL'])}" target="_blank" rel="noopener">記録を開く ›</a>` : ''}</div></div>`;
+  const B = (a, t, sm, cls) => `<button type="button" class="qc-c lb-c ${cls || ''}" data-qa="${a}"><b>${t}</b>${sm ? `<small>${sm}</small>` : ''}</button>`;
+  const q = cs.length ? '台帳のどれかと、同じもの？' : '台帳に、新しく入れる？';
+  const hint = cs.length ? '台帳に似たものがあります。同じなら、それを押してください（台帳に書いてあることは変えません）' : '台帳には、似たものが見つかりませんでした';
+  QC.q = QC.sp = q;
+  el.innerHTML = `<div class="qc-w qc-dw">${qcTop()}${qcTask('litb', ex ? '展覧会' : '本')}${card}
+    <div><h1 class="qc-q">${esc(q)}</h1><p class="qc-hint">${esc(hint)}</p></div>
+    <div class="lb-os">${cs.map(x => B('lb:s:' + esc(x.id), '同じ：' + esc(x.t), esc(x.sub))).join('')}${B('lb:new', cs.length ? 'どれともちがう（新しく入れる）' : '台帳に新しく入れる')}${B('lb:no', '台帳に入れない', '', 'mut')}</div>
+    <div class="qc-btm">${qcFoot()}</div></div>`;
+  hydrate(el); el.scrollTop = 0;
+}
+function qcLitBAct(a, c){ const l = ltById(c.id); if (!l) return;
+  const it = a === 'lb:new' ? { id: c.id, st: '新規', ref: '' } : a === 'lb:no' ? { id: c.id, st: '入れない', ref: '' } : a.indexOf('lb:s:') === 0 ? { id: c.id, st: '同じ', ref: a.slice(5) } : null; if (!it) return;
+  LTD.add(c.id); QC.n++; QC.i++; QC.step = '';
+  /* ほかのカードと同じく、答えは20秒持ってから送る（上の「もどる」で取り消せる） */
+  qcHoldSet(async () => { try { const res = await call('setLits', [it]); const ng = (res && res.litNg) || []; if (ng.length) { LTD.delete(c.id); toast('登録できませんでした：' + ng[0]); } LTDIRTY = true; if (!QC) ltbSync(); }
+      catch(e){ LTD.delete(c.id); if (isLoginErr(e)) { alert('ログインの有効期限が切れました。もう一度ログインしてください。'); if (QC) qcEnd(); return; }
+        toast(/この操作はできません|setLits/.test(String(e.message || e)) ? 'まだGoogle側の更新（デプロイ）が済んでいません' : '登録できませんでした：' + (e.message || e)); } },
+    () => { LTD.delete(c.id); QC.n--; });
+  toast((it.st === '新規' ? '新しく入れます' : it.st === '入れない' ? '入れません' : '同じものとしてつなぎます') + '（まちがえたら、上の「もどる」）');
+  qcDraw();
+}
+/* 台帳に入れたあと：カードを閉じたら、台帳を読み直す（新しい展覧会・本と、お母さんのカードを出すため） */
+function ltbSync(){ if (!LTDIRTY) return; LTDIRTY = false; refreshData().catch(() => {}); }
 /* カードのいちばん上：いまやっている作業（ホームの行と同じ色・アイコン） */
 const QCTAG = '<path d="M3.5 12.5V5.5a2 2 0 0 1 2-2h7l8 8-9 9-8-8z"/><circle cx="8" cy="8" r="1.6"/>';
 function qcTask(k, lab){ const L = ['#1CB0F6', IC.loc, '場所がわからない', 'いまある場所をおしえてください'];
@@ -2945,6 +2939,7 @@ function qcTask(k, lab){ const L = ['#1CB0F6', IC.loc, '場所がわからない
     photo: ['#FF4B4B', IC.photo, '写真がない', '見つけたら写真を撮ってください'], diff: ['#2B70C9', IC.doc, (lab || '') + 'の食い違い', '書類と台帳で、ちがうことが書いてあります'],
     ask: ['#E05A9E', ASKIC, 'お母さんに聞きたいこと', '家族にしか分からないことです'],
     lit: ['#58A700', LTIC, lab === '展覧会' ? '展覧会のこと' : '本・図録のこと', lab === '展覧会' ? '覚えていることを教えてください' : '家にあるか教えてください'],
+    litb: ['#58A700', LTIC, lab === '展覧会' ? '調べで見つかった展覧会' : '調べで見つかった本・図録', '台帳に入れるか、1件ずつ決めます（管理者）'],
     find: ['#FF9600', FDIC, '調べで見つかった記録', lab === '販売' ? '売りに出ていた記録が見つかりました' : '美術館の記録が見つかりました'] }[k] || L;
   return `<div class="qc-task"><span class="hg-ic" style="background:${c}"><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg></span><b>${esc(t)}<small>${esc(sm)}</small></b></div>`; }
 function qcTop(){ return `<div class="qc-top"><button type="button" class="qc-x" data-qc="end" aria-label="やめる">${QCSVG.x}</button>${qcBackBtn()}
@@ -3166,12 +3161,12 @@ async function qcDiffSave(c, fn, pk, kind, area){
     () => { QDD.delete(key); QC.n--; });
   qcDraw();
 }
-function qcEnd(fromHist){ Object.keys(WLOG).forEach(k => delete WLOG[k]); const wno = QC && QC.mode === 'work' ? QC.wno : '', was = !!QC; if (was && !fromHist) hback();
+function qcEnd(fromHist){ setTimeout(ltbSync, 300); Object.keys(WLOG).forEach(k => delete WLOG[k]); const wno = QC && QC.mode === 'work' ? QC.wno : '', was = !!QC; if (was && !fromHist) hback();
   if (wno) { let n = 0; const go = () => { if (HIST.skip > 0 && n++ < 30) return setTimeout(go, 50); openWork(wno); }; setTimeout(go, 60); } /* 戻る（履歴）が終わってから作品ページを開く */ qcFlush(); stopMic(); sayStop(); if (QC && QC.tts0 != null) QV.tts = QC.tts0; const el = $('#qc'); if (el) { el.classList.add('hidden'); el.classList.remove('kb'); el.innerHTML = ''; el.style.top = el.style.height = el.style.bottom = ''; } qcLock(false); QC = null; refreshData().catch(() => {}); }
 function qcDraw(){
   const el = $('#qc'); if (!el || !QC) return;
   if (QC.i >= QC.L.length) return qcFinish();
-  const c = QC.L[QC.i]; if (c.k === 'diff') return qcDrawDiff(el, c); if (c.k === 'find') return qcDrawFind(el, c); if (c.k === 'lit') return qcDrawLit(el, c);
+  const c = QC.L[QC.i]; if (c.k === 'diff') return qcDrawDiff(el, c); if (c.k === 'find') return qcDrawFind(el, c); if (c.k === 'lit') return qcDrawLit(el, c); if (c.k === 'litb') return qcDrawLitB(el, c);
   const no = c.no, w = workOf(no) || {}, ph = photoBy[no] || [], k = QC.step || c.k;
   const loc = w['所在'] || (w['所在区分'] && w['所在区分'] !== '不明' ? w['所在区分'] : '');
   const q = { loc: 'この作品、いまどこにある？', conf: `この作品、いまも「${loc}」にある？`, name: 'この作品の名前、わかる？', photo: 'この作品、写真を撮れる？',
@@ -3222,6 +3217,7 @@ function qcChange(e){ if (e.target.id === 'qcCam' && e.target.files && e.target.
 function qcAct(a, btn){ const c = QC && QC.L[QC.i]; if (!c) return; const no = c.no, w = workOf(no) || {}, k = QC.step || c.k, item = QCITEM[c.k];
   if (a.indexOf('fd:') === 0) return qcFindAct(a, c);
   if (c.k === 'lit' && (a.indexOf('lt:') === 0 || a === 'back')) return qcLitAct(a, c);
+  if (c.k === 'litb' && a.indexOf('lb:') === 0) return qcLitBAct(a, c);
   if (a === 'dph' || a === 'php') return qcLightbox(btn); /* 写真をタップすると、背景をぼかして画面のまん中に大きく出す */ /* 写真をタップで大きく・もう一度で戻す */
   if (a.startsWith('dpi:')) { const f = (photoBy[no] || [])[+a.slice(4)], box = $('#qcDph'); if (f && box) { box.innerHTML = thImg(f['ファイルID'], QCW) + wm(f) + QCPHTAG + QCZM; hydrate(box); } const cap = $('#qcPhCap'); if (cap) cap.innerHTML = qcPhCap(no, +a.slice(4), QC.phRec); btn.parentNode.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === btn)); return; }
   /* 答えは覚えておき、「理由や補足はある？」のあとでまとめて保存する */
@@ -3368,9 +3364,9 @@ function qcFinish(){
     <div class="qc-stats"><div class="y"><span>答えた</span><b>${QC.n}問</b></div><div class="g"><span>あとで</span><b>${QC.L.length - QC.n}問</b></div><div class="b"><span>のこり</span><b>${left}問</b></div></div>
     <div class="qc-btm"><button type="button" class="hg-go" data-qc="end">作品ページにもどる</button></div></div>`;
     hydrate(el); el.scrollTop = 0; return; }
-  if ((QC.mode === 'diff' || QC.mode === 'find' || QC.mode === 'ask' || QC.mode === 'lit') && !QC.test) { const D = QC.mode === 'find' ? qcFindLeft() : QC.mode === 'ask' ? qcAskLeft() : QC.mode === 'lit' ? ltLeft() : qcDiffLeft(), dn = D.all - D.left;
+  if ((QC.mode === 'diff' || QC.mode === 'find' || QC.mode === 'ask' || QC.mode === 'lit' || QC.mode === 'litb') && !QC.test) { const D = QC.mode === 'find' ? qcFindLeft() : QC.mode === 'ask' ? qcAskLeft() : QC.mode === 'lit' ? ltLeft() : QC.mode === 'litb' ? ltbLeft() : qcDiffLeft(), dn = D.all - D.left;
     el.innerHTML = `<div class="qc-w qc-end">${qcBackBtn()}<div class="qc-star">${QCSVG.star}</div>
-    <h1 class="qc-q">${QC.mode === 'find' ? '調べの記録' : QC.mode === 'ask' ? 'お母さんに聞きたいこと' : QC.mode === 'lit' ? '展覧会・本のこと' : '書類の違い'}${QC.L.length}件、${QC.n >= QC.L.length ? 'クリア！' : 'おつかれさま！'}</h1>
+    <h1 class="qc-q">${QC.mode === 'find' ? '調べの記録' : QC.mode === 'ask' ? 'お母さんに聞きたいこと' : QC.mode === 'lit' ? '展覧会・本のこと' : QC.mode === 'litb' ? '調べで見つかった展覧会・本' : '書類の違い'}${QC.L.length}件、${QC.n >= QC.L.length ? 'クリア！' : 'おつかれさま！'}</h1>
     <div class="qc-stats"><div class="y"><span>決めた</span><b>${QC.n}件</b></div><div class="g"><span>あとで</span><b>${QC.L.length - QC.n}件</b></div><div class="b"><span>のこり</span><b>${D.left}件</b></div></div>
     <div class="hg-bar"><i style="width:${Math.round(dn / Math.max(D.all, 1) * 1000) / 10}%"></i></div><p class="hg-note">${dn} / ${D.all}件 決まった</p>
     <div class="qc-btm">${D.left ? `<button type="button" class="hg-go" data-qc="again">つづけて${Math.min(10, D.left)}件</button>` : ''}<button type="button" class="hg-btn2" data-qc="end">ホームにもどる</button></div></div>`;
@@ -3427,7 +3423,7 @@ function renderHome(){
       <p class="hg-note">ここには、まだ足りないものがある作品だけを出しています。番号の下に、足りないものを出しています。押すとその作品のページを開きます。</p>
       <button type="button" class="hg-link" data-v="works">すべての作品を見る</button></section>
     ${ed ? `<section class="hg-sec"><h2 class="hg-h2">ひとつずつ片付ける</h2>
-      ${row('data-bsgo="noloc"', '#1CB0F6', IC.loc, '場所がわからない', nLc)}${row('data-bsgo="noname"', '#CE82FF', NAMEIC, '作品名がない', nNm)}${row('data-bsgo="nophoto"', '#FF4B4B', IC.photo, '写真がない', nPh)}${row('data-hgdiff="1"', '#2B70C9', IC.doc, '書類と台帳の違い', nDf)}${(S.finds || []).length ? row('data-hgfind="1"', '#FF9600', FDIC, '調べで見つかった記録', qcFindLeft().left) : ''}${(n => n ? row('data-hgask="1"', '#E05A9E', ASKIC, 'お母さんに聞きたいこと', n) : '')(qcAskLeft().left)}${(S.finds || []).length && S.user && S.user.role === '管理' ? (n => n ? row('data-hgfindb="1"', '#FF9600', FDIC, '調べの記録：まとめて確認（管理者）', n) : '')((S.finds || []).filter(f => fdOpen(f) && fdReg(f)).length) : ''}${(n => n ? row('data-hglit="1"', '#58A700', LTIC, '展覧会・本のこと', n) : '')(ltLeft().left)}${S.user && S.user.role === '管理' ? (n => n ? row('data-hglitb="1"', '#58A700', LTIC, '展覧会・本：まとめて確認（管理者）', n) : '')((S.lits || []).filter(l => !l['状態']).length) : ''}
+      ${row('data-bsgo="noloc"', '#1CB0F6', IC.loc, '場所がわからない', nLc)}${row('data-bsgo="noname"', '#CE82FF', NAMEIC, '作品名がない', nNm)}${row('data-bsgo="nophoto"', '#FF4B4B', IC.photo, '写真がない', nPh)}${row('data-hgdiff="1"', '#2B70C9', IC.doc, '書類と台帳の違い', nDf)}${(S.finds || []).length ? row('data-hgfind="1"', '#FF9600', FDIC, '調べで見つかった記録', qcFindLeft().left) : ''}${(n => n ? row('data-hgask="1"', '#E05A9E', ASKIC, 'お母さんに聞きたいこと', n) : '')(qcAskLeft().left)}${(S.finds || []).length && S.user && S.user.role === '管理' ? (n => n ? row('data-hgfindb="1"', '#FF9600', FDIC, '調べの記録：まとめて確認（管理者）', n) : '')((S.finds || []).filter(f => fdOpen(f) && fdReg(f)).length) : ''}${(n => n ? row('data-hglit="1"', '#58A700', LTIC, '展覧会・本のこと', n) : '')(ltLeft().left)}${S.user && S.user.role === '管理' ? (n => n ? row('data-hglitb="1"', '#58A700', LTIC, '展覧会・本：1件ずつ確かめる（管理者）', n) : '')(ltbLeft().left) : ''}
       <details class="hg-more"><summary>そのほかの作業</summary><div class="todos">${todo.map(card).join('')}</div></details></section>` : ''}
     <button class="tourlink" data-v="help">使い方を見る</button></div><aside class="dash">${dashHTML()}</aside></div>`;
   hydrate($('#main'));
@@ -3440,7 +3436,7 @@ function renderHome(){
       if (e.target.closest('[data-hgfindb]')) return fdbOpen();
       if (e.target.closest('[data-hgfind]')) return startCards(false, 'find');
       if (e.target.closest('[data-hgask]')) return startCards(false, 'ask');
-      if (e.target.closest('[data-hglitb]')) return ltbOpen();
+      if (e.target.closest('[data-hglitb]')) return startCards(false, 'litb');
       if (e.target.closest('[data-hglit]')) return startCards(false, 'lit');
       const p = e.target.closest('[data-hgpg]'); if (p) { S.hgPage = Math.max(0, (S.hgPage || 0) + (+p.dataset.hgpg)); renderHome(); const g = $('#hgGrid'); if (g) g.scrollIntoView({ block: 'start' }); return; }
       const t = e.target.closest('[data-hgw]'); if (t) openWork(t.dataset.hgw); }); }
@@ -4505,10 +4501,22 @@ function stopMic(quiet){ const r = MIC.r; if (!r) return; MIC.r = null; r.__kill
 document.addEventListener('visibilitychange', () => { if (document.visibilityState !== 'visible') { stopMic(); sayStop(); } });
 addEventListener('pagehide', () => { stopMic(); sayStop(); });
 /* 声の聞き取り：録音して Google 側（Gemini）で文字にする。
-   （iPhone の音声入力は、アプリの置き場所を変えてから文字が返ってこなくなったため、自前で録音して送る方式にした） */
-const VR = { ac: null };
-function vrCtx(){ const A = window.AudioContext || window.webkitAudioContext; if (!A) return null; try { if (!VR.ac) VR.ac = new A(); if (VR.ac.state === 'suspended') VR.ac.resume().catch(() => {}); } catch(e){ return null; } return VR.ac; }
-['touchend','click'].forEach(ev => document.addEventListener(ev, () => { if (VR.ac && VR.ac.state === 'running') return; if (S && S.user) vrCtx(); }, {capture:true, passive:true})); // iPhoneは画面を押したときに音の準備をしておく
+   （iPhone の音声入力は、アプリの置き場所を変えてから文字が返ってこなくなったため、自前で録音して送る方式にした）
+   10/5：iPhone のホーム画面アプリで「聞いているのに読み取らない」ことがあった。前もって作っておいた音の準備（AudioContext）にマイクの音が流れず、
+   録音の合図（onaudioprocess）が1回も来ないまま止まっていた。そこで
+   (1) 録音は MediaRecorder で行う（音の準備が動いていなくても録れる。使えない端末だけ今までの方法）
+   (2) 声の大きさを見る音の準備は、マイクを取ったあとに毎回作り直す（前もって作らない）
+   (3) 声の大きさが取れないときは「話し終わったら、もう一度🎤を押す」に切りかえ、時間が来たら必ず区切る（止まったままにしない）
+   (4) 何が起きたかを端末の中に書き残す（smr_miclog。マイクのテストのページで見られる） */
+const VR = { ac: null, log: [] };
+function vrLog(s){ try { const t = new Date(), p = n => ('0' + n).slice(-2); VR.log.push(p(t.getMonth() + 1) + '/' + p(t.getDate()) + ' ' + p(t.getHours()) + ':' + p(t.getMinutes()) + ':' + p(t.getSeconds()) + ' ' + s); if (VR.log.length > 60) VR.log.splice(0, VR.log.length - 60); localStorage.setItem('smr_miclog', VR.log.join('\n')); } catch(e){} }
+try { VR.log = (localStorage.getItem('smr_miclog') || '').split('\n').filter(Boolean).slice(-40); } catch(e){}
+/* 録音を数字の列に戻すための音の準備（動いていなくてもよい） */
+function vrCtx(){ const A = window.AudioContext || window.webkitAudioContext; if (!A) return null; try { if (!VR.ac || VR.ac.state === 'closed') VR.ac = new A(); } catch(e){ return null; } return VR.ac; }
+function vrDecode(ab){ return new Promise((ok, ng) => { const c = vrCtx(); if (!c) return ng(new Error('no ctx')); const t = setTimeout(() => ng(new Error('decode timeout')), 6000);
+  const done = b => { clearTimeout(t); try { const n = b.numberOfChannels, a = b.getChannelData(0); let d = a; if (n > 1) { const c2 = b.getChannelData(1); d = new Float32Array(a.length); for (let i = 0; i < a.length; i++) d[i] = (a[i] + c2[i]) / 2; } ok({ data: d, rate: b.sampleRate }); } catch(e){ ng(e); } };
+  try { const p = c.decodeAudioData(ab, done, e => { clearTimeout(t); ng(e || new Error('decode')); }); if (p && p.catch) p.catch(() => {}); } catch(e){ clearTimeout(t); ng(e); } }); }
+function vrB64(u8){ let bin = ''; for (let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(bin); }
 function vrWav(chunks, rate){ // 16kHz・モノラルのWAVにする（送る量を小さく）
   const out = 16000, ratio = rate / out; let len = 0; chunks.forEach(c => len += c.length);
   const all = new Float32Array(len); let o = 0; chunks.forEach(c => { all.set(c, o); o += c.length; });
@@ -4518,8 +4526,7 @@ function vrWav(chunks, rate){ // 16kHz・モノラルのWAVにする（送る量
   W(0, 'RIFF'); dv.setUint32(4, 36 + pcm.length * 2, true); W(8, 'WAVE'); W(12, 'fmt '); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
   dv.setUint32(24, out, true); dv.setUint32(28, out * 2, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true); W(36, 'data'); dv.setUint32(40, pcm.length * 2, true);
   new Int16Array(buf, 44).set(pcm);
-  const u8 = new Uint8Array(buf); let bin = ''; for (let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
-  return btoa(bin); }
+  return vrB64(new Uint8Array(buf)); }
 function listen(onText, onDone, auto){
   if (!SR || !QV.micOk) return false;
   /* 聞いている最中にもう一度押したら、そこで区切って文字にする（やり直しにしない）。文字にしている最中は待ってもらう */
@@ -4527,42 +4534,78 @@ function listen(onText, onDone, auto){
   sayStop();
   stopMic(true);
   try { if (TTSA) { TTSA.onended = null; TTSA.pause(); TTSA.removeAttribute('src'); TTSA.load(); } } catch(e){}
-  const r = { __killed: false, done: false, cleanup: null }; r.abort = () => { r.__killed = true; if (r.cleanup) r.cleanup(); }; MIC.r = r;
+  const r = { __killed: false, done: false, cleanup: null, stopNow: null }; r.abort = () => { r.__killed = true; if (r.cleanup) r.cleanup(); }; MIC.r = r;
   const b = $('#qzMic'); if (b) b.classList.add('on');
   const live = t => document.querySelectorAll('.srlive').forEach(el => { el.textContent = t || (el.classList.contains('qc-heard') ? '' : '…'); el.classList.toggle('on', !!t); });
   const end = () => { if (MIC.r === r) MIC.r = null; const bb = $('#qzMic'); if (bb) bb.classList.remove('on'); };
   const quiet = IV ? 2000 : 1100, maxMs = IV ? 60000 : 10000; // 話し終わって、これだけ静かなら区切る
+  vrLog('はじめ' + (auto ? '（自動）' : '') + (IV ? '・会話' : QC ? '・カード' : '') + (document.documentElement.classList.contains('sa') ? '・ホーム画面' : ''));
   (async () => {
     let stream;
     try { stream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true}}); }
-    catch(e){ end(); if (r.__killed) return; if (IV) { IV.listening = false; try { ivDraw(); } catch(x){} }
+    catch(e){ vrLog('マイクが使えない：' + (e && e.name || e)); end(); if (r.__killed) return; if (IV) { IV.listening = false; try { ivDraw(); } catch(x){} }
       if (auto) toast('🎤ボタンを押して話してね'); else { QV.micOk = false; if (IV) ivDraw(); else if (QC) qcDraw(); toast('マイクが使えません。設定でマイクを許可するか、ボタン・キーボードで答えてください'); } return; }
-    if (r.__killed) { stream.getTracks().forEach(t => t.stop()); return; }
-    const ac = vrCtx(); if (!ac) { stream.getTracks().forEach(t => t.stop()); end(); QV.micOk = false; return; }
-    try { await ac.resume(); } catch(e){}
-    const src = ac.createMediaStreamSource(stream), proc = ac.createScriptProcessor(4096, 1, 1), chunks = [];
-    let heard = false, lastLoud = 0, floor = 0, nf = 0; const t0 = performance.now();
-    r.cleanup = () => { try { proc.onaudioprocess = null; proc.disconnect(); src.disconnect(); } catch(e){} try { stream.getTracks().forEach(t => t.stop()); } catch(e){} };
-    const finish = () => { if (r.done || r.__killed) return; r.done = true; r.cleanup();
-      if (!heard) { end(); stopMic(); live(''); toast('声が聞こえなかったよ。🎤を押して話してね'); if (onDone) onDone(); return; }
+    let rec = null, mime = '', ac = null, src = null, an = null, proc = null, tick = null; const parts = [], chunks = [];
+    const stopTracks = () => { try { stream.getTracks().forEach(t => t.stop()); } catch(e){} };
+    r.cleanup = () => { clearInterval(tick); try { if (proc) { proc.onaudioprocess = null; proc.disconnect(); } if (src) src.disconnect(); } catch(e){}
+      try { if (rec && rec.state !== 'inactive') rec.stop(); } catch(e){} stopTracks(); try { if (ac && ac.state !== 'closed') ac.close(); } catch(e){} };
+    if (r.__killed) { r.cleanup(); return; }
+    /* (1) 録音 */
+    if (window.MediaRecorder) { try { const m = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm'].find(t => { try { return MediaRecorder.isTypeSupported(t); } catch(e){ return false; } });
+        rec = m ? new MediaRecorder(stream, { mimeType: m }) : new MediaRecorder(stream); rec.ondataavailable = e => { if (e.data && e.data.size) parts.push(e.data); }; rec.start(); mime = rec.mimeType || m || ''; } catch(e){ rec = null; vrLog('MediaRecorder が使えない：' + (e && e.name || e)); } }
+    /* (2) 声の大きさを見る（話し終わりを自動で区切るため）。マイクを取ったあとに作る */
+    try { const A = window.AudioContext || window.webkitAudioContext; ac = new A(); if (ac.state !== 'running') await Promise.race([ac.resume(), new Promise(ok => setTimeout(ok, 700))]); } catch(e){}
+    if (r.__killed) { r.cleanup(); return; }
+    try { if (ac && ac.state === 'running') { src = ac.createMediaStreamSource(stream); an = ac.createAnalyser(); an.fftSize = 2048; src.connect(an); const mute = ac.createGain(); mute.gain.value = 0; an.connect(mute); mute.connect(ac.destination);
+        if (!rec) { proc = ac.createScriptProcessor(4096, 1, 1); proc.onaudioprocess = ev => { if (!r.done && !r.__killed) chunks.push(new Float32Array(ev.inputBuffer.getChannelData(0))); }; src.connect(proc); proc.connect(ac.destination); } } } catch(e){ an = null; }
+    vrLog('録音：' + (rec ? mime || 'MediaRecorder' : proc ? 'WAV（前の方法）' : 'なし') + '／音の準備：' + (ac ? ac.state + ' ' + ac.sampleRate : 'なし'));
+    if (!rec && !proc) { r.cleanup(); end(); if (IV) { IV.listening = false; IV.text = true; try { ivDraw(); } catch(x){} } QV.micOk = false; if (!IV && QC) qcDraw();
+      toast('この端末では声の録音ができません。キーボードの🎤で入力してください'); if (onDone) onDone(); return; }
+    const fb = an ? (an.getFloatTimeDomainData ? new Float32Array(an.fftSize) : new Uint8Array(an.fftSize)) : null, t0 = performance.now();
+    let heard = false, lastLoud = 0, floor = 0, nf = 0, alive = false, manual = !an, told = false, why = '';
+    const tell = () => { if (told) return; told = true; live('🎤 聞いています… 話し終わったら、もう一度🎤を押してね'); };
+    const finish = async () => { if (r.done || r.__killed) return; r.done = true; clearInterval(tick);
+      let blob = null;
+      if (rec) blob = await new Promise(ok => { const mk = () => parts.length ? new Blob(parts, { type: (parts[0] && parts[0].type) || mime }) : null, t = setTimeout(() => ok(mk()), 2500);
+        rec.onstop = () => { clearTimeout(t); setTimeout(() => ok(mk()), 0); }; try { if (rec.state !== 'inactive') rec.stop(); else { clearTimeout(t); ok(mk()); } } catch(e){ clearTimeout(t); ok(mk()); } });
+      const rate = ac ? ac.sampleRate : 48000; r.cleanup();
+      if (r.__killed) return;
+      const none = msg => { end(); stopMic(); live(''); toast(msg); if (onDone) onDone(); };
+      if (!manual && !heard) { vrLog('声なし（' + why + '）'); return none('声が聞こえなかったよ。🎤を押して話してね'); }
       live('文字にしています…');
-      let b64 = ''; try { b64 = vrWav(chunks, ac.sampleRate); } catch(e){}
+      let b64 = '', mt = 'audio/wav', info = '';
+      try {
+        if (blob && blob.size > 200) { const ab = await (blob.arrayBuffer ? blob.arrayBuffer() : new Promise((ok, ng) => { const f = new FileReader(); f.onload = () => ok(f.result); f.onerror = ng; f.readAsArrayBuffer(blob); }));
+          let pcm = null; try { pcm = await vrDecode(ab.slice(0)); } catch(e){ info += ' 戻せない(' + (e && e.message || e) + ')'; }
+          if (pcm) { let pk = 0; for (let i = 0; i < pcm.data.length; i += 8) { const v = Math.abs(pcm.data[i]); if (v > pk) pk = v; } info += ' ' + (pcm.data.length / pcm.rate).toFixed(1) + '秒 大きさ' + pk.toFixed(3);
+            if (pk < 0.004) { vrLog('録音が無音：' + blob.size + 'B' + info); return none('声が聞こえなかったよ。🎤を押して話してね'); }
+            b64 = vrWav([pcm.data], pcm.rate); }
+          else { b64 = vrB64(new Uint8Array(ab)); mt = String(blob.type || mime || 'audio/mp4').split(';')[0]; } /* 戻せないときは、録音をそのまま送る */
+          info = blob.size + 'B' + info; }
+        else if (chunks.length) { b64 = vrWav(chunks, rate); info = 'WAV ' + chunks.length + '個'; }
+      } catch(e){ info += ' 変換NG(' + (e && e.message || e) + ')'; }
+      if (!b64) { vrLog('録音が空（' + why + '）' + info); return none('うまく録音できなかったよ。もう一度🎤を押して話してね'); }
+      vrLog('区切り（' + why + '）' + info + ' → 送る ' + mt + ' ' + Math.round(b64.length / 1024) + 'KB');
       /* 25秒たっても返ってこなければ、あきらめて「もう一度」と出す（「文字にしています…」のまま止まらないように） */
       const slow = new Promise((_, ng) => setTimeout(() => ng(new Error('時間がかかっています。もう一度🎤を押して話してね')), 25000));
-      Promise.race([call('transcribe', b64, 'audio/wav', ''), slow]).then(text => { end(); if (r.__killed) { if (!MIC.r) live(''); return; } text = String(text || '').trim();
+      Promise.race([call('transcribe', b64, mt, ''), slow]).then(text => { end(); text = String(text || '').trim(); vrLog('文字：' + text.length + '字'); if (r.__killed) { if (!MIC.r) live(''); return; }
           if (text) { live(text); onText(text); } else { live(''); toast('うまく聞き取れなかったよ。もう一度話してね'); }
           if (onDone) onDone(); })
-        .catch(err => { end(); if (r.__killed) { if (!MIC.r) live(''); return; } live(''); toast(String(err && err.message || err).slice(0, 60) || '声を文字にできませんでした'); if (onDone) onDone(); }); };
-    r.stopNow = () => finish();
-    proc.onaudioprocess = ev => { if (r.__killed || r.done) return; const d = ev.inputBuffer.getChannelData(0); chunks.push(new Float32Array(d));
-      let s = 0; for (let i = 0; i < d.length; i += 4) s += d[i] * d[i]; const rms = Math.sqrt(s / (d.length / 4)), now = performance.now();
-      if (now - t0 < 400) { floor += rms; nf++; return; } // 最初は周りの音の大きさを測る
-      const thr = Math.max(0.012, (nf ? floor / nf : 0) * 3);
-      if (rms > thr) { if (!heard) { heard = true; live('🎤 聞いています…'); } lastLoud = now; }
-      if (heard && now - lastLoud > quiet) finish();
-      else if (!heard && now - t0 > 9000) finish();
-      else if (now - t0 > maxMs) finish(); };
-    src.connect(proc); proc.connect(ac.destination);
+        .catch(err => { end(); vrLog('文字にできない：' + String(err && err.message || err).slice(0, 60)); if (r.__killed) { if (!MIC.r) live(''); return; } live(''); toast(String(err && err.message || err).slice(0, 60) || '声を文字にできませんでした'); if (onDone) onDone(); }); };
+    r.stopNow = () => { why = '押して区切った'; if (manual) heard = true; finish(); };
+    if (manual) { vrLog('声の大きさが取れない → 押して区切る'); tell(); }
+    tick = setInterval(() => { if (r.__killed || r.done) return; const now = performance.now(), el = now - t0;
+      if (an) { let s = 0, n = 0, mv = false;
+        if (fb instanceof Float32Array) { an.getFloatTimeDomainData(fb); for (let i = 0; i < fb.length; i += 4) { s += fb[i] * fb[i]; n++; if (fb[i] !== 0) mv = true; } }
+        else { an.getByteTimeDomainData(fb); for (let i = 0; i < fb.length; i += 4) { const v = (fb[i] - 128) / 128; s += v * v; n++; if (fb[i] !== 128) mv = true; } }
+        const rms = Math.sqrt(s / n);
+        if (mv && !alive) { alive = true; if (manual) { manual = false; told = false; vrLog('声の大きさが取れた（' + Math.round(el) + 'ms）→ 自動で区切る'); live(heard ? '🎤 聞いています…' : ''); } }
+        if (alive && !manual) { if (el < 400) { floor += rms; nf++; } else { const thr = Math.max(0.012, (nf ? floor / nf : 0) * 3); if (rms > thr) { if (!heard) { heard = true; live('🎤 聞いています…'); } lastLoud = now; } } }
+        if (!alive && !manual && el > 1500) { manual = true; vrLog('声の大きさが取れない（' + (ac && ac.state) + '）→ 押して区切る'); tell(); } }
+      if (!manual && heard && now - lastLoud > quiet) { why = '話し終わり'; return finish(); }
+      if (!manual && !heard && el > 9000) { why = '9秒 声なし'; return finish(); }
+      if (el > (manual ? Math.min(maxMs, IV ? 30000 : 15000) : maxMs)) { why = '時間'; if (manual) heard = true; return finish(); }
+    }, 60);
   })();
   return true;
 }
@@ -4635,7 +4678,6 @@ function ivMicGate(list){
       if (!ok) alert('マイクが使えませんでした' + (why ? '（' + why + '）' : '') + '。\n\n文字で答えるモードで始めます。\nキーボードの🎤ボタンを押せば、声で入力できます。');
       ivBegin(list); };
     // 押した瞬間にマイクを1回だけ使って、iPhoneの「マイクを許可しますか？」を出す（音の準備もここで）
-    vrCtx();
     try { navigator.mediaDevices.getUserMedia({audio: true}).then(st => { st.getTracks().forEach(t => t.stop()); fin(true); }, e => { why = String(e && e.name || ''); fin(false); });
       setTimeout(() => fin(true), 15000);
     } catch(e){ why = String(e && e.name || ''); fin(false); } };
@@ -4678,7 +4720,7 @@ function ivDraw(){
   const no = IV.list[IV.wi];
   const top = `<div class="qztop"><button type="button" class="qzx" data-iv="close" aria-label="終わる">✕</button><span class="qzstar">🎙 インタビュー</span>
     <button type="button" class="qztts ${QV.tts?'on':''}" data-iv="tts" aria-label="読み上げ">${QV.tts ? '🔊' : '🔈'}</button></div>`;
-  const mic = (!IV.text ? `<button class="ivmic ${IV.listening ? 'on' : ''}" data-iv="mic" ${IV.busy ? 'disabled' : ''}>🎤<b>${IV.listening ? '聞いてるよ' : '話して答える'}</b></button>` : '');
+  const mic = (!IV.text ? `<button class="ivmic ${IV.listening ? 'on' : ''}" data-iv="mic" ${IV.busy ? 'disabled' : ''}>🎤<b>${IV.listening ? '話し終わったら押す' : '話して答える'}</b></button>` : '');
   const tx = IV.text ? `<div class="ivtx"><textarea id="ivIn" class="qzin qzta" rows="2" placeholder="ここに書く（キーボードのマイクでも話せます）"></textarea><button class="qzwide yes" data-iv="send">送る</button></div>` : '';
   const modeBtn = SR && QV.micOk ? `<button class="qzlink" data-iv="mode">${IV.text ? '🎤 声で答える' : '⌨ 文字で答える'}</button>` : '';
   let body;
@@ -4765,7 +4807,7 @@ document.addEventListener('click', e => {
   const k = b.dataset.iv;
   if (k==='close') { if ((IV.pend.some(p => p.on) || IV.eps.some(x => x.on)) && IV.mode!=='saved' && !confirm('まだ保存していない内容があります。保存せずに終わりますか？')) return; return endInterview(); }
   if (k==='tts') { QV.tts = !QV.tts; try { localStorage.setItem('smr_qztts', QV.tts ? '1' : '0'); } catch(err){} if (!QV.tts) sayStop(); return ivDraw(); }
-  if (k==='mic') { if (IV.listening) return; return ivListen(); }
+  if (k==='mic') { if (IV.listening) { if (MIC.r && !MIC.r.done && MIC.r.stopNow) MIC.r.stopNow(); return; } return ivListen(); }
   if (k==='ok') return ivTurn('');
   if (k==='other') { sayStop(); return ivOther(); }
   if (k==='list') { sayStop(); IV.mode = 'list'; IV.lq = ''; return ivDraw(); }
@@ -5828,10 +5870,9 @@ function hback(){ if (!hist_()) return; HIST.skip++; try { history.back(); } cat
 function hpushLater(tag){ let n = 0; const go = () => { if (HIST.skip > 0 && n++ < 30) return setTimeout(go, 50); hpush(tag); }; go(); }
 function closeTop(){
   if (!$('#confirm').classList.contains('hidden')) return closeConfirm(true), true;
-  { const lb = $('#qclb'); if (lb) { lb.remove(); if (QC || FDB || LTB) hpush(QC ? 'q' : 'f'); return true; } } /* 写真の拡大だけ閉じて、カードの分の履歴を積み直す */
+  { const lb = $('#qclb'); if (lb) { lb.remove(); if (QC || FDB) hpush(QC ? 'q' : 'f'); return true; } } /* 写真の拡大だけ閉じて、カードの分の履歴を積み直す */
   if (QC) { qcEnd(true); return true; }
   if (FDB) { fdbEnd(true); return true; }
-  if (LTB) { ltbEnd(true); return true; }
   if (IV && $('#quiz') && !$('#quiz').classList.contains('hidden')) { endInterview(true); return true; }
   { const br = document.querySelector('.brief'); if (br) { if (br._close) br._close(); else br.remove(); document.body.classList.remove('briefing'); return true; } }
   if (SCR.length) { scrBack(true); return true; } // 開いた順に1枚ずつ戻る
@@ -6529,7 +6570,7 @@ function openMe(anc){ /* 名前ボタンの上に出る小さな吹き出しメ�
   const it = (id, t) => `<button type="button" data-me="${id}">${t}</button>`;
   const el = document.createElement('div'); el.id = 'mepop'; el.setAttribute('role', 'menu');
   el.innerHTML = `<div class="mehd"><b>${esc(S.user.name||'')}</b><small>権限：${esc(S.user.role)}</small></div>
-    ${it('upd','最新版に更新')}${canEdit() ? it('face','顔写真を追加') : ''}${it('log','変更記録を見る')}${canEdit() && S.ai ? it('rot','写真の向きをAIでそろえる') : ''}${canEdit() ? it('arc','削除したもの（アーカイブ）') : ''}
+    ${it('upd','最新版に更新')}${it('mic','マイクのテスト')}${canEdit() ? it('face','顔写真を追加') : ''}${it('log','変更記録を見る')}${canEdit() && S.ai ? it('rot','写真の向きをAIでそろえる') : ''}${canEdit() ? it('arc','削除したもの（アーカイブ）') : ''}
     <div class="mesep"></div>${it('out','ログアウト')}<small class="menote">共用のパソコンでは、使い終わったらログアウトしてください</small><i class="metail"></i>`;
   document.body.appendChild(el);
   const r = anc ? anc.getBoundingClientRect() : { left: 12, right: 252, top: innerHeight - 12, bottom: innerHeight - 12, width: 240 };
@@ -6541,7 +6582,7 @@ function openMe(anc){ /* 名前ボタンの上に出る小さな吹き出しメ�
   const out = e => { if (!el.contains(e.target) && !(anc && anc.contains(e.target))) close(); };
   const esc1 = e => { if (e.key === 'Escape') close(); };
   setTimeout(() => { document.addEventListener('pointerdown', out, true); document.addEventListener('keydown', esc1, true); window.addEventListener('resize', close); }, 0);
-  el.onclick = e => { const b = e.target.closest('[data-me]'); if (!b) return; const v = b.dataset.me; close(); if (!isWide()) closeDrawer();
+  el.onclick = e => { const b = e.target.closest('[data-me]'); if (!b) return; const v = b.dataset.me; close(); if (!isWide()) closeDrawer(); if (v === 'mic') { location.href = 'mictest/'; return; }
     if (v === 'upd') { toast('最新版を読み込んでいます…'); window.open(APP_URL + '?r=' + Date.now(), '_top'); }
     else if (v === 'face') faceAddPick(); else if (v === 'log') showLog(); else if (v === 'rot') openRotTool(); else if (v === 'arc') openArchive(); else if (v === 'out') doLogout(); };
 }
