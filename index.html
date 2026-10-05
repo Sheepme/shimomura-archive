@@ -1990,6 +1990,15 @@ html[data-theme=dark] .qc-mn button{background:#16384A;color:#9ADDFF;border-colo
 .qc-stats .y{border-color:#FFC800}.qc-stats .y span{background:#FFC800}
 .qc-stats .g{border-color:#58CC02}.qc-stats .g span{background:#58CC02}
 .qc-stats .b{border-color:#1CB0F6}.qc-stats .b span{background:#1CB0F6}
+/* 書類ビューワー：🖍 で囲んで、作品のメモに資料リンクを貼る */
+.pqv{position:relative}.pqbar .pqselb0.on{background:#e0776b;color:#fff}
+.pqpages.pqsel{touch-action:none;cursor:crosshair}.pqpages.pqsel .pqp{-webkit-user-select:none;user-select:none}
+.pqselr{position:absolute;z-index:2;pointer-events:none;border:2px solid #e0776b;background:rgba(226,38,38,.16);border-radius:4px}
+.pqselp{position:absolute;left:12px;right:12px;bottom:12px;z-index:6;max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--paper);color:var(--ink);box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.pqselp>b{font-size:16px}.pqselp>small{font-size:13px;color:var(--sub);line-height:1.5}.pqselp .act{margin:0;text-align:left;font-size:15px;padding:11px 14px}
+.pqseln{display:flex;gap:8px}.pqseln input{flex:1;min-width:0;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:15px}.pqseln .act{flex:none}
+.pqselx{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pqselx .act{text-align:center}
+dl.info>dd{min-width:0}.mlink+.evsrcbox.open{display:block;min-width:0;max-width:100%} /* メモの中でハイライトを開いても、表の列が横にはみ出さない */
 </style>
 </head>
 <body>
@@ -2059,7 +2068,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '7fab5f0627', APP_URL = location.origin + location.pathname;
+const BUILD = '53632607fb', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5314,7 +5323,28 @@ function urlLabel(raw){
   if (/wikipedia\.org/.test(d)) return 'Wikipediaのページ';
   try { return new URL(u).hostname.replace(/^www\./, '') + ' のページ'; } catch (e) { return 'リンク先のページ'; }
 }
-const escU = v => esc(v).replace(/https?:\/\/(?:(?!&quot;|&#39;|&lt;|&gt;)[^\s<>）」])+/g, u => `<a class="ulink" href="${u}" target="_blank" rel="noopener" title="${u}">${esc(urlLabel(u))} ›</a>`);
+const escU = v => mlinkHTML(esc(v).replace(/https?:\/\/(?:(?!&quot;|&#39;|&lt;|&gt;)[^\s<>）」])+/g, u => `<a class="ulink" href="${u}" target="_blank" rel="noopener" title="${u}">${esc(urlLabel(u))} ›</a>`));
+/* メモの中の資料リンク［資料 書類ID p.ページ 上,左,下,右］：押すと、その下に書類の該当箇所をハイライトして出す（来歴の「該当箇所を確認」と同じ表示）。
+   作り方：書類ビューワーの 🖍 で書いてある所を囲み、作品を選ぶ（位置はページの縦横を1000とした数） */
+function mlinkHTML(s){ return String(s).replace(/［資料\s+([^\s［］]+)\s+p\.?\s*(\d+)(?:\s+(\d+),(\d+),(\d+),(\d+))?\s*］/g, (m, did, p, t, l, b, r) => docById(did)
+  ? `<button type="button" class="evsrc mlink" data-mlink="${esc(did)}|${p}|${t != null ? [t, l, b, r].join(',') : ''}">📄 資料の該当箇所（p.${p}）↓</button><span class="evsrcbox"></span>` : `（資料 p.${p}）`); }
+const docByFile = fid => (S.docs || []).find(d => docPages(d).includes(fid));
+function mlinkOpen(btn){ const box = btn.nextElementSibling; if (!box) return; const [did, p, bs] = btn.dataset.mlink.split('|'), d = docById(did);
+  if (btn.classList.contains('on')) { btn.classList.remove('on'); btn.textContent = btn.dataset.lb || '📄 資料の該当箇所 ↓'; box.className = 'evsrcbox'; box.innerHTML = ''; return; }
+  if (!d || !docRes(d).PDF) return toast('この資料はPDFではないので、ハイライトを出せません');
+  btn.dataset.lb = btn.textContent; btn.classList.add('on'); btn.textContent = '閉じる ↑'; box.className = 'dfx evx evsrcbox open';
+  box.innerHTML = `<p class="evsdt">📄 ${esc(docTitle(d))}</p><span data-dfhl="ml" hidden></span>`;
+  const bx = bs ? bs.split(',').map(Number) : null, ok = bx && bx.length === 4 && bx.every(n => n >= 0);
+  dfPreview(box, d, { doc: '', at: { p: +p || 1, box: ok ? bx : null }, toc: ok ? 0 : 1 }, true); }
+/* 作品のメモ（補足）の最後に資料リンクを足す。書類の画面は閉じずに、裏で保存する */
+async function mlinkSave(no, tok){ const w = workOf(no); if (!w) return toast('その番号の作品が見つかりません');
+  const old = String(w['補足'] || '').trim(); if (old.includes(tok)) return toast('No.' + no + ' のメモには、もう貼ってあります');
+  const patch = { '補足': old ? old + ' ' + tok : tok }; Object.assign(w, patch); index();
+  if (S.pcur && S.pcur.t === 'w' && String(S.pcur.id) === String(no)) openWork(no, true);
+  toast('No.' + no + ' のメモに貼りました'); BGS.n++; bgShow('保存しています…');
+  try { try { await call('updateWorkQ', no, patch); } catch(e){ if (!/この操作はできません/.test(e.message || e)) throw e; await call('updateWork', no, patch); } }
+  catch(e){ alert('保存できませんでした。もう一度やり直してください。\n' + (e.message || e)); refreshData().catch(() => {}); }
+  finally { BGS.n--; bgShow(); } }
 const dd2 = (k, v) => v ? `<dt>${k}</dt><dd>${v}</dd>` : '';
 /* ---------- 展覧会・画集の編集 ---------- */
 const EX_T = ['個展','グループ展','パンリアル展','公募展','回顧展・遺作展','収蔵品展','その他'];
@@ -6525,6 +6555,7 @@ document.addEventListener('click', e => {
   if (t.dataset.print){ sheetPrint(); return; }
   if (t.dataset.wdhl){ wdHighlight(t); return; }
   if (t.dataset.evsrc){ evSrc(t); return; }
+  if (t.dataset.mlink){ mlinkOpen(t); return; }
   if (t.dataset.evsd){ const box = t.closest('.evsrcbox'); if (box && box._show) box._show(t.dataset.evsd); return; }
   if (t.dataset.cmpe){ const [did, no, ev] = t.dataset.cmpe.split('|'); cmpView(did, no); setTimeout(() => { const b = document.querySelector(`.cmpv [data-cmpev="${ev}"]`); if (b) b.click(); }, 700); return; } /* 来歴から：書類と作品を並べて、その出来事のところを光らせる */
   if (t.dataset.evhl2){ evHighlight(t); return; }
@@ -6746,8 +6777,9 @@ function pqHint(host, hint, page){ const old = host.querySelector('.pqhint'); if
   host.querySelector('.pqbar').insertAdjacentHTML('afterend', `<div class="pqhint"><span>🖍 ${hint.msg ? esc(hint.msg) : '「' + esc(hint.q) + '」は' + (page ? ' <b>' + esc(page) + 'ページ</b> ' : '') + 'にあります'}${hint.line ? `<small>${hre ? esc(hint.line).replace(hre, m => '<mark>' + m + '</mark>') : esc(hint.line)}</small>` : ''}</span><button type="button" aria-label="閉じる">✕</button></div>`);
   host.querySelector('.pqhint button').onclick = () => host.querySelector('.pqhint').remove(); }
 async function pdfMount(host, fid, title, page, hint){
+  const sd = canEdit() ? docByFile(fid) : null, mkOk = !!(sd && docPages(sd)[0] === fid); /* 🖍 で囲んでメモに貼る（編集できる人だけ） */
   host.classList.add('pqv'); const hre = hint && hint.q ? fzRe(esc(hint.q), 'gi') : null;
-  host.innerHTML = `<div class="pqbar"><span class="pqt">${esc(title || 'PDF')}</span><span class="pqpg">–</span><button type="button" data-pz="-" aria-label="縮小">−</button><button type="button" data-pz="fit" aria-label="幅に合わせる" title="幅に合わせる">↔</button><button type="button" data-pz="+" aria-label="拡大">＋</button><button type="button" data-pz="mark" class="pqmk" hidden title="マーカーの所を大きく">全体</button><button type="button" data-pz="tab" title="別のタブで開く（印刷・保存）">↗</button>${host.closest('.pdfql') ? '<button type="button" data-pz="close" aria-label="閉じる" title="閉じる（Esc）">✕</button>' : ''}</div><div class="pqpages"><div class="ldwrap"><span class="ldspin"></span>PDFを読み込んでいます…</div></div>`;
+  host.innerHTML = `<div class="pqbar"><span class="pqt">${esc(title || 'PDF')}</span><span class="pqpg">–</span><button type="button" data-pz="-" aria-label="縮小">−</button><button type="button" data-pz="fit" aria-label="幅に合わせる" title="幅に合わせる">↔</button><button type="button" data-pz="+" aria-label="拡大">＋</button><button type="button" data-pz="mark" class="pqmk" hidden title="マーカーの所を大きく">全体</button>${mkOk ? '<button type="button" data-pz="sel" class="pqselb0" title="書いてある所を囲んで、作品のメモに貼る">🖍</button>' : ''}<button type="button" data-pz="tab" title="別のタブで開く（印刷・保存）">↗</button>${host.closest('.pdfql') ? '<button type="button" data-pz="close" aria-label="閉じる" title="閉じる（Esc）">✕</button>' : ''}</div><div class="pqpages"><div class="ldwrap"><span class="ldspin"></span>PDFを読み込んでいます…</div></div>`;
   pqHint(host, hint, page);
   const box = host.querySelector('.pqpages'), pgEl = host.querySelector('.pqpg'); let url = '';
   try { const doc = await pdfDocOf(fid); if (!host.isConnected) return;
@@ -6764,6 +6796,7 @@ async function pdfMount(host, fid, title, page, hint){
     box.addEventListener('scroll', upd, { passive: true });
     host.querySelector('.pqbar').onclick = e => { const b = e.target.closest('[data-pz]'); if (!b) return; const v = b.dataset.pz;
       if (v === 'mark') { zoomMark(!host._mz); return; }
+      if (v === 'sel') { if (box.classList.contains('pqsel')) { selOff(); return; } box.classList.add('pqsel'); b.classList.add('on'); pqHint(host, { msg: '書いてある所を、なぞって囲んでください（もう一度 🖍 を押すとやめる）' }); return; }
       if (v === 'close') { scrBack(); return; } if (v === 'tab') { const wn = window.open('', '_blank'); pdfBlobUrl(fid).then(u => { if (wn) wn.location = u; else window.open(u, '_blank'); }); return; } const r = box.scrollTop / Math.max(1, box.scrollHeight);
       host._mz = false; const mk = host.querySelector('.pqmk'); if (mk) mk.textContent = '🔍 ズーム';
       z = v === 'fit' ? 1 : Math.max(.4, Math.min(3, z * (v === '+' ? 1.25 : .8))); draw(); box.scrollTop = r * box.scrollHeight; };
@@ -6774,11 +6807,46 @@ async function pdfMount(host, fid, title, page, hint){
     box.addEventListener('touchstart', e => { if (e.touches.length === 2) { const [a, b] = e.touches; pin = { d0: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1, cx: (a.clientX + b.clientX) / 2, cy: (a.clientY + b.clientY) / 2, k: 1 }; inner.style.transformOrigin = (pin.cx - box.getBoundingClientRect().left + box.scrollLeft) + 'px ' + (pin.cy - box.getBoundingClientRect().top + box.scrollTop) + 'px'; } }, { passive: true });
     box.addEventListener('touchmove', e => { if (!pin || e.touches.length !== 2) return; e.preventDefault(); const [a, b] = e.touches; pin.k = Math.max(.5 / z, Math.min(4 / z, Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) / pin.d0)); inner.style.transform = `scale(${pin.k})`; }, { passive: false });
     box.addEventListener('touchend', e => { if (pin && e.touches.length < 2) { const k = pin.k, c = pin; pin = null; inner.style.transform = ''; if (Math.abs(k - 1) > .05) zoomTo(z * k, c.cx, c.cy); return; }
-      if (e.touches.length || e.changedTouches.length !== 1) return; const n = Date.now(), t = e.changedTouches[0]; if (n - lastT < 300) { lastT = 0; zoomTo(z > 1.1 ? 1 : 2.2, t.clientX, t.clientY); } else lastT = n; });
+      if (e.touches.length || e.changedTouches.length !== 1 || box.classList.contains('pqsel')) return; const n = Date.now(), t = e.changedTouches[0]; if (n - lastT < 300) { lastT = 0; zoomTo(z > 1.1 ? 1 : 2.2, t.clientX, t.clientY); } else lastT = n; });
+    /* パソコン：トラックパッドのピンチ（Chrome などは Ctrl＋ホイール、Safari はジェスチャー）で拡大・縮小。指を動かしている間は見た目だけ大きくし、止まったら描き直す */
+    let wp = null, gs = null;
+    const wpStart = (cx, cy) => { if (!inner) return null; const r = box.getBoundingClientRect(); inner.style.transformOrigin = (cx - r.left + box.scrollLeft) + 'px ' + (cy - r.top + box.scrollTop) + 'px'; return { k: 1, cx, cy }; };
+    const wpSet = k => { wp.k = Math.max(.5 / z, Math.min(4 / z, k)); if (inner) inner.style.transform = `scale(${wp.k})`; };
+    const wpEnd = () => { clearTimeout(host._wt); if (!wp) return; const c = wp; wp = null; if (inner) inner.style.transform = ''; if (Math.abs(c.k - 1) > .02) zoomTo(z * c.k, c.cx, c.cy); };
+    box.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); e.stopPropagation(); if (pin || gs) return; if (!wp) wp = wpStart(e.clientX, e.clientY); if (!wp) return;
+      const d = Math.max(-30, Math.min(30, e.deltaMode ? e.deltaY * 16 : e.deltaY)); wpSet(wp.k * Math.exp(-d * .01)); clearTimeout(host._wt); host._wt = setTimeout(wpEnd, 220); }, { passive: false });
+    box.addEventListener('gesturestart', e => { e.preventDefault(); e.stopPropagation(); if (pin) return; if (!wp) wp = wpStart(e.clientX, e.clientY); if (wp) gs = { k0: wp.k }; });
+    box.addEventListener('gesturechange', e => { e.preventDefault(); e.stopPropagation(); if (gs && wp) wpSet(gs.k0 * e.scale); });
+    box.addEventListener('gestureend', e => { e.preventDefault(); e.stopPropagation(); if (!gs) return; gs = null; wpEnd(); });
     let mark = null; /* 位置の印（ページが描き直されても付け直す） */
     const putMark = () => { box.querySelectorAll('.pqmark').forEach(x => x.remove()); const mb = host.querySelector('.pqmk'); if (mb) mb.hidden = !(mark && mark.box); if (!mark) return; const el = box.querySelector(`.pqp[data-i="${mark.p - 1}"]`); if (!el || !mark.box) return;
       const [t, l, b, r] = mark.box, m = document.createElement('div'); m.className = 'pqmark'; Object.assign(m.style, { top: `calc(${t / 10}% - 4px)`, left: `calc(${l / 10}% - 4px)`, height: `calc(${(b - t) / 10}% + 8px)`, width: `calc(${(r - l) / 10}% + 8px)` }); el.appendChild(m); };
     const draw0 = draw; draw = () => { draw0(); putMark(); };
+    /* 🖍：なぞって囲んだ所を［資料 書類ID p.N 上,左,下,右］にして、作品のメモに貼る */
+    let sel = null;
+    const selOff = () => { box.classList.remove('pqsel'); const b0 = host.querySelector('[data-pz="sel"]'); if (b0) b0.classList.remove('on'); box.querySelectorAll('.pqselr').forEach(x => x.remove()); const p0 = host.querySelector('.pqselp'); if (p0) p0.remove(); pqHint(host, null); };
+    const selDraw = () => { const s = sel; Object.assign(s.el.style, { left: Math.min(s.x0, s.x1) * 100 + '%', top: Math.min(s.y0, s.y1) * 100 + '%', width: Math.abs(s.x1 - s.x0) * 100 + '%', height: Math.abs(s.y1 - s.y0) * 100 + '%' }); };
+    box.addEventListener('pointerdown', e => { if (!box.classList.contains('pqsel') || !e.isPrimary || e.button > 0) return; const pg = e.target.closest('.pqp'); if (!pg) return; e.preventDefault();
+      const p0 = host.querySelector('.pqselp'); if (p0) p0.remove(); box.querySelectorAll('.pqselr').forEach(x => x.remove());
+      const r = pg.getBoundingClientRect(), fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height, el = document.createElement('div'); el.className = 'pqselr'; pg.appendChild(el);
+      sel = { pg, el, id: e.pointerId, x0: fx, y0: fy, x1: fx, y1: fy }; try { box.setPointerCapture(e.pointerId); } catch(x){} selDraw(); });
+    box.addEventListener('pointermove', e => { if (!sel || e.pointerId !== sel.id) return; e.preventDefault(); const r = sel.pg.getBoundingClientRect(); sel.x1 = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)); sel.y1 = Math.max(0, Math.min(1, (e.clientY - r.top) / r.height)); selDraw(); });
+    box.addEventListener('pointercancel', e => { if (sel && e.pointerId === sel.id) { sel.el.remove(); sel = null; } });
+    box.addEventListener('pointerup', e => { if (!sel || e.pointerId !== sel.id) return; const s = sel; sel = null;
+      const bx = [Math.min(s.y0, s.y1), Math.min(s.x0, s.x1), Math.max(s.y0, s.y1), Math.max(s.x0, s.x1)].map(v => Math.round(v * 1000));
+      if (bx[2] - bx[0] < 8 || bx[3] - bx[1] < 8) { s.el.remove(); return; } selPanel(+s.pg.dataset.i + 1, bx); });
+    const selPanel = (p, bx) => { const tok = `［資料 ${sd['書類ID']} p.${p} ${bx.join(',')}］`, nos = String(sd['作品番号'] || '').split(',').map(x => x.trim()).filter(n => workOf(n));
+      const pn = document.createElement('div'); pn.className = 'pqselp';
+      pn.innerHTML = `<b>この箇所を、作品のメモに貼る</b><small>p.${p} の囲んだところ。メモの最後に、ここをハイライトして開くリンクが入ります</small>`
+        + nos.map(n => `<button type="button" class="act" data-mlw="${esc(n)}">No.${esc(n)}　${esc(workOf(n)['作品名'] || '無題')} のメモに貼る</button>`).join('')
+        + `<div class="pqseln"><input type="text" inputmode="numeric" placeholder="${nos.length ? 'ほかの作品の番号' : '作品の番号'}" aria-label="作品の番号"><button type="button" class="act" data-mlw="">貼る</button></div>`
+        + `<div class="pqselx"><button type="button" class="act" data-mlc="1">リンクをコピー</button><button type="button" class="act" data-mlx="1">やめる</button></div>`;
+      host.appendChild(pn);
+      pn.addEventListener('click', async e => { const b = e.target.closest('button'); if (!b) return; e.stopPropagation();
+        if (b.dataset.mlx) { selOff(); return; }
+        if (b.dataset.mlc) { try { await navigator.clipboard.writeText(tok); toast('リンクをコピーしました。メモの欄に貼り付けてください'); } catch(x){ prompt('このリンクをコピーして、メモの欄に貼り付けてください', tok); } return; }
+        if (b.dataset.mlw != null) { let no = b.dataset.mlw || String(pn.querySelector('input').value || '').normalize('NFKC').trim(); if (/^\d{1,2}$/.test(no)) no = no.padStart(3, '0');
+          if (!workOf(no)) return toast('その番号の作品が見つかりません'); selOff(); mark = { p, box: bx }; putMark(); await mlinkSave(no, tok); } }); };
     let lw = 0; const ro = new ResizeObserver(() => { if (!host.isConnected) { ro.disconnect(); return; } const w = box.clientWidth; if (!lw) { lw = w; return; } if (!w || Math.abs(w - lw) < 8) return; lw = w; clearTimeout(host._rt); host._rt = setTimeout(() => { if (host._mz) zoomMark(true); else { const r = box.scrollTop / Math.max(1, box.scrollHeight); draw(); box.scrollTop = r * box.scrollHeight; } }, 150); }); ro.observe(box); /* 表示エリアの幅が変わったら（メニューを畳んだ時など）幅に合わせて描き直す */
     /* マーカーに寄る（on）／幅に合わせた全体に戻す（off） */
     const zoomMark = on => { if (!mark || !mark.box) return; const pg = pages[mark.p - 1]; if (!pg) return; const [t, l, bm, r] = mark.box, aw = box.clientWidth - 24;
