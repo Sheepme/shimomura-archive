@@ -597,6 +597,7 @@ html,body{overflow-x:clip;max-width:100%}
 .modebtn{flex:none;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--paper);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;padding:0}
 .modebtn svg{width:19px;height:19px}
 .modebtn.on{background:var(--edit);border-color:var(--edit);color:#fff}
+html{touch-action:pan-x pan-y} /* 画面全体の2本指の拡大を止める（iPhone）。アルバムの列数のピンチは自前で読むので、そのまま使える。描き直しの途中だと gesture の止め方が効かず、画面が拡大されたまま戻らなくなっていた（10/6） */
 .mas{display:flex;align-items:flex-start;gap:16px} /* スマホの2・3列：列のあいだ＝画面の左右の余白（16px）。4列以上（dense）は今のまま（10/6 本人） */
 @media(min-width:700px){.mas{gap:28px}}
 .mcol{flex:1;min-width:0;display:flex;flex-direction:column;gap:22px}
@@ -2220,7 +2221,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '2f254d9b33', APP_URL = location.origin + location.pathname;
+const BUILD = '87c8645693', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
