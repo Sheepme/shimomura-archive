@@ -1951,7 +1951,7 @@ html[data-theme=dark] .fdb-tx .fdb-r{color:#FFC800}.fdb-b{position:sticky;bottom
 .ac-prog{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--hg-sf);color:var(--hg-h)}.ac-prog b{font-size:15px}.ac-prog small{display:block;font-size:13px;line-height:1.5;color:var(--hg-s)}
 .ac-msg{margin:0;padding:10px 12px;border-radius:12px;background:rgba(255,150,0,.13);color:var(--hg-h);font-size:14px;line-height:1.5}
 .ac-go{display:flex;flex-direction:column;gap:8px}.ac-go .hg-go.ac-stop{background:#FF4B4B;border-bottom-color:#C83A3A}
-.ac-tabs{display:flex;gap:6px}.ac-tabs button{flex:1;min-width:0;padding:8px 4px;border-radius:12px;border:2px solid var(--hg-ln);background:var(--hg-bg);color:var(--hg-h);font:inherit;font-size:13px;font-weight:700;cursor:pointer}.ac-tabs button b{display:block;font-size:18px}.ac-tabs button.on{border-color:#1CB0F6;background:rgba(28,176,246,.09)}
+.ac-tabs{display:flex;gap:6px}.ac-tabs.ac-mode button{padding:10px 4px;font-size:14px}.ac-tabs button{flex:1;min-width:0;padding:8px 4px;border-radius:12px;border:2px solid var(--hg-ln);background:var(--hg-bg);color:var(--hg-h);font:inherit;font-size:13px;font-weight:700;cursor:pointer}.ac-tabs button b{display:block;font-size:18px}.ac-tabs button.on{border-color:#1CB0F6;background:rgba(28,176,246,.09)}
 .ac-l{display:flex;flex-direction:column;gap:8px}.ac-i{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:14px;border:2px solid var(--hg-ln);background:var(--hg-bg);color:var(--hg-h)}
 .ac-ph{flex:none;display:flex;align-items:center;gap:4px}.ac-ph i{font-style:normal;color:var(--hg-s)}.ac-th{display:block;width:72px;height:72px;border-radius:10px;overflow:hidden;background:var(--hg-sf)}.ac-th img{width:100%;height:100%;object-fit:contain;display:block}
 .ac-tx{min-width:0;flex:1;display:flex;flex-direction:column;gap:4px}.ac-tx b{font-size:15px}.ac-tx small{font-size:13px;line-height:1.45;color:var(--hg-s)}.ac-tx .ac-why{color:#A56A00}html[data-theme=dark] .ac-tx .ac-why{color:#FFC800}
@@ -2293,7 +2293,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '0dd3cb9e3a', APP_URL = location.origin + location.pathname;
+const BUILD = 'd4294c5ae9', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4005,7 +4005,7 @@ function renderHome(){
       <p class="hg-note">ここには、まだ足りないものがある作品だけを出しています。番号の下に、足りないものを出しています。押すとその作品のページを開きます。</p>
       <button type="button" class="hg-link" data-v="works">すべての作品を見る</button></section>
     ${ed ? `<section class="hg-sec"><h2 class="hg-h2">ひとつずつ片付ける</h2>
-      ${row('data-bsgo="noloc"', '#1CB0F6', IC.loc, '場所がわからない', nLc)}${row('data-bsgo="noname"', '#CE82FF', NAMEIC, '作品名がない', nNm)}${row('data-bsgo="nophoto"', '#FF4B4B', IC.photo, '写真がない', nPh)}${row('data-hgdiff="1"', '#2B70C9', IC.doc, '書類と台帳の違い', nDf)}${(S.finds || []).length ? row('data-hgfind="1"', '#FF9600', FDIC, '調べで見つかった記録', qcFindLeft().left) : ''}${(n => n ? row('data-hgask="1"', '#E05A9E', ASKIC, 'お母さんに聞きたいこと', n) : '')(qcAskLeft().left)}${(S.finds || []).length && S.user && S.user.role === '管理' ? (n => n ? row('data-hgfindb="1"', '#FF9600', FDIC, '調べの記録：まとめて確認（管理者）', n) : '')((S.finds || []).filter(f => fdOpen(f) && fdReg(f)).length) : ''}${S.user && S.user.role === '管理' ? (s => s.n.todo + s.n.review ? row('data-hgac="1"', '#1CB0F6', IC.photo, AC.run ? '写真の自動補正（実行中 ' + Math.min(AC.n + 1, AC.N) + '/' + AC.N + '）' : '写真の自動補正（管理者）', s.n.todo + s.n.review) : '')(acState()) : ''}${(n => n ? row('data-hglit="1"', '#58A700', LTIC, '展覧会・本のこと', n) : '')(ltLeft().left)}${(n => n ? row('data-hgpbph="1"', '#FF4B4B', IC.photo, '家にある本の写真', n) : '')(pbPhLeft())}${S.user && S.user.role === '管理' ? (n => n ? row('data-hglitb="1"', '#58A700', LTIC, '展覧会・本：1件ずつ確かめる（管理者）', n) : '')(ltbLeft().left) : ''}
+      ${row('data-bsgo="noloc"', '#1CB0F6', IC.loc, '場所がわからない', nLc)}${row('data-bsgo="noname"', '#CE82FF', NAMEIC, '作品名がない', nNm)}${row('data-bsgo="nophoto"', '#FF4B4B', IC.photo, '写真がない', nPh)}${row('data-hgdiff="1"', '#2B70C9', IC.doc, '書類と台帳の違い', nDf)}${(S.finds || []).length ? row('data-hgfind="1"', '#FF9600', FDIC, '調べで見つかった記録', qcFindLeft().left) : ''}${(n => n ? row('data-hgask="1"', '#E05A9E', ASKIC, 'お母さんに聞きたいこと', n) : '')(qcAskLeft().left)}${(S.finds || []).length && S.user && S.user.role === '管理' ? (n => n ? row('data-hgfindb="1"', '#FF9600', FDIC, '調べの記録：まとめて確認（管理者）', n) : '')((S.finds || []).filter(f => fdOpen(f) && fdReg(f)).length) : ''}${S.user && S.user.role === '管理' ? (s => s.n.todo + s.n.review ? row('data-hgac="1"', '#1CB0F6', IC.photo, AC.run ? '写真の自動補正（実行中 ' + Math.min(AC.n + 1, AC.N) + '/' + AC.N + '）' : '写真の自動補正（管理者）', s.n.todo + s.n.review) : '')(acState()) : ''}${S.user && S.user.role === '管理' ? (s => s.n.todo + s.n.unsure ? row('data-hgsz="1"', '#FF9600', IC.photo, SZ.run ? 'サイズの額込み判定（実行中 ' + SZ.n + '/' + SZ.N + '）' : 'サイズの額込み判定（管理者）', s.n.todo + s.n.unsure) : '')(szState()) : ''}${(n => n ? row('data-hglit="1"', '#58A700', LTIC, '展覧会・本のこと', n) : '')(ltLeft().left)}${(n => n ? row('data-hgpbph="1"', '#FF4B4B', IC.photo, '家にある本の写真', n) : '')(pbPhLeft())}${S.user && S.user.role === '管理' ? (n => n ? row('data-hglitb="1"', '#58A700', LTIC, '展覧会・本：1件ずつ確かめる（管理者）', n) : '')(ltbLeft().left) : ''}
       <details class="hg-more"><summary>そのほかの作業</summary><div class="todos">${todo.map(card).join('')}</div></details></section>` : ''}
     <button class="tourlink" data-v="help">使い方を見る</button></div><aside class="dash">${dashHTML()}</aside></div>`;
   hydrate($('#main'));
@@ -4016,7 +4016,7 @@ function renderHome(){
       if (e.target.closest('[data-hgtest]')) return startCards(true);
       if (e.target.closest('[data-hgdiff]')) return startCards(false, 'diff');
       if (e.target.closest('[data-hgfindb]')) return fdbOpen();
-      if (e.target.closest('[data-hgac]')) return acOpen();
+      if (e.target.closest('[data-hgac]')) { AC.mode = 'crop'; return acOpen(); } if (e.target.closest('[data-hgsz]')) { AC.mode = 'size'; return acOpen(); }
       if (e.target.closest('[data-hgfind]')) return startCards(false, 'find');
       if (e.target.closest('[data-hgask]')) return startCards(false, 'ask');
       if (e.target.closest('[data-hglitb]')) return startCards(false, 'litb');
@@ -5063,7 +5063,14 @@ const isPrint = w => !!w && (w['種別']==='版画' || !!w['エディション']
 const dimTxt = (w, long, unit) => (w['幅cm']||w['高さcm']||w['奥行きcm']) ? (long ? `高さ ${w['高さcm']||'?'} × 幅 ${w['幅cm']||'?'}${w['奥行きcm'] ? ' × 奥行き ' + w['奥行きcm'] : ''} cm` : `${w['高さcm']||'?'} × ${w['幅cm']||'?'}${w['奥行きcm'] ? ' × ' + w['奥行きcm'] : ''}${unit || ''}`) : ''; /* 標準の「縦×横」（高さ × 幅） */
 /* 作品ページのサイズの行：作品のみと分かっていれば（作品のみ）、額のサイズがあれば「額 高さ × 幅」も */
 const frameTxt = w => (w['額の高さcm'] || w['額の幅cm']) ? `額 高さ ${w['額の高さcm'] || '?'} × 幅 ${w['額の幅cm'] || '?'} cm` : '';
-const sizeLine = w => { const a = dimTxt(w, true); return [a ? a + (w['サイズの確認'] === '作品のみ' ? '（作品のみ）' : '') : '', frameTxt(w)].filter(Boolean).join('／'); };
+/* サイズのメインとサブ（10/6 本人）：美術館・カタログの決まりに合わせて、絵だけ（画面・本紙。屏風は本体）をメイン、額込みはサブ。
+   片方しかなければ、ある方をメインにして「額あり（額込みのサイズ）／額なし（絵だけのサイズ）」を添える */
+const isScreenW = w => /屏風/.test(String(w['作品名'] || '') + String(w['種別'] || '') + String(w['画材'] || ''));
+const szKind = w => { const a = +w['高さcm'] > 0 || +w['幅cm'] > 0, f = +w['額の高さcm'] > 0 || +w['額の幅cm'] > 0; return a ? (w['サイズの確認'] === '作品のみ' || f ? 'art' : 'unk') : f ? 'frame' : ''; };
+const dimMain = w => szKind(w) === 'frame' ? { '高さcm': w['額の高さcm'], '幅cm': w['額の幅cm'], '奥行きcm': w['奥行きcm'] } : w;
+const szShort = (w, unit) => { const m = dimTxt(dimMain(w), false, unit); return m ? m + (szKind(w) === 'frame' ? '（額込み）' : '') : ''; };
+const sizeLine = w => { const k = szKind(w), m = dimTxt(dimMain(w), true); if (!m) return '';
+  return m + (k === 'art' ? '（額なし）' : k === 'frame' ? '（額あり）' : isScreenW(w) ? '' : '（額の有無は未確認）') + (k === 'art' && frameTxt(w) ? '／額あり ' + frameTxt(w).replace(/^額 /, '') : ''); };
 const evText = e => { const y = yr(e['日付']); return [y ? y + '年' : '年は分からない', (e['相手先・場所']||'') + (e['相手先・場所'] ? 'に' : ''), e['種類']].filter(Boolean).join('、'); };
 const toSeireki = t => String(t||'').normalize('NFKC').replace(/昭和\s*(\d+)\s*年?/, (m, n) => (1925 + +n) + '年').replace(/平成\s*(\d+)\s*年?/, (m, n) => (1988 + +n) + '年').replace(/大正\s*(\d+)\s*年?/, (m, n) => (1911 + +n) + '年');
 function qzSteps(no, first){
@@ -5247,7 +5254,7 @@ const YES = /^(はい|ok|オッケー|おっけー|そう|そうです|合って
 
 /* 写真がない作品の手がかり（サイズ・年・画材・台帳の場所・展覧会など） */
 function qzClues(no, w){ const loc = w['所在'] || (w['所在区分'] && w['所在区分'] !== '不明' ? w['所在区分'] : '');
-  const L = [w['制作年'], dimTxt(w, true), w['画材'], loc ? '台帳の場所：' + loc : ''].filter(Boolean)
+  const L = [w['制作年'], sizeLine(w), w['画材'], loc ? '台帳の場所：' + loc : ''].filter(Boolean)
     .concat((eventBy[no]||[]).filter(e => ['出品','画集掲載','寄贈','寄託','委託','販売','貸出'].includes(e['種類'])).slice(0, 2).map(evText));
   return L.length ? `<ul class="qzinfo">${L.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<small>台帳に手がかりになる情報がありません</small>'; }
 function qzHead(no, small){ const w = workOf(no) || {}, ph = photoBy[no] || [];
@@ -5257,7 +5264,7 @@ const briefLoc = w => w['所在'] ? (String(w['所在']).startsWith(w['所在区
 function briefText(no, withLoc){
   const w = workOf(no) || {}, ev = (eventBy[no]||[]).filter(e => !['エピソード','移動','所在確認'].includes(e['種類'])).sort((a, b) => dateKey(a['日付']) - dateKey(b['日付']));
   const L = [`下村良之介「${w['作品名'] || '無題'}」（作品番号 No.${no}）`];
-  [['制作年', w['制作年']], ['画材', w['画材']], ['サイズ', dimTxt(w, true)], ['種別', w['種別']], ['シリーズ', w['シリーズ']],
+  [['制作年', w['制作年']], ['画材', w['画材']], ['サイズ', sizeLine(w)], ['種別', w['種別']], ['シリーズ', w['シリーズ']],
     withLoc ? ['保管場所', briefLoc(w)] : null].filter(x => x && x[1]).forEach(([k, x]) => L.push(k + '：' + x));
   if (ev.length) { L.push('', '来歴'); ev.forEach(e => L.push('・' + [yr(e['日付']) ? yr(e['日付']) + '年' : '', e['種類'], e['相手先・場所'], e['内容'] && e['内容']!==e['相手先・場所'] ? e['内容'] : ''].filter(Boolean).join(' '))); }
   return L.join('\n');
@@ -5271,7 +5278,7 @@ function openBrief(no){
     <div class="brbody" id="briefBody">
       ${ph ? `<div class="brph">${thImg(ph['ファイルID'], 1200)}</div>` : '<div class="brph nophoto">写真はまだありません</div>'}
       <h2>${esc(w['作品名'] || '無題')}</h2><p class="brby">下村良之介　${esc(nol(no))}</p>
-      <table class="brtb">${row('制作年', w['制作年'])}${row('画材', w['画材'])}${row('サイズ', dimTxt(w, true))}${row('種別', w['種別'])}${row('シリーズ', w['シリーズ'])}
+      <table class="brtb">${row('制作年', w['制作年'])}${row('画材', w['画材'])}${row('サイズ', sizeLine(w))}${row('種別', w['種別'])}${row('シリーズ', w['シリーズ'])}
         <tr class="brloc"><th>保管場所</th><td>${esc(briefLoc(w) || '不明')}</td></tr></table>
       ${ev.length ? `<h3>来歴</h3><ul class="brev">${ev.map(e => `<li><b>${esc(yr(e['日付']) ? yr(e['日付']) + '年' : '年不明')}</b> ${esc([e['種類'], e['相手先・場所'], e['内容'] && e['内容']!==e['相手先・場所'] ? e['内容'] : ''].filter(Boolean).join('　'))}</li>`).join('')}</ul>` : ''}
     </div>
@@ -5813,7 +5820,7 @@ function openWork(no, keepScroll, restoreSc){
       <div class="eyebrow wno">${ot ? esc(no) + '　' + esc(w['種別']||'その他') : esc(nol(no))}</div>
       <h2 class="title">${w['作品名']?esc(w['作品名']):`<span class="untitled" style="font-size:24px">${ot ? '名前なし' : '無題'}</span>`}</h2>
       ${w['作品名メモ']?`<div class="subtitle">${esc(w['作品名メモ'])}</div>`:''}
-      <div class="tombstone">${esc([w['制作年']||'制作年不明', w['画材'], dimTxt(w, false, ' cm')].filter(Boolean).join('　|　'))}</div>
+      <div class="tombstone">${esc([w['制作年']||'制作年不明', w['画材'], szShort(w, ' cm')].filter(Boolean).join('　|　'))}</div>
       <div class="loc"><span class="lk">いまの場所</span><span style="display:flex;align-items:center"><b>${esc(w['所在']||w['所在区分']||'不明')}</b>${canEdit()?`<button class="pen" data-act="move" aria-label="場所を変える"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.6"/></svg></button>`:''}</span></div>
       ${canEdit() ? `<label class="locok ${w['場所確認日']?'on':''}"><input type="checkbox" id="locOk" ${w['場所確認日']?'checked':''}><span>${w['場所確認日'] ? 'この場所にあることを確認済み<small>' + esc(String(w['場所確認日']).split(' ')[0]) + '　' + esc(w['場所確認者']||'') + '</small>' : 'この場所にあることを確認した'}</span></label>` : (w['場所確認日'] ? `<p class="locokv">場所の確認：${esc(String(w['場所確認日']).split(' ')[0])}（${esc(w['場所確認者']||'')}）</p>` : '')}
       ${w['要確認']?`<div class="flagbox">要確認 — ${escU(w['要確認メモ']||'（メモなし）')}${canEdit()?flagActs(w):''}</div>`:''}
@@ -7000,6 +7007,36 @@ function crPreview(){ if (!CR || CR.mode !== 'pv' || !CR.L || !CR.img) return; c
   CR.Lp = Object.assign(Lp, { sw: L.sw, sh: L.sh, bw: W, bh: H }); c.style.cssText = css; $('#crop .cr-grid').style.cssText = css;
   const m = $('#crop .cr-wpm'); if (m) { const o = CR.wp && crSrc2Out(CR.wp); m.classList.toggle('hidden', !o); if (o) m.style.cssText = `left:${Lp.ox + o[0] * Lp.w}px;top:${Lp.oy + o[1] * Lp.h}px`; }
   crZoomUI(); }); }
+/* 台帳のサイズが「絵だけ」か「額込み」かを、写真から判定する（10/6 本人。AI は使わない）。
+   im：写真（回した向き）、q：絵の四隅（左上・右上・右下・左下、0〜1）、k：ふくらみ、L：{h, w} 台帳。
+   絵の四隅から、まっすぐに直した外側を四辺それぞれ調べ、色がはっきり変わる線（額の縁）を探す。3辺以上で同じ太さに見つかった、いちばん外の線を額の外側とする。
+   台帳の縦横の比が「絵だけの比」と「額込みの比」のどちらに合うかで決め、はっきりしないときは unsure */
+function szJudge(im, q, k, L){
+  const iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height, s = Math.min(1, 1200 / Math.max(iw, ih)), sw = Math.max(1, Math.round(iw * s)), sh = Math.max(1, Math.round(ih * s));
+  const cv = document.createElement('canvas'); cv.width = sw; cv.height = sh; const g = cv.getContext('2d'); g.drawImage(im, 0, 0, sw, sh); const D = g.getImageData(0, 0, sw, sh).data;
+  const top = [q[0], q[1]], bot = [q[3], q[2]], ra = crAuto(top, bot, sw, sh, k), cam = crCam(sw, sh, k), U = a => a.map(([x, y]) => crU(x * sw, y * sh, cam)), M = crSq(crQuad(U(top), U(bot), 0)), kk = k / cam.R2;
+  const px = (u, v) => { const z = M.g * u + M.h * v + 1; let X = (M.a * u + M.b * v + M.c) / z, Y = (M.d * u + M.e * v + M.f) / z;
+    if (kk) { const dx = X - cam.cx, dy = Y - cam.cy, f = 1 + kk * (dx * dx + dy * dy); X = cam.cx + dx * f; Y = cam.cy + dy * f; }
+    X = Math.round(X - .5); Y = Math.round(Y - .5); if (!(X >= 0 && Y >= 0 && X < sw && Y < sh)) return null; const p = (Y * sw + X) * 4; return [D[p], D[p + 1], D[p + 2]]; };
+  const dt = .004, N = Math.round(.45 / dt), m = 41, SD = { T: (t, a) => [a, -t], B: (t, a) => [a, 1 + t], L: (t, a) => [-t / ra, a], R: (t, a) => [1 + t / ra, a] }, cand = {}; /* t：絵の高さを1とした外向きの距離 */
+  for (const sd in SD) { const P = [];
+    for (let i = 0; i <= N; i++) { let n = 0; const c = [0, 0, 0]; for (let j = 0; j < m; j++) { const v = px(...SD[sd](i * dt, .15 + .7 * j / (m - 1))); if (v) { n++; c[0] += v[0]; c[1] += v[1]; c[2] += v[2]; } } if (n < m * .7) break; P.push(c.map(x => x / n)); }
+    const e = P.map((_, i) => i < 3 || i > P.length - 4 ? 0 : [0, 1, 2].reduce((a, ch) => a + Math.abs(P[i + 1][ch] + P[i + 2][ch] + P[i + 3][ch] - P[i - 1][ch] - P[i - 2][ch] - P[i - 3][ch]) / 3, 0)), mx = Math.max(0, ...e);
+    cand[sd] = []; for (let i = 3; i < e.length - 3; i++) if (i * dt >= .015 && e[i] >= 30 && e[i] >= mx * .35 && e[i] >= e[i - 1] && e[i] >= e[i + 1]) cand[sd].push({ t: i * dt, e: e[i] }); }
+  let best = null; const sides = Object.keys(cand);
+  sides.forEach(a => cand[a].forEach(({ t: t0 }) => { const tol = Math.max(.012, t0 * .15), hit = {}; sides.forEach(sd => { let b = null; cand[sd].forEach(c => { if (Math.abs(c.t - t0) <= tol && (!b || c.e > b.e)) b = c; }); if (b) hit[sd] = b.t; });
+    const cnt = Object.keys(hit).length; if (cnt >= 3 && (!best || cnt > best.cnt || (cnt === best.cnt && t0 > best.t0))) best = { t0, cnt, hit }; }));
+  const lnd = (a, b) => Math.abs(Math.log(a / b)), r1 = L.w / L.h, out = { ra: +ra.toFixed(3), found: !!best };
+  let Hf = 0, Wf = 0, rF = 0, tb = 0; if (best) { const h = best.hit, t = sd => h[sd] != null ? h[sd] : best.t0; Hf = 1 + t('T') + t('B'); Wf = ra + t('L') + t('R'); rF = Wf / Hf; tb = (t('T') + t('B') + t('L') + t('R')) / 4; out.rF = +rF.toFixed(3); out.sides = best.cnt; }
+  const o = [r1, 1 / r1].map((r, i) => ({ i, dA: lnd(r, ra), dF: best ? lnd(r, rF) : 9 })).sort((a, b) => Math.min(a.dA, a.dF) - Math.min(b.dA, b.dF))[0];
+  if (o.i === 1 && Math.min(o.dA, o.dF) <= .03 && Math.abs(Math.log(r1)) > .05) return Object.assign(out, { res: 'unsure', why: '台帳の高さと幅が逆かもしれません' });
+  if (best) { const bF = tb * L.h / Hf, bA = tb * L.h;
+    if (o.dF <= .03 && o.dA >= .045 && bF >= .8 && bF <= 40) return Object.assign(out, { res: 'frame', bcm: +bF.toFixed(1), est: { h: +(L.h / Hf).toFixed(1), w: +(L.h * ra / Hf).toFixed(1) } });
+    if (o.dA <= .03 && o.dF >= .045) return Object.assign(out, { res: 'art', bcm: +bA.toFixed(1) });
+    return Object.assign(out, { res: 'unsure', why: o.dA < .045 && o.dF < .045 ? '額の縁が細く、絵だけか額込みか決められません' : '台帳の形が、写真の絵だけとも額込みとも合いません' }); }
+  if (o.dA <= .015) return Object.assign(out, { res: 'art', why: '額の縁は見つかりませんでした' });
+  return Object.assign(out, { res: 'unsure', why: o.dA > .045 ? '台帳の形が写真の絵と合わず、額の縁も見つかりません' : '額の縁が見つからず、形も少しちがいます' }); }
+const szPatch = (res, w) => res === 'frame' ? { '額の高さcm': String(w['高さcm']), '額の幅cm': String(w['幅cm']), '高さcm': '', '幅cm': '', 'サイズの確認': '' } : { 'サイズの確認': '作品のみ' };
 /* 写真の向き（10/6 本人）：CR.rot（0・90・180・270、右回り）。角・チップ・白の位置は、回した写真の上の位置（0〜1）で持つ。保存のメモに「｜回転 90」。元の写真は CR.img0 */
 const crRotPt = (p, d) => { d = ((d % 360) + 360) % 360; const [x, y] = p; return d === 90 ? [1 - y, x] : d === 180 ? [1 - x, 1 - y] : d === 270 ? [y, 1 - x] : [x, y]; };
 const crOrder4 = P => { const f = g => P.reduce((a, b) => g(b) < g(a) ? b : a); return [f(p => p[0] + p[1]), f(p => p[1] - p[0]), f(p => -(p[0] + p[1])), f(p => p[0] - p[1])]; }; /* 左上・右上・右下・左下 */
@@ -7096,7 +7133,11 @@ function crRatioAsk(){ const c0 = CR; if (!c0 || !c0.led || !c0.img || $('#crop 
     if (k === 'newok') { const h = parseFloat(box.querySelector('#craH').value), ww = parseFloat(box.querySelector('#craW').value); if (!(h > 0 && ww > 0)) return alert('高さと幅を数字で入れてください');
       return go({ '高さcm': String(h), '幅cm': String(ww), 'サイズの確認': '作品のみ' }, { h, w: ww }); } };
   return true; }
-async function cropSave(){ const c0 = CR; if (!c0 || c0.saving || !c0.img) return; if (!c0.ratioOk && crRatioAsk()) return; c0.saving = true; c0.aiSkip = true;
+async function cropSave(){ const c0 = CR; if (!c0 || c0.saving || !c0.img) return; if (!c0.ratioOk && !c0.szDone && c0.led && c0.n === 1) { c0.szDone = true; const w = workOf(c0.no) || {};
+    if (szKind(w) === 'unk') try { const j = szJudge(c0.img, [c0.top[0], c0.top[1], c0.bot[1], c0.bot[0]], crK(), c0.led);
+      if (j.res === 'frame') { c0.ledPatch = szPatch('frame', w); c0.led = null; c0.ratio = 'auto'; c0.ratioOk = true; toast('台帳のサイズは額込みと判定し、額のサイズに移します（絵だけは約 ' + j.est.h + '×' + j.est.w + ' cm）'); }
+      else if (j.res === 'art' && !c0.ledPatch) c0.ledPatch = szPatch('art', w); } catch(e){} } /* 台帳のサイズが額込みか、写真から判定（10/6 本人） */
+  if (!c0.ratioOk && crRatioAsk()) return; c0.saving = true; c0.aiSkip = true;
   const sb = $('#crop .cr-save'), hint = $('#crop .cr-hint'), h0 = hint ? hint.textContent : '';
   /* 保存中は、補正の画面の上を全部ぼかして、まん中にくるくると今していること（10/6 本人） */
   const say = t => { const el = CR === c0 && $('#crop'); if (!el) return busy(true, t); let o = el.querySelector('.cr-saving');
@@ -7195,14 +7236,68 @@ const acEta = s => s >= 3600 ? Math.floor(s / 3600) + '時間' + Math.round(s % 
 const acSec = () => AC.n && AC.t0 ? (Date.now() - AC.t0) / 1000 / AC.n : 90;
 function acProgHTML(){ if (!AC.run) return ''; if (!AC.N) return `<div class="ac-prog"><span class="ldspin"></span><div><b>準備しています</b><small>${esc(AC.step || '')}</small></div></div>`;
   return `<div class="ac-prog"><span class="ldspin"></span><div><b>${AC.n} / ${AC.N} 枚 すみ</b><small>${(AC.curs || []).map(it => esc(nol(it.no) + '　' + (it.w['作品名'] || '') + (it.step ? '：' + it.step : ''))).join('<br>')}<br>のこり およそ${acEta(Math.max(1, AC.N - AC.n) * acSec())}${AC.nfs ? '・Mac のフォルダから直接読んでいます' : ''}${AC.stop ? '<br>いま進めている分が終わったら止まります' : ''}</small></div></div>`; }
-function acDraw(){ const el = $('#acb'); if (!el || !AC.open) return; const y = el.scrollTop, { L, n } = acState(), tab = AC.tab, left = n.todo;
+/* まとめて判定（10/6 本人「確実なものは自動で直す」）：補正ずみの写真（四隅が分かっている）がある作品で、台帳のサイズが額込みか分からないものを1点ずつ判定。
+   確実なものは台帳を直し（額込み→額のサイズに移す／絵だけ→「作品のみ」）、あやしいものは「確認が必要」に。1点ずつ元にもどせる。結果はこの端末に覚える（localStorage smr_szj） */
+const SZ = { run: false, stop: false, tab: 'unsure', n: 0, N: 0, step: '', msg: '', res: (() => { try { return JSON.parse(localStorage.getItem('smr_szj') || '{}') || {}; } catch(e){ return {}; } })() };
+const szSave = () => { try { localStorage.setItem('smr_szj', JSON.stringify(SZ.res)); } catch(e){} };
+function szPhoto(no){ const L = (photoBy[no] || []).filter(p => { const c = crInfo(p); return c && c.n === 1; }), p = L.find(x => x['メイン']) || L[0]; if (!p) return null;
+  const info = crInfo(p), o = S.photos.find(x => x['写真ID'] === info.orig); return o && o['ファイルID'] ? { c: p, info, o } : null; }
+function szState(){ const L = [], n = { todo: 0, auto: 0, unsure: 0 };
+  (S.works || []).forEach(w => { const no = w['作品番号'], r = SZ.res[no];
+    if (r) { L.push({ no, w, r, st: r.st, ph: szPhoto(no) }); return; }
+    if (szKind(w) !== 'unk' || isScreenW(w) || !(+w['高さcm'] > 0 && +w['幅cm'] > 0)) return; const ph = szPhoto(no); if (ph) L.push({ no, w, ph, st: 'todo' }); });
+  L.forEach(x => { if (x.st === 'todo') n.todo++; else if (x.st === 'unsure') n.unsure++; else n.auto++; }); return { L, n }; }
+async function szOne(x){ const { info, o } = x.ph, fid = o['ファイルID']; let src = TH['1600_' + fid]; if (!src) src = (await call('getThumbs', [fid], 1600))[fid]; if (!src) throw new Error('写真を読めませんでした');
+  let im = await loadImg(src); if (info.rot) im = crRotImg(im, info.rot);
+  return szJudge(im, [info.top[0], info.top[1], info.bot[1], info.bot[0]], -(info.v || 0) / 100, { h: +x.w['高さcm'], w: +x.w['幅cm'] }); }
+async function szSend(list){ let res = null, err = null; for (let t = 1; t <= 3; t++) { try { try { res = await call('updateWorks', list); } catch(e){ if (!/この操作はできません/.test(e.message || e)) throw e; for (const x of list) res = await call('updateWork', x.no, x.patch); } err = null; break; } catch(e){ err = e; if (isLoginErr(e)) break; await new Promise(r => setTimeout(r, 2000 * t)); } }
+  if (err) throw err; if (res && res.works) setData(res); }
+async function szRun(limit){ if (SZ.run) return; const todo = szState().L.filter(x => x.st === 'todo'), L = limit ? todo.slice(0, limit) : todo; if (!L.length) return;
+  SZ.run = true; SZ.stop = false; SZ.msg = ''; SZ.N = L.length; SZ.n = 0; acDraw(); let fix = [];
+  const flush = async () => { if (!fix.length) return; const list = fix; fix = []; SZ.step = '台帳を直しています（' + list.length + '点）'; szProg();
+    try { await szSend(list); } catch(e){ list.forEach(x => { const r = SZ.res[x.no]; if (r) { r.st = 'unsure'; r.act = ''; r.why = '台帳を直せませんでした（' + (e.message || e) + '）'; } }); szSave(); if (isLoginErr(e)) throw e; } };
+  try { for (const x of L) { if (SZ.stop) break; SZ.step = nol(x.no) + ' の写真を調べています'; szProg(); let r;
+      try { r = await szOne(x); } catch(e){ if (isLoginErr(e)) throw e; r = { res: 'unsure', why: '写真を読めませんでした' }; }
+      r.old = { h: x.w['高さcm'], w: x.w['幅cm'] }; r.at = Date.now();
+      if (r.res === 'frame' || r.res === 'art') { r.st = 'auto'; r.act = r.res; fix.push({ no: x.no, patch: szPatch(r.res, x.w) }); } else r.st = 'unsure';
+      SZ.res[x.no] = r; szSave(); SZ.n++; if (fix.length >= 10) await flush(); szProg(); }
+    await flush(); }
+  catch(e){ SZ.msg = '止まりました：' + (e.message || e); } finally { SZ.run = false; SZ.step = ''; acDraw(); } }
+function szProg(){ const b = $('#szProg'); if (b) b.innerHTML = szProgHTML(); }
+const szProgHTML = () => SZ.run ? `<div class="ac-prog"><span class="ldspin"></span><div><b>${SZ.n} / ${SZ.N} 点</b><small>${esc(SZ.step || '')}</small></div></div>` : '';
+async function szAct(a, v){ const x = szState().L.find(q => q.no === v), w = x && x.w; if (!x) return;
+  if (a === 'szopen') { if (x.ph) { S.cur = x.no; openCrop(x.ph.c); } return; }
+  const r = SZ.res[x.no] || (SZ.res[x.no] = { old: { h: w['高さcm'], w: w['幅cm'] }, at: Date.now() }); let patch = null;
+  if (a === 'szundo' && r.act) patch = r.act === 'frame' ? { '高さcm': String(r.old.h || ''), '幅cm': String(r.old.w || ''), '額の高さcm': '', '額の幅cm': '', 'サイズの確認': '' } : { 'サイズの確認': '' };
+  else if (a === 'szframe' || a === 'szart') { if (szKind(w) !== 'unk') return toast('この作品のサイズは、もう直してあります'); patch = szPatch(a === 'szframe' ? 'frame' : 'art', w); }
+  else if (a === 'szskip') { r.st = 'done'; r.act = ''; r.why = 'わからない（このまま）'; szSave(); return acDraw(); }
+  if (!patch) return; busy(true, '台帳を直しています…');
+  try { await szSend([{ no: x.no, patch }]); r.st = 'done'; r.act = a === 'szundo' ? '' : a === 'szframe' ? 'frame' : 'art'; if (a === 'szundo') r.why = '元にもどしました'; szSave(); toast(a === 'szundo' ? '元にもどしました' : '台帳を直しました'); }
+  catch(e){ alert('直せませんでした。\n' + (e.message || e)); } finally { busy(false); acDraw(); } }
+function szDraw(el){ const y = el.scrollTop, { L, n } = szState(), tab = SZ.tab, list = L.filter(x => tab === 'auto' ? x.st === 'auto' || x.st === 'done' : x.st === tab);
+  const th = x => `<span class="ac-th">${x.ph ? thImg(x.ph.c['ファイルID'], 200) : ''}</span>`, cm = (h, w) => `高さ ${esc(h)} × 幅 ${esc(w)} cm`;
+  const item = x => { const r = x.r || {}, wt = esc(nol(x.no) + '　' + (x.w['作品名'] || '作品名なし')), led = r.old ? cm(r.old.h, r.old.w) : cm(x.w['高さcm'], x.w['幅cm']);
+    const v = r.act === 'frame' ? '額込みのサイズ → 額のサイズに移しました' + (r.est ? '（絵だけは約 ' + r.est.h + '×' + r.est.w + ' cm）' : '') : r.act === 'art' ? '絵だけのサイズ →「額なし（作品のみ）」にしました' + (r.bcm ? '（額の縁 約 ' + r.bcm + ' cm）' : '') : (r.why || '');
+    const bt = x.st === 'todo' ? '' : x.st === 'unsure' ? `<button type="button" data-ac="szframe:${esc(x.no)}">額込みのサイズ</button><button type="button" data-ac="szart:${esc(x.no)}">絵だけのサイズ</button><button type="button" data-ac="szskip:${esc(x.no)}">わからない</button>`
+      : r.act ? `<button type="button" data-ac="szundo:${esc(x.no)}">元にもどす</button>` : '';
+    return `<div class="ac-i"><div class="ac-ph">${th(x)}</div><div class="ac-tx"><b>${wt}</b><small>台帳 ${led}</small>${v ? `<small class="ac-why">${esc(v)}</small>` : ''}${r.ra ? `<small>写真：絵だけ 縦1：横${r.ra}${r.rF ? '／額込み 縦1：横' + r.rF : '（額の縁なし）'}</small>` : ''}<div class="ac-bt">${bt}${x.ph ? `<button type="button" data-ac="szopen:${esc(x.no)}">写真を見る</button>` : ''}</div></div></div>`; };
+  el.innerHTML = `<div class="qc-w fdb-w ac-w"><div class="qc-top"><button type="button" class="qc-x" data-ac="end" aria-label="閉じる">${QCSVG.x}</button><b class="fdb-h">サイズの額込み判定（管理者）</b></div>${acModeHTML()}
+    <p class="qc-hint">補正で合わせた絵の四隅のまわりから額の縁を探し、台帳のサイズが「額込み」か「絵だけ」かを判定します（AI は使いません）。確実なものは台帳を直し（額込み → 額のサイズに移す／絵だけ →「作品のみ」）、はっきりしないものは「確認が必要」に残します。どれも1点ずつ元にもどせます。</p>
+    <div id="szProg">${szProgHTML()}</div>${SZ.msg && !SZ.run ? `<p class="ac-msg">${esc(SZ.msg)}</p>` : ''}
+    <div class="ac-go">${SZ.run ? `<button type="button" class="hg-go ac-stop" data-ac="szstop" ${SZ.stop ? 'disabled' : ''}>${SZ.stop ? '止めています…' : '止める'}</button>`
+      : n.todo ? `<button type="button" class="hg-go" data-ac="szgo:10">${Math.min(10, n.todo)}点だけ判定する</button>${n.todo > 10 ? `<button type="button" class="hg-link" data-ac="szgo:0">のこり${n.todo}点を続けて判定する</button>` : ''}` : '<p class="hg-note">まだの作品はありません（補正ずみの写真があり、額込みか分からない作品が対象です）</p>'}</div>
+    <div class="ac-tabs">${[['unsure', '確認が必要', n.unsure], ['auto', '直した', n.auto], ['todo', 'まだ', n.todo]].map(([k, t, c]) => `<button type="button" data-ac="sztab:${k}" class="${tab === k ? 'on' : ''}">${t}<b>${c}</b></button>`).join('')}</div>
+    <div class="ac-l">${list.length ? list.map(item).join('') : '<p class="hg-note">ありません</p>'}</div></div>`;
+  hydrate(el); el.scrollTop = y; }
+const acModeHTML = () => `<div class="ac-tabs ac-mode"><button type="button" data-ac="mode:crop" class="${AC.mode !== 'size' ? 'on' : ''}">写真の補正</button><button type="button" data-ac="mode:size" class="${AC.mode === 'size' ? 'on' : ''}">サイズ（額込みか）</button></div>`;
+function acDraw(){ const el = $('#acb'); if (!el || !AC.open) return; if (AC.mode === 'size') return szDraw(el); const y = el.scrollTop, { L, n } = acState(), tab = AC.tab, left = n.todo;
   const th = f => `<span class="ac-th">${f ? thImg(f, 200) : ''}</span>`;
   const item = x => { const wt = esc(nol(x.no) + '　' + (x.w['作品名'] || '作品名なし')), why = acWhy(x.why);
     if (x.st === 'auto') return `<div class="ac-i"><div class="ac-ph">${th(x.p && x.p['ファイルID'])}<i>→</i>${th(x.c['ファイルID'])}</div><div class="ac-tx"><b>${wt}</b><small>${esc((crInfo(x.c) || {}).cht ? 'カラーチップあり（色はまだ合わせていません）' : 'カラーチップなし')}</small><div class="ac-bt"><button type="button" data-ac="open:${esc(x.no)}">補正画面で直す</button><button type="button" data-ac="undo:${esc(x.no)}">元にもどす</button></div></div></div>`;
     if (x.st === 'review') return `<div class="ac-i"><div class="ac-ph">${th(x.p['ファイルID'])}</div><div class="ac-tx"><b>${wt}</b><small class="ac-why">${esc(why.t || '確認が必要です')}</small><div class="ac-bt"><button type="button" data-ac="open:${esc(x.no)}">補正画面で開く</button></div></div></div>`;
     return `<div class="ac-i"><div class="ac-ph">${th(x.p['ファイルID'])}</div><div class="ac-tx"><b>${wt}</b></div></div>`; };
   const list = L.filter(x => x.st === tab);
-  el.innerHTML = `<div class="qc-w fdb-w ac-w"><div class="qc-top"><button type="button" class="qc-x" data-ac="end" aria-label="閉じる">${QCSVG.x}</button><b class="fdb-h">写真の自動補正（管理者）</b></div>
+  el.innerHTML = `<div class="qc-w fdb-w ac-w"><div class="qc-top"><button type="button" class="qc-x" data-ac="end" aria-label="閉じる">${QCSVG.x}</button><b class="fdb-h">写真の自動補正（管理者）</b></div>${acModeHTML()}
     <p class="qc-hint">家で撮ったメイン写真を1枚ずつ、自動でトリミング（額の内側で切り抜き・ゆがみの補正）します。色と明るさは変えません。自信のあるものだけ保存し、ほかは「確認が必要」に残します。台帳のサイズは変えません。元の写真は「記録写真」として残ります。</p>
     <div id="acProg">${acProgHTML()}</div>${acFsOk() ? `<div class="ac-fs">${AC.dir ? `写真は <b>Mac の「${esc(AC.dir.name)}」フォルダから直接</b> 読みます${AC.dirOk ? '' : '（始めるときに、読んでよいかたずねられます）'}<button type="button" class="hg-link" data-ac="pick">選び直す</button>` : `<button type="button" class="hg-link" data-ac="pick">Mac のドライブの「下村良之介」フォルダを選ぶ（速くなります）</button><small>Finder の左の「Google Drive」→「マイドライブ」→「下村良之介」を選びます</small>`}</div>` : ''}${AC.msg && !AC.run ? `<p class="ac-msg">${esc(AC.msg)}</p>` : ''}
     <div class="ac-go">${AC.run ? `<button type="button" class="hg-go ac-stop" data-ac="stop" ${AC.stop ? 'disabled' : ''}>${AC.stop ? '止めています…' : '止める'}</button>`
@@ -7217,7 +7312,8 @@ function acStep(t, it){ if (it) it.step = t; else AC.step = t; const b = $('#acP
 function acOpen(){ if (!(S.user && S.user.role === '管理')) return; closeSheet(); closeAllPages(); AC.open = true;
   let el = $('#acb'); if (!el) { el = document.createElement('div'); el.id = 'acb'; el.className = 'qc hm2 fdb'; document.body.appendChild(el);
     el.addEventListener('click', e => { const t = e.target.closest('[data-ac]'); if (!t || !AC.open) return; const i = t.dataset.ac.indexOf(':'), a = i < 0 ? t.dataset.ac : t.dataset.ac.slice(0, i), v = i < 0 ? '' : t.dataset.ac.slice(i + 1);
-      if (a === 'end') return acEnd(); if (a === 'stop') { AC.stop = true; return acDraw(); } if (a === 'chip') { AC.chip = !AC.chip; return acDraw(); } if (a === 'go') return acRun(+v); if (a === 'pick') return acPickDir();
+      if (a === 'end') return acEnd(); if (a === 'mode') { AC.mode = v; el.scrollTop = 0; return acDraw(); }
+      if (a === 'szgo') return szRun(+v); if (a === 'szstop') { SZ.stop = true; return acDraw(); } if (a === 'sztab') { SZ.tab = v; el.scrollTop = 0; return acDraw(); } if (/^sz/.test(a)) return szAct(a, v); if (a === 'stop') { AC.stop = true; return acDraw(); } if (a === 'chip') { AC.chip = !AC.chip; return acDraw(); } if (a === 'go') return acRun(+v); if (a === 'pick') return acPickDir();
       if (a === 'tab') { AC.tab = v; el.scrollTop = 0; return acDraw(); }
       const x = acState().L.find(q => q.no === v); if (!x) return;
       if (a === 'open') { S.cur = x.no; return openCrop(x.c || x.p); }
@@ -9272,7 +9368,7 @@ const wideList = () => !tblMobile(); // PCは表、スマホはカード型リ�
 const tblMobile = () => { try { return !matchMedia('(min-width:900px)').matches; } catch(e){ return true; } };
 const WCOLS = [
   ['yr','制作年', w => w['制作年'], w => +((String(w['制作年']).match(/\d{4}/)||[])[0]||9999)],
-  ['sz','サイズ（cm）', w => dimTxt(w), w => (+w['幅cm']||0)*(+w['高さcm']||0)],
+  ['sz','サイズ（cm）', w => szShort(w), w => (m => (+m['幅cm']||0)*(+m['高さcm']||0))(dimMain(w))],
   ['md','画材', w => w['画材']], ['kd','種別', w => w['種別']], ['sr','シリーズ', w => w['シリーズ']],
   ['lc','いまの場所', null, w => (w['所在区分']||'') + (w['所在']||'')],
   ['ck','場所の確認', null, w => w['場所確認日'] || ''],
@@ -9514,7 +9610,7 @@ document.addEventListener('keydown', e => { if (e.key==='Escape' && S.aiOpen && 
 /* ---------- スマホ：カード型の作品リスト（表の情報を3〜4行にまとめる） ---------- */
 function mcard(w){
   const no = w['作品番号'], lk = lacks(w), q = (k, v, t) => v ? esc(v) : (lk.includes(k) ? `<span class="lack">${t}？</span>` : '');
-  const sz = (w['幅cm']||w['高さcm']||w['奥行きcm']) ? esc(dimTxt(w, false, 'cm')).replace(/ /g, '') : '<span class="lack">サイズ？</span>';
+  const sz = szShort(w, 'cm') ? esc(szShort(w, 'cm')).replace(/ /g, '') : '<span class="lack">サイズ？</span>';
   const l2 = [q('制作年', w['制作年'], '年'), sz, q('画材', w['画材'], '画材'), q('種別', w['種別'], '種別')].filter(Boolean).join('<i>｜</i>');
   const kind = w['所在区分'], pl = [w['所在'], w['自宅エリア'] && !String(w['所在']||'').includes(w['自宅エリア']) ? 'エリア' + w['自宅エリア'] : ''].filter(Boolean).join(' ').replace(new RegExp('^' + (kind||'#') + '\\s*'), '');
   const loc = kind && kind!=='不明' ? `<span class="mloc">${esc(kind)}</span><span class="mpl">${esc(pl && pl!==kind ? pl : '')}</span>` : '<span class="lack">場所？</span>';
