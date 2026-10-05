@@ -1353,6 +1353,10 @@ body.dwopen .appbar{translate:var(--dww) 0}
 /* 上の帯は使わず、ページ名のボタンの色と文字でお知らせする */
 html.tb{--tb:0px!important}
 .tmsg,.updbar{display:none!important}
+/* お知らせ（toast）：読み込み中と同じ、画面のまん中の黒いカプセル（10/6 本人：上のページ名のところのカプセルはやめる）。指は通す */
+#toast.tmsg:not(.hidden){display:flex!important;position:fixed!important;left:50%!important;right:auto!important;top:50%!important;bottom:auto!important;transform:translate(-50%,-50%);height:auto!important;width:max-content;max-width:calc(100vw - 48px);box-sizing:border-box;padding:12px 20px!important;margin:0!important;border-radius:22px!important;background:rgba(28,28,28,.88)!important;-webkit-backdrop-filter:blur(10px)!important;backdrop-filter:blur(10px)!important;color:#fff;font-size:14.5px;font-weight:600;letter-spacing:0;line-height:1.5;text-align:left;white-space:normal;gap:10px;pointer-events:none;z-index:1210!important;animation:bvin .2s ease;box-shadow:0 8px 28px rgba(0,0,0,.25)}
+#toast.tmsg:not(.hidden)::before{content:'✓';color:#8fd6a6;font-size:16px;font-weight:700;flex:none}
+#loading:not(.hidden) ~ #toast.tmsg:not(.hidden){top:calc(50% + 62px)!important} /* 読み込み中の表示と重ならないように */
 .loading{height:0!important;padding:0!important;background:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;font-size:0!important;overflow:visible;box-shadow:none}
 .loading::after,.loading .ldsp{display:none!important}
 .appbar h1.st-busy,.appbar h1.st-ok,.appbar h1.st-upd{color:#fff!important;border-color:transparent!important;gap:8px;font-size:14.5px;transition:background .2s}
@@ -2250,7 +2254,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd4135d9806', APP_URL = location.origin + location.pathname;
+const BUILD = '93ced4abc1', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2467,7 +2471,7 @@ function abRender0(){ const h = $('#abTitle'); if (!h) return;
   const ld = $('#loading'), ts = $('#toast'), up = $('#updBar');
   let st = '', tx = h.dataset.t || '';
   /* 読み込み中・送信中は画面のまん中にだけ出す（上のページ名のところには出さない） */
-  if (ts && !ts.classList.contains('hidden')) { st = 'ok'; tx = ts.textContent.trim(); }
+  /* お知らせ（toast）も、上のページ名のところには出さない（画面のまん中に出す。10/6 本人） */
   h.className = st ? 'st-' + st : '';
   if (st) { h.textContent = tx; return; }
   // ふだんは「下村良之介作品目録 › ページ名 › 作品名」を同じ大きさの文字で横に並べる（押すとそこへ戻る）
@@ -8803,7 +8807,7 @@ function afterNav(n){
 /* 「最新版に更新」（名前のメニュー）：画面の版も、台帳の情報も最新にする。今の状況が分からなくなったときに押す（10/5 本人）。
    端末の控え（前に読んだ台帳）を消し、新しい画面を読み込み直してから、Google から全部読み直す。終わったら「最新版になりました」と出す */
 async function freshReload(n){
-  busy(true, '最新版にしています…');
+  busy(true, '最新版にしています…'); try { clearTimeout(BV.t); document.body.classList.add('bveil'); } catch(e){} /* すぐぼかす（画面を切りかえるので、さわらないように） */
   try { localStorage.setItem('smr_fresh', JSON.stringify({ t: Date.now(), n: n || 0 })); } catch(e){}
   try { await new Promise(ok => { setTimeout(ok, 1500); const r = indexedDB.open('smr_cache', 1);
     r.onupgradeneeded = () => { try { r.result.createObjectStore('kv'); } catch(e){} };
@@ -8818,7 +8822,7 @@ async function freshDone(f){ let lb = ''; try { lb = await call('appBuild'); } c
 (async () => {
   let shown = false, fresh = null;
   try { fresh = JSON.parse(localStorage.getItem('smr_fresh') || 'null'); localStorage.removeItem('smr_fresh'); if (fresh && !(Date.now() - fresh.t < 120000)) fresh = null; } catch(e){ fresh = null; }
-  if (fresh) busy(true, '最新の情報を読み込んでいます…');
+  if (fresh) { busy(true, '最新の情報を読み込んでいます…'); try { clearTimeout(BV.t); document.body.classList.add('bveil'); } catch(e){} }
   try { const c = !fresh && S.token && window.__smrCached ? await window.__smrCached() : null; if (c) { setData(c); const nv = restoreNav(); applyStart(); render(); afterNav(nv); busy(false); shown = true; } } catch(e){}
   const getDataWait = async () => { for (let k = 0; ; k++) { try { return await call('getData'); } /* デプロイの直後は数分 404 になることがある（10/5） */
       catch(e){ if (isLoginErr(e) || !netErr(e) || k >= 4) throw e; if (!shown) busy(true, 'Googleにつながるのを待っています…（' + (k + 1) + '/4）'); await new Promise(r => setTimeout(r, 4000 + k * 4000)); } } };
