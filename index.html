@@ -1713,6 +1713,13 @@ body.wide.pgopen #top .appbar #btnMenu,body.wide.scr #top .appbar #btnMenu{displ
 #drawer.drawer,#drawer.drawer.pin{z-index:500!important}
 #mepop{z-index:900!important}
 .toast,#toast{z-index:1000!important}
+#busyveil{position:fixed;inset:0;z-index:1190;display:none;background:rgba(250,249,245,.22);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);animation:bvin .2s ease}
+html[data-theme=dark] #busyveil{background:rgba(20,20,19,.3)}
+body.bveil:not(.bfree) #busyveil{display:block}
+#busyveil span{display:none;position:absolute;left:0;right:0;top:calc(50% + 40px);text-align:center;font-size:13px;color:var(--sub)}
+body.blong #busyveil span{display:block}
+body.bfree #loading.loading::before{pointer-events:none}
+@keyframes bvin{from{opacity:0}to{opacity:1}}
 #confirm.sheet{z-index:1100!important}
 #loading.loading{z-index:1200!important}
 .wdoc .wdcmp{width:calc(100% - 12px);margin:4px 6px 0!important;padding:12px;font-size:15px}
@@ -2239,7 +2246,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '3ea916e878', APP_URL = location.origin + location.pathname;
+const BUILD = 'c318497d44', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2427,7 +2434,17 @@ function fpSheetRedraw(first){ if (!FP.sheet || (!first && ($('#sheet').classLis
     fpChip(); fpSheetRedraw(); }; }
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('#sheetbox #ok, #sheetbox .btns .primary'); if (!b) return;
   if (!$('#loading').classList.contains('hidden')) { e.preventDefault(); e.stopImmediatePropagation(); toast('保存しています。終わるまで、そのままお待ちください'); } }, true);
-function busy(on, text){ $('#loading').innerHTML = '<span class="ldsp"></span>' + esc(text || '読み込み中…'); $('#loading').classList.toggle('hidden', !on); tbSync(); }
+function busy(on, text){ $('#loading').innerHTML = '<span class="ldsp"></span>' + esc(text || '読み込み中…'); $('#loading').classList.toggle('hidden', !on); tbSync(); busyVeil(on); }
+/* 待っているあいだ（削除中・保存中・更新中など）は、後ろの画面をうすくぼかして、さわれないようにする（10/6 本人）。
+   0.3秒より短ければぼかさない（チカチカしない）。45秒たっても終わらなければ、画面をタップすると待たずにさわれる（通信が止まっても動かなくならないように） */
+const BV = { t: 0, t2: 0 };
+function busyVeil(on){ const b = document.body; if (!b) return; clearTimeout(BV.t); clearTimeout(BV.t2);
+  let v = document.getElementById('busyveil'); if (!v) { v = document.createElement('div'); v.id = 'busyveil'; v.innerHTML = '<span>画面をタップすると、待たずにさわれます</span>'; b.appendChild(v);
+    const free = () => { if (b.classList.contains('blong')) b.classList.add('bfree'); }; v.addEventListener('pointerdown', free); const ld = $('#loading'); if (ld) ld.addEventListener('pointerdown', free); }
+  b.classList.remove('blong', 'bfree');
+  if (!on) { b.classList.remove('bveil'); return; }
+  if (!b.classList.contains('bveil')) BV.t = setTimeout(() => b.classList.add('bveil'), 300);
+  BV.t2 = setTimeout(() => b.classList.add('blong'), 45000); }
 function tbSync(){ abRender(); }
 /* 上端（ステータスバー）の色を画面の地の色にそろえる */
 function syncThemeColor(){ let m = document.querySelector('meta[name="theme-color"]'); if (!m) { m = document.createElement('meta'); m.name = 'theme-color'; document.head.appendChild(m); }
