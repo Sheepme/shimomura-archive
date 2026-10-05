@@ -2238,7 +2238,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '141feb944f', APP_URL = location.origin + location.pathname;
+const BUILD = 'ebaebed78f', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6645,14 +6645,14 @@ async function openCrop(p){
   let more = false; try { more = localStorage.getItem('smr_crmore') === '1'; } catch(e){} el.classList.toggle('more', more);
   document.body.appendChild(el); hpush('c'); crUI();
   el.querySelector('.cr-morebtn').onclick = () => { const on = !el.classList.contains('more'); el.classList.toggle('more', on); try { localStorage.setItem('smr_crmore', on ? '1' : '0'); } catch(e){} crUI(); };
-  el.querySelector('[data-crnext]').onclick = () => { const P = crSelList(), k = P.findIndex(q => q.a === CR.sel.a && q.i === CR.sel.i); CR.sel = P[(k + 1) % P.length]; crDraw(); crNudgeLab(); crNudgeLoupe(); };
+  el.querySelector('[data-crnext]').onclick = () => { const P = crSelList(), k = P.findIndex(q => q.a === CR.sel.a && q.i === CR.sel.i); CR.sel = P[(k + 1) % P.length]; if (CR.pin) CR.pin = CR.sel; crDraw(); crNudgeLab(); crNudgeLoupe(); };
   el.querySelectorAll('[data-crd]').forEach(b => { const [dx, dy] = b.dataset.crd.split(',').map(Number); let t1 = 0, t2 = 0;
     const stop = () => { clearTimeout(t1); clearInterval(t2); t1 = t2 = 0; };
     b.addEventListener('pointerdown', e => { e.preventDefault(); stop(); crNudge(dx, dy); t1 = setTimeout(() => { t2 = setInterval(() => crNudge(dx, dy), 60); }, 380); });
     ['pointerup', 'pointerleave', 'pointercancel'].forEach(k => b.addEventListener(k, stop)); b.addEventListener('click', e => e.preventDefault()); });
   el.querySelector('.cr-x').onclick = () => { if (CR && CR.dirty && !confirm('直した内容を保存せずに閉じますか？')) return; cropClose(); };
   el.querySelector('.cr-save').onclick = cropSave;
-  el.querySelectorAll('[data-crm]').forEach(b => b.onclick = () => { CR.mode = b.dataset.crm; crUI(); crLayout(); });
+  el.querySelectorAll('[data-crm]').forEach(b => b.onclick = () => { CR.mode = b.dataset.crm; if (CR.mode !== 'edit') { CR.pin = null; crLoupeOff(); } crUI(); crLayout(); });
   el.querySelectorAll('[data-crn]').forEach(b => b.onclick = () => { const n = +b.dataset.crn; if (n === CR.n) return; crSetN(n); CR.sel = { a: 'top', i: 0 }; CR.dirty = true; crUI(); crDraw(); crNote(); crPreview(); });
   el.querySelectorAll('[data-crr]').forEach(b => b.onclick = () => { CR.ratio = b.dataset.crr; CR.dirty = true; crUI(); crNote(); crPreview(); });
   el.querySelector('#crB').oninput = e => { CR.bri = +e.target.value; CR.dirty = true; $('#crBv').textContent = (CR.bri > 0 ? '+' : '') + CR.bri + '%'; crNote(); crPreview(); };
@@ -6665,12 +6665,17 @@ async function openCrop(p){
   const st = el.querySelector('.cr-stage');
   st.addEventListener('pointerdown', e => { if (!CR || CR.mode !== 'edit' || !CR.L) return; const r = st.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
     let best = null, bd = CR.n > 3 ? 40 : 56; ['top', 'bot'].concat(CR.cht ? ['cht'] : []).forEach(a => CR[a].forEach(([qx, qy], i) => { const d = Math.hypot(CR.L.ox + qx * CR.L.w - x, CR.L.oy + qy * CR.L.h - y); if (d < bd) { bd = d; best = { a, i }; } }));
-    if (!best) return; e.preventDefault(); try { st.setPointerCapture(e.pointerId); } catch(x){}
+    if (!best) { if (CR.pin) { CR.pin = null; crLoupeOff(); } return; } e.preventDefault(); try { st.setPointerCapture(e.pointerId); } catch(x){}
     const pt = CR[best.a][best.i]; CR.drag = best; CR.sel = best; crNudgeLab();
-    CR.g = { id: e.pointerId, dx: CR.L.ox + pt[0] * CR.L.w - x, dy: CR.L.oy + pt[1] * CR.L.h - y }; /* 指と丸のずれを保つ（丸が指の先から飛ばない） */
-    crMove(x, y); });
-  st.addEventListener('pointermove', e => { if (!CR || !CR.drag || !CR.g || e.pointerId !== CR.g.id) return; e.preventDefault(); const r = st.getBoundingClientRect(); crMove(e.clientX - r.left, e.clientY - r.top); });
-  const up = () => { if (!CR || !CR.drag) return; if (CR.drag.a === 'cht') { crColorCalc(); crPreview(); } CR.drag = null; CR.g = null; el.querySelector('.cr-loupe').classList.add('hidden'); crDraw(); crNote(); };
+    CR.g = { id: e.pointerId, dx: CR.L.ox + pt[0] * CR.L.w - x, dy: CR.L.oy + pt[1] * CR.L.h - y, sx: x, sy: y, live: false }; /* 指と丸のずれを保つ（丸が指の先から飛ばない） */
+    crDraw(); crLoupe(pt, x, y); });
+  /* 指が少し（6px）動いてから丸を動かす：タップしただけで丸がずれないように */
+  st.addEventListener('pointermove', e => { if (!CR || !CR.drag || !CR.g || e.pointerId !== CR.g.id) return; e.preventDefault(); const r = st.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+    if (!CR.g.live) { if (Math.hypot(x - CR.g.sx, y - CR.g.sy) < 6) return; CR.g.live = true; } crMove(x, y); });
+  /* 丸をタップすると拡大鏡を出したままにする（もう一度タップで閉じる。10/6 本人）。出したまま動かしたら、その丸の拡大鏡のまま */
+  const up = () => { if (!CR || !CR.drag) return; const d = CR.drag, g = CR.g, live = !!(g && g.live); if (d.a === 'cht' && live) { crColorCalc(); crPreview(); } CR.drag = null; CR.g = null;
+    if (!live) CR.pin = CR.pin && CR.pin.a === d.a && CR.pin.i === d.i ? null : d; else if (CR.pin) CR.pin = d;
+    crDraw(); if (CR.pin) crNudgeLoupe(); else crLoupeOff(); if (live) crNote(); };
   st.addEventListener('pointerup', up); st.addEventListener('pointercancel', up);
   document.addEventListener('keydown', crKey);
   try { CR.ro = new ResizeObserver(() => crLayout()); CR.ro.observe(st); } catch(e){ addEventListener('resize', crLayout); }
@@ -6708,8 +6713,8 @@ function crUI(){ const el = $('#crop'); if (!el || !CR) return;
   el.querySelector('.cr-hint').textContent = CR.ai ? 'AI が、額の内側の四隅とカラーチップを探しています…（10〜30秒）'
     : !ed && CR.aiDone ? '自動で補正しました。よければ「保存」。角がずれていたら「角を合わせる」で直してください'
     : !ed ? '仕上がりです。縁がふくらんで見えたら「ふくらみ」を＋に、へこんで見えたら−にします'
-    : CR.n > 1 ? '屏風の両端の角と、折れ目ごとの上と下に丸を合わせてください。丸を動かすと拡大鏡が出ます'
-    : '4つの丸を、絵の角（額の内側）に合わせてください。丸を動かすと拡大鏡が出ます。オレンジの枠はカラーチップの位置です'; }
+    : CR.n > 1 ? '屏風の両端の角と、折れ目ごとの上と下に丸を合わせてください。丸をタップすると拡大鏡が出ます（もう一度タップで閉じる）'
+    : '4つの丸を、絵の角（額の内側）に合わせてください。丸をタップすると拡大鏡が出ます（もう一度タップで閉じる）。オレンジの枠はカラーチップの位置です'; }
 function crLayout(){ const el = $('#crop'), st = el && el.querySelector('.cr-stage'); if (!st || !CR || !CR.img) return;
   const r = st.getBoundingClientRect(); if (r.width < 10 || r.height < 10) return;
   const dpr = Math.min(3, devicePixelRatio || 1), iw = CR.img.naturalWidth, ih = CR.img.naturalHeight, s = Math.min(r.width / iw, r.height / ih);
@@ -6745,10 +6750,11 @@ function crPtName(s){ if (!s) return ''; if (s.a === 'cht') return 'カラーチ
   const n = CR.n; if (n === 1) return (s.i ? '右' : '左') + (s.a === 'top' ? '上' : '下') + 'の丸';
   return (s.a === 'top' ? '上' : '下') + 'の ' + (s.i + 1) + '番目（' + (s.i === 0 ? '左端' : s.i === n ? '右端' : '折れ目') + '）'; }
 function crNudgeLab(){ const e = $('#crop .cr-nsel'); if (e && CR) e.textContent = crPtName(CR.sel); }
-function crNudgeLoupe(){ if (!CR || !CR.L || !CR.sel) return; const p = CR[CR.sel.a] && CR[CR.sel.a][CR.sel.i]; if (!p) return;
-  crLoupe(p, CR.L.ox + p[0] * CR.L.w, CR.L.oy + p[1] * CR.L.h); clearTimeout(CR.nlt); CR.nlt = setTimeout(() => { const lp = $('#crop .cr-loupe'); if (lp && CR && !CR.drag) lp.classList.add('hidden'); }, 1400); }
+function crLoupeOff(){ const lp = $('#crop .cr-loupe'); if (lp) lp.classList.add('hidden'); }
+function crNudgeLoupe(){ if (!CR || !CR.L) return; const s = CR.pin || CR.sel; if (!s) return; const p = CR[s.a] && CR[s.a][s.i]; if (!p) return;
+  crLoupe(p, CR.L.ox + p[0] * CR.L.w, CR.L.oy + p[1] * CR.L.h); clearTimeout(CR.nlt); if (!CR.pin) CR.nlt = setTimeout(() => { if (CR && !CR.drag && !CR.pin) crLoupeOff(); }, 1400); }
 function crNudge(dx, dy){ if (!CR || !CR.L || CR.mode !== 'edit' || !CR.sel) return; const s = CR.sel, p = CR[s.a] && CR[s.a][s.i]; if (!p) return;
-  CR[s.a][s.i] = [Math.min(1, Math.max(0, p[0] + dx / CR.L.w)), Math.min(1, Math.max(0, p[1] + dy / CR.L.h))];
+  CR[s.a][s.i] = [Math.min(1, Math.max(0, p[0] + dx * 0.5 / CR.L.w)), Math.min(1, Math.max(0, p[1] + dy * 0.5 / CR.L.h))]; /* 1回で画面の0.5画素（10/6 本人：半分に） */
   if (s.a === 'cht') CR.chtMoved = true; else CR.moved = true; CR.dirty = true; crDraw(); crNudgeLoupe();
   clearTimeout(CR.nnt); CR.nnt = setTimeout(() => { if (!CR) return; if (s.a === 'cht') { crColorCalc(); crPreview(); } crNote(); }, 400); }
 function crMove(x, y){ const L = CR.L, g = CR.drag; if (!g) return; if (g.a === 'cht') CR.chtMoved = true; else CR.moved = true;
