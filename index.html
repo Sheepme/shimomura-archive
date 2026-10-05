@@ -2070,7 +2070,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '58dcfb521a', APP_URL = location.origin + location.pathname;
+const BUILD = 'd81d59bef0', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4865,6 +4865,7 @@ function pgPrev(host, fid, opt){ opt = opt || {}; const c = document.createEleme
   go(opt.page || 1, true); return { go: k => go(k, true), el: c }; }
 function docTopPreview(d){ const r = docRes(d), box = $('#sheetbox'); if (!r.PDF || !box || box.querySelector('.dtopv')) return;
   box.querySelectorAll('#dvImgs,#dvImgsBox').forEach(x => x.remove());
+  box.querySelectorAll('.dpages.rv').forEach(x => { const h = x.nextElementSibling; if (h && h.classList.contains('hint') && /大きく見られます/.test(h.textContent)) h.remove(); x.remove(); }); /* 上に大きいプレビューがあるので、下の小さなページ一覧は出さない */
   pgPrev(c => { const h = box.querySelector('h3.dttl'); if (h) h.after(c); else box.prepend(c); }, docPdfFid(d)); }
 /* スマホの書類画面（案A）：書類を全面に、来歴・目次などは下から引き出すシートに（地図アプリと同じ形）。
    シートは「少し・半分・全部」の3段。行を押すとシートは半分になり、上の書類がそのページに切り替わって光る。押した行はシートの中に選ばれたまま残る */
