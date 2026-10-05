@@ -1584,6 +1584,8 @@ header,header.tuck{padding-top:calc(var(--tb,0px) + var(--cap,0px) + 58px)!impor
 body:not(.pgopen):not(.searching):not(.dwopen) #top.tuck .appbar{transform:translateY(calc(var(--safe,0px) - var(--abb,0px)))} /* 上のバーとカテゴリを同じ距離・同じ速さで一緒に動かす（ひとつのヘッダーとして） */
 body:not(.pgopen):not(.searching):not(.dwopen) #top.tuck .chips.stk{transform:translateY(calc(var(--safe,0px) - var(--abb,0px)))}
 .chips.stk{top:var(--abb,0px)!important;transition:transform .25s ease!important;will-change:transform}
+/* iPhone：スクロールの途中でカテゴリの地が透ける件（前から。10/6 本人）。sticky の行を transform で動かすと、iPhone のスクロールの仕組みと食い違って地が描かれないことがあるので、スマホでは隠すときも top で動かす（transform は translateZ(0) のまま変えない） */
+@media(max-width:899px){.chips.stk{transition:top .25s ease!important;will-change:auto!important}body:not(.pgopen):not(.searching):not(.dwopen) #top.tuck .chips.stk{transform:translateZ(0)!important;top:var(--safe,0px)!important}}
 #safeCover{display:none;position:fixed;left:0;right:0;top:0;height:var(--safe,0px);background:var(--bg);z-index:97;pointer-events:none}
 body:not(.pgopen):not(.searching):not(.dwopen):not(.loggedout) #safeCover{display:block} /* 画面上の切り欠きの部分は地の色（上のバーはこの下にもぐる） */
 html[data-theme=dark]{--bg:#1c1c1b}
@@ -2221,7 +2223,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '388d108582', APP_URL = location.origin + location.pathname;
+const BUILD = '3811017fe9', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
