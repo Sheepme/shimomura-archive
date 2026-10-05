@@ -2217,7 +2217,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '904d54ca8e', APP_URL = location.origin + location.pathname;
+const BUILD = 'd3cb6f3d41', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6745,7 +6745,9 @@ function acEnd(fromHist){ const was = AC.open, el = $('#acb'); AC.open = false; 
 async function acWake(on){ try { if (on && navigator.wakeLock && document.visibilityState === 'visible' && !AC.wl) AC.wl = await navigator.wakeLock.request('screen'); else if (!on && AC.wl) { const w = AC.wl; AC.wl = null; await w.release(); } } catch(e){} }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && AC.run) { AC.wl = null; acWake(true); } });
 /* 通信の失敗（Google 側の一時的な 404 など）は、少し待ってやり直す */
-async function acRetry(fn, n){ n = n || 3; for (let t = 1; ; t++) { try { return await fn(); } catch(e){ if (!(e && e.net) || t >= n) throw e; await new Promise(r => setTimeout(r, 2000 * t)); } } }
+/* 返事がない通信は見切る（ms：待つ時間）。Google 側で中身が済んでいても、やり直して二重にならない作りにしてある */
+const acTO = (p, ms) => new Promise((ok, ng) => { const t = setTimeout(() => { const e = new Error('Google から返事がありません（' + Math.round(ms / 1000) + '秒）'); e.net = true; ng(e); }, ms); p.then(v => { clearTimeout(t); ok(v); }, e => { clearTimeout(t); ng(e); }); });
+async function acRetry(fn, n, ms){ n = n || 3; for (let t = 1; ; t++) { try { return await acTO(fn(), ms || 150000); } catch(e){ if (!(e && e.net) || t >= n) throw e; await new Promise(r => setTimeout(r, 2000 * t)); } } }
 function acRowSet(r){ S.autoc = (S.autoc || []).filter(x => x[0] !== r[0]); S.autoc.push(r); }
 const acAIs = ai => ai && acPtOk(ai.art) ? '｜AI ' + crPts(ai.art) + (acPtOk(ai.chart) ? ' / ' + crPts(ai.chart) : '') : '';
 function acPreAI(pid){ const r = (S.autoc || []).find(x => x[0] === pid), m = r && /｜AI ([^/]+?)(?: \/ (.+))?$/.exec(r[3] || ''); if (!m) return null;
@@ -6789,7 +6791,7 @@ async function acOne(it){ const p = it.p, no = it.no, fid = p['ファイルID'],
   if (led && Math.abs(Math.log(led.w / led.h / r.a)) > Math.log(1.15)) return acMark(it, 'shape：写真の絵の形（' + acFmt(r.a) + '）が、台帳（高さ ' + led.h + ' × 幅 ' + led.w + ' cm）と合いません');
   acStep('元の写真を読み込んでいます');
   let full = null;
-  try { const o = await acRetry(() => call('getOriginal', fid)); if (o && o.b64) full = await loadImg('data:' + o.mime + ';base64,' + o.b64); } catch(e){ if (isLoginErr(e)) throw e; }
+  try { const o = await acRetry(() => call('getOriginal', fid), 3, 240000); if (o && o.b64) full = await loadImg('data:' + o.mime + ';base64,' + o.b64); } catch(e){ if (isLoginErr(e)) throw e; }
   if (!full) { try { const t = (await acRetry(() => call('getThumbs', [fid], 3200)))[fid]; if (t) full = await loadImg(t); } catch(e){ if (isLoginErr(e)) throw e; } }
   acStep('補正した写真を作っています'); await acYield();
   const b64 = acBuild(r.c, full || img); full = null;
@@ -6797,7 +6799,7 @@ async function acOne(it){ const p = it.p, no = it.no, fid = p['ファイルID'],
   const why = [r.c.cht ? 'カラーチップあり（色はまだ合わせていません）' : 'カラーチップなし', led ? '' : '台帳にサイズがないので、形は写真から計算'].filter(Boolean).join('・');
   const memo = (/^【仮】/.test(p['メモ'] || '') ? '【仮】' : '') + '補正：元の写真 ' + p['写真ID'] + '｜四隅 ' + crPts(crQuad(r.c.top, r.c.bot, 0)) + '｜ふくらみ 0｜明るさ 0%｜比率 ' + (led ? '台帳' : '写真') + '｜色 なし' + (r.c.cht ? '｜チップ位置 ' + crPts(r.c.cht) : '') + '｜元の種類 ' + kind + '｜自動 ' + day;
   acStep('保存しています');
-  const res = await acRetry(() => call('saveAutoCrop', no, p['写真ID'], b64, 'image/jpeg', kind, memo, true, why), 4);
+  const res = await acRetry(() => call('saveAutoCrop', no, p['写真ID'], b64, 'image/jpeg', kind, memo, true, why), 4, 240000);
   const pid = res && res.pid; if (!pid) throw new Error('保存の結果がわかりません');
   S.photos.forEach(x => { if (x['作品番号'] !== no) return; if (x['写真ID'] === p['写真ID']) x['種類'] = '記録写真'; x['メイン'] = x['写真ID'] === pid ? 'メイン' : ''; });
   if (!S.photos.some(x => x['写真ID'] === pid)) S.photos.push({ '写真ID': pid, '作品番号': no, '種類': kind, 'ファイルID': res.fid, 'メモ': res.memo || memo, '登録者': (S.user || {}).name || '', '登録日時': '', '向き判定': '', 'メイン': 'メイン' });
