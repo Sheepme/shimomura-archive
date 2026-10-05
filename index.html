@@ -1621,6 +1621,7 @@ body.wide .dwsrch{display:flex;align-items:center;gap:8px;margin:2px 6px 14px;he
 body.wide .dwsrch:focus-within{border-color:var(--sub)}
 .dwsrch svg{width:18px;height:18px;flex:none;fill:none;stroke:var(--sub);stroke-width:2;stroke-linecap:round}
 .dwsrch input{flex:1;min-width:0;border:0;background:none;outline:none;font:400 15px/1.2 var(--sans);color:var(--ink);padding:0}
+.dwsrch input::-webkit-search-cancel-button{-webkit-appearance:none;display:none}#dwqClose{width:28px;height:28px;margin-right:-8px;border-radius:50%;border:0;background:var(--wash2);color:var(--sub);font-size:12px;flex:none;padding:0;cursor:pointer}#dwqClose.hidden{display:none} /* 入力があるときだけ右に ✕（スマホの検索と同じ。10/6 本人） */
 body.wideoff #top .appbar .dwsrch{display:flex;align-items:center;gap:8px;margin:0 0 0 auto;flex:0 1 300px;min-width:180px;height:40px;padding:0 14px;border-radius:20px;background:var(--wash,var(--paper));border:1px solid var(--line)}
 body.wideoff #top .appbar .dwsrch:focus-within{border-color:var(--sub)}
 body.wide .cbin,body.wideoff .cbin{display:none!important}
@@ -2268,7 +2269,7 @@ body.qcopen #bigwait{visibility:visible!important}body.bbig #toast.tmsg:not(.hid
   <div class="cbin"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><span class="cblbl" aria-hidden="true">作品検索</span><input id="fsq" type="search" enterkeyhint="search" autocomplete="off" placeholder="作品を探す"><button type="button" id="fsqClose" class="hidden" aria-label="検索をやめる">✕</button></div>
   <button type="button" id="fmAsk" class="cbask" aria-label="AIに質問"><span class="ic aispark"><svg viewBox="0 0 24 24" aria-hidden="true"><path style="fill:none;stroke:#fff;stroke-width:1.7;stroke-linejoin:round" d="M4.5 4.5h15a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-9l-4.5 3.6v-3.6H4.5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2z"/><path d="M12 6.8c.3 2.4 1.3 3.5 3.7 3.9-2.4.4-3.4 1.5-3.7 3.9-.3-2.4-1.3-3.5-3.7-3.9 2.4-.4 3.4-1.5 3.7-3.9z"/></svg></span><span>AIに質問</span></button>
 </div>
-<div id="drawer" class="drawer hidden" aria-hidden="true"><button type="button" class="dwscrim" data-dwclose="1" aria-label="メニューを閉じる"></button><aside class="dwpanel" role="menu" aria-label="メニュー"><div class="dwhead"><img class="dwicon" src="icon.jpg" alt="" aria-hidden="true"><span class="dwtt">下村良之介<br>作品目録</span><button type="button" class="dwx" id="dwX" aria-label="メニューを閉じる"><svg class="dwxx" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg><svg class="dwxr" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M9 4.5v15"/></svg></button></div><div class="dwsrch" id="dwSrch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input id="dwq" type="search" placeholder="作品を探す" enterkeyhint="search" autocomplete="off" aria-label="探す"></div><div class="dwnav" id="dwNav"></div><div class="dwfoot" id="dwFoot"></div></aside></div>
+<div id="drawer" class="drawer hidden" aria-hidden="true"><button type="button" class="dwscrim" data-dwclose="1" aria-label="メニューを閉じる"></button><aside class="dwpanel" role="menu" aria-label="メニュー"><div class="dwhead"><img class="dwicon" src="icon.jpg" alt="" aria-hidden="true"><span class="dwtt">下村良之介<br>作品目録</span><button type="button" class="dwx" id="dwX" aria-label="メニューを閉じる"><svg class="dwxx" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg><svg class="dwxr" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M9 4.5v15"/></svg></button></div><div class="dwsrch" id="dwSrch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input id="dwq" type="search" placeholder="作品を探す" enterkeyhint="search" autocomplete="off" aria-label="探す"><button type="button" id="dwqClose" class="hidden" aria-label="検索をやめる">✕</button></div><div class="dwnav" id="dwNav"></div><div class="dwfoot" id="dwFoot"></div></aside></div>
 
 <div id="page" class="page hidden"></div>
 <div id="sheet" class="sheet hidden"><div class="box" id="sheetbox"></div></div>
@@ -2293,7 +2294,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd4294c5ae9', APP_URL = location.origin + location.pathname;
+const BUILD = 'ea98939240', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2815,7 +2816,7 @@ addEventListener('scroll', () => { if (VST.cur && !VST.restoring && $('#page').c
 function render(){ const r = render0.apply(this, arguments); try { vTrack(); } catch(e){} return r; }
 function render0(){ setTimeout(() => { try { tedBar(); } catch(e){} }, 0);
   document.body.classList.toggle('vhome', S.view === 'home'); document.body.dataset.pv = S.view; // （data-view は写真を開くボタンの印なので使わない）
-  { const dq = document.getElementById('dwq'); if (dq && document.activeElement !== dq && typeof SQ !== 'undefined') { const s = SQ[S.view]; dq.value = s ? (S[s[0]] || '') : ''; dq.placeholder = ({ex:'展覧会を探す', pb:'画集・資料を探す', ot:'その他の作品を探す'})[S.view] || '作品を探す'; } }
+  { const dq = document.getElementById('dwq'); if (dq && document.activeElement !== dq && typeof SQ !== 'undefined') { const s = SQ[S.view]; dq.value = s ? (S[s[0]] || '') : ''; { const dx = document.getElementById('dwqClose'); if (dx) dx.classList.toggle('hidden', !dq.value); } dq.placeholder = ({ex:'展覧会を探す', pb:'画集・資料を探す', ot:'その他の作品を探す'})[S.view] || '作品を探す'; } }
   setTimeout(() => { try { stkTop(); } catch(e){} }, 0);
   const main = $('#main');
   document.body.classList.toggle('loggedout', !S.user && !S.publicView);
@@ -8740,7 +8741,8 @@ $('#askq').addEventListener('keydown', e => { if (e.key==='Enter' && !e.shiftKey
 /* ---------- PC：メニューの中の検索欄（下の検索欄と同じ働き） ---------- */
 (function(){ const dq = document.getElementById('dwq'); if (!dq) return;
   dq.addEventListener('focus', () => { if (!SQ[S.view]) { closeAllPages(); S.view = S.wmode || 'album'; S.limit = 60; render(); window.scrollTo(0, 0); } });
-  dq.addEventListener('input', () => { if (!SQ[S.view]) return; const f = $('#fsq'); f.value = dq.value; f.dispatchEvent(new Event('input', {bubbles: true})); });
+  const dx = document.getElementById('dwqClose'); dq.addEventListener('input', () => { if (dx) dx.classList.toggle('hidden', !dq.value); if (!SQ[S.view]) return; const f = $('#fsq'); f.value = dq.value; f.dispatchEvent(new Event('input', {bubbles: true})); });
+  if (dx) { dx.addEventListener('mousedown', e => e.preventDefault()); dx.addEventListener('click', () => { dq.value = ''; dq.dispatchEvent(new Event('input')); dq.blur(); }); }
   dq.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) dq.blur(); });
 })();
 
