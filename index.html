@@ -2149,7 +2149,7 @@ button.ulrow{cursor:pointer}
 .cr-stage.busy::after{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.12) 50%,transparent 70%) 0 0/300% 100%;animation:ldshim 1.4s linear infinite;pointer-events:none}
 .cr-links button:disabled{opacity:.4}
 /* 角の画面：切りかえ以外は「設定」で開く（ふだんは閉じて、写真を大きく）。微調整の矢印（10/6 本人） */
-#crop:not(.more) .cr-more{display:none}
+#crop:not(.crmore) .cr-more{display:none}
 .cr-sl2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 14px}.cr-half{gap:6px;font-size:13px}.cr-half>span{min-width:0}.cr-half output{min-width:2.4em;font-size:12.5px}
 @media(max-width:340px){.cr-sl2{grid-template-columns:1fr}}
 .cr-more{display:flex;flex-direction:column;gap:9px}
@@ -2239,7 +2239,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '8977726ce3', APP_URL = location.origin + location.pathname;
+const BUILD = '3ea916e878', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6643,10 +6643,10 @@ async function openCrop(p){
       <div class="cr-links"><button type="button" data-crai>✨ 自動で探し直す</button><button type="button" data-crreset>角を最初の位置にもどす</button><button type="button" data-crcht>カラーチップの位置を指定</button>${CR.corr ? '<button type="button" data-crundo>補正をやめて元の写真にもどす</button>' : ''}</div>
       </div>
     </div>`;
-  let more = false; try { more = localStorage.getItem('smr_crmore') === '1'; CR.vis = localStorage.getItem('smr_crvis') === '1'; } catch(e){} el.classList.toggle('more', more);
+  let more = false; try { more = localStorage.getItem('smr_crmore') === '1'; CR.vis = localStorage.getItem('smr_crvis') === '1'; } catch(e){} el.classList.toggle('crmore', more); /* .more はアプリの「もっと見る」のボタンと同じ名前になるので使わない（10/6） */
   document.body.appendChild(el); hpush('c'); crUI();
   el.querySelector('.cr-visb').onclick = () => { CR.vis = !CR.vis; try { localStorage.setItem('smr_crvis', CR.vis ? '1' : '0'); } catch(e){} crUI(); crLayout(); crNudgeLoupe(); if (CR.vis) toast('見やすく表示しています（保存する写真は変わりません）'); };
-  el.querySelector('.cr-morebtn').onclick = () => { const on = !el.classList.contains('more'); el.classList.toggle('more', on); try { localStorage.setItem('smr_crmore', on ? '1' : '0'); } catch(e){} crUI(); };
+  el.querySelector('.cr-morebtn').onclick = () => { const on = !el.classList.contains('crmore'); el.classList.toggle('crmore', on); try { localStorage.setItem('smr_crmore', on ? '1' : '0'); } catch(e){} crUI(); };
   el.querySelector('[data-crnext]').onclick = () => { const P = crSelList(), k = P.findIndex(q => q.a === CR.sel.a && q.i === CR.sel.i); CR.sel = P[(k + 1) % P.length]; if (CR.pin) CR.pin = CR.sel; crDraw(); crNudgeLab(); crNudgeLoupe(); };
   el.querySelectorAll('[data-crd]').forEach(b => { const [dx, dy] = b.dataset.crd.split(',').map(Number); let t1 = 0, t2 = 0;
     const stop = () => { clearTimeout(t1); clearInterval(t2); t1 = t2 = 0; };
@@ -6711,7 +6711,7 @@ function crUI(){ const el = $('#crop'); if (!el || !CR) return;
   const ed = CR.mode === 'edit';
   el.querySelector('.cr-nudge').classList.toggle('hidden', !ed); crNudgeLab();
   const vb = el.querySelector('.cr-visb'); vb.classList.toggle('on', !!CR.vis); vb.setAttribute('aria-pressed', CR.vis ? 'true' : 'false'); vb.classList.toggle('hidden', !ed);
-  const mb = el.querySelector('.cr-morebtn'), mo = el.classList.contains('more'); mb.setAttribute('aria-expanded', mo ? 'true' : 'false'); mb.classList.toggle('open', mo);
+  const mb = el.querySelector('.cr-morebtn'), mo = el.classList.contains('crmore'); mb.setAttribute('aria-expanded', mo ? 'true' : 'false'); mb.classList.toggle('open', mo);
   ['.cr-img', '.cr-svg'].forEach(s => el.querySelector(s).classList.toggle('hidden', !ed)); ['.cr-pv', '.cr-grid'].forEach(s => el.querySelector(s).classList.toggle('hidden', ed));
   el.querySelector('.cr-hint').textContent = CR.ai ? 'AI が、額の内側の四隅とカラーチップを探しています…（10〜30秒）'
     : !ed && CR.aiDone ? '自動で補正しました。よければ「保存」。角がずれていたら「角を合わせる」で直してください'
