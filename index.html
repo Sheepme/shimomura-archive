@@ -2218,7 +2218,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '8738c85ed2', APP_URL = location.origin + location.pathname;
+const BUILD = '95d0bee8eb', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2240,7 +2240,9 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 /* 写真の取り寄せ（getThumbs・getDocThumbs）は、同時に2本まで（10/5 開発 v5）。
    Google 側に同時にたくさん送ると順番待ちになり、ほかの通信（保存など）まで遅くなるため。先読み（callLow）は後回しで、1本ぶんはいつも空けておく */
 const THLANE = { max: 2, n: 0, q: [], lq: [] };
-function call(fn, ...args){ return callQ(false, fn, args); }
+/* 台帳の読み込み（getData）は重いので、読み込み中にもう一度頼まれたら、同じ読み込みの結果を待つ（2本同時に走らせない） */
+let GD_ = null;
+function call(fn, ...args){ if (fn === 'getData' && !args.length) { if (!GD_) GD_ = callQ(false, fn, args).finally(() => { GD_ = null; }); return GD_; } return callQ(false, fn, args); }
 function callLow(fn, ...args){ return callQ(true, fn, args); }
 function callQ(low, fn, args){
   if (!NO_TOKEN.includes(fn)) args.unshift(S.token || '');
