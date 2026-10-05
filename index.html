@@ -2222,7 +2222,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '8d2100b943', APP_URL = location.origin + location.pathname;
+const BUILD = '9a2d845464', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -8228,14 +8228,19 @@ function setCols(d){
   let d0 = 0;
   const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
   const onAlbum = () => ['album','ot'].includes(S.view) && $('#page').classList.contains('hidden');
-  document.addEventListener('touchstart', e => { if (e.touches.length===2 && onAlbum()) d0 = dist(e.touches); }, {passive:true});
-  document.addEventListener('touchmove', e => {
-    if (e.touches.length!==2 || !d0 || !onAlbum()) return;
-    e.preventDefault();
+  /* 指の下の写真に直接つける：列の数を変えて描き直すと、指の下の写真が画面から外れ、そのあとの指の動きが document に届かなくなる
+     （iPhone では止め損ねた2本指が画面全体の拡大になり、戻らなくなっていた。10/6）。外れた写真にも指の動きは届くので、そこで止める */
+  let hooked = [];
+  const stop = e => e.preventDefault();
+  const mv = e => { if (e.touches.length !== 2 || !d0) return; e.preventDefault();
     const r = dist(e.touches) / d0;
-    if (r > 1.35) { d0 = dist(e.touches); setCols(-1); } else if (r < 0.74) { d0 = dist(e.touches); setCols(1); }
-  }, {passive:false});
-  document.addEventListener('touchend', e => { if (e.touches.length < 2) d0 = 0; }, {passive:true});
+    if (r > 1.35) { d0 = dist(e.touches); setCols(-1); } else if (r < 0.74) { d0 = dist(e.touches); setCols(1); } };
+  const unhook = () => { hooked.forEach(t => { t.removeEventListener('touchmove', mv); ['gesturestart', 'gesturechange', 'gestureend'].forEach(k => t.removeEventListener(k, stop)); t.removeEventListener('touchend', end); t.removeEventListener('touchcancel', end); }); hooked = []; };
+  const end = e => { if (!e.touches || e.touches.length < 2) { d0 = 0; unhook(); } };
+  document.addEventListener('touchstart', e => { if (e.touches.length !== 2 || !onAlbum()) return; d0 = dist(e.touches);
+    [...e.touches].map(t => t.target).filter((t, i, a) => t && a.indexOf(t) === i && hooked.indexOf(t) < 0).forEach(t => { hooked.push(t);
+      t.addEventListener('touchmove', mv, {passive:false}); ['gesturestart', 'gesturechange', 'gestureend'].forEach(k => t.addEventListener(k, stop)); t.addEventListener('touchend', end); t.addEventListener('touchcancel', end); }); }, {passive:true});
+  document.addEventListener('touchend', e => { if (e.touches.length < 2) { d0 = 0; unhook(); } }, {passive:true});
   /* 画面全体の拡大・縮小（ピンチ）は止める。写真・書類を大きく見る画面の中だけは指で拡大できる */
   const zoomOk = e => false; // 写真・書類の拡大画面は、画像だけを自前で拡大する（画面全体は拡大しない）
   document.addEventListener('gesturestart', e => { if (!zoomOk(e)) e.preventDefault(); });
