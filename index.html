@@ -2195,7 +2195,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'c67c6bb6f9', APP_URL = location.origin + location.pathname;
+const BUILD = 'e154619abe', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6431,7 +6431,18 @@ function cropClose(fromHist){ const el = $('#crop'); if (!el) return; el.remove(
 function crAfter(no, pid){ render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
   S.cur = no; V.list = photoBy[no] || []; const i = V.list.findIndex(x => x['写真ID'] === pid); V.i = i >= 0 ? i : 0; if (V.list.length) showV(); }
 const crPts = a => a.map(([x, y]) => x.toFixed(4) + ',' + y.toFixed(4)).join(' ');
+/* Google 側がときどき 404・「通信が切れました」を返す（中身は実行されていることが多い）。
+   通信の失敗のときは、最新のデータを読んで済んでいるか（done）を確かめ、済んでいなければやり直す（4回まで）。済んでいたら null を返す */
+async function crCall(fn, args, done){
+  for (let t = 1; ; t++) {
+    try { return await call(fn, ...args); }
+    catch(e){ if (!(e && e.net) || t >= 4) throw e;
+      busy(true, '通信をやり直しています…（' + t + '回目）'); await new Promise(r => setTimeout(r, 1500 * t));
+      try { setData(await call('getData')); if (done()) return null; } catch(x){}
+      busy(true, '保存しています…'); } } }
+const crPh = id => S.photos.find(x => x['写真ID'] === id) || {};
 async function cropSave(){ const c0 = CR; if (!c0 || c0.saving || !c0.img) return; c0.saving = true;
+  if (!c0.corr) { const ch = S.photos.find(x => x['作品番号'] === c0.no && (crInfo(x) || {}).orig === c0.orig['写真ID']); if (ch) c0.corr = ch; } /* 前の保存が通信の失敗で終わったのに、Google 側では入っていたとき：二重にせず、その写真を直す */
   busy(true, '補正した写真を作っています…'); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 30)));
   try {
     const im = c0.full || await c0.fullP || c0.img; /* 元のファイルが読めないときは、表示に使っている写真で作る */
@@ -6445,13 +6456,20 @@ async function cropSave(){ const c0 = CR; if (!c0 || c0.saving || !c0.img) retur
     const memo = (/^【仮】/.test(c0.orig['メモ'] || '') ? '【仮】' : '') + '補正：元の写真 ' + c0.orig['写真ID'] + '｜' + shape
       + '｜ふくらみ ' + c0.v + '｜比率 ' + (c0.ratio === 'led' && c0.led ? '台帳' : '写真') + '｜元の種類 ' + c0.kind;
     busy(true, '保存しています…'); let pid;
-    if (c0.corr) { setData(await call('replacePhoto', c0.corr['写真ID'], b64, 'image/jpeg', '', memo)); pid = c0.corr['写真ID']; } /* 直し直し：補正した写真の行を差し替える（前のファイルはドライブに残る） */
+    const oid = c0.orig['写真ID'];
+    if (c0.corr) { /* 直し直し：補正した写真の行を差し替える（前のファイルはドライブに残る） */
+      const cid = c0.corr['写真ID'], f0 = crPh(cid)['ファイルID'] || c0.corr['ファイルID'];
+      const d = await crCall('replacePhoto', [cid, b64, 'image/jpeg', '', memo], () => !!crPh(cid)['ファイルID'] && crPh(cid)['ファイルID'] !== f0); if (d) setData(d); pid = cid;
+      if (crPh(oid)['種類'] !== '記録写真') { const d2 = await crCall('replacePhoto', [oid, '', '', '記録写真', null], () => crPh(oid)['種類'] === '記録写真'); if (d2) setData(d2); }
+    }
     else {
-      const wasMain = ((photoBy[c0.no] || [])[0] || {})['写真ID'] === c0.orig['写真ID']; /* 裏で読み直すと写真の行が作り直されるので、ID でくらべる */
-      await call('addPhotos', c0.no, [{ b64, mime: 'image/jpeg' }], c0.kind, memo);
-      setData(await call('replacePhoto', c0.orig['写真ID'], '', '', '記録写真', null)); /* 元の写真は「記録写真」に（画像・メモはそのまま） */
-      const np = S.photos.filter(x => x['作品番号'] === c0.no && (crInfo(x) || {}).orig === c0.orig['写真ID']).pop(); pid = np && np['写真ID'];
-      if (pid && wasMain) { await call('setMainPhoto', pid); S.photos.forEach(x => { if (x['作品番号'] === c0.no) x['メイン'] = x['写真ID'] === pid ? 'メイン' : ''; }); index(); }
+      const wasMain = ((photoBy[c0.no] || [])[0] || {})['写真ID'] === oid; /* 裏で読み直すと写真の行が作り直されるので、ID でくらべる */
+      const added = () => S.photos.some(x => x['作品番号'] === c0.no && (crInfo(x) || {}).orig === oid);
+      await crCall('addPhotos', [c0.no, [{ b64, mime: 'image/jpeg' }], c0.kind, memo], added); /* 同じ画像の送り直しは Google 側で二重にならない */
+      const d = await crCall('replacePhoto', [oid, '', '', '記録写真', null], () => crPh(oid)['種類'] === '記録写真' && added()); if (d) setData(d); /* 元の写真は「記録写真」に（画像・メモはそのまま） */
+      if (!added()) setData(await call('getData'));
+      const np = S.photos.filter(x => x['作品番号'] === c0.no && (crInfo(x) || {}).orig === oid).pop(); pid = np && np['写真ID'];
+      if (pid && wasMain) { await crCall('setMainPhoto', [pid], () => !!crPh(pid)['メイン']); S.photos.forEach(x => { if (x['作品番号'] === c0.no) x['メイン'] = x['写真ID'] === pid ? 'メイン' : ''; }); index(); }
     }
     if (CR === c0) cropClose(); crAfter(c0.no, pid); toast(c0.corr ? '補正を直しました' : '補正した写真を保存しました');
   } catch(e){ alert(isLoginErr(e) ? 'ログインの有効期限が切れました。もう一度ログインしてください。' : '保存できませんでした。\n' + (e.message || e)); refreshData().catch(() => {}); }
@@ -6461,10 +6479,10 @@ async function cropSave(){ const c0 = CR; if (!c0 || c0.saving || !c0.img) retur
 async function cropUndo(){ const c0 = CR; if (!c0 || !c0.corr || c0.saving) return;
   if (!confirm('補正した写真をアーカイブへ移して、元の写真にもどしますか？\n（アーカイブからはいつでも戻せます）')) return;
   c0.saving = true; busy(true, '元の写真にもどしています…');
-  try { const wasMain = ((photoBy[c0.no] || [])[0] || {})['写真ID'] === c0.corr['写真ID'], oid = c0.orig['写真ID'];
-    await call('archiveItem', 'p', c0.corr['写真ID'], '補正をやめて元の写真にもどした');
-    setData(await call('replacePhoto', oid, '', '', c0.kind || '表', null));
-    if (wasMain) { await call('setMainPhoto', oid); S.photos.forEach(x => { if (x['作品番号'] === c0.no) x['メイン'] = x['写真ID'] === oid ? 'メイン' : ''; }); index(); }
+  try { const cid = c0.corr['写真ID'], wasMain = ((photoBy[c0.no] || [])[0] || {})['写真ID'] === cid, oid = c0.orig['写真ID'], k0 = c0.kind || '表';
+    const d1 = await crCall('archiveItem', ['p', cid, '補正をやめて元の写真にもどした'], () => !crPh(cid)['写真ID']); if (d1) setData(d1);
+    const d2 = await crCall('replacePhoto', [oid, '', '', k0, null], () => crPh(oid)['種類'] === k0); if (d2) setData(d2);
+    if (wasMain) { await crCall('setMainPhoto', [oid], () => !!crPh(oid)['メイン']); S.photos.forEach(x => { if (x['作品番号'] === c0.no) x['メイン'] = x['写真ID'] === oid ? 'メイン' : ''; }); index(); }
     if (CR === c0) cropClose(); crAfter(c0.no, oid); toast('元の写真にもどしました');
   } catch(e){ alert('もどせませんでした。\n' + (e.message || e)); refreshData().catch(() => {}); }
   finally { busy(false); c0.saving = false; }
