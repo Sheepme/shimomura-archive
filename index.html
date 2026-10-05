@@ -824,6 +824,8 @@ html[data-theme=dark] .qzstar{color:#f2c464}
 @keyframes updin{from{opacity:0;transform:translate(-50%,-10px)}to{opacity:1;transform:translate(-50%,0)}}
 .updic{font-size:20px;font-weight:700;flex:none}.updtx{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}.updtx b{font-size:15px}.updtx small{font-size:12px;opacity:.72;line-height:1.35}
 .updgo{flex:none;border:0;border-radius:10px;padding:10px 14px;background:#d64e3a;color:#fff;font:inherit;font-size:14.5px;font-weight:700;cursor:pointer}.updcard.go .updgo{opacity:.7}
+.fpcard{top:auto;bottom:calc(env(safe-area-inset-bottom) + 88px)}.fpcard .updgo{background:#2f6fd6}
+.fph{margin:18px 0 6px;font-size:16px}.fpbt{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}.fpbt .act{flex:1 1 140px}.fpst{font-weight:700;color:var(--faint)}.fpst.on{color:#2e8b57}
 .updx{flex:none;width:36px;height:36px;border:0;border-radius:50%;background:transparent;color:inherit;opacity:.65;font-size:16px;cursor:pointer}
 .updbar{background:rgba(224,83,61,.76);text-align:left;cursor:pointer}.updbar span{font-size:18px}.updbar b{line-height:1.3;font-size:14.5px}
 .micgate{text-align:center;padding:6px 4px 4px}.micgate .mgic{width:76px;height:76px;margin:4px auto 10px;border-radius:50%;background:linear-gradient(145deg,#d9ecff,#b9dcff);display:grid;place-items:center;font-size:40px}.micgate h3{margin:0 0 6px}.micgate p{margin:4px 0 10px;line-height:1.6}.micgate .qzwide{width:100%;margin-top:8px}.micgate .qzlink{margin-top:8px}
@@ -2218,7 +2220,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '95d0bee8eb', APP_URL = location.origin + location.pathname;
+const BUILD = '4d22dc5135', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2242,8 +2244,10 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 const THLANE = { max: 2, n: 0, q: [], lq: [] };
 /* 台帳の読み込み（getData）は重いので、読み込み中にもう一度頼まれたら、同じ読み込みの結果を待つ（2本同時に走らせない） */
 let GD_ = null;
-function call(fn, ...args){ if (fn === 'getData' && !args.length) { if (!GD_) GD_ = callQ(false, fn, args).finally(() => { GD_ = null; }); return GD_; } return callQ(false, fn, args); }
-function callLow(fn, ...args){ return callQ(true, fn, args); }
+function call(fn, ...args){ if (fn === 'getData' && !args.length) { if (!GD_) GD_ = callQ(false, fn, args).finally(() => { GD_ = null; }); return GD_; }
+  if (fn === 'getThumbs' && fpOn()) return fpThumbs(false, args, false); if (fn === 'getOriginal' && fpOn()) return fpOrig(args); /* 写真は、できれば Mac のフォルダ・ドライブから直接（10/6 開発 v6） */
+  return callQ(false, fn, args); }
+function callLow(fn, ...args){ if (fn === 'getThumbs' && fpOn()) return fpThumbs(true, args, false); return callQ(true, fn, args); }
 function callQ(low, fn, args){
   if (!NO_TOKEN.includes(fn)) args.unshift(S.token || '');
   const one = fn === 'getThumbs' && Array.isArray(args[1]) && args[1].length === 1 && +args[2] >= 1200; /* 大きい写真を1枚だけ（補正画面・写真の拡大など、いま見たいもの）は待たせない */
@@ -2255,6 +2259,153 @@ function callQ(low, fn, args){
   return new Promise(r => (low ? ln.lq : ln.q).push(r)).then(go);
 }
 const CALLS = { n: 0 }; /* 通信中の数（通信中は新しい版への自動切り替えをしない：切り替えると通信が途中で切れる） */
+/* ===== 写真を Google（Apps Script）を通さずに速く読む（10/6 開発 v6）=====
+   A：この Mac の「下村良之介」フォルダから（Chrome のフォルダの読み取り。フォルダは写真の自動補正と同じもの AC.dir）
+   B：Google にログインして、ドライブから直接（Drive API。drive.readonly のトークンは1時間で切れる）
+   どちらも管理者だけ。読めないとき（許可がない・ファイルがない・HEIC など）は、今までどおり Google 側（getThumbs・getOriginal）で読む */
+const FP = { paths: null, pathsP: null, need: new Set(), needP: null, ppNg: 0, dh: {}, q: 0, qq: [], lq: [], n: { a: 0, b: 0, g: 0 }, aOff: false, init: false };
+const GD = { tok: '', exp: 0, on: false, th: '', meta: {}, lib: null, tc: null, asking: false, q: 0, qq: [], lq: [], err: '' };
+const GDAPI = 'https://www.googleapis.com/drive/v3/files/', GD_SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
+const fpAdmin = () => !!(S.user && S.user.role === '管理');
+const fpA = () => { try { return !FP.aOff && fpAdmin() && !!AC.dir && !!AC.dirOk; } catch(e){ return false; } };
+const gdOk = () => GD.on && !!GD.tok && Date.now() < GD.exp - 60000 && fpAdmin() && !!S.gcid;
+const fpOn = () => fpA() || gdOk();
+try { FP.aOff = localStorage.getItem('smr_fpaoff') === '1'; const o = JSON.parse(localStorage.getItem('smr_gd') || 'null'); if (o) Object.assign(GD, { on: !!o.on, tok: o.tok || '', exp: +o.exp || 0, th: o.th || '' }); } catch(e){}
+function gdSave(){ try { localStorage.setItem('smr_gd', JSON.stringify({ on: GD.on, tok: GD.tok, exp: GD.exp, th: GD.th })); } catch(e){} }
+/* iPhone のホーム画面のアプリでは、つなぐときに Google のページへ移って戻ってくる。戻ってきたときのトークンを受け取る */
+(function gdFromHash(){ const h = location.hash || ''; if (!/[#&]state=smrgd(&|$)/.test(h)) return; const p = new URLSearchParams(h.slice(1));
+  if (p.get('access_token')) { Object.assign(GD, { on: true, tok: p.get('access_token'), exp: Date.now() + (+p.get('expires_in') || 3600) * 1000, th: '' }); gdSave(); GD.justGot = true; } else GD.err = p.get('error') || 'error';
+  try { history.replaceState(null, '', location.pathname + location.search); } catch(e){} })();
+/* 同時に動かす数をしぼる（low：先読み。いつも1本まで・急ぎの方が先） */
+function fpLane(L, max, low, fn){ return new Promise((ok, ng) => { const go = () => { L.q++; Promise.resolve().then(fn).then(ok, ng).finally(() => { L.q--; const n = L.qq.shift() || (L.q < 1 ? L.lq.shift() : null); if (n) n(); }); };
+  if (low ? L.q < 1 && !L.qq.length : L.q < max) go(); else (low ? L.lq : L.qq).push(go); }); }
+const fpWait = ms => new Promise(r => setTimeout(r, ms));
+const fpDataUrl = b => new Promise((ok, ng) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = () => ng(r.error); r.readAsDataURL(b); });
+/* 写真を幅 w まで縮めて JPEG の data URL に（向きは写真の情報どおり。Google の縮小写真と同じく幅をそろえる）。also：同じ写真から作っておく小さいサイズ */
+async function fpShrink(blob, w, also){ if (!blob || !/^image\/(jpeg|png|webp|gif|bmp)$/i.test(blob.type || 'image/jpeg')) return null;
+  const u = URL.createObjectURL(blob); let im; try { im = await loadImg(u); } finally { URL.revokeObjectURL(u); }
+  if (!im || !im.naturalWidth) return null;
+  const make = ww => { const k = Math.min(1, ww / im.naturalWidth), c = document.createElement('canvas'); c.width = Math.max(1, Math.round(im.naturalWidth * k)); c.height = Math.max(1, Math.round(im.naturalHeight * k));
+    const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.imageSmoothingQuality = 'high'; x.drawImage(im, 0, 0, c.width, c.height);
+    const d = c.toDataURL('image/jpeg', ww >= 1600 ? 0.9 : 0.85); c.width = c.height = 1; return d; };
+  const out = make(w); (also || []).forEach(a => { if (a < w && !TH[a + '_' + also.id]) { const d = make(a); TH[a + '_' + also.id] = d; thPut({ [a + '_' + also.id]: d }); } });
+  return out; }
+/* ---- A：Mac のフォルダ ---- */
+async function fsGetK(k){ const d = await FSDB(); if (!d) return null; return new Promise(ok => { try { const q = d.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => ok(q.result || null); q.onerror = () => ok(null); } catch(e){ ok(null); } }); }
+async function fsPutK(k, v){ const d = await FSDB(); if (!d) return; try { d.transaction('kv', 'readwrite').objectStore('kv').put(v, k); } catch(e){} }
+function fpPathsLoad(){ return FP.paths ? Promise.resolve(FP.paths) : (FP.pathsP || (FP.pathsP = fsGetK('paths').then(m => FP.paths = m && typeof m === 'object' ? m : {}))); }
+/* ファイルID → フォルダの中の道すじ（写真/001-250/035.jpg）。知らない ID は、まとめて Google 側（photoPaths）に聞いて端末に覚える（写真の場所でない ID は '' と覚える） */
+function fpLookup(ids){ const m = FP.paths || {}; ids.forEach(id => { if (id && !(id in m)) FP.need.add(id); });
+  if (!FP.need.size || Date.now() - FP.ppNg < 5 * 60000) return FP.needP || Promise.resolve();
+  return FP.needP || (FP.needP = fpWait(150).then(async () => { const ids2 = [...FP.need]; FP.need.clear();
+    try { for (let i = 0; i < ids2.length; i += 1000) { const part = ids2.slice(i, i + 1000), t0 = Date.now(), got = (await callQ(false, 'photoPaths', [part])) || {}, all = Date.now() - t0 < 240000; /* Google 側は4分半ほどで探すのをやめるので、そのときは見つからなかった ID を覚えない */
+        part.forEach(x => { if (got[x] || all) FP.paths[x] = got[x] || ''; }); }
+      fsPutK('paths', FP.paths); } catch(e){ FP.ppNg = Date.now(); } }).finally(() => { FP.needP = null; if (FP.need.size) fpLookup([]); })); }
+async function fpPath(id){ const m = await fpPathsLoad(); if (!(id in m)) await Promise.race([fpLookup([id]), fpWait(20000)]); return m[id] || ''; }
+async function fpFile(id){ if (!fpA()) return null; const path = await fpPath(id); if (!path) return null;
+  const parts = path.split('/').filter(Boolean), dk = parts.slice(0, -1).join('/');
+  try { let d = FP.dh[dk]; if (!d) { d = AC.dir; for (const p of parts.slice(0, -1)) d = await d.getDirectoryHandle(p); FP.dh[dk] = d; }
+    return await (await d.getFileHandle(parts[parts.length - 1])).getFile(); }
+  catch(e){ delete FP.dh[dk]; if (e && e.name === 'NotAllowedError') { AC.dirOk = false; fpChip(); } else if (e && (e.name === 'NotFoundError' || e.name === 'TypeMismatchError')) { FP.paths[id] = ''; fsPutK('paths', FP.paths); } /* Mac にないファイル（まだ同期していないなど）は Google 経由に。フォルダを選び直すと調べ直す */ return null; } }
+/* ---- B：Google ドライブ ---- */
+async function gdFetch(url){ const r = await fetch(url, { headers: { Authorization: 'Bearer ' + GD.tok } });
+  if (r.status === 401) { const e = new Error('Google のログインが切れました'); e.auth = true; throw e; } if (!r.ok) { const e = new Error('ドライブ ' + r.status); e.st = r.status; throw e; } return r; }
+async function gdMeta(id){ const m = GD.meta[id]; if (m && Date.now() - m.t < 40 * 60000) return m;
+  let j; try { j = await (await gdFetch(GDAPI + encodeURIComponent(id) + '?fields=thumbnailLink,mimeType,size&supportsAllDrives=true')).json(); }
+  catch(e){ if (e && (e.st === 403 || e.st === 404)) return GD.meta[id] = { t: Date.now(), l: '', m: '', z: 0 }; throw e; } /* 見られないファイルは、しばらく聞き直さない */
+  return GD.meta[id] = { t: Date.now(), l: j.thumbnailLink || '', m: j.mimeType || '', z: +j.size || 0 }; }
+const gdImgOk = u => new Promise(r => { const im = new Image(), t = setTimeout(() => r(false), 12000); im.onload = () => { clearTimeout(t); r(im.naturalWidth > 0); }; im.onerror = () => { clearTimeout(t); r(false); }; im.src = u; });
+/* 縮小写真：ドライブの thumbnailLink（大きさを付けかえる）。この端末で読めるかは最初に1回だけ調べる（th：cors＝写真として保存できる／img＝表示だけ／none＝使えない）。
+   使えないとき・保存が要るときは、大きい写真だけ元のファイルから縮める（元のファイルは数MBあるので、小さい写真には使わない） */
+async function gdThumb(id, w, urls, low){
+  if (GD.th !== 'none' && !(low && GD.th !== 'cors')) { const m = await gdMeta(id);
+    if (m.l) { const u = m.l.replace(/=[swh]\d+[^=\/]*$/, '') + '=w' + w;
+      if (GD.th !== 'img') { try { const r = await fetch(u, { credentials: 'omit' }); if (r.ok && /^image\//.test(r.headers.get('content-type') || '')) { if (GD.th !== 'cors') { GD.th = 'cors'; gdSave(); } return await fpDataUrl(await r.blob()); } } catch(e){}
+        if (!GD.th && !low) { GD.th = (await gdImgOk(u)) ? 'img' : 'none'; gdSave(); } }
+      if (GD.th === 'img' && urls) return u; } }
+  if (!low && w >= 1200 && GD.th !== 'cors') { const m = await gdMeta(id); if (m.z && m.z <= 25 * 1024 * 1024 && /^image\/(jpeg|png|webp|gif)$/i.test(m.m)) return fpShrink(await (await gdFetch(GDAPI + encodeURIComponent(id) + '?alt=media&supportsAllDrives=true')).blob(), w); }
+  return null; }
+function gdLost(){ if (!GD.tok) return; GD.tok = ''; GD.exp = 0; gdSave(); fpChip(); }
+/* ---- 1枚分：A → B → （だめなら呼び出し元が Google 側へ） ---- */
+/* 先読み（low）は Mac から読まない：ドライブの同期のしかたによっては、元の写真（1枚 数MB）を1枚ずつ取り寄せてしまうため */
+async function fpOne(id, w, urls, low){
+  if (fpA() && !low) { try { const f = await fpFile(id); if (f) { const u = await fpLane(FP, 3, low, () => fpShrink(f.type ? f : f.slice(0, f.size, 'image/jpeg'), w, w === 400 ? Object.assign([200], { id }) : null)); if (u) { FP.n.a++; return u; } } } catch(e){} }
+  if (gdOk()) { try { const u = await fpLane(GD, 6, low, () => gdThumb(id, w, urls, low)); if (u) { FP.n.b++; return u; } } catch(e){ if (e && e.auth) gdLost(); } }
+  return null; }
+/* getThumbs の代わり（同じ形 {ID: 写真} で返す）。urls：表示だけの写真（data: でない）も受け取れる */
+async function fpThumbs(low, args, urls){ const ids = (args[0] || []).slice(), w = +args[1] || 400, out = {}, rest = [];
+  await Promise.all(ids.map(id => fpOne(id, w, urls, low).then(u => { if (u) out[id] = u; else rest.push(id); }, () => rest.push(id))));
+  if (rest.length) { FP.n.g += rest.length; Object.assign(out, (await callQ(low, 'getThumbs', [rest].concat(args.slice(1)))) || {}); }
+  return out; }
+/* getOriginal の代わり（{mime, b64}） */
+async function fpOrig(args){ const id = args[0], big = { tooBig: true }, pack = async (b, mime) => { const u = await fpDataUrl(b); return { mime: mime || 'image/jpeg', b64: u.slice(u.indexOf(',') + 1) }; };
+  if (fpA()) { try { const f = await fpFile(id); if (f && f.size) { FP.n.a++; return f.size > 25 * 1024 * 1024 ? big : await pack(f, f.type); } } catch(e){} }
+  if (gdOk()) { try { const m = await gdMeta(id); if (m.z > 25 * 1024 * 1024) return big; const b = await (await gdFetch(GDAPI + encodeURIComponent(id) + '?alt=media&supportsAllDrives=true')).blob(); FP.n.b++; return await pack(b, m.m || b.type); } catch(e){ if (e && e.auth) gdLost(); } }
+  FP.n.g++; return callQ(false, 'getOriginal', args); }
+/* ---- つなぐ（B）・許可をたずねる（A） ---- */
+const gdStandalone = () => { try { return navigator.standalone === true || matchMedia('(display-mode: standalone)').matches; } catch(e){ return false; } };
+function gdLib(){ return GD.lib || (GD.lib = new Promise((ok, ng) => { if (window.google && google.accounts && google.accounts.oauth2) return ok();
+  const g0 = window.google, s = document.createElement('script'); s.src = 'https://accounts.google.com/gsi/client'; s.async = true;
+  s.onload = () => { if (g0 && window.google !== g0) { g0.accounts = window.google.accounts; window.google = g0; } ok(); }; /* google.script.run（台帳の通信）を消さない */ s.onerror = () => { GD.lib = null; ng(new Error('Google のログインの部品を読み込めませんでした')); }; document.head.appendChild(s); })); }
+function gdPrep(){ if (!S.gcid || gdStandalone() || GD.tc) return Promise.resolve(GD.tc);
+  return gdLib().then(() => GD.tc || (GD.tc = google.accounts.oauth2.initTokenClient({ client_id: S.gcid, scope: GD_SCOPE, callback: gdGot, error_callback: e => { GD.asking = false; if (e && e.type !== 'popup_closed') toast('Google につなげませんでした（' + (e.type || e.message || e) + '）'); fpChip(); } }))); }
+function gdGot(r){ GD.asking = false;
+  if (!r || r.error || !r.access_token) { toast('Google につなげませんでした' + (r && r.error ? '（' + r.error + '）' : '')); return fpChip(); }
+  if (google.accounts.oauth2.hasGrantedAllScopes && !google.accounts.oauth2.hasGrantedAllScopes(r, GD_SCOPE)) { toast('ドライブを見る許可にチェックが入っていませんでした'); return fpChip(); }
+  Object.assign(GD, { on: true, tok: r.access_token, exp: Date.now() + (+r.expires_in || 3600) * 1000, th: GD.th === 'none' ? '' : GD.th, meta: {} }); gdSave(); fpChip(); fpSheetRedraw();
+  toast('Google ドライブにつながりました（写真を直接読みます）'); }
+/* ボタンを押したときに呼ぶ（Google の小さな窓は、押した直後でないと開けない） */
+function gdConnect(){ if (!S.gcid) return alert('まだ Google 側の準備（クライアント ID）ができていません。');
+  if (gdStandalone()) { try { sessionStorage.setItem('smr_gdgo', '1'); } catch(e){}
+    location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams({ client_id: S.gcid, redirect_uri: location.origin + location.pathname.replace(/index\.html$/, ''), response_type: 'token', scope: GD_SCOPE, include_granted_scopes: 'true', state: 'smrgd' }); return; }
+  const go = () => { GD.asking = true; GD.tc.requestAccessToken({ prompt: '' }); };
+  if (GD.tc) go(); else gdPrep().then(go, e => alert(e.message || e)); }
+async function fpAskDir(){ try { if (await acDirReady(true)) { FP.dh = {}; toast('Mac のフォルダから写真を読みます'); fpWarm(); } } catch(e){} fpChip(); fpSheetRedraw(); }
+/* 写真の場所を前もって調べておく（全部の写真。知らない ID だけ） */
+function fpWarm(){ if (!fpA()) return; fpPathsLoad().then(() => fpLookup((S.photos || []).map(p => p['ファイルID']).concat(S.faces || []))); }
+/* つなぎ直しが要るときに、画面の下に小さく出す（✕ でこの間は出さない） */
+function fpChip(){ let el = document.getElementById('fpChip'); let msg = '', act = '';
+  try { if (fpAdmin() && sessionStorage.getItem('smr_fpx') !== '1') {
+    if (!FP.aOff && AC.dir && !AC.dirOk && typeof window.showDirectoryPicker === 'function') { msg = 'Mac のフォルダから写真を読む許可が必要です'; act = 'a'; }
+    else if (GD.on && S.gcid && !gdOk() && !fpA()) { msg = 'Google ドライブとのつながりが切れました（1時間ごと）'; act = 'b'; } } } catch(e){}
+  if (!msg) { if (el) el.remove(); return; }
+  if (!el) { el = document.createElement('div'); el.id = 'fpChip'; el.className = 'updcard fpcard'; el.setAttribute('role', 'status'); document.body.appendChild(el);
+    el.onclick = e => { const b = e.target.closest('button'); if (!b) return; e.stopPropagation(); if (b.classList.contains('updx')) { try { sessionStorage.setItem('smr_fpx', '1'); } catch(x){} el.remove(); return; }
+      el.remove(); if (el.dataset.act === 'a') fpAskDir(); else gdConnect(); }; }
+  el.dataset.act = act; el.innerHTML = `<span class="updic" aria-hidden="true">⚡</span><span class="updtx"><b>写真を速く読む</b><small>${esc(msg)}</small></span><button type="button" class="updgo">${act === 'a' ? '許可する' : 'つなぐ'}</button><button type="button" class="updx" aria-label="今はしない">✕</button>`; }
+/* ログインのあと1回：前に選んだフォルダ・トークンを確かめる */
+function fpInit(){ if (FP.init || !fpAdmin()) return; FP.init = true;
+  if (GD.err) { toast('Google につなげませんでした（' + GD.err + '）'); GD.err = ''; } else if (GD.justGot) { GD.justGot = false; setTimeout(() => toast('Google ドライブにつながりました（写真を直接読みます）'), 800); }
+  if (GD.on && S.gcid) gdPrep().catch(() => {});
+  const fin = () => { fpChip(); if (fpA()) fpWarm(); };
+  if (typeof window.showDirectoryPicker === 'function' && !FP.aOff) acDirReady(false).then(fin, fin); else fin(); }
+/* 名前のメニュー「写真を速く読む」 */
+function fpOpen(){ FP.sheet = true; fpSheetRedraw(true); if (S.gcid) gdPrep().catch(() => {}); }
+function fpSheetRedraw(first){ if (!FP.sheet || (!first && ($('#sheet').classList.contains('hidden') || !$('#fpS')))) return;
+  const fs = typeof window.showDirectoryPicker === 'function', m = FP.paths || {}, known = (S.photos || []).filter(p => m[p['ファイルID']]).length, all = (S.photos || []).length;
+  const left = Math.max(0, Math.round((GD.exp - Date.now()) / 60000));
+  const st = (on, t) => `<span class="fpst ${on ? 'on' : ''}">${on ? '●' : '○'} ${t}</span>`;
+  openSheet(`<div id="fpS"><h3>写真を速く読む</h3>
+    <p class="hint">写真を Google（Apps Script）を通さずに読みます。読めない写真は、今までどおり Google 経由で読みます。管理者だけの機能です。</p>
+    <h4 class="fph">A　この Mac のフォルダから</h4>
+    ${!fs ? '<p class="hint">この端末のブラウザでは使えません（Mac の Chrome で使えます）。</p>'
+      : AC.dir ? `<p>${st(fpA(), FP.aOff ? '使っていません' : AC.dirOk ? '使っています' : '読む許可が必要です')}<br><small>フォルダ：「${esc(AC.dir.name)}」　場所がわかっている写真：${known} / ${all}枚</small></p>
+        <div class="fpbt">${!AC.dirOk && !FP.aOff ? '<button class="act main" data-fp="ask">読む許可をたずねる</button>' : ''}${FP.aOff ? '<button class="act main" data-fp="aon">使う</button>' : ''}<button class="act" data-fp="pick">フォルダを選び直す</button>${!FP.aOff ? '<button class="act" data-fp="aoff">使わない</button>' : ''}</div>`
+      : `<div class="fpbt"><button class="act main" data-fp="pick">「下村良之介」フォルダを選ぶ</button></div><p class="hint">Finder の左の「Google Drive」→「マイドライブ」→「下村良之介」を選びます。許可を聞かれたら「サイトの訪問ごとに許可」を選ぶと、次から聞かれません。</p>`}
+    <h4 class="fph">B　Google ドライブから直接（どの端末でも）</h4>
+    ${!S.gcid ? '<p class="hint">まだ Google 側の準備（クライアント ID）ができていません。</p>'
+      : `<p>${st(gdOk(), gdOk() ? 'つながっています（あと' + left + '分）' : GD.on ? 'つながりが切れています' : '使っていません')}${GD.th ? `<br><small>小さい写真：${GD.th === 'cors' ? 'ドライブから直接' : GD.th === 'img' ? 'ドライブから直接（表示だけ）' : 'Google 経由（大きい写真だけ直接）'}</small>` : ''}</p>
+        <div class="fpbt"><button class="act main" data-fp="gd">${GD.on ? 'つなぎ直す' : 'Google につなぐ'}</button>${GD.on ? '<button class="act" data-fp="gdoff">使わない</button>' : ''}</div>
+        <p class="hint">Google の決まりで、1時間ごとにつなぎ直しが必要です（切れたら画面の下に出ます）。最初だけ「このアプリは Google で確認されていません」と出るので、「続行」を押してください。</p>`}
+    <p class="hint">この画面を開いてから読んだ写真：Mac ${FP.n.a}枚・ドライブ ${FP.n.b}枚・Google 経由 ${FP.n.g}枚</p>
+    <div class="btns"><button type="button" data-close>閉じる</button></div></div>`);
+  $('#fpS').onclick = async e => { const b = e.target.closest('[data-fp]'); if (!b) return; const v = b.dataset.fp;
+    if (v === 'pick') { await acPickDir(); FP.dh = {}; FP.paths = {}; fsPutK('paths', {}); if (AC.dirOk) { FP.aOff = false; try { localStorage.removeItem('smr_fpaoff'); } catch(x){} fpWarm(); } }
+    else if (v === 'ask') await fpAskDir();
+    else if (v === 'aoff' || v === 'aon') { FP.aOff = v === 'aoff'; try { if (FP.aOff) localStorage.setItem('smr_fpaoff', '1'); else localStorage.removeItem('smr_fpaoff'); } catch(x){} if (!FP.aOff) await fpAskDir(); }
+    else if (v === 'gd') return gdConnect();
+    else if (v === 'gdoff') { const t = GD.tok; Object.assign(GD, { on: false, tok: '', exp: 0 }); gdSave(); try { if (t && window.google && google.accounts && google.accounts.oauth2) google.accounts.oauth2.revoke(t, () => {}); } catch(x){} }
+    fpChip(); fpSheetRedraw(); }; }
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('#sheetbox #ok, #sheetbox .btns .primary'); if (!b) return;
   if (!$('#loading').classList.contains('hidden')) { e.preventDefault(); e.stopImmediatePropagation(); toast('保存しています。終わるまで、そのままお待ちください'); } }, true);
 function busy(on, text){ $('#loading').innerHTML = '<span class="ldsp"></span>' + esc(text || '読み込み中…'); $('#loading').classList.toggle('hidden', !on); tbSync(); }
@@ -2313,7 +2464,7 @@ function docCacheSync(docs){ let V = {}; try { V = JSON.parse(localStorage.getIt
   if (del.length) thDel(del); try { localStorage.setItem('smr_dver', JSON.stringify(N)); } catch(e){} }
 function setData(d){ if (S.upd) S.upd.t = 0; try { if (d && d.docs && d.docs.length) docCacheSync(d.docs); } catch(e){}
   const allW = d.works || []; d = Object.assign({}, d, {works: allW.filter(w => !OTRE.test(w['作品番号'])), others: allW.filter(w => OTRE.test(w['作品番号']))});
-  Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, museums:d.museums||[], exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], finds:d.finds||[], lits:d.lits||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], faces:d.faces||[], memoChecker:d.memoChecker||'直美', marks:d.marks||[], pimg:d.pimg||S.pimg||[], hist:Array.isArray(d.hist) ? d.hist : (S.hist || null), autoc:Array.isArray(d.autoc) ? d.autoc : (S.autoc || []), user:d.user, ai:d.ai, publicView:d.publicView}); if (S.token && !d.user) setToken(''); index(); try { pimgIndex(); } catch(e){} renderUser(); try { faceInit(); } catch(e){}  if (d.user) setTimeout(prefetchThumbs, 0); }
+  Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, museums:d.museums||[], exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], finds:d.finds||[], lits:d.lits||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], faces:d.faces||[], memoChecker:d.memoChecker||'直美', marks:d.marks||[], pimg:d.pimg||S.pimg||[], hist:Array.isArray(d.hist) ? d.hist : (S.hist || null), autoc:Array.isArray(d.autoc) ? d.autoc : (S.autoc || []), user:d.user, ai:d.ai, publicView:d.publicView, gcid:d.gcid || ''}); if (S.token && !d.user) setToken(''); index(); try { pimgIndex(); } catch(e){} renderUser(); try { faceInit(); } catch(e){} try { fpInit(); } catch(e){}  if (d.user) setTimeout(prefetchThumbs, 0); }
 const canRole = () => !!(S.user && ['編集','管理'].includes(S.user.role));
 const canEdit = () => canRole();
 try { S.edit = localStorage.getItem('smr_edit') === '1'; } catch(e){ S.edit = false; }
@@ -2503,7 +2654,9 @@ async function flushThumbs(){
   [...q.keys()].forEach(k => { if (saved[k]) return thSet(q, k, saved[k]); const [w, ...r] = k.split('_'); (byW[w] = byW[w] || []).push(r.join('_')); });
   Object.keys(byW).forEach(w => { for (let i = 0; i < byW[w].length; i += 24) {
     const ids = byW[w].slice(i, i + 24);
-    call('getThumbs', ids, +w).then(map => { const keep = {}; ids.forEach(id => { const k = w+'_'+id; if (map[id]) { thSet(q, k, map[id]); keep[k] = map[id]; } else (q.get(k)||[]).forEach(el => el.replaceWith(document.createTextNode('写真を表示できません'))); }); thPut(keep); })
+    (fpOn() ? fpThumbs(false, [ids, +w], true) : call('getThumbs', ids, +w)).then(map => { const keep = {}; ids.forEach(id => { const k = w+'_'+id, v = map[id];
+        if (v && !/^data:/.test(v)) (q.get(k)||[]).forEach(el => { el.src = v; lowOff(el); }); /* ドライブの表示だけの写真（保存しない） */
+        else if (v) { thSet(q, k, v); keep[k] = v; } else (q.get(k)||[]).forEach(el => el.replaceWith(document.createTextNode('写真を表示できません'))); }); thPut(keep); })
       .catch(() => ids.forEach(id => (q.get(w+'_'+id)||[]).forEach(el => el.alt = '写真を表示できません')));
   } });
 }
@@ -7808,7 +7961,7 @@ function openMe(anc){ /* 名前ボタンの上に出る小さな吹き出しメ�
   const it = (id, t) => `<button type="button" data-me="${id}">${t}</button>`;
   const el = document.createElement('div'); el.id = 'mepop'; el.setAttribute('role', 'menu');
   el.innerHTML = `<div class="mehd"><b>${esc(S.user.name||'')}</b><small>権限：${esc(S.user.role)}</small>${S.dataAt ? `<small>情報：${new Date(S.dataAt).getHours()}:${String(new Date(S.dataAt).getMinutes()).padStart(2, '0')} に読み込み</small>` : ''}</div>
-    ${it('upd','最新版に更新')}${it('mic','マイクのテスト')}${canEdit() ? it('face','顔写真を追加') : ''}${it('log','更新記録')}${canEdit() && S.ai ? it('rot','写真の向きをAIでそろえる') : ''}${canEdit() ? it('arc','削除したもの（アーカイブ）') : ''}
+    ${it('upd','最新版に更新')}${it('mic','マイクのテスト')}${canEdit() ? it('face','顔写真を追加') : ''}${it('log','更新記録')}${canEdit() && S.ai ? it('rot','写真の向きをAIでそろえる') : ''}${canEdit() ? it('arc','削除したもの（アーカイブ）') : ''}${S.user.role === '管理' ? it('fp','写真を速く読む') : ''}
     <div class="mesep"></div>${it('out','ログアウト')}<small class="menote">共用のパソコンでは、使い終わったらログアウトしてください</small><i class="metail"></i>`;
   document.body.appendChild(el);
   const r = anc ? anc.getBoundingClientRect() : { left: 12, right: 252, top: innerHeight - 12, bottom: innerHeight - 12, width: 240 };
@@ -7822,7 +7975,7 @@ function openMe(anc){ /* 名前ボタンの上に出る小さな吹き出しメ�
   setTimeout(() => { document.addEventListener('pointerdown', out, true); document.addEventListener('keydown', esc1, true); window.addEventListener('resize', close); }, 0);
   el.onclick = e => { const b = e.target.closest('[data-me]'); if (!b) return; const v = b.dataset.me; close(); if (!isWide()) closeDrawer(); if (v === 'mic') { location.href = 'mictest/'; return; }
     if (v === 'upd') freshReload();
-    else if (v === 'face') faceAddPick(); else if (v === 'log') showLog(); else if (v === 'rot') openRotTool(); else if (v === 'arc') openArchive(); else if (v === 'out') doLogout(); };
+    else if (v === 'face') faceAddPick(); else if (v === 'log') showLog(); else if (v === 'rot') openRotTool(); else if (v === 'arc') openArchive(); else if (v === 'fp') fpOpen(); else if (v === 'out') doLogout(); };
 }
 async function doLogout(){
     busy(true); try { await call('logout'); } catch(e){}
