@@ -1934,6 +1934,7 @@ html[data-theme=dark] .qc-lt{background:#1F3311;border-color:#3F6B1C;color:#DDEB
 .lb-os{display:flex;flex-direction:column;gap:9px}
 .qc-c.lb-c{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;width:100%;min-height:56px;padding:9px 14px;text-align:left}
 .lb-c b{font-size:17px;line-height:1.4;overflow-wrap:anywhere}.lb-c small{font-size:13px;font-weight:500;line-height:1.45;color:var(--hg-s);overflow-wrap:anywhere}
+.lb-c[hidden]{display:none}.qc-wk small+b+small{font-weight:500}
 .qc-sl{flex:none;margin:0;display:flex;justify-content:space-between;font-size:15px;font-weight:800;color:var(--hg-h)}.qc-sl span{font-size:13px;color:var(--hg-s)}
 .qc-rec{flex:none;display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:16px;border:2px solid #FFC800;background:#FFF8DC;color:#4B4B4B}
 .qc-rec small{font-size:13px;font-weight:800;color:#A56A00}.qc-rec b{font-size:18px;color:#3C3C3C}.qc-rec p{margin:0;font-size:14px;line-height:1.55}
@@ -2082,7 +2083,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '8b2eaf96f7', APP_URL = location.origin + location.pathname;
+const BUILD = '4a50e517af', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2833,13 +2834,12 @@ const ltRec = l => ltIsEx(l) ? (S.exhibits || []).find(x => x['展覧会ID'] ===
 const ltN = s => fdN(String(s || '').replace(/[:：／\/]/g, ''));
 const ltWhen = (a, b) => [a, b].filter(Boolean).join('〜');
 /* 家族に聞く記録：台帳に入っていて、まだ答えがないもの。本は「家にある冊数」が空のもの、展覧会は作品がまだひも付いていないもの */
-function ltAskOpen(l){ if (l['状態'] !== '承認' || !l['台帳ID'] || l['家族の答え'] || LTS.has(l['候補ID'])) return false;
-  if (l['確認日時'] === '2026/10/05 14:07') return false; /* まちがってまとめて登録した分（台帳はもどした。Google 側でもどしたら、この行は消してよい） */ const r = ltRec(l); if (!r) return false;
+function ltAskOpen(l){ if (l['状態'] !== '承認' || !l['台帳ID'] || l['家族の答え'] || LTS.has(l['候補ID'])) return false; const r = ltRec(l); if (!r) return false;
   return ltIsEx(l) ? !(worksByEx[l['台帳ID']] || []).length : !String(r['家にある冊数'] || '').trim(); }
 function qcLits(max){ const seen = new Set(), A = (S.lits || []).filter(l => { if (!ltAskOpen(l) || seen.has(l['台帳ID'])) return false; seen.add(l['台帳ID']); return true; });
   A.sort((a, b) => (ltIsEx(a) ? 1 : 0) - (ltIsEx(b) ? 1 : 0)); /* 本を先に（答えやすい） */
   return A.slice(0, max).map(l => ({ no: '', k: 'lit', id: l['候補ID'] })); }
-function ltLeft(){ let all = 0, left = 0; (S.lits || []).forEach(l => { if (l['状態'] !== '承認' || !l['台帳ID'] || l['確認日時'] === '2026/10/05 14:07') return; const o = ltAskOpen(l); if (o || l['家族の答え'] || LTS.has(l['候補ID'])) all++; if (o) left++; }); return { all, left }; }
+function ltLeft(){ let all = 0, left = 0; (S.lits || []).forEach(l => { if (l['状態'] !== '承認' || !l['台帳ID']) return; const o = ltAskOpen(l); if (o || l['家族の答え'] || LTS.has(l['候補ID'])) all++; if (o) left++; }); return { all, left }; }
 function qcDrawLit(el, c){
   const l = ltById(c.id), r = l && ltRec(l); if (!l || !r || !ltAskOpen(l)) { QC.i++; QC.step = ''; return qcDraw(); }
   const ex = ltIsEx(l), k = QC.step === 'ltn' && !ex ? 'ltn' : '';
@@ -2906,7 +2906,19 @@ function qcLitB(max){ return ltbOpenL().slice(0, max).map(l => ({ no: '', k: 'li
 function ltbLeft(){ return { all: (S.lits || []).length, left: ltbOpenL().length }; }
 function qcDrawLitB(el, c){
   const l = ltById(c.id); if (!l || l['状態'] || LTD.has(c.id)) { QC.i++; QC.step = ''; return qcDraw(); }
-  const ex = ltIsEx(l), cs = ltCands(l), pair = l['組'] && ltById(l['組']), who = [l['相手先'], l['著者・主催']].filter((v, i, a) => v && a.indexOf(v) === i);
+  const ex = ltIsEx(l), cs = ltCands(l), pair = l['組'] && ltById(l['組']), who = [l['相手先'], l['著者・主催'] && l['著者・主催'] !== l['相手先'] ? (ex ? '主催：' : '') + l['著者・主催'] : ''].filter(Boolean);
+  if (QC.step === 'lbp') { /* 登録済みのものから選ぶ（別の名前で台帳に入っているとき）。年の近い順に全部ならべ、言葉でしぼる */
+    const y = fdY(l['開始']), all = ex ? (S.exhibits || []).map(x => ({ id: x['展覧会ID'], t: x['名称'] || '（名前なし）', sub: [x['展覧会ID'], ltWhen(x['開始日'], x['終了日']), x['会場']].filter(Boolean).join('・'), y: fdY(x['開始日']), d: String(x['開始日'] || '') }))
+      : (S.pubs || []).map(p => ({ id: p['資料ID'], t: p['タイトル'] || '（題なし）', sub: [p['資料ID'], p['種類'], p['発行年月'], p['発行元']].filter(Boolean).join('・'), y: fdY(p['発行年月']), d: String(p['発行年月'] || '') }));
+    all.sort((a, b) => (y ? Math.abs((a.y || 9999) - y) - Math.abs((b.y || 9999) - y) : 0) || a.d.localeCompare(b.d));
+    el.innerHTML = `<div class="qc-w qc-dw inp">${qcTop()}${qcTask('litb', ex ? '展覧会' : '本')}
+      <div class="qc-wk"><small>${ex ? '調べで見つかった展覧会' : '調べで見つかった本・図録'}</small><b>${esc(l['名称'])}</b><small>${esc([ltWhen(l['開始'], l['終了'])].concat(who).filter(Boolean).join('・'))}</small></div>
+      <div><h1 class="qc-q">${ex ? '台帳のどの展覧会と同じ？' : '台帳のどの本・図録と同じ？'}</h1><p class="qc-hint">年の近い順に並んでいます。名前・年・会場の一部を入れると、しぼれます</p></div>
+      <div class="qc-in qc-arn"><input id="qcLbQ" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" placeholder="名前・年・会場で探す" aria-label="探す言葉" value="${esc(QC.draft || '')}"></div>
+      <div class="lb-os lb-pl">${all.map(x => `<button type="button" class="qc-c lb-c" data-qa="lb:s:${esc(x.id)}" data-q="${esc(fdN(x.t + ' ' + x.sub))}"><b>${esc(x.t)}</b><small>${esc(x.sub)}</small></button>`).join('')}</div>
+      <p class="qc-hint lb-none" hidden>見つかりません。言葉を変えて探してください</p>
+      <div class="qc-btm">${qcFoot('', 1)}</div></div>`;
+    hydrate(el); el.scrollTop = 0; qcLbFilter(); return; }
   const card = `<div class="qc-lt"><div><small>${esc(ex ? '展覧会' + (l['細分'] ? '（' + l['細分'] + '）' : '') : l['細分'] || '本')}</small><b>${esc(l['名称'])}</b><p>${esc([ltWhen(l['開始'], l['終了'])].concat(who).filter(Boolean).join('・'))}</p>
     ${pair ? `<p class="lb-m">${ex ? 'この展覧会の図録' : 'この図録の展覧会'}：${esc(pair['名称'])}</p>` : ''}${l['メモ'] ? `<p class="lb-m">${esc(l['メモ'])}</p>` : ''}${l['根拠URL'] ? `<a href="${esc(l['根拠URL'])}" target="_blank" rel="noopener">記録を開く ›</a>` : ''}</div></div>`;
   const B = (a, t, sm, cls) => `<button type="button" class="qc-c lb-c ${cls || ''}" data-qa="${a}"><b>${t}</b>${sm ? `<small>${sm}</small>` : ''}</button>`;
@@ -2915,13 +2927,18 @@ function qcDrawLitB(el, c){
   QC.q = QC.sp = q;
   el.innerHTML = `<div class="qc-w qc-dw">${qcTop()}${qcTask('litb', ex ? '展覧会' : '本')}${card}
     <div><h1 class="qc-q">${esc(q)}</h1><p class="qc-hint">${esc(hint)}</p></div>
-    <div class="lb-os">${cs.map(x => B('lb:s:' + esc(x.id), '同じ：' + esc(x.t), esc(x.sub))).join('')}${B('lb:new', cs.length ? 'どれともちがう（新しく入れる）' : '台帳に新しく入れる')}${B('lb:no', '台帳に入れない', '', 'mut')}</div>
+    <div class="lb-os">${cs.map(x => B('lb:s:' + esc(x.id), '同じ：' + esc(x.t), esc(x.sub))).join('')}${B('lb:pick', ex ? '登録済みの展覧会から選ぶ' : '登録済みの本・図録から選ぶ', '別の名前で台帳に入っているとき')}${B('lb:new', cs.length ? 'どれともちがう（新しく入れる）' : '台帳に新しく入れる')}${B('lb:no', '台帳に入れない', '', 'mut')}</div>
     <div class="qc-btm">${qcFoot()}</div></div>`;
   hydrate(el); el.scrollTop = 0;
 }
+function qcLbFilter(){ const i = $('#qcLbQ'); if (!i) return; if (QC) QC.draft = i.value; const qs = i.value.split(/[\s\u3000]+/).map(fdN).filter(Boolean); let n = 0;
+  document.querySelectorAll('#qc .lb-pl .lb-c').forEach(b => { const h = qs.some(q => !b.dataset.q.includes(q)); b.hidden = h; if (!h) n++; }); const e = document.querySelector('#qc .lb-none'); if (e) e.hidden = n > 0; }
+document.addEventListener('input', e => { if (e.target && e.target.id === 'qcLbQ') qcLbFilter(); });
 function qcLitBAct(a, c){ const l = ltById(c.id); if (!l) return;
+  if (a === 'lb:pick') { QC.step = 'lbp'; QC.draft = ''; return qcDraw(); }
+  if (a === 'back') { QC.step = ''; QC.draft = ''; return qcDraw(); }
   const it = a === 'lb:new' ? { id: c.id, st: '新規', ref: '' } : a === 'lb:no' ? { id: c.id, st: '入れない', ref: '' } : a.indexOf('lb:s:') === 0 ? { id: c.id, st: '同じ', ref: a.slice(5) } : null; if (!it) return;
-  LTD.add(c.id); QC.n++; QC.i++; QC.step = '';
+  LTD.add(c.id); QC.n++; QC.i++; QC.step = ''; QC.draft = '';
   /* ほかのカードと同じく、答えは20秒持ってから送る（上の「もどる」で取り消せる） */
   qcHoldSet(async () => { try { const res = await call('setLits', [it]); const ng = (res && res.litNg) || []; if (ng.length) { LTD.delete(c.id); toast('登録できませんでした：' + ng[0]); } LTDIRTY = true; if (!QC) ltbSync(); }
       catch(e){ LTD.delete(c.id); if (isLoginErr(e)) { alert('ログインの有効期限が切れました。もう一度ログインしてください。'); if (QC) qcEnd(); return; }
@@ -3217,7 +3234,7 @@ function qcChange(e){ if (e.target.id === 'qcCam' && e.target.files && e.target.
 function qcAct(a, btn){ const c = QC && QC.L[QC.i]; if (!c) return; const no = c.no, w = workOf(no) || {}, k = QC.step || c.k, item = QCITEM[c.k];
   if (a.indexOf('fd:') === 0) return qcFindAct(a, c);
   if (c.k === 'lit' && (a.indexOf('lt:') === 0 || a === 'back')) return qcLitAct(a, c);
-  if (c.k === 'litb' && a.indexOf('lb:') === 0) return qcLitBAct(a, c);
+  if (c.k === 'litb' && (a.indexOf('lb:') === 0 || a === 'back')) return qcLitBAct(a, c);
   if (a === 'dph' || a === 'php') return qcLightbox(btn); /* 写真をタップすると、背景をぼかして画面のまん中に大きく出す */ /* 写真をタップで大きく・もう一度で戻す */
   if (a.startsWith('dpi:')) { const f = (photoBy[no] || [])[+a.slice(4)], box = $('#qcDph'); if (f && box) { box.innerHTML = thImg(f['ファイルID'], QCW) + wm(f) + QCPHTAG + QCZM; hydrate(box); } const cap = $('#qcPhCap'); if (cap) cap.innerHTML = qcPhCap(no, +a.slice(4), QC.phRec); btn.parentNode.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === btn)); return; }
   /* 答えは覚えておき、「理由や補足はある？」のあとでまとめて保存する */
