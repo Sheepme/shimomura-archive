@@ -2059,7 +2059,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '21bcd47616', APP_URL = location.origin + location.pathname;
+const BUILD = '7fab5f0627', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2564,7 +2564,7 @@ function startCards(test, mode, wno){
   QC = { tts0, L, i: 0, step: '', heard: '', pend: null, n: 0, test: !!test, mode: mode || '', wno: wno || '', before: new Set(L.filter(c => qcComplete(c.no)).map(c => c.no)) };
   let el = $('#qc'); if (!el) { el = document.createElement('div'); el.id = 'qc'; el.className = 'qc hm2'; document.body.appendChild(el); el.addEventListener('click', qcClick); el.addEventListener('change', qcChange); el.addEventListener('focusin', () => setTimeout(qcVV, 60)); el.addEventListener('focusout', () => setTimeout(qcVV, 200));
     el.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'qcTtl') { e.preventDefault(); qcAct('name'); } if (e.key === 'Enter' && e.target.id === 'qcMus') { e.preventDefault(); qcAct('muadd'); } if (e.key === 'Enter' && e.target.id === 'qcAr') { e.preventDefault(); qcAct('aradd'); } }); }
-  el.classList.remove('hidden'); qcLock(true); qcVV();
+  el.classList.remove('hidden'); qcLock(true); qcVV(); hpushLater('q'); /* 戻る（ボタン・スワイプ）でカードを閉じる。後ろの画面は動かさない */
   try { qcPrefetch(L.map(c => c.k === 'find' ? (c.cands[c.j || 0] || {}).no : c.no)); } catch(e){}
   qcDraw();
 }
@@ -2656,8 +2656,8 @@ function fdbOpen(){ const L = (S.finds || []).filter(f => fdOpen(f) && fdReg(f))
     el.addEventListener('click', e => { const t = e.target.closest('[data-fdb]'); if (!t || !FDB) return; const a = t.dataset.fdb;
       if (a === 'end') return fdbEnd(); if (a === 'all') { FDB.off = FDB.off.size ? new Set() : new Set(FDB.L.map(f => f['候補ID'])); return fdbDraw(); }
       if (a === 'go') return fdbGo(); if (a.indexOf('t:') === 0) { const id = a.slice(2); FDB.off.has(id) ? FDB.off.delete(id) : FDB.off.add(id); return fdbDraw(); } }); }
-  el.classList.remove('hidden'); qcLock(true); fdbDraw(); }
-function fdbEnd(){ const el = $('#fdb'); if (el) { el.classList.add('hidden'); el.innerHTML = ''; } qcLock(false); FDB = null; renderHome(); }
+  el.classList.remove('hidden'); qcLock(true); fdbDraw(); hpushLater('f'); }
+function fdbEnd(fromHist){ const was = !!FDB, el = $('#fdb'); if (el) { el.classList.add('hidden'); el.innerHTML = ''; } qcLock(false); FDB = null; if (was && !fromHist) hback(); renderHome(); }
 function fdbDraw(){ const el = $('#fdb'); if (!el || !FDB) return; const n = FDB.L.length - FDB.off.size, y = el.scrollTop;
   const sz = w => [w['制作年'], w['高さcm'] && w['幅cm'] ? w['高さcm'] + '×' + w['幅cm'] : ''].filter(Boolean).join('・');
   el.innerHTML = `<div class="qc-w fdb-w"><div class="qc-top"><button type="button" class="qc-x" data-fdb="end" aria-label="閉じる">${QCSVG.x}</button><b class="fdb-h">まとめて確認（管理者）</b></div>
@@ -3026,7 +3026,8 @@ async function qcDiffSave(c, fn, pk, kind, area){
     () => { QDD.delete(key); QC.n--; });
   qcDraw();
 }
-function qcEnd(){ Object.keys(WLOG).forEach(k => delete WLOG[k]); const wno = QC && QC.mode === 'work' ? QC.wno : ''; if (wno) setTimeout(() => openWork(wno), 60); qcFlush(); stopMic(); sayStop(); if (QC && QC.tts0 != null) QV.tts = QC.tts0; const el = $('#qc'); if (el) { el.classList.add('hidden'); el.classList.remove('kb'); el.innerHTML = ''; el.style.top = el.style.height = el.style.bottom = ''; } qcLock(false); QC = null; refreshData().catch(() => {}); }
+function qcEnd(fromHist){ Object.keys(WLOG).forEach(k => delete WLOG[k]); const wno = QC && QC.mode === 'work' ? QC.wno : '', was = !!QC; if (was && !fromHist) hback();
+  if (wno) { let n = 0; const go = () => { if (HIST.skip > 0 && n++ < 30) return setTimeout(go, 50); openWork(wno); }; setTimeout(go, 60); } /* 戻る（履歴）が終わってから作品ページを開く */ qcFlush(); stopMic(); sayStop(); if (QC && QC.tts0 != null) QV.tts = QC.tts0; const el = $('#qc'); if (el) { el.classList.add('hidden'); el.classList.remove('kb'); el.innerHTML = ''; el.style.top = el.style.height = el.style.bottom = ''; } qcLock(false); QC = null; refreshData().catch(() => {}); }
 function qcDraw(){
   const el = $('#qc'); if (!el || !QC) return;
   if (QC.i >= QC.L.length) return qcFinish();
@@ -4453,8 +4454,8 @@ function openBrief(no){
     </div>
     <div class="bract"><label class="brck"><input type="checkbox" id="brLoc" checked> 保管場所を入れる</label>
       <div class="brbtns"><button type="button" class="act" id="brCopy">文章をコピー</button><button type="button" class="act" id="brShare">共有する</button><button type="button" class="act main" id="brPrint">印刷・PDF</button></div></div>`;
-  document.body.appendChild(el); document.body.classList.add('briefing'); hydrate(el);
-  const close = () => { el.remove(); document.body.classList.remove('briefing'); };
+  document.body.appendChild(el); document.body.classList.add('briefing'); hydrate(el); hpushLater('b');
+  const close = () => { el.remove(); document.body.classList.remove('briefing'); hback(); }; el._close = () => { el.remove(); document.body.classList.remove('briefing'); };
   el.querySelector('[data-brclose]').onclick = close;
   const loc = () => $('#brLoc').checked;
   $('#brLoc').onchange = () => el.classList.toggle('noloc', !loc());
@@ -4497,13 +4498,13 @@ function ivMicGate(list){
 function ivBegin(list){
   IV = { list, wi: 0 }; ivReset();
   let el = $('#quiz'); if (!el) { el = document.createElement('div'); el.id = 'quiz'; el.className = 'quiz'; document.body.appendChild(el); }
-  el.classList.remove('hidden'); document.body.style.overflow = 'hidden';
+  if (el.classList.contains('hidden')) hpushLater('i'); el.classList.remove('hidden'); document.body.style.overflow = 'hidden';
   ivConfirm();
 }
 function ivReset(){ Object.assign(IV, { hist: [], pend: [], eps: [], qa: [], mode: 'confirm', busy: false, listening: false, text: !(SR && QV.micOk), last: '', q: '', lq: '' }); }
 function ivConfirm(){ IV.mode = 'confirm'; IV.last = ''; ivDraw(); const w = workOf(IV.list[IV.wi]) || {};
   ivSpeak('この絵について聞いてもいい？' + (hasName(w) ? '「' + w['作品名'] + '」だよ。' : ''), '', () => { if (IV && IV.mode==='confirm' && !IV.text) ivAutoListen(); }); }
-function endInterview(){ stopMic(); sayStop(); const el = $('#quiz'); if (el) el.classList.add('hidden'); document.body.style.overflow = ''; IV = null; }
+function endInterview(fromHist){ const was = !!IV && !!$('#quiz') && !$('#quiz').classList.contains('hidden'); stopMic(); sayStop(); const el = $('#quiz'); if (el) el.classList.add('hidden'); document.body.style.overflow = ''; IV = null; if (was && !fromHist) hback(); }
 function ivCur(no, f){ const w = workOf(no) || {}; if (f==='サイズ') return (w['幅cm']||w['高さcm']) ? `幅${w['幅cm']||'?'} × 高さ${w['高さcm']||'?'} cm` : '';
   if (f==='場所') return w['所在区分']==='不明' ? '' : (w['所在'] || w['所在区分'] || ''); return w[f] || ''; }
 function ivPendFor(f){ const m = { 'サイズ': ['幅cm','高さcm'], '場所': ['所在区分','所在'] }[f] || [f]; return IV.pend.filter(p => m.includes(p.f) && p.on); }
@@ -5653,8 +5654,15 @@ function fwdRecord(){ let f = null;
   FW.push(f); if (FW.length > 60) FW.shift(); }
 function fwdGo(){ const f = FW.pop(); if (!f) return; HIST.noPush = 1; try { f(); } catch(e){} finally { HIST.noPush = 0; } }
 function hback(){ if (!hist_()) return; HIST.skip++; try { history.back(); } catch(e){ HIST.skip--; } setTimeout(() => { if (HIST.skip > 0) HIST.skip = Math.max(0, HIST.skip - 1); }, 1500); }
+/* 閉じる操作のあと（ブラウザの戻る待ち）に履歴を積む。先に積むと、戻るが新しい画面の分を消してしまう */
+function hpushLater(tag){ let n = 0; const go = () => { if (HIST.skip > 0 && n++ < 30) return setTimeout(go, 50); hpush(tag); }; go(); }
 function closeTop(){
   if (!$('#confirm').classList.contains('hidden')) return closeConfirm(true), true;
+  { const lb = $('#qclb'); if (lb) { lb.remove(); if (QC || FDB) hpush(QC ? 'q' : 'f'); return true; } } /* 写真の拡大だけ閉じて、カードの分の履歴を積み直す */
+  if (QC) { qcEnd(true); return true; }
+  if (FDB) { fdbEnd(true); return true; }
+  if (IV && $('#quiz') && !$('#quiz').classList.contains('hidden')) { endInterview(true); return true; }
+  { const br = document.querySelector('.brief'); if (br) { if (br._close) br._close(); else br.remove(); document.body.classList.remove('briefing'); return true; } }
   if (SCR.length) { scrBack(true); return true; } // 開いた順に1枚ずつ戻る
   if (!$('#page').classList.contains('hidden')) return closeWork(true), true;
   return false;
