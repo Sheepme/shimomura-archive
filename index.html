@@ -2085,6 +2085,11 @@ button.ulrow{cursor:pointer}
 .phist p{margin:0}
 .phist .phb{margin-top:6px}
 .phist .phw{opacity:.7}
+.qc-pbst{display:flex;flex-direction:column;gap:2px;font-size:15px;color:var(--sub);margin:2px 0 4px}
+.qc-pbst .ok{color:#58A700;font-weight:600}
+.pbin{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin:8px 0 12px}
+.pbinp{border:0;padding:0;background:var(--wash);border-radius:8px;overflow:hidden;aspect-ratio:3/4;cursor:zoom-in}
+.pbinp img{width:100%;height:100%;object-fit:cover;min-height:0!important;display:block}
 </style>
 </head>
 <body>
@@ -2154,7 +2159,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '40dc63443b', APP_URL = location.origin + location.pathname;
+const BUILD = '8aa57c2590', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2653,13 +2658,14 @@ function startCards(test, mode, wno){
   else if (mode === 'ask') L = qcAsks(10);
   else if (mode === 'lit') L = qcLits(10);
   else if (mode === 'litb') L = qcLitB(10);
+  else if (mode === 'pbph') L = qcPbPhs(10);
   else if (mode === 'work') L = qcWorkCards(wno);
   else { /* 今日の10作品：同じ種類が続かないよう、場所・調べの記録・作品名・書類の違い・写真・場所の確認を順番にまぜる */
     const by = { loc: [], name: [], photo: [], conf: [] };
     hgPick(400).forEach(no => { const k = qcKind(no); if (k && by[k].length < 10) by[k].push({ no, k }); });
-    const P = [by.loc, qcFinds(3), by.name, qcDiffGroups(3), by.photo, qcAsks(2), qcLits(2), by.conf]; /* 書類の違いは、同じ書類と作品のものを続けて出す */
+    const P = [by.loc, qcFinds(3), by.name, qcDiffGroups(3), by.photo, qcAsks(2), qcLits(2), qcPbPhs(1), by.conf]; /* 書類の違いは、同じ書類と作品のものを続けて出す */
     for (let r = 0; L.length < 10 && P.some(x => x.length); r++) P.forEach(x => { if (L.length < 10 && x.length) { const it = x.shift(); if (Array.isArray(it)) L.push(...it); else L.push(it); } }); }
-  if (!L.length) return toast(mode === 'work' ? 'この作品で聞くことはありません' : mode === 'ask' ? 'いま聞きたいことはありません' : mode === 'lit' ? 'いま聞きたい展覧会・本はありません' : mode === 'litb' ? '確かめる記録はありません' : mode === 'diff' ? 'いま決める書類の違いはありません' : mode === 'find' ? 'いま確かめる調べの記録はありません' : 'いま確かめる作品はありません');
+  if (!L.length) return toast(mode === 'work' ? 'この作品で聞くことはありません' : mode === 'ask' ? 'いま聞きたいことはありません' : mode === 'lit' ? 'いま聞きたい展覧会・本はありません' : mode === 'pbph' ? 'いま写真を撮る本はありません' : mode === 'litb' ? '確かめる記録はありません' : mode === 'diff' ? 'いま決める書類の違いはありません' : mode === 'find' ? 'いま確かめる調べの記録はありません' : 'いま確かめる作品はありません');
   closeSheet(); closeAllPages(); ttsUnlock();
   const tts0 = QV.tts; QV.tts = !test && !mode ? qcTtsPref() : false;
   QC = { tts0, L, i: 0, step: '', heard: '', pend: null, n: 0, test: !!test, mode: mode || '', wno: wno || '', before: new Set(L.filter(c => qcComplete(c.no)).map(c => c.no)) };
@@ -2947,6 +2953,63 @@ function qcDrawLit(el, c){
   hydrate(el); el.scrollTop = 0;
   if (QV.tts) say(QC.sp, qcAfterSay);
 }
+/* ---------- 家にある本の写真：「家にある」と答えた本は、表紙と中のページを何枚か撮る（撮影の作業に入れる。10/5 本人） ----------
+   ・カード k:'pbph'。表紙がなければ表紙（addCover）、そのあと中のページ（addPhotos、写真の種類「中面」）。表紙＋中のページ PBPH_N 枚で終わり
+   ・ホームの行「家にある本の写真」・今日の10作品（1問まで）・本のカードで「ある」と答えたすぐあと・資料のページの「＋ 中のページの写真を撮る」 */
+const PBPH_N = 3;
+const PBS = new Set(); /* 「あとで撮る」にした本（開いているあいだだけ） */
+const pbInner = id => (S.photos || []).filter(p => p['作品番号'] === id && p['種類'] === '中面');
+const pbHasCover = x => !!(x && x['表紙写真ファイルID'] && (S.photos || []).some(p => p['ファイルID'] === x['表紙写真ファイルID']));
+const pbAtHome = x => (parseInt(String((x || {})['家にある冊数'] || '').normalize('NFKC'), 10) || 0) > 0;
+const pbNeedPh = x => pbAtHome(x) && (!pbHasCover(x) || pbInner(x['資料ID']).length < PBPH_N);
+const pbPhLeft = () => (S.pubs || []).filter(pbNeedPh).length;
+function qcPbPhs(max){ return (S.pubs || []).filter(x => pbNeedPh(x) && !PBS.has(x['資料ID'])).sort((a, b) => (pbHasCover(a) ? 1 : 0) - (pbHasCover(b) ? 1 : 0)).slice(0, max).map(x => ({ no: '', k: 'pbph', id: x['資料ID'] })); }
+function qcDrawPbPh(el, c){
+  const x = pbById[c.id]; if (!x || (!pbNeedPh(x) && !c.shot)) { QC.i++; QC.step = ''; return qcDraw(); }
+  const cov = pbHasCover(x), inn = pbInner(c.id).length, enough = cov && inn >= PBPH_N, yr = (/^(\d{4})/.exec(String(x['発行年月'] || '')) || [])[1];
+  const go = (a, t) => `<button type="button" class="hg-go" data-qa="${a}">${t}</button>`, sub = (a, t) => `<button type="button" class="hg-btn2" data-qa="${a}">${t}</button>`;
+  const cam = (id, t, main, lib) => `<label class="${main ? 'hg-go' : 'hg-btn2'} qc-cam">${main ? QCSVG.cam : ''}${t}<input type="file" id="${id}" accept="image/*"${lib ? (id === 'qcPbInL' ? ' multiple' : '') : ' capture="environment"'} hidden></label>`;
+  const card = `<div class="qc-lt">${cov ? `<span class="qc-ltc">${thImg(x['表紙写真ファイルID'], QCW)}</span>` : ''}<div><small>${esc(x['種類'] || '本')}</small><b>${esc(x['タイトル'] || c.id)}</b><p>${esc([x['発行元'], yr ? yr + '年' : ''].filter(Boolean).join('・'))}</p></div></div>`;
+  const st = `<div class="qc-pbst"><span class="${cov ? 'ok' : ''}">表紙　${cov ? '✓ 撮りました' : 'まだ'}</span><span class="${inn >= PBPH_N ? 'ok' : ''}">中のページ　${inn}枚${inn >= PBPH_N ? ' ✓' : '（あと' + (PBPH_N - inn) + '枚くらい）'}</span></div>`;
+  const q = !cov ? 'この本の表紙を撮ってください' : enough ? 'ありがとうございます。これで十分です' : '中のページを何枚か撮ってください';
+  const hint = !cov ? '本を平らに置いて、まっすぐ上から撮ると、きれいに写ります' : enough ? 'まだ撮りたいページがあれば、続けて撮れます' : '作品が載っているページ・目次・奥付（発行の情報）などを、1枚ずつ撮ってください';
+  const btm = !cov ? `${cam('qcPbCv', '表紙を撮る', 1)}<div class="qc-row">${cam('qcPbCvL', '写真から選ぶ', 0, 1)}${sub('pp:later', 'あとで撮る')}</div>${qcFoot()}`
+    : `${enough ? go('pp:done', '次へ') : cam('qcPbIn', '中のページを撮る', 1)}<div class="qc-row">${enough ? cam('qcPbIn', 'もっと撮る', 0) : cam('qcPbInL', '写真から選ぶ（何枚でも）', 0, 1)}${enough ? '' : inn ? sub('pp:done', '撮り終わった') : sub('pp:later', 'あとで撮る')}</div>${qcFoot()}`;
+  QC.q = q; QC.sp = !cov ? 'この本の表紙、撮ってもろてもよろしい？' : enough ? 'おおきに。これで十分どす' : '中のページを、何枚か撮ってもろてもよろしい？';
+  el.innerHTML = `<div class="qc-w">${qcTop()}${qcTask('pbph')}${card}${st}<div><h1 class="qc-q">${esc(q)}</h1><p class="qc-hint">${esc(hint)}</p></div><div class="qc-btm">${btm}</div></div>`;
+  hydrate(el); el.scrollTop = 0;
+  if (QV.tts) say(QC.sp);
+}
+function qcPbAct(a, c){
+  if (a === 'pp:later') { PBS.add(c.id); QC.i++; QC.step = ''; return qcDraw(); }
+  if (a === 'pp:done') { const x = pbById[c.id]; if (x && pbHasCover(x) && pbInner(c.id).length) QC.n++; QC.i++; QC.step = ''; return qcDraw(); }
+}
+async function qcPbShot(kind, files){ const c = QC && QC.L[QC.i]; if (!c || c.k !== 'pbph' || !files.length) return;
+  if (QC.test) return toast('練習モードなので、写真は保存しません');
+  const x0 = pbById[c.id] || {}, before = x0['表紙写真ファイルID'] || '';
+  try {
+    if (kind === 'cv') { busy(true, '表紙を送っています…'); const b64 = await shrink(files[0]);
+      try { setData(await call('addCover', c.id, b64, PMIME, '')); }
+      catch(e){ if (!netErr(e)) throw e; await refreshData().catch(() => {}); const x1 = pbById[c.id] || {}; if (!x1['表紙写真ファイルID'] || x1['表紙写真ファイルID'] === before) throw e; } /* 通信が切れても保存できていれば、それでよい */
+    } else { const n = Math.min(files.length, 10), items = [];
+      for (let i = 0; i < n; i++) { busy(true, '写真を準備しています（' + (i + 1) + '/' + n + '）'); items.push({ b64: await shrink(files[i]), mime: PMIME }); }
+      busy(true, '写真を送っています…'); await callRetry('addPhotos', c.id, items, '中面', ''); await refreshData().catch(() => {}); }
+    c.shot = 1; busy(false); toast(kind === 'cv' ? '表紙を登録しました' : '中のページを登録しました'); if (QC) qcDraw();
+  } catch(e){ busy(false); toast('写真を送れませんでした：' + (e.message || e)); }
+}
+/* 資料のページ：「＋ 中のページの写真を撮る」 */
+function sheetPbPages(id){ const x = pbById[id]; if (!x || !canEdit()) return;
+  openSheet(`<h3>中のページの写真</h3><p class="hint">${esc(x['タイトル'] || id)}　作品が載っているページ・目次・奥付などを撮ってください（何枚でも）</p>${photoInputs(true)}${BTNS('写真を保存')}`);
+  let list = []; bindPhoto((d, cam, l) => { list = (l || []).slice(-10); });
+  $('#ok').onclick = async () => { if (!list.length) return alert('写真を撮るか選んでください');
+    busy(true, '写真を送っています…');
+    try { const r = await callRetry('addPhotos', id, list, '中面', ''); await refreshData().catch(() => {}); busy(false); closeSheet(); openPb(id, true); toast(r && r.dup && !r.n ? '保存済みでした（同じ写真は二重に登録しません）' : '中のページを' + ((r && r.n) || list.length) + '枚登録しました'); }
+    catch(e){ busy(false); alert('保存できませんでした。\n' + (e.message || e)); } };
+}
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-pbpages]'); if (a) return sheetPbPages(a.dataset.pbpages);
+  const b = e.target.closest('[data-pbin]'); if (b) { const [id, pid] = b.dataset.pbin.split('|'); S.cur = id; const L = photoBy[id] || []; openViewer(Math.max(0, L.findIndex(p => p['写真ID'] === pid))); }
+});
 function qcLitAct(a, c){ const l = ltById(c.id); if (!l) return;
   if (a === 'back') { QC.step = ''; return qcDraw(); }
   if (a === 'lt:yes') { QC.step = 'ltn'; return qcDraw(); }
@@ -2960,6 +3023,7 @@ function qcLitAct(a, c){ const l = ltById(c.id); if (!l) return;
 function qcLitSave(c, a){ const l = ltById(c.id), r = l && ltRec(l); if (!l || !r) return;
   const ex = ltIsEx(l), oldN = r['家にある冊数'], dn = a.unk ? 0 : 1;
   LTS.add(c.id); if (!ex && !a.unk) r['家にある冊数'] = String(a.n);
+  if (!ex && a.n > 0 && !QC.test && r['資料ID']) QC.L.splice(QC.i + 1, 0, { no: '', k: 'pbph', id: r['資料ID'] }); /* 家にある本は、続けて表紙と中のページを撮る */
   stopMic(true); QC.n += dn; QC.i++; QC.step = ''; QC.heard = ''; QC.draft = '';
   const undo = () => { LTS.delete(c.id); if (!ex) r['家にある冊数'] = oldN; };
   qcHoldSet(async () => { try { await call('litAnswer', c.id, a); l['家族の答え'] = a.unk ? 'わからない' : ex ? a.text : (a.n ? 'ある（' + a.n + '冊）' : 'ない'); }
@@ -3061,6 +3125,7 @@ function qcTask(k, lab){ const L = ['#1CB0F6', IC.loc, '場所がわからない
     ask: ['#E05A9E', ASKIC, 'お母さんに聞きたいこと', '家族にしか分からないことです'],
     lit: ['#58A700', LTIC, lab === '展覧会' ? '展覧会のこと' : '本・図録のこと', lab === '展覧会' ? '覚えていることを教えてください' : '家にあるか教えてください'],
     litb: ['#58A700', LTIC, lab === '展覧会' ? '調べで見つかった展覧会' : '調べで見つかった本・図録', '台帳に入れるか、1件ずつ決めます（管理者）'],
+    pbph: ['#FF4B4B', IC.photo, '家にある本の写真', '表紙と中のページを撮ってください'],
     find: ['#FF9600', FDIC, '調べで見つかった記録', lab === '販売' ? '売りに出ていた記録が見つかりました' : '美術館の記録が見つかりました'] }[k] || L;
   return `<div class="qc-task"><span class="hg-ic" style="background:${c}"><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg></span><b>${esc(t)}<small>${esc(sm)}</small></b></div>`; }
 function qcTop(){ return `<div class="qc-top"><button type="button" class="qc-x" data-qc="end" aria-label="やめる">${QCSVG.x}</button>${qcBackBtn()}
@@ -3287,7 +3352,7 @@ function qcEnd(fromHist){ QVB.cf = null; qvbShow(''); setTimeout(ltbSync, 300); 
 function qcDraw(){
   const el = $('#qc'); if (!el || !QC) return;
   if (QC.i >= QC.L.length) return qcFinish();
-  const c = QC.L[QC.i]; if (c.k === 'diff') return qcDrawDiff(el, c); if (c.k === 'find') return qcDrawFind(el, c); if (c.k === 'lit') return qcDrawLit(el, c); if (c.k === 'litb') return qcDrawLitB(el, c);
+  const c = QC.L[QC.i]; if (c.k === 'diff') return qcDrawDiff(el, c); if (c.k === 'find') return qcDrawFind(el, c); if (c.k === 'lit') return qcDrawLit(el, c); if (c.k === 'pbph') return qcDrawPbPh(el, c); if (c.k === 'litb') return qcDrawLitB(el, c);
   const no = c.no, w = workOf(no) || {}, ph = photoBy[no] || [], k = QC.step || c.k;
   const loc = w['所在'] || (w['所在区分'] && w['所在区分'] !== '不明' ? w['所在区分'] : '');
   const q = { loc: 'この作品、いまどこにある？', conf: `この作品、いまも「${loc}」にある？`, name: 'この作品の名前、わかる？', photo: 'この作品、写真を撮れる？',
@@ -3334,11 +3399,13 @@ function qcClick(e){ if (!QC) return; const t = e.target.closest('[data-qc],[dat
   if (t.dataset.qc === 'say') { QV.tts = !QV.tts; if (!QC.test && !QC.mode) { try { localStorage.setItem('smr_qctts', QV.tts ? '1' : '0'); } catch(e){} }
     t.outerHTML = qcSayBtn(); if (QV.tts) { ttsUnlock(); say(QC.sp || QC.q || ''); } else sayStop(); return; }
   if (t.dataset.qa) qcAct(t.dataset.qa, t); }
-function qcChange(e){ if (e.target.id === 'qcCam' && e.target.files && e.target.files[0]) qcPhoto(e.target.files[0]); }
+function qcChange(e){ if (e.target.id === 'qcCam' && e.target.files && e.target.files[0]) qcPhoto(e.target.files[0]);
+  if (/^qcPb(Cv|In)L?$/.test(e.target.id) && e.target.files && e.target.files.length) { const fs = [...e.target.files]; e.target.value = ''; qcPbShot(/Cv/.test(e.target.id) ? 'cv' : 'in', fs); } }
 function qcAct(a, btn){ const c = QC && QC.L[QC.i]; if (!c) return; const no = c.no, w = workOf(no) || {}, k = QC.step || c.k, item = QCITEM[c.k];
   if (a.indexOf('mic') !== 0 && (QVB.st || MIC.r)) { QVB.cf = null; stopMic(true); qvbShow(''); }
   if (a.indexOf('fd:') === 0) return qcFindAct(a, c);
   if (c.k === 'lit' && (a.indexOf('lt:') === 0 || a === 'back')) return qcLitAct(a, c);
+  if (c.k === 'pbph' && a.indexOf('pp:') === 0) return qcPbAct(a, c);
   if (c.k === 'litb' && (a.indexOf('lb:') === 0 || a === 'back')) return qcLitBAct(a, c);
   if (a === 'dph' || a === 'php') return qcLightbox(btn); /* 写真をタップすると、背景をぼかして画面のまん中に大きく出す */ /* 写真をタップで大きく・もう一度で戻す */
   if (a.startsWith('dpi:')) { const f = (photoBy[no] || [])[+a.slice(4)], box = $('#qcDph'); if (f && box) { box.innerHTML = thImg(f['ファイルID'], QCW) + wm(f) + QCPHTAG + QCZM; hydrate(box); } const cap = $('#qcPhCap'); if (cap) cap.innerHTML = qcPhCap(no, +a.slice(4), QC.phRec); btn.parentNode.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === btn)); return; }
@@ -3619,7 +3686,7 @@ function renderHome(){
       <p class="hg-note">ここには、まだ足りないものがある作品だけを出しています。番号の下に、足りないものを出しています。押すとその作品のページを開きます。</p>
       <button type="button" class="hg-link" data-v="works">すべての作品を見る</button></section>
     ${ed ? `<section class="hg-sec"><h2 class="hg-h2">ひとつずつ片付ける</h2>
-      ${row('data-bsgo="noloc"', '#1CB0F6', IC.loc, '場所がわからない', nLc)}${row('data-bsgo="noname"', '#CE82FF', NAMEIC, '作品名がない', nNm)}${row('data-bsgo="nophoto"', '#FF4B4B', IC.photo, '写真がない', nPh)}${row('data-hgdiff="1"', '#2B70C9', IC.doc, '書類と台帳の違い', nDf)}${(S.finds || []).length ? row('data-hgfind="1"', '#FF9600', FDIC, '調べで見つかった記録', qcFindLeft().left) : ''}${(n => n ? row('data-hgask="1"', '#E05A9E', ASKIC, 'お母さんに聞きたいこと', n) : '')(qcAskLeft().left)}${(S.finds || []).length && S.user && S.user.role === '管理' ? (n => n ? row('data-hgfindb="1"', '#FF9600', FDIC, '調べの記録：まとめて確認（管理者）', n) : '')((S.finds || []).filter(f => fdOpen(f) && fdReg(f)).length) : ''}${(n => n ? row('data-hglit="1"', '#58A700', LTIC, '展覧会・本のこと', n) : '')(ltLeft().left)}${S.user && S.user.role === '管理' ? (n => n ? row('data-hglitb="1"', '#58A700', LTIC, '展覧会・本：1件ずつ確かめる（管理者）', n) : '')(ltbLeft().left) : ''}
+      ${row('data-bsgo="noloc"', '#1CB0F6', IC.loc, '場所がわからない', nLc)}${row('data-bsgo="noname"', '#CE82FF', NAMEIC, '作品名がない', nNm)}${row('data-bsgo="nophoto"', '#FF4B4B', IC.photo, '写真がない', nPh)}${row('data-hgdiff="1"', '#2B70C9', IC.doc, '書類と台帳の違い', nDf)}${(S.finds || []).length ? row('data-hgfind="1"', '#FF9600', FDIC, '調べで見つかった記録', qcFindLeft().left) : ''}${(n => n ? row('data-hgask="1"', '#E05A9E', ASKIC, 'お母さんに聞きたいこと', n) : '')(qcAskLeft().left)}${(S.finds || []).length && S.user && S.user.role === '管理' ? (n => n ? row('data-hgfindb="1"', '#FF9600', FDIC, '調べの記録：まとめて確認（管理者）', n) : '')((S.finds || []).filter(f => fdOpen(f) && fdReg(f)).length) : ''}${(n => n ? row('data-hglit="1"', '#58A700', LTIC, '展覧会・本のこと', n) : '')(ltLeft().left)}${(n => n ? row('data-hgpbph="1"', '#FF4B4B', IC.photo, '家にある本の写真', n) : '')(pbPhLeft())}${S.user && S.user.role === '管理' ? (n => n ? row('data-hglitb="1"', '#58A700', LTIC, '展覧会・本：1件ずつ確かめる（管理者）', n) : '')(ltbLeft().left) : ''}
       <details class="hg-more"><summary>そのほかの作業</summary><div class="todos">${todo.map(card).join('')}</div></details></section>` : ''}
     <button class="tourlink" data-v="help">使い方を見る</button></div><aside class="dash">${dashHTML()}</aside></div>`;
   hydrate($('#main'));
@@ -3634,6 +3701,7 @@ function renderHome(){
       if (e.target.closest('[data-hgask]')) return startCards(false, 'ask');
       if (e.target.closest('[data-hglitb]')) return startCards(false, 'litb');
       if (e.target.closest('[data-hglit]')) return startCards(false, 'lit');
+      if (e.target.closest('[data-hgpbph]')) return startCards(false, 'pbph');
       const p = e.target.closest('[data-hgpg]'); if (p) { S.hgPage = Math.max(0, (S.hgPage || 0) + (+p.dataset.hgpg)); renderHome(); const g = $('#hgGrid'); if (g) g.scrollIntoView({ block: 'start' }); return; }
       const t = e.target.closest('[data-hgw]'); if (t) openWork(t.dataset.hgw); }); }
 }
@@ -5893,13 +5961,14 @@ function openPb(id, keepScroll, restoreSc){
     <h2 class="title">${esc(x['タイトル']||'（書名未入力）')}</h2>
     <div class="tombstone">${esc([fmtDate(x['発行年月']), x['発行元'], x['著者・編者']].filter(Boolean).join('　|　'))}</div>
     ${cover ? `<div class="cover">${thImg(x['表紙写真ファイルID'], 800)}${wm(coverPh(x))}</div>${creditHTML([coverPh(x)].filter(Boolean))}${canEdit() ? `<button type="button" class="act cvcopy" data-cvcopy="${esc(id)}">© 転載元を入れる・直す</button>` : ''}` : ''}
+    ${(P => P.length ? `<h3 class="sec">中のページ ${P.length}枚</h3><div class="pbin">${P.map(ph => `<button type="button" class="pbinp" data-pbin="${esc(id)}|${esc(ph['写真ID'])}">${thImg(ph['ファイルID'], 400)}</button>`).join('')}</div>` : '')(pbInner(id))}
     <h3 class="sec">掲載作品 ${new Set(nos).size}点</h3>${linkedGrid('pb', id)}${docLinks('資料ID', id)}${memosFor(id)}
     <h3 class="sec">資料の情報</h3>
     ${canEdit() ? recInfo('pb', id, x) : `<dl class="info">${dd2('種類', esc(x['種類']))}${dd2('発行', esc(fmtDate(x['発行年月'])))}${dd2('発行元', esc(x['発行元']))}${dd2('著者・編者', esc(x['著者・編者']))}${dd2('掲載内容', esc(x['掲載内容']))}
       ${dd2('家にある冊数', x['家にある冊数'] ? esc(x['家にある冊数']) + '冊' : '')}
       ${ex ? dd2('関連する展覧会', `<button class="golink" data-ex="${esc(ex['展覧会ID'])}">${PRM(ex['名称'])}${esc(ex['名称'])} ›</button>`) : ''}
       ${dd2('メモ', escU(x['メモ']))}${srcDD(x)}</dl>`}
-    ${canEdit() ? `<h3 class="sec">記録を更新する</h3><div class="actions bottomacts one"><button class="act main" data-link="pb|${esc(id)}">＋ 掲載作品をひも付け</button><button class="act" data-cover="${esc(id)}">${cover ? '表紙の写真を差し替える' : '表紙の写真を登録（カメラ・写真）'}</button><button class="act" data-mmadd="1">📝 お母さんへの確認メモを書く</button>${delBtn('pb', id, 'この資料')}</div>` : ''}${histBlock(id, x['登録日時'], x['登録者'])}</div>`;
+    ${canEdit() ? `<h3 class="sec">記録を更新する</h3><div class="actions bottomacts one"><button class="act main" data-link="pb|${esc(id)}">＋ 掲載作品をひも付け</button><button class="act" data-cover="${esc(id)}">${cover ? '表紙の写真を差し替える' : '表紙の写真を登録（カメラ・写真）'}</button><button class="act" data-pbpages="${esc(id)}">＋ 中のページの写真を撮る</button><button class="act" data-mmadd="1">📝 お母さんへの確認メモを書く</button>${delBtn('pb', id, 'この資料')}</div>` : ''}${histBlock(id, x['登録日時'], x['登録者'])}</div>`;
   showPage({t:'pb', id}, html, keepScroll, restoreSc);
 }
 
@@ -6972,7 +7041,7 @@ function openMe(anc){ /* 名前ボタンの上に出る小さな吹き出しメ�
   anc = anc || document.getElementById('btnMe2');
   const it = (id, t) => `<button type="button" data-me="${id}">${t}</button>`;
   const el = document.createElement('div'); el.id = 'mepop'; el.setAttribute('role', 'menu');
-  el.innerHTML = `<div class="mehd"><b>${esc(S.user.name||'')}</b><small>権限：${esc(S.user.role)}</small></div>
+  el.innerHTML = `<div class="mehd"><b>${esc(S.user.name||'')}</b><small>権限：${esc(S.user.role)}</small>${S.dataAt ? `<small>情報：${new Date(S.dataAt).getHours()}:${String(new Date(S.dataAt).getMinutes()).padStart(2, '0')} に読み込み</small>` : ''}</div>
     ${it('upd','最新版に更新')}${it('mic','マイクのテスト')}${canEdit() ? it('face','顔写真を追加') : ''}${it('log','更新記録')}${canEdit() && S.ai ? it('rot','写真の向きをAIでそろえる') : ''}${canEdit() ? it('arc','削除したもの（アーカイブ）') : ''}
     <div class="mesep"></div>${it('out','ログアウト')}<small class="menote">共用のパソコンでは、使い終わったらログアウトしてください</small><i class="metail"></i>`;
   document.body.appendChild(el);
@@ -7625,7 +7694,7 @@ busy(true, '作品を読み込んでいます…');
 renderUser();
 /* ---------- 画面のいちばん上で下に引っぱると最新の情報に更新（Chromeなどと同じ操作） ---------- */
 async function refreshData(){ // 保存のあとなどに裏で最新にする（画面には何も出さない）
-  try { const d = await call('getData'); setData(d); render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); }
+  try { const d = await call('getData'); setData(d); S.dataAt = Date.now(); render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); }
   catch(e){ if (isLoginErr(e)) { setToken(''); S.user = null; render(); } }
 }
 (() => { return; // 引っぱって更新は使わない（2026/10/02 藤本さん）
@@ -7688,8 +7757,10 @@ async function freshDone(f){ let lb = ''; try { lb = await call('appBuild'); } c
   try { fresh = JSON.parse(localStorage.getItem('smr_fresh') || 'null'); localStorage.removeItem('smr_fresh'); if (fresh && !(Date.now() - fresh.t < 120000)) fresh = null; } catch(e){ fresh = null; }
   if (fresh) busy(true, '最新の情報を読み込んでいます…');
   try { const c = !fresh && S.token && window.__smrCached ? await window.__smrCached() : null; if (c) { setData(c); const nv = restoreNav(); applyStart(); render(); afterNav(nv); busy(false); shown = true; } } catch(e){}
-  call('getData').then(d => { setData(d); const nv = shown ? null : restoreNav(); applyStart(); render(); if (nv) afterNav(nv); else if (shown && S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); if (fresh) freshDone(fresh); })
-    .catch(e => { if (fresh && !isLoginErr(e)) setTimeout(() => alert('最新の情報を読み込めませんでした。電波のよい所で、もう一度「最新版に更新」を押してください。\n（' + (e.message || e) + '）'), 300);
+  const getDataWait = async () => { for (let k = 0; ; k++) { try { return await call('getData'); } /* デプロイの直後は数分 404 になることがある（10/5） */
+      catch(e){ if (isLoginErr(e) || !netErr(e) || k >= 4) throw e; if (!shown) busy(true, 'Googleにつながるのを待っています…（' + (k + 1) + '/4）'); await new Promise(r => setTimeout(r, 4000 + k * 4000)); } } };
+  getDataWait().then(d => { setData(d); S.dataAt = Date.now(); const nv = shown ? null : restoreNav(); applyStart(); render(); if (nv) afterNav(nv); else if (shown && S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); if (fresh) freshDone(fresh); })
+    .catch(e => { if (fresh && !isLoginErr(e)) setTimeout(() => alert('Googleにつながらず、最新の情報を読み込めませんでした。\nGoogle側を更新した直後などは、1〜2分つながらないことがあります。少し待って、もう一度「最新版に更新」を押してください。\n（' + (e.message || e) + '）'), 300);
       if (isLoginErr(e)) { setToken(''); S.user = null; renderUser(); showLoginWall(); $('#finder').classList.add('hidden'); }
       else if (!shown) $('#main').innerHTML = '<div class="flagbox">読み込めませんでした。時間をおいてもう一度開いてください。<br>' + esc(e.message||e) + '</div>'; })
     .finally(() => busy(false));
