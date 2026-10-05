@@ -1925,6 +1925,7 @@ html[data-theme=dark] .qc-chip{background:#16384A;color:#9ADDFF}
 html[data-theme=dark] .fdb-tx .fdb-r{color:#FFC800}.fdb-b{position:sticky;bottom:0;padding:10px 0 4px;background:var(--hg-bg)}
 /* 写真の自動補正（10/5 開発 v5） */
 #crop .cr-hint.cr-busy{color:#FFC800;font-weight:700}
+#crop .cr-ld{flex-direction:column;gap:10px;text-align:center}#crop .cr-retry{padding:9px 16px;border-radius:10px;border:0;background:#1CB0F6;color:#fff;font:inherit;font-size:15px;font-weight:700;cursor:pointer}
 .ac-prog{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--hg-sf);color:var(--hg-h)}.ac-prog b{font-size:15px}.ac-prog small{display:block;font-size:13px;line-height:1.5;color:var(--hg-s)}
 .ac-msg{margin:0;padding:10px 12px;border-radius:12px;background:rgba(255,150,0,.13);color:var(--hg-h);font-size:14px;line-height:1.5}
 .ac-go{display:flex;flex-direction:column;gap:8px}.ac-go .hg-go.ac-stop{background:#FF4B4B;border-bottom-color:#C83A3A}
@@ -2216,7 +2217,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'cc7c7b33a7', APP_URL = location.origin + location.pathname;
+const BUILD = '904d54ca8e', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2235,10 +2236,19 @@ function checkBuild(){
 }
 setTimeout(checkBuild, 4000);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkBuild(); });
-function call(fn, ...args){
+/* 写真の取り寄せ（getThumbs・getDocThumbs）は、同時に2本まで（10/5 開発 v5）。
+   Google 側に同時にたくさん送ると順番待ちになり、ほかの通信（保存など）まで遅くなるため。先読み（callLow）は後回しで、1本ぶんはいつも空けておく */
+const THLANE = { max: 2, n: 0, q: [], lq: [] };
+function call(fn, ...args){ return callQ(false, fn, args); }
+function callLow(fn, ...args){ return callQ(true, fn, args); }
+function callQ(low, fn, args){
   if (!NO_TOKEN.includes(fn)) args.unshift(S.token || '');
-  CALLS.n++; const done = () => { CALLS.n = Math.max(0, CALLS.n - 1); };
-  return new Promise((ok, ng) => google.script.run.withSuccessHandler(v => { done(); ok(v); }).withFailureHandler(e => { done(); ng(e); })[fn](...args));
+  const ln = fn === 'getThumbs' || fn === 'getDocThumbs' ? THLANE : null;
+  const go = () => { CALLS.n++; const done = () => { CALLS.n = Math.max(0, CALLS.n - 1); if (ln) { const nx = ln.q.shift() || ln.lq.shift(); if (nx) nx(); else ln.n = Math.max(0, ln.n - 1); } };
+    return new Promise((ok, ng) => google.script.run.withSuccessHandler(v => { done(); ok(v); }).withFailureHandler(e => { done(); ng(e); })[fn](...args)); };
+  if (!ln) return go();
+  if (ln.n < (low ? ln.max - 1 : ln.max)) { ln.n++; return go(); }
+  return new Promise(r => (low ? ln.lq : ln.q).push(r)).then(go);
 }
 const CALLS = { n: 0 }; /* 通信中の数（通信中は新しい版への自動切り替えをしない：切り替えると通信が途中で切れる） */
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('#sheetbox #ok, #sheetbox .btns .primary'); if (!b) return;
@@ -6483,9 +6493,19 @@ async function openCrop(p){
   if (pre) { crUseAI(c0, pre); toast('自動補正のときに見つけた角を使いました'); } else if (!t.info) crAI();
   c0.fullP = call('getOriginal', fid).then(o => o && o.b64 ? loadImg('data:' + o.mime + ';base64,' + o.b64) : null).catch(() => null);
   c0.fullP.then(im => { if (!im || CR !== c0) return; c0.full = im; if (!c0.img || im.naturalWidth > c0.img.naturalWidth) crSetImg(im); });
-  try { const th = TH['3200_' + fid] || TH['1600_' + fid] || (await call('getThumbs', [fid], 1600))[fid]; if (th && CR === c0 && !c0.img) crSetImg(await loadImg(th)); }
-  catch(e){ if (CR === c0 && !c0.img) { const im = await c0.fullP; if (im && CR === c0) crSetImg(im); else if (CR === c0) { el.querySelector('.cr-ld').textContent = '写真を読み込めませんでした'; } } }
+  crLoadImg(c0, fid);
 }
+/* 表示用の写真を読む。Google 側が混んで失敗したら、少し待って読み直す（4回まで）。だめなら元のファイル、それもだめなら「もう一度読み込む」 */
+async function crLoadImg(c0, fid){ const ld = () => CR === c0 && $('#crop .cr-ld');
+  for (let t = 1; t <= 4 && CR === c0 && !c0.img; t++) {
+    try { const th = TH['3200_' + fid] || TH['1600_' + fid] || (await call('getThumbs', [fid], 1600))[fid]; if (th && CR === c0 && !c0.img) { crSetImg(await loadImg(th)); return; } } catch(e){ if (isLoginErr(e)) break; }
+    if (c0.img || CR !== c0) return; const l = ld(); if (l) l.innerHTML = '<span class="ldspin"></span>写真の読み込みをやり直しています…（' + t + '回目）';
+    await new Promise(r => setTimeout(r, 3000 * t)); }
+  if (CR !== c0 || c0.img) return; const im = await c0.fullP; if (CR !== c0 || c0.img) return; if (im) return crSetImg(im);
+  const l = ld(); if (!l) return; l.innerHTML = '<span>写真を読み込めませんでした（Google 側が混んでいるようです）</span><button type="button" class="cr-retry">もう一度読み込む</button>';
+  l.querySelector('.cr-retry').onclick = () => { l.innerHTML = '<span class="ldspin"></span>写真を読み込んでいます…';
+    c0.fullP = call('getOriginal', fid).then(o => o && o.b64 ? loadImg('data:' + o.mime + ';base64,' + o.b64) : null).catch(() => null);
+    c0.fullP.then(im => { if (im && CR === c0) { c0.full = im; if (!c0.img || im.naturalWidth > c0.img.naturalWidth) crSetImg(im); } }); crLoadImg(c0, fid); }; }
 function crSetImg(im){ CR.img = im; CR.pv = null; const ld = $('#crop .cr-ld'); if (ld) ld.remove(); if (CR.snapLater) { CR.snapLater = false; CR.snap = crSnap() ? 1 : -1; } crColorCalc(); crUI(); crLayout(); crNote(); }
 function crUI(){ const el = $('#crop'); if (!el || !CR) return;
   el.querySelectorAll('[data-crm]').forEach(b => b.classList.toggle('on', b.dataset.crm === CR.mode));
@@ -6738,6 +6758,8 @@ function acPrep(it){ return it.prep || (it.prep = (async () => { const fid = it.
   return { img, ai }; })()); }
 /* AI が混み合っているときは、少し長く待ってやり直す */
 async function acAi(fid){ for (let t = 1; ; t++) { try { return await acRetry(() => call('detectCrop', fid, true)); } catch(e){ const m = String(e && e.message || e); if (t >= 4 || !/混み合って|AIの返事がありません|AIの返事を読めません/.test(m)) throw e; await new Promise(z => setTimeout(z, 15000 * t)); } } }
+/* 画面の書きかえを待つ（setTimeout は、ウィンドウが隠れていると1分ごとにしか動かないことがあるので使わない） */
+const acYield = () => new Promise(r => { const c = new MessageChannel(); c.port1.onmessage = () => r(); c.port2.postMessage(0); });
 const acPtOk = a => Array.isArray(a) && a.length === 4 && a.every(p => Array.isArray(p) && p.length === 2 && p.every(v => isFinite(v) && v >= -0.01 && v <= 1.01));
 /* 角・境目・色・形を計算する（CR を一時的に差しかえる） */
 function acCalc(img, ai, led){ const c = { img, n: 1, top: null, bot: null, v: 0, bri: 0, led, ratio: led ? 'led' : 'auto', cht: null, col: false, T: null, cmode: '', cbri: 0, pv: null }, prev = CR; CR = c;
@@ -6769,7 +6791,7 @@ async function acOne(it){ const p = it.p, no = it.no, fid = p['ファイルID'],
   let full = null;
   try { const o = await acRetry(() => call('getOriginal', fid)); if (o && o.b64) full = await loadImg('data:' + o.mime + ';base64,' + o.b64); } catch(e){ if (isLoginErr(e)) throw e; }
   if (!full) { try { const t = (await acRetry(() => call('getThumbs', [fid], 3200)))[fid]; if (t) full = await loadImg(t); } catch(e){ if (isLoginErr(e)) throw e; } }
-  acStep('補正した写真を作っています'); await new Promise(z => setTimeout(z, 30));
+  acStep('補正した写真を作っています'); await acYield();
   const b64 = acBuild(r.c, full || img); full = null;
   const kind = p['種類'] && p['種類'] !== '記録写真' ? p['種類'] : '表', d = new Date(), day = d.getFullYear() + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + String(d.getDate()).padStart(2, '0');
   const why = [r.c.cht ? 'カラーチップあり（色はまだ合わせていません）' : 'カラーチップなし', led ? '' : '台帳にサイズがないので、形は写真から計算'].filter(Boolean).join('・');
@@ -8704,12 +8726,13 @@ function prefetchThumbs(){
       const need = main.filter(id => !have.has(w + '_' + id) && !TH[w + '_' + id]);
       if (!need.length) continue;
       let i = 0; const CH = 40;
-      const worker = async () => { while (i < need.length) { const part = need.slice(i, i += CH);
-        try { const map = await call('getThumbs', part, w, CH); const keep = {};
+      const worker = async () => { while (i < need.length) { while (typeof AC !== 'undefined' && AC.run) await new Promise(r => setTimeout(r, 5000)); /* 写真の自動補正のあいだは先読みを休む */
+        const part = need.slice(i, i += CH);
+        try { const map = await callLow('getThumbs', part, w, CH); const keep = {};
           part.forEach(id => { const src = map[id]; if (!src) return; const k = w + '_' + id; keep[k] = src;
             document.querySelectorAll(`img[data-tid="${CSS.escape(id)}"][data-w="${w}"]:not([src])`).forEach(el => el.src = src); });
           await thPut(keep); } catch(e){ if (isLoginErr(e)) { i = need.length; } } } };
-      await Promise.all([worker(), worker(), worker()]);   // 同時に3本
+      await Promise.all([worker(), worker()]);   // 先読みは後回しの通信で（同時に1本まで。写真の取り寄せの枠は2本）
     }
   })();
   return PREF;
