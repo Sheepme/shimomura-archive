@@ -2093,6 +2093,8 @@ button.ulrow{cursor:pointer}
 .phist .phre{border:0;background:none;padding:0 0 0 6px;color:var(--acc);font:inherit;text-decoration:underline;cursor:pointer}
 /* スマホの資料（本）のページ：表紙の写真と「© 転載元」のボタンを左右のまん中に（10/5 本人） */
 @media (max-width: 999px){ .pagebody .cover{margin-left:auto;margin-right:auto} .pagebody .cvcopy{display:block;margin:10px auto 0} }
+.ulbat{display:block}.ulbat>summary{display:flex;gap:12px;align-items:flex-start;list-style:none;cursor:pointer}.ulbat>summary::-webkit-details-marker{display:none}
+.ulbl{display:flex;flex-direction:column;gap:2px;margin:6px 0 4px 54px;max-height:60vh;overflow:auto}.ulbr{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:14px;padding:3px 0;border-bottom:1px dashed var(--line)}.ulbr span{flex:none;color:var(--sub);font-variant-numeric:tabular-nums}
 .cover .cvpen{position:absolute;top:10px;right:10px;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--paper);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;padding:0;box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:pointer}
 /* 写真の切り抜き・補正（四隅を手で合わせる画面） */
 #crop{position:fixed;inset:0;z-index:1150;-webkit-touch-callout:none;display:flex;flex-direction:column;background:#1c1c1b;color:#faf9f5;-webkit-user-select:none;user-select:none;overscroll-behavior:contain}
@@ -2198,7 +2200,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'bb042cab8e', APP_URL = location.origin + location.pathname;
+const BUILD = '98d2abd26a', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5582,7 +5584,7 @@ let NAVN = 0; /* 新しく画面を移動した回数（書類に戻る予定を
 /* ---------- 詳細ページのいちばん下：最終更新と更新履歴（変更記録から。日付だけ・時間は出さない。10/5 本人） ----------
    1行＝1日・1人。その日に変えた項目を「・」でつなぐ。くわしい中身は「更新記録」のページで見る */
 const HISTC = {};
-const HIST_F = { '所在区分': '場所', '所在': '場所', '自宅エリア': '場所', '場所確認日': '場所の確認', '場所確認者': '場所の確認', '要確認': '要確認', '要確認メモ': '要確認', '幅cm': 'サイズ', '高さcm': 'サイズ', '奥行きcm': 'サイズ', '最終更新日時': '', '最終更新者': '', '登録者': '', '登録日時': '' };
+const HIST_F = { 'サイズの縦横': 'サイズの縦横変更', '所在区分': '場所', '所在': '場所', '自宅エリア': '場所', '場所確認日': '場所の確認', '場所確認者': '場所の確認', '要確認': '要確認', '要確認メモ': '要確認', '幅cm': 'サイズ', '高さcm': 'サイズ', '奥行きcm': 'サイズ', '最終更新日時': '', '最終更新者': '', '登録者': '', '登録日時': '' };
 function histLab(r){ const t = r['対象'] || '', f = r['項目'] || '';
   if (t === '作品' || t === '展覧会' || t === '資料') return f in HIST_F ? HIST_F[f] : f === '新規登録' || /^新規登録/.test(f) ? '新しく登録' : f;
   if (t === '出来事' || t === '来歴') return '来歴（' + f.replace(/（ひも付け）$/, '') + '）';
@@ -6236,7 +6238,7 @@ function crInfo(p){ const m = /補正：元の写真 ([^｜\s]+)((?:｜[^｜]*)*
     if (!(n >= 2 && n <= 12) || top.length !== n + 1 || bot.length !== n + 1 || !ok(top) || !ok(bot)) return null; }
   else return null;
   let cht = null; if (/^チップ /.test(f['色'] || '')) { cht = pts(f['色'].slice(4)); if (cht.length !== 4 || !ok(cht)) cht = null; }
-  return { orig: m[1], n, top, bot, v: +f['ふくらみ'] || 0, ratio: f['比率'] === '写真' ? 'auto' : 'led', kind: f['元の種類'] || '表', cht, col: !!cht }; }
+  return { orig: m[1], n, top, bot, v: +f['ふくらみ'] || 0, bri: Math.max(-40, Math.min(40, +String(f['明るさ'] || '0').replace('%', '') || 0)), ratio: f['比率'] === '写真' ? 'auto' : 'led', kind: f['元の種類'] || '表', cht, col: !!cht }; }
 /* 開いた写真から、元の写真（記録写真）と補正した写真を探す */
 function crTargets(p){
   const ci = crInfo(p), o = ci && S.photos.find(x => x['写真ID'] === ci.orig);
@@ -6331,17 +6333,24 @@ function crChipErr(M){ const R = CR_REF.map(r => r.map(x => Math.max(x, .002))),
 const crInv3 = m => { const [a, b, c, d, e, f, g, h, i] = m, A = e * i - f * h, B = -(d * i - f * g), C = d * h - e * g, D = a * A + b * B + c * C; if (Math.abs(D) < 1e-12) return null;
   return [A / D, -(b * i - c * h) / D, (b * f - c * e) / D, B / D, (a * i - c * g) / D, -(a * f - c * d) / D, C / D, -(a * h - b * g) / D, (a * e - b * d) / D]; };
 /* 色の変換表を作る：9色ぜんぶで合わせる（full）。不安定なら白と黒だけ（wb） */
-function crChipFit(M){ const R = CR_REF, clip = Math.max(...M[6]) > .9, w = [1, 1, 1, 1, 1, 1, clip ? .3 : 4, 1, 2];
-  const A = [0, 0, 0, 0, 0, 0, 0, 0, 0], B = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
-  M.forEach((m, k) => { for (let i = 0; i < 3; i++) { for (let j = 0; j < 3; j++) A[i * 3 + j] += w[k] * m[i] * m[j]; for (let c = 0; c < 3; c++) B[c][i] += w[k] * m[i] * R[k][c]; } });
-  const Ai = crInv3(A), err = T => { let s = 0; M.forEach((m, k) => { for (let c = 0; c < 3; c++) { const v = T[c * 3] * m[0] + T[c * 3 + 1] * m[1] + T[c * 3 + 2] * m[2]; s += Math.abs(crGam1(v) - crGam1(Math.max(0, R[k][c]))); } }); return s / 27; };
-  let full = null;
-  if (Ai) { full = []; for (let c = 0; c < 3; c++) for (let j = 0; j < 3; j++) full.push(B[c][0] * Ai[j] + B[c][1] * Ai[3 + j] + B[c][2] * Ai[6 + j]); }
-  const sane = T => T && T.every(isFinite) && [0, 4, 8].every(i => T[i] > .25 && T[i] < 6) && [1, 2, 3, 5, 6, 7].every(i => Math.abs(T[i]) < 1.6);
-  /* 白と黒だけ：白が正しい白、黒が正しい黒になるように、色ごとに倍率をかける（黒の明るさは引かない） */
-  const wb = [0, 1, 2].map(c => R[6][c] / Math.max(1e-4, M[6][c])), Tw = [wb[0], 0, 0, 0, wb[1], 0, 0, 0, wb[2]];
-  const ef = sane(full) ? err(full) : 9, ew = err(Tw);
-  return ef <= .08 && ef <= ew ? { T: full, mode: 'full', err: ef } : { T: Tw, mode: 'wb', err: ew }; }
+/* 4×4 の連立方程式（ガウスの消去法） */
+function crSolve4(A, b){ const M = A.map((r, i) => r.concat([b[i]])); for (let c = 0; c < 4; c++) { let p = c; for (let r = c + 1; r < 4; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r;
+    if (Math.abs(M[p][c]) < 1e-12) return null; [M[c], M[p]] = [M[p], M[c]]; for (let r = 0; r < 4; r++) if (r !== c) { const f = M[r][c] / M[c][c]; for (let k = c; k < 5; k++) M[r][k] -= f * M[c][k]; } }
+  return M.map((r, i) => r[4] / r[i]); }
+/* 色の変換表を作る：9色ぜんぶで、色・明るさ・黒の沈み（コントラスト）まで合わせる（full：出力 = 3×3 × 入力 ＋ ずれ）。
+   不安定なら、白と黒の2点で色ごとに合わせる（wb：明るさとコントラストは合う） */
+function crChipFit(M){ const R = CR_REF, clip = Math.max(...M[6]) > .9, w = [1, 1, 1, 1, 1, 1, clip ? .3 : 4, 1, 3];
+  const A = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], B = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+  M.forEach((m, k) => { const v = [m[0], m[1], m[2], 1]; for (let i = 0; i < 4; i++) { for (let j = 0; j < 4; j++) A[i][j] += w[k] * v[i] * v[j]; for (let c = 0; c < 3; c++) B[c][i] += w[k] * v[i] * R[k][c]; } });
+  const ap = (T, m, c) => T[c * 4] * m[0] + T[c * 4 + 1] * m[1] + T[c * 4 + 2] * m[2] + T[c * 4 + 3];
+  const err = T => { let e = 0; M.forEach((m, k) => { for (let c = 0; c < 3; c++) e += Math.abs(crGam1(ap(T, m, c)) - crGam1(R[k][c])); }); return e / 27; };
+  const rows = [0, 1, 2].map(c => crSolve4(A, B[c])), full = rows.every(Boolean) ? [].concat(...rows) : null;
+  const sane = T => T && T.every(isFinite) && [0, 5, 10].every(i => T[i] > .25 && T[i] < 6) && [1, 2, 4, 6, 8, 9].every(i => Math.abs(T[i]) < 1.6) && [3, 7, 11].every(i => Math.abs(T[i]) < .2);
+  const two = c => { const d = M[6][c] - M[8][c], a = d > 1e-3 ? (R[6][c] - R[8][c]) / d : R[6][c] / Math.max(1e-4, M[6][c]); return [a, d > 1e-3 ? R[6][c] - a * M[6][c] : 0]; };
+  const Tw = [0, 1, 2].reduce((T, c) => { const [a, b] = two(c), r = [0, 0, 0, b]; r[c] = a; return T.concat(r); }, []);
+  const ef = sane(full) ? err(full) : 9, ew = err(Tw), T = ef <= .08 && ef <= ew ? full : Tw;
+  const L = v => .2126 * v[0] + .7152 * v[1] + .0722 * v[2], Lo = v => L([0, 1, 2].map(c => ap(T, v, c)));
+  return { T, mode: T === full ? 'full' : 'wb', err: T === full ? ef : ew, bri: Math.round((Lo(M[6]) / Math.max(1e-4, L(M[6])) - 1) * 100) }; }
 /* チップの位置から変換表を計算し直す（青と黒の向きが逆なら入れかえる） */
 function crColorCalc(){ if (!CR) return; CR.T = null; CR.cmode = ''; if (!CR.cht || !CR.img) return;
   const s = crPvSrc(), q = CR.cht, rq = [q[1], q[0], q[3], q[2]], a = crChipRead(s, q), b = crChipRead(s, rq);
@@ -6350,19 +6359,42 @@ function crColorCalc(){ if (!CR) return; CR.T = null; CR.cmode = ''; if (!CR.cht
   if (eb < ea) CR.cht = rq.map(p => p.slice());
   const M = eb < ea ? b : a, e = Math.min(ea, eb);
   if (e > .3) { CR.cmode = 'ng'; return; } /* チップの色の並びに見えない */
-  const f = crChipFit(M); CR.T = f.T; CR.cmode = f.mode; }
+  const f = crChipFit(M); CR.T = f.T; CR.cmode = f.mode; CR.cbri = f.bri; }
 /* 変換表を画像にかける（d：RGBA のデータ） */
 function crTone(d, T){ if (!T) return;
   for (let i = 0; i < d.length; i += 4) { const r = CR_LIN[d[i]], g = CR_LIN[d[i + 1]], b = CR_LIN[d[i + 2]];
-    const R = T[0] * r + T[1] * g + T[2] * b, G = T[3] * r + T[4] * g + T[5] * b, B = T[6] * r + T[7] * g + T[8] * b;
+    const R = T[0] * r + T[1] * g + T[2] * b + T[3], G = T[4] * r + T[5] * g + T[6] * b + T[7], B = T[8] * r + T[9] * g + T[10] * b + T[11];
     d[i] = CR_GAM[R <= 0 ? 0 : R >= 1 ? 4096 : (R * 4096) | 0]; d[i + 1] = CR_GAM[G <= 0 ? 0 : G >= 1 ? 4096 : (G * 4096) | 0]; d[i + 2] = CR_GAM[B <= 0 ? 0 : B >= 1 ? 4096 : (B * 4096) | 0]; } }
-const crUseT = () => CR && CR.col && CR.T ? CR.T : null;
+/* かける変換表：チップで合わせた表（12個：3行 ×［赤・緑・青・ずれ］）に、つまみ「明るさ」（±%）をかける */
+const crUseT = () => { if (!CR) return null; const k = 1 + (CR.bri || 0) / 100, T = CR.col && CR.T ? CR.T : (k !== 1 ? [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0] : null); return T ? T.map(x => x * k) : null; };
+/* 額と絵の境目に合わせる：AI の四辺のまわりで、明るさがはっきり切りかわる直線を探す（辺を半分ずつ調べて、少しの傾きも合わせる）。
+   見つかった境目から内側へ 1.5 画素だけ寄せる（決まった幅では寄せない）。大きく動きすぎたら AI の位置のまま */
+function crSnap(){ if (!CR || !CR.img || CR.n !== 1) return false; const s = crPvSrc(), W = s.w, H = s.h, Y = new Float32Array(W * H);
+  for (let i = 0, j = 0; i < Y.length; i++, j += 4) Y[i] = .299 * s.d[j] + .587 * s.d[j + 1] + .114 * s.d[j + 2];
+  const lum = (x, y) => { if (x < 0 || y < 0 || x >= W - 1 || y >= H - 1) return NaN; const x0 = x | 0, y0 = y | 0, fx = x - x0, fy = y - y0, p = y0 * W + x0; return (Y[p] * (1 - fx) + Y[p + 1] * fx) * (1 - fy) + (Y[p + W] * (1 - fx) + Y[p + W + 1] * fx) * fy; };
+  const Q = crQuad(CR.top, CR.bot, 0).map(([x, y]) => [x * W, y * H]), side = Math.min(...[0, 1, 2, 3].map(i => Math.hypot(Q[(i + 1) % 4][0] - Q[i][0], Q[(i + 1) % 4][1] - Q[i][1])));
+  if (!(side > 40)) return false;
+  const lo = -.015 * side, hi = .045 * side, lines = [];
+  for (let e = 0; e < 4; e++) { const A = Q[e], B = Q[(e + 1) % 4], dx = B[0] - A[0], dy = B[1] - A[1], L = Math.hypot(dx, dy), n = [-dy / L, dx / L], pts = [];
+    for (let h = 0; h < 2; h++) { let best = null, bs = -1; const ts = []; for (let k = 0; k < 24; k++) ts.push(.08 + h * .42 + .42 * k / 23);
+      for (let o = lo; o <= hi; o += .5) { let sc = 0, cnt = 0;
+        ts.forEach(t => { const x = A[0] + dx * t + n[0] * o, y = A[1] + dy * t + n[1] * o, a = lum(x - n[0] * .75, y - n[1] * .75), b = lum(x + n[0] * .75, y + n[1] * .75); if (a === a && b === b) { sc += Math.abs(b - a); cnt++; } });
+        if (cnt < 12) continue; sc = sc / cnt * (1 - .2 * Math.abs(o) / hi); if (sc > bs) { bs = sc; best = o; } }
+      if (best == null || bs < 6) return false; /* はっきりした境目がない */
+      const tm = .29 + h * .42; pts.push([A[0] + dx * tm + n[0] * (best + 1.5), A[1] + dy * tm + n[1] * (best + 1.5)]); }
+    lines.push(pts); }
+  const X = (l1, l2) => { const [p1, p2] = l1, [p3, p4] = l2, d = (p1[0] - p2[0]) * (p3[1] - p4[1]) - (p1[1] - p2[1]) * (p3[0] - p4[0]); if (Math.abs(d) < 1e-9) return null;
+    const a = p1[0] * p2[1] - p1[1] * p2[0], b = p3[0] * p4[1] - p3[1] * p4[0]; return [(a * (p3[0] - p4[0]) - (p1[0] - p2[0]) * b) / d, (a * (p3[1] - p4[1]) - (p1[1] - p2[1]) * b) / d]; };
+  const C = [X(lines[3], lines[0]), X(lines[0], lines[1]), X(lines[1], lines[2]), X(lines[2], lines[3])];
+  if (C.some((c, i) => !c || Math.hypot(c[0] - Q[i][0], c[1] - Q[i][1]) > .08 * side)) return false;
+  const N = C.map(([x, y]) => [Math.min(1, Math.max(0, x / W)), Math.min(1, Math.max(0, y / H))]);
+  CR.top = [N[0], N[1]]; CR.bot = [N[3], N[2]]; return true; }
 /* AI（Gemini）に、額の内側の四隅とカラーチップの位置を探してもらう。通信の失敗は3回までやり直す */
 async function crAI(){ const c0 = CR; if (!c0 || c0.ai) return; c0.ai = true; crUI();
   try { let r = null;
     for (let t = 1; ; t++) { try { r = await call('detectCrop', c0.orig['ファイルID']); break; } catch(e){ if (!(e && e.net) || t >= 3) throw e; await new Promise(z => setTimeout(z, 1500 * t)); } }
     if (CR !== c0) return;
-    if (r && r.art) { crSetN(c0.n, { top: [r.art[0], r.art[1]], bot: [r.art[3], r.art[2]] }); c0.dirty = true; }
+    if (r && r.art) { crSetN(c0.n, { top: [r.art[0], r.art[1]], bot: [r.art[3], r.art[2]] }); c0.dirty = true; if (c0.img) c0.snap = crSnap() ? 1 : -1; else c0.snapLater = true; }
     if (r && r.chart) { c0.cht = r.chart.map(p => p.slice()); c0.col = true; } else { c0.cht = null; c0.col = false; }
     crColorCalc(); c0.aiDone = !!(r && r.art); if (c0.aiDone) c0.mode = 'pv';
     toast(r && r.art ? (c0.cmode === 'full' || c0.cmode === 'wb' ? '角とカラーチップを見つけました' : '角を見つけました') : '作品の角を見つけられませんでした');
@@ -6377,7 +6409,7 @@ async function openCrop(p){
   const t = crTargets(p), w = workOf(S.cur) || {}, hh = parseFloat(w['高さcm']), ww = parseFloat(w['幅cm']);
   const kind = t.info ? t.info.kind : (t.orig['種類'] && t.orig['種類'] !== '記録写真' ? t.orig['種類'] : '表');
   CR = { no: S.cur, orig: t.orig, corr: t.corr, kind, led: hh > 0 && ww > 0 ? { h: hh, w: ww } : null, n: 1, top: null, bot: null,
-    v: t.info ? t.info.v : 0, ratio: t.info ? t.info.ratio : (/^(表|裏)$/.test(kind) ? 'led' : 'auto'), mode: 'edit', img: null, full: null, drag: null, sel: { a: 'top', i: 0 }, dirty: false, saving: false,
+    v: t.info ? t.info.v : 0, bri: t.info ? t.info.bri : 0, ratio: t.info ? t.info.ratio : (/^(表|裏)$/.test(kind) ? 'led' : 'auto'), mode: 'edit', img: null, full: null, drag: null, sel: { a: 'top', i: 0 }, dirty: false, saving: false,
     cht: t.info && t.info.cht ? t.info.cht.map(a => a.slice()) : null, col: !!(t.info && t.info.col), T: null, cmode: '', ai: false };
   if (t.info) { CR.n = t.info.n; CR.top = t.info.top.map(a => a.slice()); CR.bot = t.info.bot.map(a => a.slice()); } else crSetN(1, CR_P0);
   if (!CR.led) CR.ratio = 'auto';
@@ -6389,6 +6421,7 @@ async function openCrop(p){
     <div class="cr-bot">
       <div class="cr-seg"><button type="button" data-crm="edit" class="on">角を合わせる</button><button type="button" data-crm="pv">仕上がりを見る</button></div>
       <div class="cr-row"><span>形</span><div class="cr-seg sm">${CR_NS.map(([n, lb]) => `<button type="button" data-crn="${n}">${lb}</button>`).join('')}</div></div>
+      <label class="cr-row"><span>明るさ</span><input type="range" min="-40" max="40" step="1" value="${CR.bri}" id="crB"><output id="crBv">${CR.bri > 0 ? '+' : ''}${CR.bri}%</output></label>
       <label class="cr-row"><span>ふくらみ</span><input type="range" min="-10" max="10" step="0.5" value="${CR.v}" id="crK"><output id="crKv">${CR.v > 0 ? '+' : ''}${CR.v}</output></label>
       <div class="cr-row"><span>色</span><div class="cr-seg sm"><button type="button" data-crc="1">チップで合わせる</button><button type="button" data-crc="0">合わせない</button></div></div>
       <div class="cr-row"><span>縦横の比率</span><div class="cr-seg sm">${CR.led ? `<button type="button" data-crr="led">台帳のサイズ</button>` : ''}<button type="button" data-crr="auto">写真から計算</button></div></div>
@@ -6401,6 +6434,7 @@ async function openCrop(p){
   el.querySelectorAll('[data-crm]').forEach(b => b.onclick = () => { CR.mode = b.dataset.crm; crUI(); crLayout(); });
   el.querySelectorAll('[data-crn]').forEach(b => b.onclick = () => { const n = +b.dataset.crn; if (n === CR.n) return; crSetN(n); CR.sel = { a: 'top', i: 0 }; CR.dirty = true; crUI(); crDraw(); crNote(); crPreview(); });
   el.querySelectorAll('[data-crr]').forEach(b => b.onclick = () => { CR.ratio = b.dataset.crr; CR.dirty = true; crUI(); crNote(); crPreview(); });
+  el.querySelector('#crB').oninput = e => { CR.bri = +e.target.value; CR.dirty = true; $('#crBv').textContent = (CR.bri > 0 ? '+' : '') + CR.bri + '%'; crNote(); crPreview(); };
   el.querySelector('#crK').oninput = e => { CR.v = +e.target.value; CR.dirty = true; $('#crKv').textContent = (CR.v > 0 ? '+' : '') + CR.v; crDraw(); crNote(); crPreview(); };
   el.querySelector('[data-crreset]').onclick = () => { crSetN(CR.n, CR_P0); CR.v = 0; $('#crK').value = 0; $('#crKv').textContent = '0'; CR.dirty = true; crDraw(); crNote(); crPreview(); };
   if (el.querySelector('[data-crundo]')) el.querySelector('[data-crundo]').onclick = cropUndo;
@@ -6427,7 +6461,7 @@ async function openCrop(p){
   try { const th = TH['3200_' + fid] || TH['1600_' + fid] || (await call('getThumbs', [fid], 1600))[fid]; if (th && CR === c0 && !c0.img) crSetImg(await loadImg(th)); }
   catch(e){ if (CR === c0 && !c0.img) { const im = await c0.fullP; if (im && CR === c0) crSetImg(im); else if (CR === c0) { el.querySelector('.cr-ld').textContent = '写真を読み込めませんでした'; } } }
 }
-function crSetImg(im){ CR.img = im; CR.pv = null; const ld = $('#crop .cr-ld'); if (ld) ld.remove(); crColorCalc(); crUI(); crLayout(); crNote(); }
+function crSetImg(im){ CR.img = im; CR.pv = null; const ld = $('#crop .cr-ld'); if (ld) ld.remove(); if (CR.snapLater) { CR.snapLater = false; CR.snap = crSnap() ? 1 : -1; } crColorCalc(); crUI(); crLayout(); crNote(); }
 function crUI(){ const el = $('#crop'); if (!el || !CR) return;
   el.querySelectorAll('[data-crm]').forEach(b => b.classList.toggle('on', b.dataset.crm === CR.mode));
   el.querySelectorAll('[data-crn]').forEach(b => b.classList.toggle('on', +b.dataset.crn === CR.n));
@@ -6502,7 +6536,9 @@ function crNote(){ const n = $('#crop .cr-note'); if (!n || !CR || !CR.img) retu
     t += '　台帳 ' + CR.led.h + '×' + CR.led.w + 'cm（' + fmt(use) + '）'; warn = Math.abs(Math.log(use / a)) > Math.log(1.15); }
   else t += '　（台帳にサイズがないので、写真から計算します）';
   if (CR.n > 1) t += '　扇の幅はみな同じとして並べます';
-  t += CR.cht ? (CR.cmode === 'full' ? '　色：カラーチップの9色で合わせました' : CR.cmode === 'wb' ? '　色：チップの色味が合わないので、白と黒だけで合わせました' : CR.cmode === 'ng' ? '　⚠ 色：カラーチップを読めません（位置を直してください）' : '') + (CR.col ? '' : '（いまは合わせていません）') : '　色：カラーチップなし';
+  const bt = CR.cbri ? '（チップで明るさ ' + (CR.cbri > 0 ? '+' : '') + CR.cbri + '%）' : '';
+  if (CR.snap) t += CR.snap > 0 ? '　角：額と絵の境目に合わせました' : '　角：境目がはっきりしないので AI の位置のままです';
+  t += CR.cht ? (CR.cmode === 'full' ? '　色：カラーチップの9色で、色・明るさ・コントラストを合わせました' + bt : CR.cmode === 'wb' ? '　色：チップの色味が合わないので、白と黒で色・明るさ・コントラストを合わせました' + bt : CR.cmode === 'ng' ? '　⚠ 色：カラーチップを読めません（位置を直してください）' : '') + (CR.col ? '' : '（いまは合わせていません）') : '　色：カラーチップなし';
   n.textContent = (warn ? '⚠ 台帳のサイズと形が合いません。角の位置か、台帳のサイズを確かめてください。' : '') + t; n.classList.toggle('warn', warn); }
 function crKey(e){ if (!CR || !$('#crop') || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target || {}).tagName || '') && e.target.type !== 'range') return;
   if (e.key === 'Escape') { e.preventDefault(); $('#crop .cr-x').click(); return; }
@@ -6538,7 +6574,7 @@ async function cropSave(){ const c0 = CR; if (!c0 || c0.saving || !c0.img) retur
     const b64 = oc.toDataURL('image/jpeg', 0.92).split(',')[1]; oc.width = oc.height = 1;
     const shape = c0.n > 1 ? '屏風 ' + c0.n + '曲 上 ' + crPts(c0.top) + ' 下 ' + crPts(c0.bot) : '四隅 ' + crPts(crQuad(c0.top, c0.bot, 0));
     const memo = (/^【仮】/.test(c0.orig['メモ'] || '') ? '【仮】' : '') + '補正：元の写真 ' + c0.orig['写真ID'] + '｜' + shape
-      + '｜ふくらみ ' + c0.v + '｜比率 ' + (c0.ratio === 'led' && c0.led ? '台帳' : '写真') + '｜色 ' + (c0.col && c0.cht && c0.T ? 'チップ ' + crPts(c0.cht) : 'なし') + '｜元の種類 ' + c0.kind;
+      + '｜ふくらみ ' + c0.v + '｜明るさ ' + (c0.bri || 0) + '%｜比率 ' + (c0.ratio === 'led' && c0.led ? '台帳' : '写真') + '｜色 ' + (c0.col && c0.cht && c0.T ? 'チップ ' + crPts(c0.cht) : 'なし') + '｜元の種類 ' + c0.kind;
     busy(true, '保存しています…'); let pid;
     const oid = c0.orig['写真ID'];
     if (c0.corr) { /* 直し直し：補正した写真の行を差し替える（前のファイルはドライブに残る） */
@@ -7380,13 +7416,30 @@ const ulCut = (v, n) => { v = String(v == null ? '' : v); return v.length > n ? 
 function ulRows(){
   if (UL.tab === 'ph') return (S.photos || []).filter(p => p['ファイルID']).map((p, i) => ({ ph: 1, d: String(p['登録日時'] || ''), who: p['登録者'] || '', no: String(p['作品番号'] || ''), item: p['種類'] || '', p: p, _i: -i }));
   const ed = canEdit();
-  return (UL.log || []).filter(r => UL.tab === 'all' || ulTabOf(r) === UL.tab).map(r => ({ r: r, d: String(r['日時'] || ''), who: r['変更者'] || '', no: String(r['作品番号'] || ''), item: r['項目'] || '', priv: !ed && UL_PRIV.indexOf(r['項目']) >= 0, _i: r._i }));
+  return ulSwap((UL.log || []).filter(r => UL.tab === 'all' || ulTabOf(r) === UL.tab).map(r => ({ r: r, d: String(r['日時'] || ''), who: r['変更者'] || '', no: String(r['作品番号'] || ''), item: r['項目'] || '', priv: !ed && UL_PRIV.indexOf(r['項目']) >= 0, _i: r._i })));
 }
+/* 高さと幅を入れかえただけの変更（同じ分・人・作品で、変更前と変更後が逆）を1行に。同じ日・同じ人が10件以上なら、さらに1行にまとめる（押すと一覧）。番号順のときは作品ごとに出す */
+function ulSwap(rows){
+  const sz = {}; rows.forEach((x, i) => { const r = x.r; if (r && r['対象'] === '作品' && (x.item === '高さcm' || x.item === '幅cm')) { const k = x.d.slice(0, 16) + '|' + x.who + '|' + x.no; (sz[k] = sz[k] || {})[x.item] = i; } });
+  const drop = {}, sw = [];
+  Object.keys(sz).forEach(k => { const a = sz[k]['高さcm'], b = sz[k]['幅cm']; if (a == null || b == null) return; const h = rows[a].r, w = rows[b].r, s = v => String(v == null ? '' : v);
+    if (s(h['変更前']) !== s(h['変更後']) && s(h['変更前']) === s(w['変更後']) && s(h['変更後']) === s(w['変更前'])) { drop[a] = drop[b] = 1; sw.push(Object.assign({}, rows[a], { swap: [s(h['変更前']), s(w['変更前']), s(h['変更後']), s(w['変更後'])], item: 'サイズの縦横' })); } });
+  if (!sw.length) return rows;
+  let out = rows.filter((x, i) => !drop[i]);
+  if (UL.sort === 'no') return out.concat(sw);
+  const grp = {}; sw.forEach(x => { const k = x.d.slice(0, 10) + '|' + x.who; (grp[k] = grp[k] || []).push(x); });
+  Object.keys(grp).forEach(k => { const L = grp[k]; if (L.length < 10) { out = out.concat(L); return; }
+    L.sort((a, b) => ulCmpNo(a.no, b.no)); const top = L.reduce((m, x) => x.d > m.d ? x : m, L[0]);
+    out.push(Object.assign({}, top, { swapAll: L, no: '', item: 'サイズの縦横' })); });
+  return out; }
 function ulRowHTML(x, g){
   const time = String(x.d).slice(11, 16), day = g === 'day' ? '' : String(x.d).slice(0, 10), sub = [g === 'who' ? '' : x.who, day].filter(Boolean).join('・');
   if (x.ph) { const p = x.p, pb = /^PB-/.test(x.no), memo = String(p['メモ'] || ''), cp = /^(?:【仮】)?転載元：/.test(memo);
     return `<button type="button" class="ulrow" ${pb ? 'data-ulpb' : 'data-ulno'}="${esc(x.no)}"><span class="ulth">${thImg(p['ファイルID'], 200)}</span><div class="ulb"><div class="ulh"><b>${esc(ulNameTxt(x.no))}</b></div>
       <div class="ulv">${esc(p['種類'] || '写真')}${p['メイン'] ? '・メイン画像' : ''}${cp ? '・転載' : ''}${/^【仮】/.test(memo) ? '・仮の写真' : ''}</div><small>${esc([time, sub].filter(Boolean).join('　'))}</small></div></button>`; }
+  if (x.swapAll) return `<details class="ulrow ulbat"><summary><span class="ult">${esc(time)}</span><div class="ulb"><div class="ulh"><b>サイズの縦横を入れかえ</b><span class="ulf">サイズの縦横</span></div><div class="ulv">${x.swapAll.length.toLocaleString()}件（押すと作品の一覧）</div>${sub ? `<small>${esc(sub)}</small>` : ''}</div></summary>
+    <div class="ulbl">${x.swapAll.map(y => `<div class="ulbr">${ulName(y.no, '')}<span>${esc(y.swap[0])}×${esc(y.swap[1])} → ${esc(y.swap[2])}×${esc(y.swap[3])}</span></div>`).join('')}</div></details>`;
+  if (x.swap) return `<div class="ulrow"><span class="ult">${esc(time)}</span><div class="ulb"><div class="ulh">${g === 'no' ? '作品' : ulName(x.no, '作品')}<span class="ulf">サイズの縦横</span></div><div class="ulv">縦×横 <s>${esc(x.swap[0])}×${esc(x.swap[1])}</s> → ${esc(x.swap[2])}×${esc(x.swap[3])}</div>${sub ? `<small>${esc(sub)}</small>` : ''}</div></div>`;
   const r = x.r, bf = r['変更前'], af = r['変更後'];
   const val = x.priv ? '<i>（この項目の中身は、編集の人だけが見られます）</i>' : (bf !== '' && bf != null ? `<s>${esc(ulCut(bf, 300))}</s> → ` : '') + (af !== '' && af != null ? esc(ulCut(af, 600)) : '<i>（空にした）</i>');
   return `<div class="ulrow"><span class="ult">${esc(time)}</span><div class="ulb"><div class="ulh">${g === 'no' ? esc(r['対象'] || '') : ulName(x.no, r['対象'])}<span class="ulf">${esc(x.item || r['対象'] || '')}</span></div>
