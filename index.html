@@ -2159,7 +2159,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '8aa57c2590', APP_URL = location.origin + location.pathname;
+const BUILD = 'f55acbf5a9', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2375,7 +2375,7 @@ function filtered(){
     const R = filtered.rk || (filtered.rk = {}), k = no => R[no] === undefined ? (R[no] = Math.random()) : R[no];
     a.sort((x,y) => (photoBy[x['作品番号']] ? 0 : 1) - (photoBy[y['作品番号']] ? 0 : 1) || k(x['作品番号']) - k(y['作品番号'])); }
   if (S.sort==='year') a.sort((x,y)=>yearOf(x['制作年'])-yearOf(y['制作年']));
-  if (S.sort==='upd') a.sort((x,y)=>String(y['最終更新日時']).localeCompare(String(x['最終更新日時'])));
+  if (S.sort==='upd') a.sort((x,y)=>lastAct(y).localeCompare(lastAct(x)));
   return a;
 }
 /* ---------- 写真（サーバー経由で読み込む） ---------- */
@@ -5552,6 +5552,18 @@ async function histLoad(id){
   catch(e){ HISTC[id] = { g: [], t: Date.now(), err: 1 }; }
   document.querySelectorAll('[data-phist]').forEach(el => { if (el.dataset.phist === id) el.querySelector('.phb').innerHTML = histLines(id); });
 }
+/* 更新順：作品そのものの直し（最終更新日時）だけでなく、写真の追加・来歴・クイズの答え・書類・調べの記録も入れて、いちばん新しい日時を使う（10/5 本人） */
+var LACT = null, LACT_K = null;
+function lastAct(w){ const key = [S.works, S.photos, S.events, S.quiz, S.docs, S.finds];
+  if (!LACT || !LACT_K || key.some((v, i) => v !== LACT_K[i])) { LACT_K = key; LACT = {};
+    const up = (no, t) => { no = String(no || '').trim(); t = String(t || ''); if (no && t > (LACT[no] || '')) LACT[no] = t; };
+    (S.works || []).concat(S.others || []).forEach(x => up(x['作品番号'], x['最終更新日時']));
+    (S.photos || []).forEach(x => up(x['作品番号'], x['登録日時']));
+    (S.events || []).forEach(x => up(x['作品番号'], x['登録日時']));
+    (S.quiz || []).forEach(x => { if (x['種類'] === '作品') up(x['対象'], x['日時']); });
+    (S.docs || []).forEach(x => String(x['作品番号'] || '').split(',').forEach(n => up(n, x['更新日時'] || x['登録日時'])));
+    (S.finds || []).forEach(x => { if (x['状態'] && x['作品番号']) up(x['作品番号'], x['確認日時']); }); }
+  return LACT[String((w || {})['作品番号'])] || ''; }
 function showPage(st, html, keepScroll, restoreSc){
   const pg = $('#page'), sc = pg.scrollTop, open = !pg.classList.contains('hidden'); if (!keepScroll) NAVN++;
   if (!open) { S.stack = []; hpush('w'); }
@@ -6484,7 +6496,7 @@ function drawOtList(){
   if (S.osort==='rand') { const R = drawOtList.rk || (drawOtList.rk = {}), k = no => R[no] === undefined ? (R[no] = Math.random()) : R[no]; list.sort((x,y) => (photoBy[x['作品番号']] ? 0 : 1) - (photoBy[y['作品番号']] ? 0 : 1) || k(x['作品番号']) - k(y['作品番号'])); }
   else if (S.osort==='no') list.sort((x,y) => String(x['作品番号']).localeCompare(String(y['作品番号']), 'ja', {numeric:true}));
   else if (S.osort==='year') list.sort((x,y) => yearOf(x['制作年']) - yearOf(y['制作年']));
-  else if (S.osort==='upd') list.sort((x,y) => String(y['最終更新日時']||'').localeCompare(String(x['最終更新日時']||'')));
+  else if (S.osort==='upd') list.sort((x,y) => lastAct(y).localeCompare(lastAct(x)));
   const N0 = masN(), [ca, cb] = colRange();
   let html = `<div class="meta otmeta"><span class="otcount">${S.otk!=='すべて' && OT_NOTE[S.otk] ? '<small>' + esc(OT_NOTE[S.otk]) + '</small>' : ''}</span>
     <span class="mright"><select id="osort" aria-label="並び順">${[['rand','ランダム'],['no','番号順'],['year','制作年順'],['upd','更新が新しい順']].map(([v,t]) => `<option value="${v}" ${S.osort===v?'selected':''}>${t}</option>`).join('')}</select><span class="zoomb"><button type="button" data-otcol="1" aria-label="小さく（列を増やす）" ${N0 >= cb ? 'disabled' : ''}>−</button><button type="button" data-otcol="-1" aria-label="大きく（列を減らす）" ${N0 <= ca ? 'disabled' : ''}>＋</button></span></span></div>`;
@@ -8029,7 +8041,7 @@ const WCOLS = [
   ['ph','写真', null, w => (photoBy[w['作品番号']]||[]).length],
   ['mm','メモ', null, w => w['補足'] ? 0 : 1],
   ['ev','展覧会・画集', null, w => (eventBy[w['作品番号']]||[]).filter(e => e['展覧会ID']||e['資料ID']).length],
-  ['up','最終更新', w => String(w['最終更新日時']||'').slice(0,10), w => w['最終更新日時']||'']
+  ['up','最終更新', w => lastAct(w).slice(0,10), w => lastAct(w)]
 ];
 /* ---------- 作品リストの印刷（A4）：載せる項目を選んで、読みやすい大きさ・濃い文字で ---------- */
 const PCOLS = [['ph','写真'], ['tt','作品名'], ['yr','制作年'], ['sz','サイズ（cm）'], ['md','画材'], ['kd','種別'], ['sr','シリーズ'], ['lc','いまの場所'], ['ck','場所の確認日'], ['ev','展覧会・画集'], ['fl','要確認メモ'], ['up','最終更新'], ['chk','チェック欄 ☐'], ['memo','メモ欄（手書き用）']];
