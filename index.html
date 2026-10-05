@@ -2210,7 +2210,8 @@ button.ulrow{cursor:pointer}
 #bigwait{position:fixed;inset:0;z-index:1205;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;background:rgba(28,28,27,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#faf9f5;text-align:center;animation:bvin .2s ease}
 #bigwait .ldspin{width:38px;height:38px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:ldrot .8s linear infinite}#bigwait b{font-size:16px}#bigwait small{font-size:12.5px;line-height:1.5;opacity:.75;max-width:280px}
 #bigwait i{display:none;font-style:normal;font-size:13px;margin-top:8px}body.blong #bigwait i{display:block}body.bfree #bigwait{display:none}
-body.bbig #loading.loading,body.bbig #busyveil{display:none!important} /* 仕上がりの格子（3分割の線）と枠の線は出さない（10/6 本人「邪魔」） */
+body.bbig #loading.loading,body.bbig #busyveil{display:none!important}
+body.qcopen #bigwait{visibility:visible!important}body.bbig #toast.tmsg:not(.hidden){top:calc(50% + 118px)!important} /* 仕上がりの格子（3分割の線）と枠の線は出さない（10/6 本人「邪魔」） */
 @media not all and (min-width:900px) and (min-aspect-ratio:5/4){#crop.crpick .cr-more,#crop.crpick .cr-nudge{display:none!important}}
 .cr-wpm{position:absolute;z-index:3;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1.5px rgba(0,0,0,.8),inset 0 0 0 1.5px rgba(0,0,0,.8);pointer-events:none}
 .cr-ask{position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:6;max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:18px;background:#2f2f2d;border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 40px rgba(0,0,0,.6);max-height:80vh;overflow:auto}
@@ -2287,7 +2288,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '2ec60c6e1a', APP_URL = location.origin + location.pathname;
+const BUILD = '42ee056c5d', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2475,13 +2476,18 @@ function fpSheetRedraw(first){ if (!FP.sheet || (!first && ($('#sheet').classLis
     fpChip(); fpSheetRedraw(); }; }
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('#sheetbox #ok, #sheetbox .btns .primary'); if (!b) return;
   if (!$('#loading').classList.contains('hidden')) { e.preventDefault(); e.stopImmediatePropagation(); toast('保存しています。終わるまで、そのままお待ちください'); } }, true);
-function busy(on, text){ $('#loading').innerHTML = '<span class="ldsp"></span>' + esc(text || '読み込み中…'); $('#loading').classList.toggle('hidden', !on); tbSync(); busyVeil(on);
-  const bw = document.getElementById('bigwait'); if (bw) { if (on) bw.querySelector('b').textContent = text || '読み込み中…'; else { bw.remove(); document.body.classList.remove('bbig'); } } }
-/* 大きい待ち表示（補正の保存と同じ見た目）。busy(false) で消える（10/6 本人） */
-function bigWait(text){ const b = document.body; if (!b) return busy(true, text); b.classList.add('bbig'); let o = document.getElementById('bigwait');
-  if (!o) { o = document.createElement('div'); o.id = 'bigwait'; o.setAttribute('role', 'status'); o.innerHTML = '<span class="ldspin"></span><b></b><small>Google 側が混んでいると1分ほどかかります。このままお待ちください</small><i>画面をタップすると、待たずにさわれます</i>';
-    o.addEventListener('pointerdown', () => { if (b.classList.contains('blong')) b.classList.add('bfree'); }); b.appendChild(o); }
-  busy(true, text); }
+function busy(on, text){ $('#loading').innerHTML = '<span class="ldsp"></span>' + esc(text || '読み込み中…'); $('#loading').classList.toggle('hidden', !on); tbSync(); busyVeil(on); bigSync(on, text); }
+/* 待ち表示は、どれも補正の保存と同じ見た目（画面全体を暗くぼかして、まん中に大きいくるくると今していること。10/6 本人）。
+   すぐ終わるもので画面がチカチカしないように 0.3秒たってから出す（bigWait はすぐ出す）。#loading は中身だけ残して見せない（ほかの処理が「待っているか」を見るため） */
+const BW = { t: 0, text: '' };
+function bigSync(on, text, now){ const b = document.body; if (!b) return; clearTimeout(BW.t);
+  if (!on) { const o = document.getElementById('bigwait'); if (o) o.remove(); b.classList.remove('bbig'); return; }
+  b.classList.add('bbig'); BW.text = text || '読み込み中…'; const o = document.getElementById('bigwait'); if (o) { o.querySelector('b').textContent = BW.text; return; }
+  const mk = () => { if (!b.classList.contains('bbig') || document.getElementById('bigwait')) return; const x = document.createElement('div'); x.id = 'bigwait'; x.setAttribute('role', 'status');
+    x.innerHTML = '<span class="ldspin"></span><b></b><small>Google 側が混んでいると1分ほどかかります。このままお待ちください</small><i>画面をタップすると、待たずにさわれます</i>'; x.querySelector('b').textContent = BW.text;
+    x.addEventListener('pointerdown', () => { if (b.classList.contains('blong')) b.classList.add('bfree'); }); b.appendChild(x); };
+  if (now) mk(); else BW.t = setTimeout(mk, 300); }
+function bigWait(text){ busy(true, text); bigSync(true, text, true); }
 /* 待っているあいだ（削除中・保存中・更新中など）は、後ろの画面をうすくぼかして、さわれないようにする（10/6 本人）。
    0.3秒より短ければぼかさない（チカチカしない）。45秒たっても終わらなければ、画面をタップすると待たずにさわれる（通信が止まっても動かなくならないように） */
 const BV = { t: 0, t2: 0 };
