@@ -2170,6 +2170,8 @@ button.ulrow{cursor:pointer}
 .cr-pad button,.cr-nnext{height:40px;min-width:44px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:#34342f;color:#faf9f5;font:inherit;font-size:18px;font-weight:700;cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none}
 .cr-pad button:active,.cr-nnext:active{background:#4a4a44}
 .cr-nnext{font-size:13px;font-weight:600;padding:0 10px;min-width:0}
+.cr-saving{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;background:rgba(28,28,27,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#faf9f5;text-align:center;animation:bvin .2s ease}
+.cr-saving .ldspin{width:38px;height:38px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:ldrot .8s linear infinite}.cr-saving b{font-size:16px}.cr-saving small{font-size:12.5px;line-height:1.5;opacity:.75;max-width:280px}
 .cr-z1{position:absolute;right:8px;top:8px;z-index:4;height:32px;padding:0 12px;border-radius:16px;border:0;background:rgba(0,0,0,.6);color:#fff;font:inherit;font-size:13px;font-weight:600;cursor:pointer}.cr-z1.hidden{display:none}
 .cr-stage{overflow:hidden}
 .cr-visb{flex:none;width:44px;height:40px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:transparent;color:#faf9f5;font-size:19px;cursor:pointer;padding:0}.cr-visb.on{background:#FFC800;border-color:#FFC800;color:#1c1c1b}.cr-visb.hidden{display:none}
@@ -2248,7 +2250,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '1375d53456', APP_URL = location.origin + location.pathname;
+const BUILD = 'd4135d9806', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6881,9 +6883,10 @@ async function crCall(fn, args, done){
   for (let t = 1; ; t++) {
     try { return await call(fn, ...args); }
     catch(e){ if (!(e && e.net) || t >= 4) throw e;
-      busy(true, '通信をやり直しています…（' + t + '回目）'); await new Promise(r => setTimeout(r, 1500 * t));
+      crBusy('通信をやり直しています…（' + t + '回目）'); await new Promise(r => setTimeout(r, 1500 * t));
       try { setData(await call('getData')); if (done()) return null; } catch(x){}
-      busy(true, '保存しています…'); } } }
+      crBusy('保存しています…'); } } }
+const crBusy = t => { const o = $('#crop .cr-saving b'); if (o) o.textContent = t; else busy(true, t); };
 const crPh = id => S.photos.find(x => x['写真ID'] === id) || {};
 /* 写真の絵の形と台帳のサイズが明らかに違う（15%より大きい）ときは、保存の前に確かめる（10/5 本人）。
    入れかえ／額を含む（額のサイズに移す）／正しいサイズを入れる／このまま／もどる。選んだ台帳の直しは、写真を保存したあとで送る */
@@ -6912,7 +6915,10 @@ function crRatioAsk(){ const c0 = CR; if (!c0 || !c0.led || !c0.img || $('#crop 
   return true; }
 async function cropSave(){ const c0 = CR; if (!c0 || c0.saving || !c0.img) return; if (!c0.ratioOk && crRatioAsk()) return; c0.saving = true; c0.aiSkip = true;
   const sb = $('#crop .cr-save'), hint = $('#crop .cr-hint'), h0 = hint ? hint.textContent : '';
-  const say = t => { busy(true, t); if (CR === c0 && hint) hint.textContent = t + '（Google 側が混んでいると1分ほどかかります。このままお待ちください）'; };
+  /* 保存中は、補正の画面の上を全部ぼかして、まん中にくるくると今していること（10/6 本人） */
+  const say = t => { const el = CR === c0 && $('#crop'); if (!el) return busy(true, t); let o = el.querySelector('.cr-saving');
+    if (!o) { o = document.createElement('div'); o.className = 'cr-saving'; o.innerHTML = '<span class="ldspin"></span><b></b><small>Google 側が混んでいると1分ほどかかります。このままお待ちください</small>'; el.appendChild(o); }
+    o.querySelector('b').textContent = t; };
   if (sb) { sb.disabled = true; sb.textContent = '保存中…'; } if (hint) hint.classList.add('cr-busy');
   if (!c0.corr) { const ch = S.photos.find(x => x['作品番号'] === c0.no && (crInfo(x) || {}).orig === c0.orig['写真ID']); if (ch) c0.corr = ch; } /* 前の保存が通信の失敗で終わったのに、Google 側では入っていたとき：二重にせず、その写真を直す */
   say('補正した写真を作っています…'); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 30)));
@@ -6927,27 +6933,38 @@ async function cropSave(){ const c0 = CR; if (!c0 || c0.saving || !c0.img) retur
     const shape = c0.n > 1 ? '屏風 ' + c0.n + '曲 上 ' + crPts(c0.top) + ' 下 ' + crPts(c0.bot) : '四隅 ' + crPts(crQuad(c0.top, c0.bot, 0));
     const memo = (/^【仮】/.test(c0.orig['メモ'] || '') ? '【仮】' : '') + '補正：元の写真 ' + c0.orig['写真ID'] + '｜' + shape
       + '｜ふくらみ ' + c0.v + '｜明るさ ' + (c0.bri || 0) + '%｜比率 ' + (c0.ratio === 'led' && c0.led ? '台帳' : '写真') + '｜色 ' + (c0.col && c0.cht && c0.T ? 'チップ ' + crPts(c0.cht) : 'なし' + (c0.cht ? '｜チップ位置 ' + crPts(c0.cht) : '')) + '｜元の種類 ' + c0.kind;
-    say('保存しています…'); let pid;
-    const oid = c0.orig['写真ID'];
+    say('保存しています…'); let pid, ledDone = false;
+    const oid = c0.orig['写真ID'], cid0 = c0.corr ? c0.corr['写真ID'] : '', f0 = cid0 ? (crPh(cid0)['ファイルID'] || c0.corr['ファイルID']) : '';
+    const wasMain = !cid0 && ((photoBy[c0.no] || [])[0] || {})['写真ID'] === oid; /* 裏で読み直すと写真の行が作り直されるので、ID でくらべる */
+    const added = () => S.photos.some(x => x['作品番号'] === c0.no && (crInfo(x) || {}).orig === oid);
+    /* Google 側の1回の処理で保存する（写真を足す／差し替える・元の写真を記録写真に・メイン・台帳のサイズ）。台帳を全部は読み直さず、その作品の写真と作品の行だけ受け取る（10/6 開発 v6） */
+    let sr = null, oldGas = false;
+    try { sr = await crCall('saveCrop', [{ no: c0.no, oid, cid: cid0, b64, mime: 'image/jpeg', kind: c0.kind, memo, main: wasMain, led: c0.ledPatch || null }],
+      () => cid0 ? !!crPh(cid0)['ファイルID'] && crPh(cid0)['ファイルID'] !== f0 : added()); }
+    catch(e){ if (/この操作はできません/.test(String(e && e.message || e))) oldGas = true; else throw e; }
+    if (sr && sr.photos) { S.photos = S.photos.filter(x => x['作品番号'] !== c0.no).concat(sr.photos);
+      if (sr.work) { const L = OTRE.test(c0.no) ? S.others : S.works, wi = L.findIndex(w => w['作品番号'] === c0.no); if (wi >= 0) L[wi] = sr.work; }
+      index(); pid = sr.pid; ledDone = !!c0.ledPatch; }
+    else if (!oldGas) { pid = cid0 || ((S.photos.filter(x => x['作品番号'] === c0.no && (crInfo(x) || {}).orig === oid).pop() || {})['写真ID']); ledDone = !!c0.ledPatch && (() => { const w = workOf(c0.no) || {}; return Object.keys(c0.ledPatch).every(k => String(w[k] == null ? '' : w[k]) === String(c0.ledPatch[k])); })(); }
+    else { /* Google 側がまだ古いとき：前のやり方（何回かに分けて頼む） */
     if (c0.corr) { /* 直し直し：補正した写真の行を差し替える（前のファイルはドライブに残る） */
       const cid = c0.corr['写真ID'], f0 = crPh(cid)['ファイルID'] || c0.corr['ファイルID'];
       const d = await crCall('replacePhoto', [cid, b64, 'image/jpeg', '', memo], () => !!crPh(cid)['ファイルID'] && crPh(cid)['ファイルID'] !== f0); if (d) setData(d); pid = cid;
       if (crPh(oid)['種類'] !== '記録写真') { const d2 = await crCall('replacePhoto', [oid, '', '', '記録写真', null], () => crPh(oid)['種類'] === '記録写真'); if (d2) setData(d2); }
     }
     else {
-      const wasMain = ((photoBy[c0.no] || [])[0] || {})['写真ID'] === oid; /* 裏で読み直すと写真の行が作り直されるので、ID でくらべる */
-      const added = () => S.photos.some(x => x['作品番号'] === c0.no && (crInfo(x) || {}).orig === oid);
       await crCall('addPhotos', [c0.no, [{ b64, mime: 'image/jpeg' }], c0.kind, memo], added); /* 同じ画像の送り直しは Google 側で二重にならない */
       const d = await crCall('replacePhoto', [oid, '', '', '記録写真', null], () => crPh(oid)['種類'] === '記録写真' && added()); if (d) setData(d); /* 元の写真は「記録写真」に（画像・メモはそのまま） */
       if (!added()) setData(await call('getData'));
       const np = S.photos.filter(x => x['作品番号'] === c0.no && (crInfo(x) || {}).orig === oid).pop(); pid = np && np['写真ID'];
       if (pid && wasMain) { await crCall('setMainPhoto', [pid], () => !!crPh(pid)['メイン']); S.photos.forEach(x => { if (x['作品番号'] === c0.no) x['メイン'] = x['写真ID'] === pid ? 'メイン' : ''; }); index(); }
     }
-    if (c0.ledPatch) { say('台帳のサイズを直しています…'); const P = c0.ledPatch, okL = () => { const w = workOf(c0.no) || {}; return Object.keys(P).every(k => String(w[k] == null ? '' : w[k]) === String(P[k])); };
+    }
+    if (c0.ledPatch && !ledDone) { say('台帳のサイズを直しています…'); const P = c0.ledPatch, okL = () => { const w = workOf(c0.no) || {}; return Object.keys(P).every(k => String(w[k] == null ? '' : w[k]) === String(P[k])); };
       const d = await crCall('updateWork', [c0.no, P], okL); if (d && d.works) setData(d); if (!okL()) setData(await call('getData')); }
     if (CR === c0) cropClose(); crAfter(c0.no, pid); toast(c0.ledPatch ? '補正した写真を保存し、台帳のサイズを直しました' : c0.corr ? '補正を直しました' : '補正した写真を保存しました');
   } catch(e){ alert(isLoginErr(e) ? 'ログインの有効期限が切れました。もう一度ログインしてください。' : '保存できませんでした。\n' + (e.message || e)); refreshData().catch(() => {}); }
-  finally { busy(false); c0.saving = false; if (CR === c0) { if (sb) sb.textContent = '保存'; if (hint) { hint.classList.remove('cr-busy'); hint.textContent = h0; } crUI(); } }
+  finally { busy(false); c0.saving = false; if (CR === c0) { const o = $('#crop .cr-saving'); if (o) o.remove(); if (sb) sb.textContent = '保存'; if (hint) { hint.classList.remove('cr-busy'); hint.textContent = h0; } crUI(); } }
 }
 /* 補正をやめる：補正した写真をアーカイブへ移し、元の写真の種類とメイン画像をもどす */
 async function cropUndo(){ const c0 = CR; if (!c0 || !c0.corr || c0.saving) return;
