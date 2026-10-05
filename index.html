@@ -2036,6 +2036,44 @@ html[data-theme=dark] .qc-mn button{background:#16384A;color:#9ADDFF;border-colo
 dl.info>dd{min-width:0}.mlink+.evsrcbox.open{display:block;min-width:0;max-width:100%} /* メモの中でハイライトを開いても、表の列が横にはみ出さない */
 /* 書類の「この書類からわかった来歴」：作品の番号と名前を目立たせる */
 .devs .devwk{display:block;margin-top:3px;font-size:16.5px;font-weight:700;line-height:1.45;color:var(--ink);letter-spacing:.01em}.devs .dtr small.muted{display:block;margin-top:2px}
+
+/* 更新記録のページ */
+.ul{max-width:880px;margin:0 auto;padding:6px 0 48px}
+.ulhd{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:6px 0 4px}
+.ulhd h2{font-size:24px;margin:0}
+.ulre{flex:none;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:13px}
+.ullead{color:var(--sub);font-size:14px;line-height:1.6;margin:4px 0 12px}
+.ultabs{display:flex;gap:6px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.ultabs::-webkit-scrollbar{display:none}
+.ultab{flex:none;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:8px 14px;font-size:15px}
+.ultab.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.ultab small{margin-left:5px;opacity:.7;font-size:12px}
+.ulbar{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;margin:0 0 6px}
+.ulbar>span{font-size:13px;color:var(--faint);margin-right:2px}
+.ulsrt{border:0;background:none;color:var(--sub);font-size:14px;padding:7px 9px;border-radius:8px}
+.ulsrt.on{background:var(--accent-soft);color:var(--ink);font-weight:600}
+.ulbar select{font-size:14px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);max-width:46vw}
+.ulnote{font-size:13px;color:var(--faint);margin:2px 0 4px}
+.ulgrp{display:flex;justify-content:space-between;gap:8px;font-size:14px;color:var(--sub);font-weight:600;margin:20px 0 0;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.ulgrp small{font-weight:400;color:var(--faint)}
+.ulrow{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border:0;border-bottom:1px solid var(--line);width:100%;text-align:left;background:none;color:inherit;font:inherit}
+button.ulrow{cursor:pointer}
+.ult{flex:none;width:42px;font-size:13px;color:var(--faint);padding-top:2px;font-variant-numeric:tabular-nums}
+.ulb{flex:1;min-width:0}
+.ulh{font-size:15px;line-height:1.5;word-break:break-word}
+.ullk{border:0;background:none;padding:0;color:var(--acc);font:inherit;font-weight:600;text-align:left;cursor:pointer}
+.ulf{display:inline-block;color:var(--sub);font-size:12.5px;border:1px solid var(--line);border-radius:6px;padding:0 6px;margin-left:6px;line-height:1.6;vertical-align:1px}
+.ulv{font-size:15px;line-height:1.55;margin-top:3px;word-break:break-word;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer}
+.ulv.open{display:block}
+.ulv s{color:var(--faint)}
+.ulv i{font-style:normal;color:var(--faint)}
+.ulb small{display:block;color:var(--faint);font-size:12.5px;margin-top:3px}
+.ulth{flex:none;width:64px;height:64px;border-radius:8px;overflow:hidden;background:var(--accent-soft)}
+.ulth img{width:100%;height:100%;object-fit:cover;min-height:0!important;display:block}
+.ulth .phhid{font-size:10px;line-height:1.3;padding:6px;color:var(--faint)}
+.ulmore{display:block;width:100%;margin:18px 0 6px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font-size:15px}
+.ulempty{color:var(--faint);padding:30px 0;text-align:center}
+.ulgo{display:inline-block;margin:10px 0 0;border:0;background:none;padding:4px 0;color:var(--acc);font-size:14px;font-weight:600}
 </style>
 </head>
 <body>
@@ -2105,7 +2143,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'cb10257cc4', APP_URL = location.origin + location.pathname;
+const BUILD = 'b8f4240af1', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2386,7 +2424,7 @@ function thumbHTML(no, w){
 }
 /* 権利のない（転載した）画像の上に、真ん中に小さく「© 権利元」を出す */
 const wm = p => { const m = /^(?:【仮】)?転載元：([^｜]+)/.exec(String((p||{})['メモ']||'')); if (!m) return ''; const t = m[1].trim(); return `<span class="wm">${/^[@＠]/.test(t) ? esc(t) : '© ' + esc(t)}</span>`; }; // Webサイトから取り込んだ写真は「@サイト名」
-const PAGE_NM = {album:'作品アルバム', list:'作品リスト', works:'作品', ot:'その他', ex:'展覧会', pb:'画集', chrono:'年表', doc:'書類', ai:'作品', home:'作品'};
+const PAGE_NM = {upd:'更新記録', album:'作品アルバム', list:'作品リスト', works:'作品', ot:'その他', ex:'展覧会', pb:'画集', chrono:'年表', doc:'書類', ai:'作品', home:'作品'};
 function navOn(){ const nv = S.view;
   document.querySelectorAll('#fmPop button, #fmInline button').forEach(b => b.classList.toggle('on', b.dataset.v===nv));
   const l = $('#fmPageLbl'); if (l) l.textContent = PAGE_NM[nv] || '作品';
@@ -2394,7 +2432,7 @@ function navOn(){ const nv = S.view;
   $('#fmPage').classList.toggle('on', nv!=='ai' && nv!=='home'); $('#fmAsk').classList.toggle('on', !!S.aiOpen); $('#fmHome').classList.toggle('on', nv==='home');
   $('#nav').classList.toggle('hidden', !S.user); $('#navAsk').classList.toggle('hidden', !S.user);
   if (document.body.classList.contains('pgopen')) return;
-  const TT = {help:'使い方', home:'ホーム', album:'作品アルバム', list:'作品リスト', ot:'その他の作品', ex:'展覧会', pb:'画集・資料', chrono:'年表', doc:'書類', ai:'作品目録AI'};
+  const TT = {upd:'更新記録', help:'使い方', home:'ホーム', album:'作品アルバム', list:'作品リスト', ot:'その他の作品', ex:'展覧会', pb:'画集・資料', chrono:'年表', doc:'書類', ai:'作品目録AI'};
   setTitle(TT[nv] || '作品目録');
   document.querySelectorAll('#dwNav button').forEach(b => b.classList.toggle('on', b.dataset.v===nv));
   let sq = null; try { sq = SQ[nv]; } catch(e){}
@@ -2447,11 +2485,12 @@ function render0(){ setTimeout(() => { try { tedBar(); } catch(e){} }, 0);
   if (!S.user && !S.publicView) { $('#finder').classList.add('hidden'); $('#chronobar').classList.add('hidden'); $('#top').classList.add('hidden'); $('#askbar').classList.add('hidden'); if (S.view==='ai') S.view='album'; navOn(); return showLoginWall(); }
   $('#chronobar').classList.toggle('hidden', !['chrono','ex','pb','ot'].includes(S.view));
   setTimeout(stkTop, 50);
-  $('#finder').classList.toggle('hidden', ['ai','chrono','ex','pb','ot','home','doc','help'].includes(S.view) || !S.works.length && !S.user && !S.publicView); $('#top').classList.toggle('hidden', S.view==='ai');
+  $('#finder').classList.toggle('hidden', ['ai','chrono','ex','pb','ot','home','doc','help','upd'].includes(S.view) || !S.works.length && !S.user && !S.publicView); $('#top').classList.toggle('hidden', S.view==='ai');
   navOn();
   if (S.view==='ai') { S.view = 'home'; setTimeout(openAI, 0); }
   if (S.view==='home') return renderHome();
   if (S.view==='help') return renderHelp();
+  if (S.view==='upd') return renderUpd();
   if (S.view==='doc') return canEdit() ? renderDocs() : (S.view='home', renderHome());
   if (S.view==='chrono') return renderChrono();
   if (S.view==='ex') return renderExList();
@@ -3591,6 +3630,7 @@ function renderHome(){
   const HOMEIC = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.2 12 4.5l8 6.7V20h-5.2v-5.6H9.2V20H4z"/></svg>';
   document.getElementById('dwNav').innerHTML = `<button type="button" data-v="home"><span class="pic">${HOMEIC}</span><span>ホーム</span></button>`
     + L.map(([v, t, k]) => `<button type="button" data-v="${v}"${v==='doc'?' class="edonly"':''}><span class="pic">${ico(k)}</span><span>${v==='ot' ? 'その他の作品' : v==='pb' ? '画集・資料' : t}</span></button>`).join('')
+    + `<button type="button" data-v="upd"><span class="pic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v3.4h3.4"/><path d="M12 8v4.3l2.8 1.8"/></svg></span><span>更新記録</span></button>`
     + `<button type="button" data-v="help" class="dwhelp"><span class="pic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.6M12 16.8v.2"/></svg></span><span>使い方</span></button>`; })();
 /* 開いたときの最初の画面（卓也さんだけ作品アルバムから始める） */
 function applyStart(){ if (applyStart.done || !S.user) return; applyStart.done = 1;
@@ -5020,7 +5060,7 @@ function dashHTML(){
     <div class="dhero"><b>${Math.round(tot * 100)}<small>%</small></b><span>写真・場所・要確認・クイズの平均</span><span class="db big"><i style="width:${Math.round(tot*100)}%"></i></span></div>
     <div class="dshcard">${rows.map(bar).join('')}</div>
     <h2 class="hsec">この7日間に更新した箇所</h2>
-    <div id="dUpd">${updWeekHTML()}</div>${quizCountHTML()}`;
+    <div id="dUpd">${updWeekHTML()}</div><button type="button" class="ulgo" data-ulgo="1">更新記録をくわしく見る ›</button>${quizCountHTML()}`;
 }
 /* クイズ（今日の10作品・作品ページのクイズ・調べの記録）に答えた数。シート「クイズ」と「調べ」から数える */
 function quizCountHTML(){ const today = Utilities_ymd(new Date()), from = Utilities_ymd(new Date(Date.now() - 6 * 864e5));
@@ -6684,13 +6724,106 @@ function sheetNew(){
     if (d && d.newNo) { openWork(d.newNo); setTimeout(() => sheetPhoto(d.newNo), 300); }
   };
 }
-async function showLog(){
-  busy(true);
-  try {
-    const log = await call('getLog', 150);
-    openSheet(`<h3>変更の記録</h3><p class="hint">新しい順・最大150件</p>${log.map(l=>`<div class="logrow"><b>${esc(nol(l['作品番号']))}</b>　${esc(l['日時'])}　${esc(l['変更者'])}<br>${esc(l['対象'])}「${esc(l['項目'])}」 ${l['変更前']?esc(l['変更前'])+' → ':''}${esc(l['変更後'])}</div>`).join('') || '<p>まだありません</p>'}<div class="btns"><button type="button" data-close>閉じる</button></div>`);
-  } finally { busy(false); }
+function showLog(){ closeAllPages(); S.view = 'upd'; render(); window.scrollTo(0, 0); }
+/* ---------- 更新記録：変更記録（シート「変更記録」）と写真を、項目ごとのタブに分け、並べ替えて見る ---------- */
+const UL = { tab: 'all', sort: 'new', who: '', n: 150, log: null, t: 0, busy: false, all: false, err: '' };
+const UL_TABS = [['all', 'すべて'], ['w', '作品'], ['ph', '写真'], ['ev', '来歴'], ['xp', '展覧会・本'], ['etc', 'そのほか']];
+const UL_PRIV = ['所蔵者・連絡先', '管理メモ', '担当者・連絡先'];
+const UL_FIRST = 3000; /* はじめに読む記録の数（新しい方から） */
+function ulTabOf(r){ const t = r['対象'] || '';
+  if (t === '作品') return 'w'; if (t === '写真') return 'ph'; if (t === '出来事' || t === '来歴') return 'ev';
+  if (t === '展覧会' || t === '資料' || t === '画集・資料' || t === '調べ') return 'xp'; return 'etc'; }
+async function ulLoad(){
+  if (UL.busy) return; UL.busy = true; UL.err = ''; ulDraw();
+  try { const L = await call('getLog', UL.all ? 100000 : UL_FIRST);
+    UL.log = (L || []).map((r, i) => Object.assign(r, { _i: i })); UL.t = Date.now(); }
+  catch(e){ UL.err = String(e && e.message || e); }
+  finally { UL.busy = false; ulDraw(); }
 }
+function ulDraw(){ if (S.view !== 'upd') return; const m = $('#main'); if (!m) return; m.innerHTML = ulHTML(); hydrate(m); }
+function renderUpd(){ if (!UL.busy && (!UL.log || Date.now() - UL.t > 60000)) setTimeout(ulLoad, 0); ulDraw(); }
+/* 番号の並べ方：本作（001…）→ その他の作品（Y・H・Z）→ 展覧会 → 画集・資料 → そのほか */
+function ulNoKey(no){ no = String(no || ''); let m;
+  if ((m = /^(\d+)(.*)$/.exec(no))) return [0, +m[1], m[2]];
+  if ((m = /^([YHZ])(\d+)$/.exec(no))) return [1, m[1].charCodeAt(0) * 10000 + +m[2], ''];
+  if ((m = /^EX-(\d+)/.exec(no))) return [2, +m[1], ''];
+  if ((m = /^PB-(\d+)/.exec(no))) return [3, +m[1], ''];
+  return [no ? 4 : 5, 0, no]; }
+const ulCmpNo = (a, b) => { const x = ulNoKey(a), y = ulNoKey(b); return x[0] - y[0] || x[1] - y[1] || String(x[2]).localeCompare(String(y[2]), 'ja'); };
+function ulDay(d){ const m = /^(\d{4})\/(\d{2})\/(\d{2})/.exec(d || ''); if (!m) return '日付なし';
+  const dt = new Date(+m[1], +m[2] - 1, +m[3]), today = Utilities_ymd(new Date()), yest = Utilities_ymd(new Date(Date.now() - 864e5));
+  const s = (+m[1] !== new Date().getFullYear() ? m[1] + '年' : '') + (+m[2]) + '月' + (+m[3]) + '日（' + '日月火水木金土'[dt.getDay()] + '）';
+  return d.slice(0, 10) === today ? '今日 ' + s : d.slice(0, 10) === yest ? 'きのう ' + s : s; }
+/* 番号から、開けるもの（作品・展覧会・画集）の名前とリンク */
+function ulName(no, fb){ no = String(no || '').trim();
+  const w = no && workOf(no); if (w) return `<button type="button" class="ullk" data-ulno="${esc(no)}">${esc(nol(no))} ${esc(w['作品名'] || '無題')}</button>`;
+  if (no && typeof exById !== 'undefined' && exById[no]) return `<button type="button" class="ullk" data-ulex="${esc(no)}">${esc(exById[no]['名称'] || no)}</button>`;
+  if (no && typeof pbById !== 'undefined' && pbById[no]) return `<button type="button" class="ullk" data-ulpb="${esc(no)}">${esc(pbById[no]['タイトル'] || no)}</button>`;
+  return esc([fb, no].filter(Boolean).join(' ')); }
+function ulNameTxt(no){ no = String(no || '').trim(); const w = no && workOf(no); if (w) return nol(no) + ' ' + (w['作品名'] || '無題');
+  if (no && typeof exById !== 'undefined' && exById[no]) return no + ' ' + (exById[no]['名称'] || ''); if (no && typeof pbById !== 'undefined' && pbById[no]) return no + ' ' + (pbById[no]['タイトル'] || ''); return no || '番号なし'; }
+const ulCut = (v, n) => { v = String(v == null ? '' : v); return v.length > n ? v.slice(0, n) + '…' : v; };
+/* いまのタブの行（写真のタブは写真シート、ほかは変更記録） */
+function ulRows(){
+  if (UL.tab === 'ph') return (S.photos || []).filter(p => p['ファイルID']).map((p, i) => ({ ph: 1, d: String(p['登録日時'] || ''), who: p['登録者'] || '', no: String(p['作品番号'] || ''), item: p['種類'] || '', p: p, _i: -i }));
+  const ed = canEdit();
+  return (UL.log || []).filter(r => UL.tab === 'all' || ulTabOf(r) === UL.tab).map(r => ({ r: r, d: String(r['日時'] || ''), who: r['変更者'] || '', no: String(r['作品番号'] || ''), item: r['項目'] || '', priv: !ed && UL_PRIV.indexOf(r['項目']) >= 0, _i: r._i }));
+}
+function ulRowHTML(x, g){
+  const time = String(x.d).slice(11, 16), day = g === 'day' ? '' : String(x.d).slice(0, 10), sub = [g === 'who' ? '' : x.who, day].filter(Boolean).join('・');
+  if (x.ph) { const p = x.p, pb = /^PB-/.test(x.no), memo = String(p['メモ'] || ''), cp = /^(?:【仮】)?転載元：/.test(memo);
+    return `<button type="button" class="ulrow" ${pb ? 'data-ulpb' : 'data-ulno'}="${esc(x.no)}"><span class="ulth">${thImg(p['ファイルID'], 200)}</span><div class="ulb"><div class="ulh"><b>${esc(ulNameTxt(x.no))}</b></div>
+      <div class="ulv">${esc(p['種類'] || '写真')}${p['メイン'] ? '・メイン画像' : ''}${cp ? '・転載' : ''}${/^【仮】/.test(memo) ? '・仮の写真' : ''}</div><small>${esc([time, sub].filter(Boolean).join('　'))}</small></div></button>`; }
+  const r = x.r, bf = r['変更前'], af = r['変更後'];
+  const val = x.priv ? '<i>（この項目の中身は、編集の人だけが見られます）</i>' : (bf !== '' && bf != null ? `<s>${esc(ulCut(bf, 300))}</s> → ` : '') + (af !== '' && af != null ? esc(ulCut(af, 600)) : '<i>（空にした）</i>');
+  return `<div class="ulrow"><span class="ult">${esc(time)}</span><div class="ulb"><div class="ulh">${g === 'no' ? esc(r['対象'] || '') : ulName(x.no, r['対象'])}<span class="ulf">${esc(x.item || r['対象'] || '')}</span></div>
+    <div class="ulv">${val}</div>${sub ? `<small>${esc(sub)}</small>` : ''}</div></div>`;
+}
+function ulHTML(){
+  const tabN = k => k === 'ph' ? (S.photos || []).filter(p => p['ファイルID']).length : (UL.log || []).filter(r => k === 'all' || ulTabOf(r) === k).length;
+  const ph = UL.tab === 'ph', all = ulRows(), whoN = {};
+  all.forEach(x => { const w = x.who || '（不明）'; whoN[w] = (whoN[w] || 0) + 1; });
+  if (UL.who && !whoN[UL.who]) UL.who = '';
+  let rows = UL.who ? all.filter(x => (x.who || '（不明）') === UL.who) : all.slice();
+  const SORTS = [['new', '新しい順'], ['old', '古い順'], ['no', '番号順'], ['who', '人ごと'], ['item', ph ? '種類ごと' : '項目ごと']];
+  const byNew = (a, b) => (a.d < b.d ? 1 : a.d > b.d ? -1 : a._i - b._i), g = UL.sort === 'new' || UL.sort === 'old' ? 'day' : UL.sort;
+  const gk = x => g === 'day' ? (String(x.d).slice(0, 10) || '') : g === 'no' ? x.no : g === 'who' ? (x.who || '（不明）') : (x.item || '（なし）');
+  if (UL.sort === 'old') rows.sort((a, b) => -byNew(a, b));
+  else if (UL.sort === 'new') rows.sort(byNew);
+  else { const cnt = {}; rows.forEach(x => { const k = gk(x); cnt[k] = (cnt[k] || 0) + 1; });
+    rows.sort((a, b) => { const ka = gk(a), kb = gk(b); if (ka !== kb) return g === 'no' ? ulCmpNo(ka, kb) : (cnt[kb] - cnt[ka] || ka.localeCompare(kb, 'ja')); return byNew(a, b); }); }
+  const cntG = {}; rows.forEach(x => { const k = gk(x); cntG[k] = (cntG[k] || 0) + 1; });
+  const shown = rows.slice(0, UL.n); let last = null, body = '';
+  shown.forEach(x => { const k = gk(x); if (k !== last) { last = k;
+      const lab = g === 'day' ? ulDay(k) : g === 'no' ? ulName(k, '') || '番号なし' : esc(k);
+      body += `<div class="ulgrp"><span>${lab}</span><small>${cntG[k]}件</small></div>`; }
+    body += ulRowHTML(x, g); });
+  const oldest = UL.log && UL.log.length ? String(UL.log[UL.log.length - 1]['日時'] || '').slice(0, 10) : '';
+  const info = UL.busy ? '読み込んでいます…' : UL.err ? '読み込めませんでした（' + esc(UL.err) + '）' : UL.log ? (ph ? '写真 ' + tabN('ph').toLocaleString() + '枚（登録した日の順。差し替えた写真は差し替えた日）' : '記録 ' + UL.log.length.toLocaleString() + '件' + (oldest ? '（' + oldest.replace(/\//g, '.') + ' から）' : '')) : '';
+  return `<div class="ul"><div class="ulhd"><h2>更新記録</h2><button type="button" class="ulre" id="ulRe">${UL.busy ? '読み込み中…' : '最新にする'}</button></div>
+    <p class="ullead">だれが・いつ・何を変えたかの記録です。上のタブで種類を分け、並べ替えられます。名前を押すと、その作品のページが開きます。</p>
+    <div class="ultabs" role="tablist">${UL_TABS.map(([k, t]) => `<button type="button" class="ultab${UL.tab === k ? ' on' : ''}" data-ultab="${k}" role="tab" aria-selected="${UL.tab === k}">${t}${UL.log || k === 'ph' ? `<small>${tabN(k).toLocaleString()}</small>` : ''}</button>`).join('')}</div>
+    <div class="ulbar"><span>並べ替え</span>${SORTS.map(([k, t]) => `<button type="button" class="ulsrt${UL.sort === k ? ' on' : ''}" data-ulsort="${k}">${t}</button>`).join('')}
+      <select id="ulWho" aria-label="人でしぼる"><option value="">すべての人</option>${Object.keys(whoN).sort((a, b) => whoN[b] - whoN[a]).map(w => `<option value="${esc(w)}"${UL.who === w ? ' selected' : ''}>${esc(w)}（${whoN[w]}）</option>`).join('')}</select></div>
+    <p class="ulnote">${info}</p>
+    ${body || `<p class="ulempty">${!ph && !UL.log ? '読み込んでいます…' : '記録はありません'}</p>`}
+    ${rows.length > UL.n ? `<button type="button" class="ulmore" data-ulmore="1">もっと見る（あと ${(rows.length - UL.n).toLocaleString()}件）</button>` : ''}
+    ${!ph && !UL.all && UL.log && UL.log.length >= UL_FIRST && rows.length <= UL.n ? `<button type="button" class="ulmore" id="ulAll">もっと前の記録も読む（少し時間がかかります）</button>` : ''}</div>`;
+}
+document.addEventListener('click', e => {
+  if (e.target.closest('[data-ulgo]')) return showLog();
+  if (S.view !== 'upd') return;
+  const t = e.target.closest('[data-ultab]'); if (t) { UL.tab = t.dataset.ultab; UL.n = 150; UL.who = ''; ulDraw(); return; }
+  const so = e.target.closest('[data-ulsort]'); if (so) { UL.sort = so.dataset.ulsort; UL.n = 150; ulDraw(); return; }
+  if (e.target.closest('[data-ulmore]')) { const y = scrollY; UL.n += 200; ulDraw(); window.scrollTo(0, y); return; }
+  if (e.target.closest('#ulRe')) { UL.t = 0; ulLoad(); return; }
+  if (e.target.closest('#ulAll')) { UL.all = true; UL.t = 0; ulLoad(); return; }
+  const a = e.target.closest('[data-ulno]'); if (a) { if (workOf(a.dataset.ulno)) openWork(a.dataset.ulno); return; }
+  const x = e.target.closest('[data-ulex]'); if (x) { openEx(x.dataset.ulex); return; }
+  const b = e.target.closest('[data-ulpb]'); if (b) { if (pbById[b.dataset.ulpb]) openPb(b.dataset.ulpb); return; }
+  const v = e.target.closest('.ul .ulv'); if (v) v.classList.toggle('open');
+});
+document.addEventListener('change', e => { if (e.target && e.target.id === 'ulWho') { UL.who = e.target.value; UL.n = 150; ulDraw(); } });
 
 /* ---------- ログイン ---------- */
 const lgShow = h => { const w = $('#lgWall'); if (w) w.innerHTML = h.replace(/<button type="button" data-close>やめる<\/button>/,''); else openSheet(h); };
@@ -6743,7 +6876,7 @@ function openMe(anc){ /* 名前ボタンの上に出る小さな吹き出しメ�
   const it = (id, t) => `<button type="button" data-me="${id}">${t}</button>`;
   const el = document.createElement('div'); el.id = 'mepop'; el.setAttribute('role', 'menu');
   el.innerHTML = `<div class="mehd"><b>${esc(S.user.name||'')}</b><small>権限：${esc(S.user.role)}</small></div>
-    ${it('upd','最新版に更新')}${it('mic','マイクのテスト')}${canEdit() ? it('face','顔写真を追加') : ''}${it('log','変更記録を見る')}${canEdit() && S.ai ? it('rot','写真の向きをAIでそろえる') : ''}${canEdit() ? it('arc','削除したもの（アーカイブ）') : ''}
+    ${it('upd','最新版に更新')}${it('mic','マイクのテスト')}${canEdit() ? it('face','顔写真を追加') : ''}${it('log','更新記録')}${canEdit() && S.ai ? it('rot','写真の向きをAIでそろえる') : ''}${canEdit() ? it('arc','削除したもの（アーカイブ）') : ''}
     <div class="mesep"></div>${it('out','ログアウト')}<small class="menote">共用のパソコンでは、使い終わったらログアウトしてください</small><i class="metail"></i>`;
   document.body.appendChild(el);
   const r = anc ? anc.getBoundingClientRect() : { left: 12, right: 252, top: innerHeight - 12, bottom: innerHeight - 12, width: 240 };
