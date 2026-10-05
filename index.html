@@ -2153,7 +2153,7 @@ button.ulrow{cursor:pointer}
 .cr-sl2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 14px}.cr-half{gap:6px;font-size:13px}.cr-half>span{min-width:0}.cr-half output{min-width:2.4em;font-size:12.5px}
 @media(max-width:340px){.cr-sl2{grid-template-columns:1fr}}
 .cr-more{display:flex;flex-direction:column;gap:9px}
-.cr-segrow{display:flex;align-items:center;gap:8px}.cr-segrow .cr-seg{flex:1;min-width:0}
+.cr-segrow{display:flex;align-items:center;gap:8px}.cr-segrow .cr-seg{flex:1;min-width:0}.cr-segrow .cr-seg button{white-space:nowrap;padding-left:4px;padding-right:4px;font-size:14px}
 .cr-morebtn{flex:none;height:40px;padding:0 12px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:transparent;color:#faf9f5;font:inherit;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;position:relative}
 .cr-morebtn i{font-style:normal;font-size:11px;transition:transform .2s}.cr-morebtn.open i{transform:rotate(180deg)}
 .cr-morebtn.warn::after{content:'';position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:#FFC800}
@@ -2163,6 +2163,7 @@ button.ulrow{cursor:pointer}
 .cr-pad button,.cr-nnext{height:40px;min-width:44px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:#34342f;color:#faf9f5;font:inherit;font-size:18px;font-weight:700;cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none}
 .cr-pad button:active,.cr-nnext:active{background:#4a4a44}
 .cr-nnext{font-size:13px;font-weight:600;padding:0 10px;min-width:0}
+.cr-visb{flex:none;width:44px;height:40px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:transparent;color:#faf9f5;font-size:19px;cursor:pointer;padding:0}.cr-visb.on{background:#FFC800;border-color:#FFC800;color:#1c1c1b}.cr-visb.hidden{display:none}
 .cr-seg button:disabled{opacity:.35}
 .cr-ask{position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:6;max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:18px;background:#2f2f2d;border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 40px rgba(0,0,0,.6);max-height:80vh;overflow:auto}
 .cr-ask>b{font-size:16px;color:#FFC800}.cr-ask>p{margin:0 0 4px;font-size:14px;line-height:1.6;color:rgba(250,249,245,.85)}
@@ -2238,7 +2239,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'ebaebed78f', APP_URL = location.origin + location.pathname;
+const BUILD = '8977726ce3', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6628,7 +6629,7 @@ async function openCrop(p){
     <p class="cr-hint"></p>
     <div class="cr-stage"><canvas class="cr-img"></canvas><canvas class="cr-pv hidden"></canvas><div class="cr-grid hidden"></div><svg class="cr-svg" xmlns="http://www.w3.org/2000/svg"></svg><div class="cr-loupe hidden"><canvas></canvas></div><div class="cr-ld"><span class="ldspin"></span>写真を読み込んでいます…</div></div>
     <div class="cr-bot">
-      <div class="cr-segrow"><div class="cr-seg"><button type="button" data-crm="edit" class="on">角を合わせる</button><button type="button" data-crm="pv">仕上がりを見る</button></div><button type="button" class="cr-morebtn" aria-expanded="false">設定<i aria-hidden="true">▾</i></button></div>
+      <div class="cr-segrow"><div class="cr-seg"><button type="button" data-crm="edit" class="on">角を合わせる</button><button type="button" data-crm="pv">仕上がりを見る</button></div><button type="button" class="cr-visb" aria-pressed="false" aria-label="見やすく（画面だけ明るく）" title="見やすく（画面だけ明るく。保存する写真は変わりません）">☀</button><button type="button" class="cr-morebtn" aria-expanded="false">設定<i aria-hidden="true">▾</i></button></div>
       <div class="cr-nudge"><span class="cr-nsel"></span><div class="cr-pad"><button type="button" data-crd="-1,0" aria-label="左へ">←</button><button type="button" data-crd="0,-1" aria-label="上へ">↑</button><button type="button" data-crd="0,1" aria-label="下へ">↓</button><button type="button" data-crd="1,0" aria-label="右へ">→</button></div><button type="button" class="cr-nnext" data-crnext>次の丸</button></div>
       <div class="cr-sl2">
       <label class="cr-row cr-half"><span>明るさ</span><input type="range" min="-40" max="40" step="1" value="${CR.bri}" id="crB"><output id="crBv">${CR.bri > 0 ? '+' : ''}${CR.bri}%</output></label>
@@ -6642,8 +6643,9 @@ async function openCrop(p){
       <div class="cr-links"><button type="button" data-crai>✨ 自動で探し直す</button><button type="button" data-crreset>角を最初の位置にもどす</button><button type="button" data-crcht>カラーチップの位置を指定</button>${CR.corr ? '<button type="button" data-crundo>補正をやめて元の写真にもどす</button>' : ''}</div>
       </div>
     </div>`;
-  let more = false; try { more = localStorage.getItem('smr_crmore') === '1'; } catch(e){} el.classList.toggle('more', more);
+  let more = false; try { more = localStorage.getItem('smr_crmore') === '1'; CR.vis = localStorage.getItem('smr_crvis') === '1'; } catch(e){} el.classList.toggle('more', more);
   document.body.appendChild(el); hpush('c'); crUI();
+  el.querySelector('.cr-visb').onclick = () => { CR.vis = !CR.vis; try { localStorage.setItem('smr_crvis', CR.vis ? '1' : '0'); } catch(e){} crUI(); crLayout(); crNudgeLoupe(); if (CR.vis) toast('見やすく表示しています（保存する写真は変わりません）'); };
   el.querySelector('.cr-morebtn').onclick = () => { const on = !el.classList.contains('more'); el.classList.toggle('more', on); try { localStorage.setItem('smr_crmore', on ? '1' : '0'); } catch(e){} crUI(); };
   el.querySelector('[data-crnext]').onclick = () => { const P = crSelList(), k = P.findIndex(q => q.a === CR.sel.a && q.i === CR.sel.i); CR.sel = P[(k + 1) % P.length]; if (CR.pin) CR.pin = CR.sel; crDraw(); crNudgeLab(); crNudgeLoupe(); };
   el.querySelectorAll('[data-crd]').forEach(b => { const [dx, dy] = b.dataset.crd.split(',').map(Number); let t1 = 0, t2 = 0;
@@ -6708,19 +6710,21 @@ function crUI(){ const el = $('#crop'); if (!el || !CR) return;
   el.querySelector('.cr-save').disabled = !CR.img || !!CR.saving; el.querySelector('.cr-stage').classList.toggle('busy', CR.ai);
   const ed = CR.mode === 'edit';
   el.querySelector('.cr-nudge').classList.toggle('hidden', !ed); crNudgeLab();
+  const vb = el.querySelector('.cr-visb'); vb.classList.toggle('on', !!CR.vis); vb.setAttribute('aria-pressed', CR.vis ? 'true' : 'false'); vb.classList.toggle('hidden', !ed);
   const mb = el.querySelector('.cr-morebtn'), mo = el.classList.contains('more'); mb.setAttribute('aria-expanded', mo ? 'true' : 'false'); mb.classList.toggle('open', mo);
   ['.cr-img', '.cr-svg'].forEach(s => el.querySelector(s).classList.toggle('hidden', !ed)); ['.cr-pv', '.cr-grid'].forEach(s => el.querySelector(s).classList.toggle('hidden', ed));
   el.querySelector('.cr-hint').textContent = CR.ai ? 'AI が、額の内側の四隅とカラーチップを探しています…（10〜30秒）'
     : !ed && CR.aiDone ? '自動で補正しました。よければ「保存」。角がずれていたら「角を合わせる」で直してください'
     : !ed ? '仕上がりです。縁がふくらんで見えたら「ふくらみ」を＋に、へこんで見えたら−にします'
-    : CR.n > 1 ? '屏風の両端の角と、折れ目ごとの上と下に丸を合わせてください。丸をタップすると拡大鏡が出ます（もう一度タップで閉じる）'
-    : '4つの丸を、絵の角（額の内側）に合わせてください。丸をタップすると拡大鏡が出ます（もう一度タップで閉じる）。オレンジの枠はカラーチップの位置です'; }
+    : CR.n > 1 ? '屏風の両端の角と、折れ目ごとの上と下に丸を合わせてください。丸をタップで拡大鏡（もう一度で閉じる）'
+    : '4つの丸を、絵の角（額の内側）に合わせてください。丸をタップで拡大鏡（もう一度で閉じる）。オレンジの枠はカラーチップの位置です'; }
 function crLayout(){ const el = $('#crop'), st = el && el.querySelector('.cr-stage'); if (!st || !CR || !CR.img) return;
   const r = st.getBoundingClientRect(); if (r.width < 10 || r.height < 10) return;
   const dpr = Math.min(3, devicePixelRatio || 1), iw = CR.img.naturalWidth, ih = CR.img.naturalHeight, s = Math.min(r.width / iw, r.height / ih);
   CR.L = { s, ox: (r.width - iw * s) / 2, oy: (r.height - ih * s) / 2, w: iw * s, h: ih * s, sw: r.width, sh: r.height };
   const c = el.querySelector('.cr-img'), cw = Math.round(CR.L.w * dpr), ch = Math.round(CR.L.h * dpr);
-  if (c.width !== cw || c.height !== ch || c._img !== CR.img) { c.width = cw; c.height = ch; c._img = CR.img; const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(CR.img, 0, 0, cw, ch); }
+  if (c.width !== cw || c.height !== ch || c._img !== CR.img || c._vis !== !!CR.vis) { c.width = cw; c.height = ch; c._img = CR.img; c._vis = !!CR.vis; const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(CR.img, 0, 0, cw, ch);
+    if (CR.vis) try { crApplyLUT(g, 0, 0, cw, ch, crVisLUT()); } catch(e){} }
   c.style.cssText = `left:${CR.L.ox}px;top:${CR.L.oy}px;width:${CR.L.w}px;height:${CR.L.h}px`;
   crDraw(); crPreview(); }
 /* 線を、ふくらみに合わせた曲線の点の列にする（T：0〜1 の位置 → 描く場所）。外まわり（上の点 → 右の辺 → 下の点を逆に → 左の辺）と、折れ目の線 */
@@ -6737,7 +6741,7 @@ const crPath = P => 'M' + P.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).jo
 function crDraw(){ const svg = $('#crop .cr-svg'); if (!svg || !CR || !CR.L || CR.mode !== 'edit') return; const L = CR.L;
   const T = (x, y) => [L.ox + x * L.w, L.oy + y * L.h], E = crEdges(T), d = crPath(E.o) + 'Z', fd = E.folds.map(crPath).join(''), r = CR.n > 3 ? 12 : 16;
   svg.setAttribute('viewBox', `0 0 ${L.sw} ${L.sh}`);
-  svg.innerHTML = `<path d="M-4 -4H${L.sw + 4}V${L.sh + 4}H-4Z ${d}" fill="rgba(0,0,0,.5)" fill-rule="evenodd"/><path d="${d}${fd}" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="3.2"/><path d="${d}" fill="none" stroke="#1CB0F6" stroke-width="1.6"/>`
+  svg.innerHTML = `<path d="M-4 -4H${L.sw + 4}V${L.sh + 4}H-4Z ${d}" fill="rgba(0,0,0,${CR.vis ? .18 : .32})" fill-rule="evenodd"/><path d="${d}${fd}" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="3.2"/><path d="${d}" fill="none" stroke="#1CB0F6" stroke-width="1.6"/>`
     + (fd ? `<path d="${fd}" fill="none" stroke="#FFC800" stroke-width="1.6" stroke-dasharray="6 4"/>` : '')
     + ['top', 'bot'].map(a => CR[a].map(([x, y], i) => { const [X, Y] = T(x, y), on = CR.drag && CR.drag.a === a && CR.drag.i === i, fold = i > 0 && i < CR.n, sel = !CR.drag && CR.sel && CR.sel.a === a && CR.sel.i === i;
       return `<circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="${r}" fill="${fold ? 'rgba(255,200,0,' : 'rgba(28,176,246,'}${on || sel ? .5 : .22})" stroke="${sel ? '#FFD84D' : '#fff'}" stroke-width="${sel ? 3.5 : 2.5}"/><circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="2.5" fill="#fff"/>`; }).join('')).join('')
@@ -6750,6 +6754,17 @@ function crPtName(s){ if (!s) return ''; if (s.a === 'cht') return 'カラーチ
   const n = CR.n; if (n === 1) return (s.i ? '右' : '左') + (s.a === 'top' ? '上' : '下') + 'の丸';
   return (s.a === 'top' ? '上' : '下') + 'の ' + (s.i + 1) + '番目（' + (s.i === 0 ? '左端' : s.i === n ? '右端' : '折れ目') + '）'; }
 function crNudgeLab(){ const e = $('#crop .cr-nsel'); if (e && CR) e.textContent = crPtName(CR.sel); }
+/* 見やすく：角を合わせるあいだだけ、写真を明るく・くっきり表示する（保存する写真は変えない。10/6 本人） */
+function crLevels(d, step, local){ const h = new Uint32Array(256); let n = 0; for (let i = 0; i < d.length; i += 4 * step) { h[(d[i] * 77 + d[i + 1] * 150 + d[i + 2] * 29) >> 8]++; n++; }
+  const cut = n * (local ? 0.005 : 0.01); let lo = 0, hi = 255, a = 0; for (; lo < 254; lo++) { a += h[lo]; if (a > cut) break; } a = 0; for (; hi > lo + 1; hi--) { a += h[hi]; if (a > cut) break; }
+  if (hi - lo < 24) { const m = (hi + lo) / 2; lo = Math.max(0, m - 12); hi = Math.min(255, m + 12); } /* ほとんど同じ明るさのところは、むやみに強めない */
+  let sum = 0; for (let v = 0; v < 256; v++) sum += h[v] * Math.min(1, Math.max(0, (v - lo) / (hi - lo))); const mean = n ? sum / n : .5;
+  const gm = Math.min(1, Math.max(local ? 0.5 : 0.4, Math.log(0.5) / Math.log(Math.min(0.95, Math.max(0.02, mean))))); /* 暗いときだけ明るくする（明るい写真を暗くはしない） */
+  const t = new Uint8ClampedArray(256); for (let v = 0; v < 256; v++) t[v] = 255 * Math.pow(Math.min(1, Math.max(0, (v - lo) / (hi - lo))), gm); return t; }
+function crVisLUT(){ if (CR.visL && CR.visL.img === CR.img) return CR.visL.t;
+  const im = CR.img, k = Math.min(1, 256 / Math.max(im.naturalWidth, im.naturalHeight)), c = document.createElement('canvas'); c.width = Math.max(1, Math.round(im.naturalWidth * k)); c.height = Math.max(1, Math.round(im.naturalHeight * k));
+  const g = c.getContext('2d'); g.drawImage(im, 0, 0, c.width, c.height); const t = crLevels(g.getImageData(0, 0, c.width, c.height).data, 1, false); c.width = c.height = 1; CR.visL = { img: im, t }; return t; }
+function crApplyLUT(g, x, y, w, h, t, id0){ const id = id0 || g.getImageData(x, y, w, h), d = id.data; for (let i = 0; i < d.length; i += 4) { d[i] = t[d[i]]; d[i + 1] = t[d[i + 1]]; d[i + 2] = t[d[i + 2]]; } if (!id0) g.putImageData(id, x, y); }
 function crLoupeOff(){ const lp = $('#crop .cr-loupe'); if (lp) lp.classList.add('hidden'); }
 function crNudgeLoupe(){ if (!CR || !CR.L) return; const s = CR.pin || CR.sel; if (!s) return; const p = CR[s.a] && CR[s.a][s.i]; if (!p) return;
   crLoupe(p, CR.L.ox + p[0] * CR.L.w, CR.L.oy + p[1] * CR.L.h); clearTimeout(CR.nlt); if (!CR.pin) CR.nlt = setTimeout(() => { if (CR && !CR.drag && !CR.pin) crLoupeOff(); }, 1400); }
@@ -6766,7 +6781,9 @@ function crLoupe(pt, fx, fy){ const L = CR.L, lp = $('#crop .cr-loupe'); if (!lp
   const iw = CR.img.naturalWidth, ih = CR.img.naturalHeight, [qx, qy] = pt, sz = S0 / (3 * L.s), sx = qx * iw - sz / 2, sy = qy * ih - sz / 2, k = n / sz, g = c.getContext('2d');
   g.fillStyle = '#111'; g.fillRect(0, 0, n, n);
   const x0 = Math.max(0, sx), y0 = Math.max(0, sy), x1 = Math.min(iw, sx + sz), y1 = Math.min(ih, sy + sz);
-  if (x1 > x0 && y1 > y0) g.drawImage(CR.img, x0, y0, x1 - x0, y1 - y0, (x0 - sx) * k, (y0 - sy) * k, (x1 - x0) * k, (y1 - y0) * k);
+  if (x1 > x0 && y1 > y0) { const dx0 = Math.max(0, Math.floor((x0 - sx) * k)), dy0 = Math.max(0, Math.floor((y0 - sy) * k)), dw = Math.min(n, Math.ceil((x1 - sx) * k)) - dx0, dh = Math.min(n, Math.ceil((y1 - sy) * k)) - dy0;
+    g.drawImage(CR.img, x0, y0, x1 - x0, y1 - y0, (x0 - sx) * k, (y0 - sy) * k, (x1 - x0) * k, (y1 - y0) * k);
+    if (dw > 4 && dh > 4) try { const id = g.getImageData(dx0, dy0, dw, dh); crApplyLUT(null, 0, 0, 0, 0, crLevels(id.data, 3, true), id); g.putImageData(id, dx0, dy0); } catch(e){} } /* 拡大鏡の中は、映っている範囲の明るさを目いっぱいに広げる（境目が見えるように。10/6） */
   const E = crEdges((x, y) => [(x * iw - sx) * k, (y * ih - sy) * k]), line = (P, col, close) => { g.beginPath(); P.forEach((p, j) => j ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); if (close) g.closePath(); g.lineWidth = 1.5 * dpr; g.strokeStyle = col; g.stroke(); };
   line(E.o, '#1CB0F6', true); E.folds.forEach(f => line(f, '#FFC800'));
   const m = n / 2; g.strokeStyle = '#fff'; g.lineWidth = dpr; g.beginPath(); g.moveTo(m - 12 * dpr, m); g.lineTo(m + 12 * dpr, m); g.moveTo(m, m - 12 * dpr); g.lineTo(m, m + 12 * dpr); g.stroke();
