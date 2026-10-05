@@ -2091,6 +2091,8 @@ button.ulrow{cursor:pointer}
 .pbinp{border:0;padding:0;background:var(--wash);border-radius:8px;overflow:hidden;aspect-ratio:3/4;cursor:zoom-in}
 .pbinp img{width:100%;height:100%;object-fit:cover;min-height:0!important;display:block}
 .phist .phre{border:0;background:none;padding:0 0 0 6px;color:var(--acc);font:inherit;text-decoration:underline;cursor:pointer}
+/* スマホの資料（本）のページ：表紙の写真と「© 転載元」のボタンを左右のまん中に（10/5 本人） */
+@media (max-width: 999px){ .pagebody .cover{margin-left:auto;margin-right:auto} .pagebody .cvcopy{display:block;margin:10px auto 0} }
 </style>
 </head>
 <body>
@@ -2160,7 +2162,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'a2be049f36', APP_URL = location.origin + location.pathname;
+const BUILD = '332b33515a', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
