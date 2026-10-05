@@ -1837,7 +1837,7 @@ body.qcopen #top{visibility:hidden!important;pointer-events:none!important}
 html[data-theme=dark] .qc{background:var(--bg)}
 body.qcopen::before{content:'';position:fixed;left:0;right:0;top:-50vh;bottom:-50vh;z-index:107;background:#FFFFFF}html[data-theme=dark] body.qcopen::before{background:var(--bg)}body.qcopen #nav,body.qcopen #navAsk,body.qcopen #fmSearch{visibility:hidden!important}
 /* カードを開いている間は、後ろのホームなどを見えなくする（iPhone のキーボードの上のすき間から透けないように） */
-body.qcopen>*:not(#qc):not(#qclb):not(#fdb):not(#qcv):not(#top){visibility:hidden!important}
+body.qcopen>*:not(#qc):not(#qclb):not(#fdb):not(#qcv):not(#top):not(#acb):not(#crop){visibility:hidden!important}
 body.qcopen #toast,body.qcopen #loading,body.qcopen #confirm{visibility:visible!important}
 .qc-w{max-width:560px;height:100%;margin:0 auto;box-sizing:border-box;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;flex-direction:column;gap:11px}
 .qc-top{display:flex;align-items:center;gap:10px}
@@ -1923,6 +1923,15 @@ html[data-theme=dark] .qc-chip{background:#16384A;color:#9ADDFF}
 .fdb-th{flex:none;width:52px;height:52px;border-radius:10px;overflow:hidden;background:var(--hg-sf)}.fdb-th img{width:100%;height:100%;object-fit:cover;display:block}
 .fdb-tx{min-width:0;display:flex;flex-direction:column;gap:2px}.fdb-tx b{font-size:15px}.fdb-tx small{font-size:12.5px;line-height:1.45;color:var(--hg-s)}.fdb-tx .fdb-r{color:#A56A00}
 html[data-theme=dark] .fdb-tx .fdb-r{color:#FFC800}.fdb-b{position:sticky;bottom:0;padding:10px 0 4px;background:var(--hg-bg)}
+/* 写真の自動補正（10/5 開発 v5） */
+.ac-prog{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--hg-sf);color:var(--hg-h)}.ac-prog b{font-size:15px}.ac-prog small{display:block;font-size:13px;line-height:1.5;color:var(--hg-s)}
+.ac-msg{margin:0;padding:10px 12px;border-radius:12px;background:rgba(255,150,0,.13);color:var(--hg-h);font-size:14px;line-height:1.5}
+.ac-go{display:flex;flex-direction:column;gap:8px}.ac-go .hg-go.ac-stop{background:#FF4B4B;border-bottom-color:#C83A3A}
+.ac-tabs{display:flex;gap:6px}.ac-tabs button{flex:1;min-width:0;padding:8px 4px;border-radius:12px;border:2px solid var(--hg-ln);background:var(--hg-bg);color:var(--hg-h);font:inherit;font-size:13px;font-weight:700;cursor:pointer}.ac-tabs button b{display:block;font-size:18px}.ac-tabs button.on{border-color:#1CB0F6;background:rgba(28,176,246,.09)}
+.ac-l{display:flex;flex-direction:column;gap:8px}.ac-i{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:14px;border:2px solid var(--hg-ln);background:var(--hg-bg);color:var(--hg-h)}
+.ac-ph{flex:none;display:flex;align-items:center;gap:4px}.ac-ph i{font-style:normal;color:var(--hg-s)}.ac-th{display:block;width:72px;height:72px;border-radius:10px;overflow:hidden;background:var(--hg-sf)}.ac-th img{width:100%;height:100%;object-fit:contain;display:block}
+.ac-tx{min-width:0;flex:1;display:flex;flex-direction:column;gap:4px}.ac-tx b{font-size:15px}.ac-tx small{font-size:13px;line-height:1.45;color:var(--hg-s)}.ac-tx .ac-why{color:#A56A00}html[data-theme=dark] .ac-tx .ac-why{color:#FFC800}
+.ac-bt{display:flex;gap:8px;flex-wrap:wrap}.ac-bt button{padding:7px 12px;border-radius:10px;border:2px solid var(--hg-ln);background:var(--hg-bg);color:var(--hg-lk);font:inherit;font-size:14px;font-weight:800;cursor:pointer}
 /* 展覧会・本のカード（家族に聞く）と、管理者が1件ずつ確かめるカード */
 .qc-lt{flex:none;display:flex;align-items:center;gap:14px;padding:18px 18px;border-radius:16px;border:2px solid #A5D86A;background:#F3FBE8;color:#3C3C3C}
 .qc-lt>div{min-width:0;display:flex;flex-direction:column;gap:5px}.qc-lt small{font-size:14px;font-weight:800;color:#3F7D00}
@@ -2206,13 +2215,13 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd2b8e33bef', APP_URL = location.origin + location.pathname;
+const BUILD = 'eecb985a14', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
   call('appBuild').then(b => { if (!b || b === BUILD || $('#updBar')) return;
     // 入力中でなければ、そのまま新しい版に切り替える（古い画面が残らないように）
-    const busyEdit = CALLS.n > 0 || !$('#loading').classList.contains('hidden') || (!$('#sheet').classList.contains('hidden') && !!$('#sheetbox').querySelector('#ok, textarea, input:not([type=hidden]):not([type=search]), select')) || /* 書類の詳細など、見るだけの画面は入力中に数えない */ (document.activeElement && /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) || S.aiOpen || !!document.querySelector('.quiz:not(.hidden)') || !!document.getElementById('crop');
+    const busyEdit = CALLS.n > 0 || !$('#loading').classList.contains('hidden') || (!$('#sheet').classList.contains('hidden') && !!$('#sheetbox').querySelector('#ok, textarea, input:not([type=hidden]):not([type=search]), select')) || /* 書類の詳細など、見るだけの画面は入力中に数えない */ (document.activeElement && /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) || S.aiOpen || !!document.querySelector('.quiz:not(.hidden)') || !!document.getElementById('crop') || AC.run;
     let tried = ''; try { tried = sessionStorage.getItem('smr_upd') || ''; } catch(e){}
     if (!busyEdit && tried !== b) { try { sessionStorage.setItem('smr_upd', b); } catch(e){} location.replace(APP_URL + '?r=' + Date.now()); return; }
     let snz = 0; try { snz = +sessionStorage.getItem('smr_updsnz') || 0; } catch(e){} if (Date.now() - snz < 30 * 60000) return; /* 「あとで」を押したら30分は出さない */
@@ -2289,7 +2298,7 @@ function docCacheSync(docs){ let V = {}; try { V = JSON.parse(localStorage.getIt
   if (del.length) thDel(del); try { localStorage.setItem('smr_dver', JSON.stringify(N)); } catch(e){} }
 function setData(d){ if (S.upd) S.upd.t = 0; try { if (d && d.docs && d.docs.length) docCacheSync(d.docs); } catch(e){}
   const allW = d.works || []; d = Object.assign({}, d, {works: allW.filter(w => !OTRE.test(w['作品番号'])), others: allW.filter(w => OTRE.test(w['作品番号']))});
-  Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, museums:d.museums||[], exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], finds:d.finds||[], lits:d.lits||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], faces:d.faces||[], memoChecker:d.memoChecker||'直美', marks:d.marks||[], pimg:d.pimg||S.pimg||[], hist:Array.isArray(d.hist) ? d.hist : (S.hist || null), user:d.user, ai:d.ai, publicView:d.publicView}); if (S.token && !d.user) setToken(''); index(); try { pimgIndex(); } catch(e){} renderUser(); try { faceInit(); } catch(e){}  if (d.user) setTimeout(prefetchThumbs, 0); }
+  Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, museums:d.museums||[], exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], finds:d.finds||[], lits:d.lits||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], faces:d.faces||[], memoChecker:d.memoChecker||'直美', marks:d.marks||[], pimg:d.pimg||S.pimg||[], hist:Array.isArray(d.hist) ? d.hist : (S.hist || null), autoc:Array.isArray(d.autoc) ? d.autoc : (S.autoc || []), user:d.user, ai:d.ai, publicView:d.publicView}); if (S.token && !d.user) setToken(''); index(); try { pimgIndex(); } catch(e){} renderUser(); try { faceInit(); } catch(e){}  if (d.user) setTimeout(prefetchThumbs, 0); }
 const canRole = () => !!(S.user && ['編集','管理'].includes(S.user.role));
 const canEdit = () => canRole();
 try { S.edit = localStorage.getItem('smr_edit') === '1'; } catch(e){ S.edit = false; }
@@ -3734,7 +3743,7 @@ function renderHome(){
       <p class="hg-note">ここには、まだ足りないものがある作品だけを出しています。番号の下に、足りないものを出しています。押すとその作品のページを開きます。</p>
       <button type="button" class="hg-link" data-v="works">すべての作品を見る</button></section>
     ${ed ? `<section class="hg-sec"><h2 class="hg-h2">ひとつずつ片付ける</h2>
-      ${row('data-bsgo="noloc"', '#1CB0F6', IC.loc, '場所がわからない', nLc)}${row('data-bsgo="noname"', '#CE82FF', NAMEIC, '作品名がない', nNm)}${row('data-bsgo="nophoto"', '#FF4B4B', IC.photo, '写真がない', nPh)}${row('data-hgdiff="1"', '#2B70C9', IC.doc, '書類と台帳の違い', nDf)}${(S.finds || []).length ? row('data-hgfind="1"', '#FF9600', FDIC, '調べで見つかった記録', qcFindLeft().left) : ''}${(n => n ? row('data-hgask="1"', '#E05A9E', ASKIC, 'お母さんに聞きたいこと', n) : '')(qcAskLeft().left)}${(S.finds || []).length && S.user && S.user.role === '管理' ? (n => n ? row('data-hgfindb="1"', '#FF9600', FDIC, '調べの記録：まとめて確認（管理者）', n) : '')((S.finds || []).filter(f => fdOpen(f) && fdReg(f)).length) : ''}${(n => n ? row('data-hglit="1"', '#58A700', LTIC, '展覧会・本のこと', n) : '')(ltLeft().left)}${(n => n ? row('data-hgpbph="1"', '#FF4B4B', IC.photo, '家にある本の写真', n) : '')(pbPhLeft())}${S.user && S.user.role === '管理' ? (n => n ? row('data-hglitb="1"', '#58A700', LTIC, '展覧会・本：1件ずつ確かめる（管理者）', n) : '')(ltbLeft().left) : ''}
+      ${row('data-bsgo="noloc"', '#1CB0F6', IC.loc, '場所がわからない', nLc)}${row('data-bsgo="noname"', '#CE82FF', NAMEIC, '作品名がない', nNm)}${row('data-bsgo="nophoto"', '#FF4B4B', IC.photo, '写真がない', nPh)}${row('data-hgdiff="1"', '#2B70C9', IC.doc, '書類と台帳の違い', nDf)}${(S.finds || []).length ? row('data-hgfind="1"', '#FF9600', FDIC, '調べで見つかった記録', qcFindLeft().left) : ''}${(n => n ? row('data-hgask="1"', '#E05A9E', ASKIC, 'お母さんに聞きたいこと', n) : '')(qcAskLeft().left)}${(S.finds || []).length && S.user && S.user.role === '管理' ? (n => n ? row('data-hgfindb="1"', '#FF9600', FDIC, '調べの記録：まとめて確認（管理者）', n) : '')((S.finds || []).filter(f => fdOpen(f) && fdReg(f)).length) : ''}${S.user && S.user.role === '管理' ? (s => s.n.todo + s.n.review ? row('data-hgac="1"', '#1CB0F6', IC.photo, AC.run ? '写真の自動補正（実行中 ' + Math.min(AC.n + 1, AC.N) + '/' + AC.N + '）' : '写真の自動補正（管理者）', s.n.todo + s.n.review) : '')(acState()) : ''}${(n => n ? row('data-hglit="1"', '#58A700', LTIC, '展覧会・本のこと', n) : '')(ltLeft().left)}${(n => n ? row('data-hgpbph="1"', '#FF4B4B', IC.photo, '家にある本の写真', n) : '')(pbPhLeft())}${S.user && S.user.role === '管理' ? (n => n ? row('data-hglitb="1"', '#58A700', LTIC, '展覧会・本：1件ずつ確かめる（管理者）', n) : '')(ltbLeft().left) : ''}
       <details class="hg-more"><summary>そのほかの作業</summary><div class="todos">${todo.map(card).join('')}</div></details></section>` : ''}
     <button class="tourlink" data-v="help">使い方を見る</button></div><aside class="dash">${dashHTML()}</aside></div>`;
   hydrate($('#main'));
@@ -3745,6 +3754,7 @@ function renderHome(){
       if (e.target.closest('[data-hgtest]')) return startCards(true);
       if (e.target.closest('[data-hgdiff]')) return startCards(false, 'diff');
       if (e.target.closest('[data-hgfindb]')) return fdbOpen();
+      if (e.target.closest('[data-hgac]')) return acOpen();
       if (e.target.closest('[data-hgfind]')) return startCards(false, 'find');
       if (e.target.closest('[data-hgask]')) return startCards(false, 'ask');
       if (e.target.closest('[data-hglitb]')) return startCards(false, 'litb');
@@ -6557,7 +6567,7 @@ function crKey(e){ if (!CR || !$('#crop') || /^(INPUT|TEXTAREA|SELECT)$/.test((e
 function cropClose(fromHist){ const el = $('#crop'); if (!el) return; el.remove(); document.removeEventListener('keydown', crKey); removeEventListener('resize', crLayout);
   if (CR && CR.ro) try { CR.ro.disconnect(); } catch(e){} CR = null; if (!fromHist) hback(); }
 /* 保存したあと：開いているページと写真の画面を新しくし、その写真を出す */
-function crAfter(no, pid){ render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+function crAfter(no, pid){ if (AC.open) { render(); acDraw(); return; } render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
   S.cur = no; V.list = photoBy[no] || []; const i = V.list.findIndex(x => x['写真ID'] === pid); V.i = i >= 0 ? i : 0; if (V.list.length) showV(); }
 const crPts = a => a.map(([x, y]) => x.toFixed(4) + ',' + y.toFixed(4)).join(' ');
 /* Google 側がときどき 404・「通信が切れました」を返す（中身は実行されていることが多い）。
@@ -6643,6 +6653,149 @@ async function cropUndo(){ const c0 = CR; if (!c0 || !c0.corr || c0.saving) retu
   } catch(e){ alert('もどせませんでした。\n' + (e.message || e)); refreshData().catch(() => {}); }
   finally { busy(false); c0.saving = false; }
 }
+/* ---------- 写真の自動補正（まとめて）10/5 開発 v5 ----------
+   本作のメイン写真のうち、家で撮ったもの（転載・補正ずみ・記録写真は除く）を1枚ずつ自動で補正する（管理者が「始める」を押す。止める・続きから）。
+   AI（detectCrop）で絵の四隅とカラーチップを探す → 額と絵の境目に合わせる（crSnap）→ 色は、カラーチップが写っている写真だけ合わせる（ない写真は色も明るさもそのまま）。
+   自動で保存するのは、角が見つかり・境目に合わせられ・台帳と形が合い（15%以内。台帳にサイズがなければ写真から計算）・チップがあれば読めたものだけ。
+   ほかは保存せず「確認が必要」（理由つき。シート「自動補正」に残す）。屏風は AI を使わずに「確認が必要」へ。台帳のサイズは書きかえない（本人「サイズ情報は触らない」）。
+   保存は saveAutoCrop（補正した写真を足し、元の写真を記録写真に、補正した写真をメインに。同じ元の写真の補正がもうあれば足さない＝やり直しても二重にならない）。
+   補正した写真のメモの最後に「｜自動 日付」。補正画面で直し直すと「自動」は外れる（＝手で直したもの）。
+   計算の関数（crSnap・crColorCalc・crRatio など）は CR を使うので、計算のあいだだけ CR を差しかえて、すぐもどす */
+const AC = { run: false, stop: false, tab: 'review', open: false, n: 0, N: 0 };
+const acByobu = w => /屏風|[二四六八]曲|一双|二双/.test((w['作品名'] || '') + ' ' + (w['仕立て'] || ''));
+const acWhy = s => { const m = /^([a-z]+)：([\s\S]*)$/.exec(String(s || '')); return m ? { k: m[1], t: m[2] } : { k: '', t: String(s || '') }; };
+const acFmt = r => r >= 1 ? '縦1：横' + r.toFixed(2) : '縦' + (1 / r).toFixed(2) + '：横1';
+function acState(){ const R = {}; (S.autoc || []).forEach(r => { R[r[0]] = r; });
+  const L = [];
+  (S.works || []).forEach(w => { const no = w['作品番号'], ph = photoBy[no] || []; if (!ph.length) return;
+    const c = ph.find(x => crInfo(x));
+    if (c) { const ci = crInfo(c), o = ph.find(x => x['写真ID'] === ci.orig) || null, auto = /｜自動 /.test(c['メモ'] || '');
+      L.push({ no, w, p: o, c, st: auto ? 'auto' : 'manual', why: auto ? String((R[ci.orig] || [])[3] || '') : '' }); return; }
+    const p = ph[0]; if (!p['ファイルID'] || copyOf(p) || p['種類'] === '記録写真') return;
+    const r = R[p['写真ID']];
+    if (acByobu(w)) L.push({ no, w, p, st: 'review', why: 'byobu：屏風は自動では補正しません（補正画面で形を選んで合わせてください）' });
+    else if (r && r[2] === '確認') L.push({ no, w, p, st: 'review', why: r[3] });
+    else if (r && r[2] === '保存') L.push({ no, w, p, st: 'review', why: 'undo：自動で補正したあと、元の写真にもどしました' });
+    else L.push({ no, w, p, st: 'todo' }); });
+  const n = { todo: 0, review: 0, auto: 0, manual: 0 }; L.forEach(x => n[x.st]++);
+  return { L, n }; }
+const acEta = s => s >= 3600 ? Math.floor(s / 3600) + '時間' + Math.round(s % 3600 / 60) + '分' : Math.max(1, Math.round(s / 60)) + '分';
+const acSec = () => AC.n && AC.t0 ? (Date.now() - AC.t0) / 1000 / AC.n : 90;
+function acProgHTML(){ if (!AC.run) return '';
+  return `<div class="ac-prog"><span class="ldspin"></span><div><b>${Math.min(AC.n + 1, AC.N)} / ${AC.N} 枚目</b><small>${esc(AC.cur ? nol(AC.cur.no) + '　' + (AC.cur.w['作品名'] || '') : '')}${AC.step ? '：' + esc(AC.step) : ''}<br>のこり およそ${acEta(Math.max(1, AC.N - AC.n) * acSec())}${AC.stop ? '・この1枚が終わったら止まります' : ''}</small></div></div>`; }
+function acDraw(){ const el = $('#acb'); if (!el || !AC.open) return; const y = el.scrollTop, { L, n } = acState(), tab = AC.tab, left = n.todo;
+  const th = f => `<span class="ac-th">${f ? thImg(f, 200) : ''}</span>`;
+  const item = x => { const wt = esc(nol(x.no) + '　' + (x.w['作品名'] || '作品名なし')), why = acWhy(x.why);
+    if (x.st === 'auto') return `<div class="ac-i"><div class="ac-ph">${th(x.p && x.p['ファイルID'])}<i>→</i>${th(x.c['ファイルID'])}</div><div class="ac-tx"><b>${wt}</b>${why.t ? `<small>${esc(why.t)}</small>` : ''}<div class="ac-bt"><button type="button" data-ac="open:${esc(x.no)}">補正画面で直す</button><button type="button" data-ac="undo:${esc(x.no)}">元にもどす</button></div></div></div>`;
+    if (x.st === 'review') return `<div class="ac-i"><div class="ac-ph">${th(x.p['ファイルID'])}</div><div class="ac-tx"><b>${wt}</b><small class="ac-why">${esc(why.t || '確認が必要です')}</small><div class="ac-bt"><button type="button" data-ac="open:${esc(x.no)}">補正画面で開く</button></div></div></div>`;
+    return `<div class="ac-i"><div class="ac-ph">${th(x.p['ファイルID'])}</div><div class="ac-tx"><b>${wt}</b></div></div>`; };
+  const list = L.filter(x => x.st === tab);
+  el.innerHTML = `<div class="qc-w fdb-w ac-w"><div class="qc-top"><button type="button" class="qc-x" data-ac="end" aria-label="閉じる">${QCSVG.x}</button><b class="fdb-h">写真の自動補正（管理者）</b></div>
+    <p class="qc-hint">家で撮ったメイン写真を1枚ずつ、自動で切り抜き・補正します。自信のあるものだけ保存し、ほかは「確認が必要」に残します。色は、カラーチップが写っている写真だけ合わせます。台帳のサイズは変えません。元の写真は「記録写真」として残ります。</p>
+    <div id="acProg">${acProgHTML()}</div>${AC.msg && !AC.run ? `<p class="ac-msg">${esc(AC.msg)}</p>` : ''}
+    <div class="ac-go">${AC.run ? `<button type="button" class="hg-go ac-stop" data-ac="stop" ${AC.stop ? 'disabled' : ''}>${AC.stop ? '止めています…' : '止める'}</button>`
+      : left ? `<button type="button" class="hg-go" data-ac="go:10">${Math.min(10, left)}枚だけ補正する</button>${left > 10 ? `<button type="button" class="hg-link" data-ac="go:0">のこり${left}枚を続けて補正する（およそ${acEta(left * acSec())}）</button>` : ''}` : '<p class="hg-note">まだの写真はありません</p>'}</div>
+    <p class="hg-note">補正のあいだは、このページを開いたままにしてください（パソコンのブラウザがおすすめ）。止めたり閉じたりしても、次は続きから始めます。AI の1日の上限に当たったら止まります。</p>
+    <div class="ac-tabs">${[['review', '確認が必要', n.review], ['auto', '自動で保存した', n.auto], ['todo', 'まだ', n.todo]].map(([k, t, c]) => `<button type="button" data-ac="tab:${k}" class="${tab === k ? 'on' : ''}">${t}<b>${c}</b></button>`).join('')}</div>
+    ${tab === 'auto' && list.length ? '<p class="hg-note">左が元の写真、右が補正した写真です。気になるものだけ直すか、元にもどしてください。</p>' : ''}
+    <div class="ac-l">${list.length ? list.map(item).join('') : '<p class="hg-note">ありません</p>'}</div>
+    ${n.manual ? `<p class="hg-note">手で補正ずみの作品：${n.manual}点（ここでは触りません）</p>` : ''}</div>`;
+  hydrate(el); el.scrollTop = y; }
+function acStep(t){ AC.step = t; const b = $('#acProg'); if (b) b.innerHTML = acProgHTML(); }
+function acOpen(){ if (!(S.user && S.user.role === '管理')) return; closeSheet(); closeAllPages(); AC.open = true;
+  let el = $('#acb'); if (!el) { el = document.createElement('div'); el.id = 'acb'; el.className = 'qc hm2 fdb'; document.body.appendChild(el);
+    el.addEventListener('click', e => { const t = e.target.closest('[data-ac]'); if (!t || !AC.open) return; const i = t.dataset.ac.indexOf(':'), a = i < 0 ? t.dataset.ac : t.dataset.ac.slice(0, i), v = i < 0 ? '' : t.dataset.ac.slice(i + 1);
+      if (a === 'end') return acEnd(); if (a === 'stop') { AC.stop = true; return acDraw(); } if (a === 'go') return acRun(+v);
+      if (a === 'tab') { AC.tab = v; el.scrollTop = 0; return acDraw(); }
+      const x = acState().L.find(q => q.no === v); if (!x) return;
+      if (a === 'open') { S.cur = x.no; return openCrop(x.c || x.p); }
+      if (a === 'undo') return acUndo(x); }); }
+  el.classList.remove('hidden'); el.scrollTop = 0; qcLock(true); acDraw(); hpushLater('a'); }
+function acEnd(fromHist){ const was = AC.open, el = $('#acb'); AC.open = false; if (el) { el.classList.add('hidden'); el.innerHTML = ''; } qcLock(false); if (was && !fromHist) hback(); if (S.view === 'home') renderHome(); }
+/* 画面を消さない（パソコンが眠ると止まるため）。使えないブラウザでは何もしない */
+async function acWake(on){ try { if (on && navigator.wakeLock && document.visibilityState === 'visible' && !AC.wl) AC.wl = await navigator.wakeLock.request('screen'); else if (!on && AC.wl) { const w = AC.wl; AC.wl = null; await w.release(); } } catch(e){} }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && AC.run) { AC.wl = null; acWake(true); } });
+/* 通信の失敗（Google 側の一時的な 404 など）は、少し待ってやり直す */
+async function acRetry(fn, n){ n = n || 3; for (let t = 1; ; t++) { try { return await fn(); } catch(e){ if (!(e && e.net) || t >= n) throw e; await new Promise(r => setTimeout(r, 2000 * t)); } } }
+function acRowSet(r){ S.autoc = (S.autoc || []).filter(x => x[0] !== r[0]); S.autoc.push(r); }
+async function acMark(it, why){ await acRetry(() => call('autoCropMark', [{ pid: it.p['写真ID'], no: it.no, res: '確認', why }])); acRowSet([it.p['写真ID'], it.no, '確認', why, '', '', (S.user || {}).name || '']); }
+/* 1600px の写真と AI の結果を用意する（次の1枚の分は、いまの1枚を保存しているあいだに先に用意する） */
+function acPrep(it){ return it.prep || (it.prep = (async () => { const fid = it.p['ファイルID'];
+  const thP = (async () => { const th = TH['1600_' + fid] || (await acRetry(() => call('getThumbs', [fid], 1600)))[fid]; return th ? loadImg(th) : null; })();
+  const aiP = acAi(fid).catch(e => ({ __e: e }));
+  const [img, ai] = await Promise.all([thP, aiP]);
+  if (ai && ai.__e) throw ai.__e; if (!img) throw new Error('写真を読み込めませんでした');
+  return { img, ai }; })()); }
+/* AI が混み合っているときは、少し長く待ってやり直す */
+async function acAi(fid){ for (let t = 1; ; t++) { try { return await acRetry(() => call('detectCrop', fid)); } catch(e){ const m = String(e && e.message || e); if (t >= 4 || !/混み合って|AIの返事がありません|AIの返事を読めません/.test(m)) throw e; await new Promise(z => setTimeout(z, 15000 * t)); } } }
+const acPtOk = a => Array.isArray(a) && a.length === 4 && a.every(p => Array.isArray(p) && p.length === 2 && p.every(v => isFinite(v) && v >= -0.01 && v <= 1.01));
+/* 角・境目・色・形を計算する（CR を一時的に差しかえる） */
+function acCalc(img, ai, led){ const c = { img, n: 1, top: null, bot: null, v: 0, bri: 0, led, ratio: led ? 'led' : 'auto', cht: null, col: false, T: null, cmode: '', cbri: 0, pv: null }, prev = CR; CR = c;
+  try { crSetN(1, { top: [ai.art[0], ai.art[1]], bot: [ai.art[3], ai.art[2]] });
+    const Q = crQuad(c.top, c.bot, 0), ar = Math.abs(Q.reduce((s, p, i) => { const q = Q[(i + 1) % 4]; return s + p[0] * q[1] - q[0] * p[1]; }, 0)) / 2;
+    const snap = crSnap();
+    if (acPtOk(ai.chart)) { c.cht = ai.chart.map(q => q.slice()); crColorCalc(); }
+    const T = c.cmode === 'full' || c.cmode === 'wb' ? c.T : null; c.col = !!T; if (!T) c.T = null;
+    return { c, snap, small: ar < .1, T, cbri: T ? (c.cbri || 0) : 0, a: crAutoNow() };
+  } finally { CR = prev; } }
+/* 補正した写真を作る（cropSave と同じ作り方：9MP まで読み、長い辺3200px・8MP まで、JPEG 0.92） */
+function acBuild(c, im){ const prev = CR; CR = c;
+  try { const iw = im.naturalWidth, ih = im.naturalHeight, k = Math.min(1, Math.sqrt(9e6 / (iw * ih)));
+    const sc = document.createElement('canvas'); sc.width = Math.round(iw * k); sc.height = Math.round(ih * k); const sg = sc.getContext('2d'); sg.drawImage(im, 0, 0, sc.width, sc.height);
+    const src = sg.getImageData(0, 0, sc.width, sc.height); sc.width = sc.height = 1;
+    const r = crRatio(), [W, H] = crSize(c.top, c.bot, src.width, src.height, r, 3200, 8e6);
+    const oc = document.createElement('canvas'); oc.width = W; oc.height = H; const out = crWarp(src.data, src.width, src.height, c.top, c.bot, 0, W, H); crTone(out.data, crUseT()); oc.getContext('2d').putImageData(out, 0, 0);
+    const b64 = oc.toDataURL('image/jpeg', 0.92).split(',')[1]; oc.width = oc.height = 1; return b64;
+  } finally { CR = prev; } }
+async function acOne(it){ const p = it.p, no = it.no, fid = p['ファイルID'], w = workOf(no) || it.w, hh = parseFloat(w['高さcm']), ww = parseFloat(w['幅cm']), led = hh > 0 && ww > 0 ? { h: hh, w: ww } : null;
+  acStep('AI で角とカラーチップを探しています');
+  const { img, ai } = await acPrep(it); it.prep = null;
+  if (!ai || !acPtOk(ai.art)) return acMark(it, 'art：AI が絵の角を見つけられませんでした');
+  if (ai.conf === 'low') return acMark(it, 'low：AI が角の位置に自信がありません');
+  const r = acCalc(img, ai, led);
+  if (r.small) return acMark(it, 'small：絵が小さく写っているか、角の位置があやしい');
+  if (!r.snap) return acMark(it, 'snap：額と絵の境目がはっきりしません（角を手で確かめてください）');
+  if (r.c.cht && !r.T) return acMark(it, 'chip：カラーチップが写っていますが、色を読めませんでした');
+  if (r.T && Math.abs(r.cbri) > 80) return acMark(it, 'bri：カラーチップで明るさが大きく変わります（' + (r.cbri > 0 ? '+' : '') + r.cbri + '%）');
+  if (led && Math.abs(Math.log(led.w / led.h / r.a)) > Math.log(1.15)) return acMark(it, 'shape：写真の絵の形（' + acFmt(r.a) + '）が、台帳（高さ ' + led.h + ' × 幅 ' + led.w + ' cm）と合いません');
+  acStep('元の写真を読み込んでいます');
+  let full = null;
+  try { const o = await acRetry(() => call('getOriginal', fid)); if (o && o.b64) full = await loadImg('data:' + o.mime + ';base64,' + o.b64); } catch(e){ if (isLoginErr(e)) throw e; }
+  if (!full) { try { const t = (await acRetry(() => call('getThumbs', [fid], 3200)))[fid]; if (t) full = await loadImg(t); } catch(e){ if (isLoginErr(e)) throw e; } }
+  acStep('補正した写真を作っています'); await new Promise(z => setTimeout(z, 30));
+  const b64 = acBuild(r.c, full || img); full = null;
+  const kind = p['種類'] && p['種類'] !== '記録写真' ? p['種類'] : '表', d = new Date(), day = d.getFullYear() + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + String(d.getDate()).padStart(2, '0');
+  const why = [r.T ? (r.c.cmode === 'full' ? '色：カラーチップで合わせました' : '色：カラーチップの白と黒で合わせました') + (r.cbri ? '（明るさ ' + (r.cbri > 0 ? '+' : '') + r.cbri + '%）' : '') : '色：カラーチップなし（色はそのまま）', led ? '' : '台帳にサイズがないので、形は写真から計算'].filter(Boolean).join('・');
+  const memo = (/^【仮】/.test(p['メモ'] || '') ? '【仮】' : '') + '補正：元の写真 ' + p['写真ID'] + '｜四隅 ' + crPts(crQuad(r.c.top, r.c.bot, 0)) + '｜ふくらみ 0｜明るさ 0%｜比率 ' + (led ? '台帳' : '写真') + '｜色 ' + (r.T ? 'チップ ' + crPts(r.c.cht) : 'なし') + '｜元の種類 ' + kind + '｜自動 ' + day;
+  acStep('保存しています');
+  const res = await acRetry(() => call('saveAutoCrop', no, p['写真ID'], b64, 'image/jpeg', kind, memo, true, why), 4);
+  const pid = res && res.pid; if (!pid) throw new Error('保存の結果がわかりません');
+  S.photos.forEach(x => { if (x['作品番号'] !== no) return; if (x['写真ID'] === p['写真ID']) x['種類'] = '記録写真'; x['メイン'] = x['写真ID'] === pid ? 'メイン' : ''; });
+  if (!S.photos.some(x => x['写真ID'] === pid)) S.photos.push({ '写真ID': pid, '作品番号': no, '種類': kind, 'ファイルID': res.fid, 'メモ': res.memo || memo, '登録者': (S.user || {}).name || '', '登録日時': '', '向き判定': '', 'メイン': 'メイン' });
+  index(); acRowSet([p['写真ID'], no, '保存', why, pid, '', (S.user || {}).name || '']); }
+async function acRun(limit){ if (AC.run) return; const Q = acState().L.filter(x => x.st === 'todo').slice(0, limit || 1e9); if (!Q.length) return toast('補正する写真はもうありません');
+  Object.assign(AC, { run: true, stop: false, n: 0, N: Q.length, t0: Date.now(), msg: '', cur: null, step: '' }); acWake(true); acDraw(); let errs = 0;
+  try { for (let i = 0; i < Q.length && !AC.stop; i++) { const it = Q[i]; AC.cur = it; AC.step = ''; acDraw();
+      if (Q[i + 1]) acPrep(Q[i + 1]).catch(() => {});
+      try { await acOne(it); errs = 0; }
+      catch(e){ const m = String(e && e.message || e);
+        if (isLoginErr(e)) { AC.msg = 'ログインの有効期限が切れました。もう一度ログインして、続きから始めてください'; break; }
+        if (/上限/.test(m)) { AC.msg = '今日の AI の上限に達しました。明日、続きから始めてください'; break; }
+        if (/この操作はできません/.test(m)) { AC.msg = 'まだ Google 側の更新が済んでいません'; break; }
+        errs++; try { await acMark(it, 'err：うまくいきませんでした（' + m.replace(/\s+/g, ' ').slice(0, 120) + '）'); } catch(x){}
+        if (errs >= 3) { AC.msg = 'うまくいかない写真が続いたので止めました：' + m.slice(0, 120); AC.n++; break; } }
+      AC.n++; } }
+  finally { const done = AC.n; AC.run = false; AC.cur = null; AC.step = ''; acWake(false); Q.forEach(x => { x.prep = null; }); if (!AC.msg) AC.msg = done + '枚を処理しました' + (AC.stop ? '（止めました）' : ''); acDraw(); if (!AC.open && S.view === 'home') renderHome(); } }
+/* 自動補正をやめて元にもどす（1枚ずつ。補正した写真はアーカイブへ。アーカイブからいつでも戻せる） */
+async function acUndo(x){ if (!x.c || !x.p || AC.busy) return; if (!confirm(nol(x.no) + ' の自動補正をやめて、元の写真にもどしますか？\n（補正した写真はアーカイブへ移します）')) return;
+  AC.busy = true; busy(true, '元の写真にもどしています…');
+  try { const cid = x.c['写真ID'], oid = x.p['写真ID'], k0 = (crInfo(x.c) || {}).kind || '表', wasMain = ((photoBy[x.no] || [])[0] || {})['写真ID'] === cid;
+    const d1 = await crCall('archiveItem', ['p', cid, '自動補正をやめて元の写真にもどした'], () => !crPh(cid)['写真ID']); if (d1) setData(d1);
+    const d2 = await crCall('replacePhoto', [oid, '', '', k0, null], () => crPh(oid)['種類'] === k0); if (d2) setData(d2);
+    if (wasMain) { await crCall('setMainPhoto', [oid], () => !!crPh(oid)['メイン']); S.photos.forEach(q => { if (q['作品番号'] === x.no) q['メイン'] = q['写真ID'] === oid ? 'メイン' : ''; }); index(); }
+    toast('元の写真にもどしました');
+  } catch(e){ alert('もどせませんでした。\n' + (e.message || e)); refreshData().catch(() => {}); }
+  finally { busy(false); AC.busy = false; acDraw(); } }
 $('#vprev').onclick = () => { V.i--; showV(); };
 $('#vnext').onclick = () => { V.i++; showV(); };
 
@@ -6734,6 +6887,7 @@ function hpushLater(tag){ let n = 0; const go = () => { if (HIST.skip > 0 && n++
 function closeTop(){
   if (!$('#confirm').classList.contains('hidden')) return closeConfirm(true), true;
   if ($('#crop')) { cropClose(true); return true; } /* 写真の切り抜き・補正 */
+  if (AC.open) { acEnd(true); return true; } /* 写真の自動補正の一覧 */
   { const lb = $('#qclb'); if (lb) { lb.remove(); if (QC || FDB) hpush(QC ? 'q' : 'f'); return true; } } /* 写真の拡大だけ閉じて、カードの分の履歴を積み直す */
   if (QC) { qcEnd(true); return true; }
   if (FDB) { fdbEnd(true); return true; }
