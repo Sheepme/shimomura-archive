@@ -2192,6 +2192,13 @@ button.ulrow{cursor:pointer}
 .cr-stage{overflow:hidden}
 .cr-visb{flex:none;width:44px;height:40px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:transparent;color:#faf9f5;font-size:19px;cursor:pointer;padding:0}.cr-visb.on{background:#FFC800;border-color:#FFC800;color:#1c1c1b}.cr-visb.hidden{display:none}
 .cr-seg button:disabled{opacity:.35}
+/* 白の基準（スポイト）とチップ・白の強さ（10/6 開発 v7） */
+.cr-wpb{flex:none;height:40px;padding:0 8px 0 6px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:transparent;color:#faf9f5;font:inherit;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:3px;white-space:nowrap}
+.cr-wpb svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.cr-wpb.set{border-color:rgba(255,255,255,.62)}.cr-wpb.on{background:#faf9f5;border-color:#faf9f5;color:#1c1c1b}
+.cr-sl2.one{grid-template-columns:1fr}
+#crop.crpick .cr-stage{cursor:crosshair}#crop .cr-hint.cr-pk{color:#fff;font-weight:700}
+@media not all and (min-width:900px) and (min-aspect-ratio:5/4){#crop.crpick .cr-more,#crop.crpick .cr-nudge{display:none!important}}
+.cr-wpm{position:absolute;z-index:3;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1.5px rgba(0,0,0,.8),inset 0 0 0 1.5px rgba(0,0,0,.8);pointer-events:none}
 .cr-ask{position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:6;max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:18px;background:#2f2f2d;border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 40px rgba(0,0,0,.6);max-height:80vh;overflow:auto}
 .cr-ask>b{font-size:16px;color:#FFC800}.cr-ask>p{margin:0 0 4px;font-size:14px;line-height:1.6;color:rgba(250,249,245,.85)}
 .cr-ask button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;min-height:44px;padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.22);background:#3a3a38;color:#faf9f5;font:inherit;font-size:15px;font-weight:600;text-align:left;cursor:pointer}
@@ -2266,7 +2273,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '1881e21c24', APP_URL = location.origin + location.pathname;
+const BUILD = '94fb8172b1', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6482,7 +6489,9 @@ function crInfo(p){ const m = /補正：元の写真 ([^｜\s]+)((?:｜[^｜]*)*
   else return null;
   let cht = null; if (/^チップ /.test(f['色'] || '')) { cht = pts(f['色'].slice(4)); if (cht.length !== 4 || !ok(cht)) cht = null; }
   const col = !!cht; if (!cht && f['チップ位置']) { const q = pts(f['チップ位置']); if (q.length === 4 && ok(q)) cht = q; } /* 自動補正（トリミングだけ）で見つけたチップの場所 */
-  return { orig: m[1], n, top, bot, v: +f['ふくらみ'] || 0, bri: Math.max(-40, Math.min(40, +String(f['明るさ'] || '0').replace('%', '') || 0)), ratio: f['比率'] === '写真' ? 'auto' : 'led', kind: f['元の種類'] || '表', cht, col }; }
+  const cs = parseFloat(f['色の強さ']), wm = /^([\d.]+),([\d.]+)(?:\s+([\d.]+)%)?$/.exec(f['白'] || ''), wp = wm ? [+wm[1], +wm[2]] : null; /* チップの強さ・白の基準（10/6 開発 v7） */
+  return { orig: m[1], n, top, bot, v: +f['ふくらみ'] || 0, bri: Math.max(-40, Math.min(40, +String(f['明るさ'] || '0').replace('%', '') || 0)), ratio: f['比率'] === '写真' ? 'auto' : 'led', kind: f['元の種類'] || '表', cht, col,
+    cs: isFinite(cs) ? Math.max(0, Math.min(100, cs)) : 100, wp: wp && wp.every(x => x >= 0 && x <= 1) ? wp : null, ws: wm && wm[3] != null ? Math.max(0, Math.min(100, +wm[3])) : 100 }; }
 /* 開いた写真から、元の写真（記録写真）と補正した写真を探す */
 function crTargets(p){
   const ci = crInfo(p), o = ci && S.photos.find(x => x['写真ID'] === ci.orig);
@@ -6610,7 +6619,40 @@ function crTone(d, T){ if (!T) return;
     const R = T[0] * r + T[1] * g + T[2] * b + T[3], G = T[4] * r + T[5] * g + T[6] * b + T[7], B = T[8] * r + T[9] * g + T[10] * b + T[11];
     d[i] = CR_GAM[R <= 0 ? 0 : R >= 1 ? 4096 : (R * 4096) | 0]; d[i + 1] = CR_GAM[G <= 0 ? 0 : G >= 1 ? 4096 : (G * 4096) | 0]; d[i + 2] = CR_GAM[B <= 0 ? 0 : B >= 1 ? 4096 : (B * 4096) | 0]; } }
 /* かける変換表：チップで合わせた表（12個：3行 ×［赤・緑・青・ずれ］）に、つまみ「明るさ」（±%）をかける */
-const crUseT = () => { if (!CR) return null; const k = 1 + (CR.bri || 0) / 100, T = CR.col && CR.T ? CR.T : (k !== 1 ? [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0] : null); return T ? T.map(x => x * k) : null; };
+/* かける変換表（10/6 開発 v7）：チップで合わせた表を「チップの強さ」の分だけ元の色と混ぜる → 白の基準（指定したところが色のない灰色になるように、色ごとに強める・弱める。「白の強さ」の分だけ）→ つまみ「明るさ」 */
+const CR_I = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0], crPct = v => Math.max(0, Math.min(1, (v == null || !isFinite(v) ? 100 : +v) / 100));
+const crCsLast = () => { try { const v = localStorage.getItem('smr_crcs'); if (v !== null && +v >= 0 && +v <= 100) return +v; } catch(e){} return 100; }; /* チップの強さは、前に使った値から始める */
+const crUseT = () => { if (!CR) return null; const k = 1 + (CR.bri || 0) / 100, cs = crPct(CR.cs);
+  let T = CR.col && CR.T && cs > 0 ? CR.T.map((x, i) => CR_I[i] + (x - CR_I[i]) * cs) : null;
+  const g = crWpGain(T); if (g) T = (T || CR_I).map((x, i) => x * g[i >> 2]);
+  return T || k !== 1 ? (T || CR_I).map(x => x * k) : null; };
+/* 白の基準のところの色（リニア。まわりの小さな四角の中央の値） */
+function crWpRead(){ if (!CR || !CR.wp || !CR.img) return null; const s = crPvSrc(), cx = Math.round(CR.wp[0] * s.w - .5), cy = Math.round(CR.wp[1] * s.h - .5), r = Math.max(2, Math.round(Math.max(s.w, s.h) * .005)), S = [[], [], []];
+  for (let y = cy - r; y <= cy + r; y++) for (let x = cx - r; x <= cx + r; x++) { if (x < 0 || y < 0 || x >= s.w || y >= s.h) continue; const p = (y * s.w + x) * 4; for (let c = 0; c < 3; c++) S[c].push(CR_LIN[s.d[p + c]]); }
+  if (!S[0].length) return null; return S.map(a => { a.sort((x, y) => x - y); return a[a.length >> 1]; }); }
+/* 白の基準：チップの表をかけたあとの色が、同じ明るさの灰色になるように色ごとの倍率を出す（明るさは変えない） */
+function crWpGain(T){ const v = crWpRead(); if (!v) return null;
+  const a = T ? [0, 1, 2].map(c => T[c * 4] * v[0] + T[c * 4 + 1] * v[1] + T[c * 4 + 2] * v[2] + T[c * 4 + 3]) : v, Y = .2126 * a[0] + .7152 * a[1] + .0722 * a[2]; if (!(Y > .003)) return null;
+  const s = crPct(CR.ws); return a.map(x => Math.pow(Math.min(4, Math.max(.25, Y / Math.max(1e-4, x))), s)); }
+/* 仕上がりの位置（0〜1）→ 元の写真の位置（0〜1）。crWarp と同じ計算 */
+function crOut2Src(u0, v0){ const s = crPvSrc(), sw = s.w, sh = s.h, k = crK(), cam = crCam(sw, sh, k), n = CR.top.length - 1, U = a => a.map(([x, y]) => crU(x * sw, y * sh, cam));
+  const pi = Math.min(n - 1, Math.max(0, Math.floor(u0 * n))), u = u0 * n - pi, M = crSq(crQuad(U(CR.top), U(CR.bot), pi)), z = M.g * u + M.h * v0 + 1, kk = k / cam.R2;
+  let X = (M.a * u + M.b * v0 + M.c) / z, Y = (M.d * u + M.e * v0 + M.f) / z;
+  if (kk) { const dx = X - cam.cx, dy = Y - cam.cy, f = 1 + kk * (dx * dx + dy * dy); X = cam.cx + dx * f; Y = cam.cy + dy * f; }
+  return [Math.min(1, Math.max(0, X / sw)), Math.min(1, Math.max(0, Y / sh))]; }
+/* 元の写真の位置 → 仕上がりの位置（印を出すため。切り抜きの外なら null） */
+function crSrc2Out(p){ const s = crPvSrc(), sw = s.w, sh = s.h, cam = crCam(sw, sh, crK()), n = CR.top.length - 1, U = a => a.map(([x, y]) => crU(x * sw, y * sh, cam)), T = U(CR.top), B = U(CR.bot), [X, Y] = crU(p[0] * sw, p[1] * sh, cam);
+  for (let pi = 0; pi < n; pi++) { const M = crSq(crQuad(T, B, pi)), I = crInv3([M.a, M.b, M.c, M.d, M.e, M.f, M.g, M.h, 1]); if (!I) continue;
+    const z = I[6] * X + I[7] * Y + I[8], u = (I[0] * X + I[1] * Y + I[2]) / z, v = (I[3] * X + I[4] * Y + I[5]) / z;
+    if (u >= -.002 && u <= 1.002 && v >= -.002 && v <= 1.002) return [(pi + Math.min(1, Math.max(0, u))) / n, Math.min(1, Math.max(0, v))]; }
+  return null; }
+/* タップしたところ → 元の写真の位置（角を合わせる画面はそのまま、仕上がりの画面は元にもどして） */
+function crPickAt(e){ const el = $('#crop'), L = CR && CR.L; if (!el || !L) return null;
+  if (CR.mode === 'edit') { const r = el.querySelector('.cr-stage').getBoundingClientRect(), x = (e.clientX - r.left - L.ox) / L.w, y = (e.clientY - r.top - L.oy) / L.h; return x >= 0 && x <= 1 && y >= 0 && y <= 1 ? [x, y] : null; }
+  const r = el.querySelector('.cr-pv').getBoundingClientRect(), u = (e.clientX - r.left) / r.width, v = (e.clientY - r.top) / r.height; return r.width > 0 && u >= 0 && u <= 1 && v >= 0 && v <= 1 ? crOut2Src(u, v) : null; }
+function crSetWp(p){ CR.wp = p; CR.wpick = false; CR.dirty = true; if (CR.mode === 'edit') { CR.mode = 'pv'; CR.pin = null; crLoupeOff(); }
+  crUI(); crLayout(); crNote(); const v = crWpRead();
+  toast(v && Math.max(...v) > .93 ? '指定したところは白飛びしています。少し暗めの白・灰色のところを選ぶと正確です' : '白の基準を決めました。効きすぎるときは「白の強さ」で弱めてください'); }
 /* 額と絵の境目に合わせる：AI の四辺のまわりで、明るさがはっきり切りかわる直線を探す（辺を半分ずつ調べて、少しの傾きも合わせる）。
    見つかった境目から内側へ 1.5 画素だけ寄せる（決まった幅では寄せない）。大きく動きすぎたら AI の位置のまま */
 function crSnap(){ if (!CR || !CR.img || CR.n !== 1) return false; const s = crPvSrc(), W = s.w, H = s.h, Y = new Float32Array(W * H);
@@ -6657,27 +6699,32 @@ async function openCrop(p){
   const kind = t.info ? t.info.kind : (t.orig['種類'] && t.orig['種類'] !== '記録写真' ? t.orig['種類'] : '表');
   CR = { no: S.cur, orig: t.orig, corr: t.corr, kind, led: hh > 0 && ww > 0 ? { h: hh, w: ww } : null, n: 1, top: null, bot: null,
     v: t.info ? t.info.v : 0, bri: t.info ? t.info.bri : 0, ratio: t.info ? t.info.ratio : (/^(表|裏)$/.test(kind) ? 'led' : 'auto'), mode: 'edit', img: null, full: null, drag: null, sel: { a: 'top', i: 0 }, dirty: false, saving: false,
-    cht: t.info && t.info.cht ? t.info.cht.map(a => a.slice()) : null, col: !!(t.info && t.info.col), T: null, cmode: '', ai: false };
+    cht: t.info && t.info.cht ? t.info.cht.map(a => a.slice()) : null, col: !!(t.info && t.info.col), T: null, cmode: '', ai: false,
+    cs: t.info && t.info.col ? t.info.cs : crCsLast(), wp: t.info && t.info.wp ? t.info.wp.slice() : null, ws: t.info && t.info.wp ? t.info.ws : 100, wpick: false };
   if (t.info) { CR.n = t.info.n; CR.top = t.info.top.map(a => a.slice()); CR.bot = t.info.bot.map(a => a.slice()); } else crSetN(1, CR_P0);
   if (!CR.led) CR.ratio = 'auto';
   if (!CR_NS.some(x => x[0] === CR.n)) CR_NS.push([CR.n, CR.n + '曲']);
   const el = document.createElement('div'); el.id = 'crop'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', '切り抜き・補正');
   el.innerHTML = `<div class="cr-top"><button type="button" class="cr-x">やめる</button><b>切り抜き・補正</b><button type="button" class="cr-save" disabled>保存</button></div>
     <p class="cr-hint"></p>
-    <div class="cr-stage"><canvas class="cr-img"></canvas><canvas class="cr-pv hidden"></canvas><div class="cr-grid hidden"></div><svg class="cr-svg" xmlns="http://www.w3.org/2000/svg"></svg><div class="cr-loupe hidden"><canvas></canvas></div><button type="button" class="cr-z1 hidden">全体を見る</button><div class="cr-ld"><span class="ldspin"></span>写真を読み込んでいます…</div></div>
+    <div class="cr-stage"><canvas class="cr-img"></canvas><canvas class="cr-pv hidden"></canvas><div class="cr-grid hidden"></div><svg class="cr-svg" xmlns="http://www.w3.org/2000/svg"></svg><div class="cr-loupe hidden"><canvas></canvas></div><div class="cr-wpm hidden"></div><button type="button" class="cr-z1 hidden">全体を見る</button><div class="cr-ld"><span class="ldspin"></span>写真を読み込んでいます…</div></div>
     <div class="cr-bot">
-      <div class="cr-segrow"><div class="cr-seg"><button type="button" data-crm="edit" class="on">角を合わせる</button><button type="button" data-crm="pv">仕上がりを見る</button></div><button type="button" class="cr-visb" aria-pressed="false" aria-label="見やすく（画面だけ明るく）" title="見やすく（画面だけ明るく。保存する写真は変わりません）">☀</button><button type="button" class="cr-morebtn" aria-expanded="false">設定<i aria-hidden="true">▾</i></button></div>
+      <div class="cr-segrow"><div class="cr-seg"><button type="button" data-crm="edit" class="on">角を合わせる</button><button type="button" data-crm="pv">仕上がりを見る</button></div><button type="button" class="cr-visb" aria-pressed="false" aria-label="見やすく（画面だけ明るく）" title="見やすく（画面だけ明るく。保存する写真は変わりません）">☀</button><button type="button" class="cr-wpb" aria-pressed="false" aria-label="白いところを指定して色かぶりを取る" title="白いところを指定して、色かぶりを取る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.6 4.4a2.2 2.2 0 0 0-3.1 0l-2.6 2.6-1-1-1.4 1.4 5.1 5.1 1.4-1.4-1-1 2.6-2.6a2.2 2.2 0 0 0 0-3.1z"/><path d="M12.6 8.8L5.2 16.2 4.5 19.5l3.3-.7 7.4-7.4"/></svg>白</button><button type="button" class="cr-morebtn" aria-expanded="false">設定<i aria-hidden="true">▾</i></button></div>
       <div class="cr-nudge"><span class="cr-nsel"></span><div class="cr-pad"><button type="button" data-crd="-1,0" aria-label="左へ">←</button><button type="button" data-crd="0,-1" aria-label="上へ">↑</button><button type="button" data-crd="0,1" aria-label="下へ">↓</button><button type="button" data-crd="1,0" aria-label="右へ">→</button></div><button type="button" class="cr-nnext" data-crnext>次の丸</button></div>
       <div class="cr-sl2">
       <label class="cr-row cr-half"><span>明るさ</span><input type="range" min="-40" max="40" step="1" value="${CR.bri}" id="crB"><output id="crBv">${CR.bri > 0 ? '+' : ''}${CR.bri}%</output></label>
       <label class="cr-row cr-half"><span>ふくらみ</span><input type="range" min="-15" max="15" step="0.5" value="${CR.v}" id="crK"><output id="crKv">${CR.v > 0 ? '+' : ''}${CR.v}</output></label>
+      </div>
+      <div class="cr-sl2 cr-sl2c hidden">
+      <label class="cr-row cr-half cr-chs hidden"><span>チップの強さ</span><input type="range" min="0" max="100" step="5" value="${CR.cs}" id="crCS"><output id="crCSv">${CR.cs}%</output></label>
+      <label class="cr-row cr-half cr-wss hidden"><span>白の強さ</span><input type="range" min="0" max="100" step="5" value="${CR.ws}" id="crWS"><output id="crWSv">${CR.ws}%</output></label>
       </div>
       <div class="cr-more">
       <div class="cr-row"><span>形</span><div class="cr-seg sm">${CR_NS.map(([n, lb]) => `<button type="button" data-crn="${n}">${lb}</button>`).join('')}</div></div>
       <div class="cr-row"><span>色</span><div class="cr-seg sm"><button type="button" data-crc="1">チップで合わせる</button><button type="button" data-crc="0">合わせない</button></div></div>
       <div class="cr-row"><span>縦横の比率</span><div class="cr-seg sm">${CR.led ? `<button type="button" data-crr="led">台帳のサイズ</button>` : ''}<button type="button" data-crr="auto">写真から計算</button></div></div>
       <p class="cr-note"></p>
-      <div class="cr-links"><button type="button" data-crai>✨ 自動で探し直す</button><button type="button" data-crreset>角を最初の位置にもどす</button><button type="button" data-crcht>カラーチップの位置を指定</button>${CR.corr ? '<button type="button" data-crundo>補正をやめて元の写真にもどす</button>' : ''}</div>
+      <div class="cr-links"><button type="button" data-crai>✨ 自動で探し直す</button><button type="button" data-crreset>角を最初の位置にもどす</button><button type="button" data-crcht>カラーチップの位置を指定</button><button type="button" data-crwpx class="hidden">白の指定をやめる</button>${CR.corr ? '<button type="button" data-crundo>補正をやめて元の写真にもどす</button>' : ''}</div>
       </div>
     </div>`;
   let more = false; try { more = localStorage.getItem('smr_crmore') === '1'; CR.vis = localStorage.getItem('smr_crvis') === '1'; } catch(e){} el.classList.toggle('crmore', more); /* .more はアプリの「もっと見る」のボタンと同じ名前になるので使わない（10/6） */
@@ -6696,6 +6743,10 @@ async function openCrop(p){
   el.querySelectorAll('[data-crr]').forEach(b => b.onclick = () => { CR.ratio = b.dataset.crr; CR.dirty = true; crUI(); crNote(); crPreview(); });
   el.querySelector('#crB').oninput = e => { CR.bri = +e.target.value; CR.dirty = true; $('#crBv').textContent = (CR.bri > 0 ? '+' : '') + CR.bri + '%'; crNote(); crPreview(); };
   el.querySelector('#crK').oninput = e => { CR.v = +e.target.value; CR.dirty = true; $('#crKv').textContent = (CR.v > 0 ? '+' : '') + CR.v; crDraw(); crNote(); crPreview(); };
+  el.querySelector('#crCS').oninput = e => { CR.cs = +e.target.value; CR.dirty = true; $('#crCSv').textContent = CR.cs + '%'; try { localStorage.setItem('smr_crcs', String(CR.cs)); } catch(x){} crNote(); crPreview(); };
+  el.querySelector('#crWS').oninput = e => { CR.ws = +e.target.value; CR.dirty = true; $('#crWSv').textContent = CR.ws + '%'; crNote(); crPreview(); };
+  el.querySelector('.cr-wpb').onclick = () => { CR.wpick = !CR.wpick; if (CR.wpick) { CR.pin = null; crLoupeOff(); } crUI(); crLayout(); };
+  el.querySelector('[data-crwpx]').onclick = () => { CR.wp = null; CR.wpick = false; CR.dirty = true; crUI(); crDraw(); crNote(); crPreview(); };
   el.querySelector('[data-crreset]').onclick = () => { if (CR.Z) CR.Z.s = 1; crSetN(CR.n, CR_P0); CR.v = 0; $('#crK').value = 0; $('#crKv').textContent = '0'; CR.dirty = true; crDraw(); crNote(); crPreview(); };
   if (el.querySelector('[data-crundo]')) el.querySelector('[data-crundo]').onclick = cropUndo;
   el.querySelectorAll('[data-crc]').forEach(b => b.onclick = () => { if (b.dataset.crc === '1' && !CR.cht) return; CR.col = b.dataset.crc === '1'; CR.dirty = true; crUI(); crDraw(); crNote(); crPreview(); });
@@ -6705,9 +6756,12 @@ async function openCrop(p){
   /* 2本指で拡大・縮小（つまむ・広げる）、拡大中は1本指で何もないところをなぞると動かす。何もないところを2回タップで全体にもどす（10/6 本人） */
   const PT = new Map(), pinchStart = () => { const [a, b] = [...PT.values()], m = [(a.x + b.x) / 2, (a.y + b.y) / 2], L = CR.L;
     CR.drag = null; CR.g = null; CR.pan = null; CR.pz = { d0: Math.hypot(a.x - b.x, a.y - b.y) || 1, s0: CR.Z.s, P: [(m[0] - L.ox) / L.w, (m[1] - L.oy) / L.h] }; if (!CR.pin) crLoupeOff(); crDraw(); };
-  st.addEventListener('pointerdown', e => { if (!CR || CR.mode !== 'edit' || !CR.L) return; if (e.target.closest && e.target.closest('.cr-z1')) return; const r = st.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  st.addEventListener('pointerdown', e => { if (!CR || !CR.L) return; if (e.target.closest && e.target.closest('.cr-z1')) return;
+    if (CR.wpick && CR.mode !== 'edit') { e.preventDefault(); const p = crPickAt(e); if (p) crSetWp(p); return; } /* 仕上がりの画面で白を指定 */
+    if (CR.mode !== 'edit') return; const r = st.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
     PT.set(e.pointerId, { x, y }); try { st.setPointerCapture(e.pointerId); } catch(x){}
-    if (PT.size >= 2) { e.preventDefault(); if (PT.size === 2) pinchStart(); return; }
+    if (PT.size >= 2) { e.preventDefault(); CR.pk = null; if (PT.size === 2) pinchStart(); return; }
+    if (CR.wpick) { e.preventDefault(); CR.pk = { id: e.pointerId, cx: e.clientX, cy: e.clientY }; if (CR.Z.s > 1) CR.pan = { id: e.pointerId, x, y, cx: CR.Z.cx, cy: CR.Z.cy }; return; } /* 白を指定：指を離したところ（拡大中はなぞると動かせる） */
     let best = null, bd = CR.n > 3 ? 40 : 56; ['top', 'bot'].concat(crChtOn() ? ['cht'] : []).forEach(a => CR[a].forEach(([qx, qy], i) => { const d = Math.hypot(CR.L.ox + qx * CR.L.w - x, CR.L.oy + qy * CR.L.h - y); if (d < bd) { bd = d; best = { a, i }; } }));
     if (!best) { if (CR.pin) { CR.pin = null; crLoupeOff(); }
       const now = Date.now(); if (CR.Z.s > 1 && now - (CR.tap0 || 0) < 320) { CR.tap0 = 0; CR.Z.s = 1; crView(); return; } CR.tap0 = now;
@@ -6723,8 +6777,9 @@ async function openCrop(p){
     if (!CR.g.live) { if (Math.hypot(x - CR.g.sx, y - CR.g.sy) < 6) return; CR.g.live = true; } crMove(x, y); });
   /* 丸をタップすると拡大鏡を出したままにする（もう一度タップで閉じる。10/6 本人）。出したまま動かしたら、その丸の拡大鏡のまま */
   const up = e => { if (e && e.pointerId != null) PT.delete(e.pointerId); if (!CR) return;
+    if (CR.pk && e && e.pointerId === CR.pk.id) { const k = CR.pk; CR.pk = null; if (!CR.pz && Math.hypot(e.clientX - k.cx, e.clientY - k.cy) < 8) { CR.pan = null; const p = crPickAt(e); if (p) return crSetWp(p); } }
     if (CR.pz) { if (PT.size < 2) CR.pz = null; return; } if (CR.pan) { if (!e || e.pointerId === CR.pan.id) CR.pan = null; return; }
-    if (!CR.drag) return; const d = CR.drag, g = CR.g, live = !!(g && g.live); if (d.a === 'cht' && live) { crColorCalc(); crPreview(); } CR.drag = null; CR.g = null;
+    if (!CR.drag) return; const d = CR.drag, g = CR.g, live = !!(g && g.live); if (d.a === 'cht' && live) { crColorCalc(); crUI(); crPreview(); } CR.drag = null; CR.g = null;
     if (!live) CR.pin = CR.pin && CR.pin.a === d.a && CR.pin.i === d.i ? null : d; else if (CR.pin) CR.pin = d;
     crDraw(); if (CR.pin) crNudgeLoupe(); else crLoupeOff(); if (live) crNote(); };
   st.addEventListener('pointerup', up); st.addEventListener('pointercancel', up);
@@ -6763,10 +6818,15 @@ function crUI(){ const el = $('#crop'); if (!el || !CR) return;
   const ed = CR.mode === 'edit';
   if (!crChtOn()) { if (CR.sel && CR.sel.a === 'cht') CR.sel = { a: 'top', i: 0 }; if (CR.pin && CR.pin.a === 'cht') { CR.pin = null; crLoupeOff(); } }
   el.querySelector('.cr-nudge').classList.toggle('hidden', !ed); crNudgeLab();
+  const wb = el.querySelector('.cr-wpb'); wb.classList.toggle('on', !!CR.wpick); wb.classList.toggle('set', !!CR.wp); wb.setAttribute('aria-pressed', CR.wpick ? 'true' : 'false'); wb.classList.toggle('hidden', ed && !CR.wpick); el.classList.toggle('crpick', !!CR.wpick); /* 「白」は仕上がりの画面だけ（角の画面は ☀ の場所。スマホの幅に収めるため） */
+  const chs = !!(CR.col && CR.cht && CR.T), wss = !!CR.wp, r2 = el.querySelector('.cr-sl2c'); el.querySelector('.cr-chs').classList.toggle('hidden', !chs); el.querySelector('.cr-wss').classList.toggle('hidden', !wss);
+  r2.classList.toggle('hidden', !chs && !wss); r2.classList.toggle('one', chs !== wss); el.querySelector('[data-crwpx]').classList.toggle('hidden', !CR.wp); if (ed || !CR.wp) el.querySelector('.cr-wpm').classList.add('hidden');
   const vb = el.querySelector('.cr-visb'); vb.classList.toggle('on', !!CR.vis); vb.setAttribute('aria-pressed', CR.vis ? 'true' : 'false'); vb.classList.toggle('hidden', !ed);
   const mb = el.querySelector('.cr-morebtn'), mo = el.classList.contains('crmore'); mb.setAttribute('aria-expanded', mo ? 'true' : 'false'); mb.classList.toggle('open', mo);
   ['.cr-img', '.cr-svg'].forEach(s => el.querySelector(s).classList.toggle('hidden', !ed)); ['.cr-pv', '.cr-grid'].forEach(s => el.querySelector(s).classList.toggle('hidden', ed));
-  el.querySelector('.cr-hint').textContent = CR.ai ? 'AI が、額の内側の四隅とカラーチップを探しています…（10〜30秒）'
+  el.querySelector('.cr-hint').classList.toggle('cr-pk', !!CR.wpick);
+  el.querySelector('.cr-hint').textContent = CR.wpick ? '白か、うすい灰色のはずのところ（紙の余白・カラーチップの白など）をタップしてください。そこが色のない白になるように、色かぶりを取ります'
+    : CR.ai ? 'AI が、額の内側の四隅とカラーチップを探しています…（10〜30秒）'
     : !ed && CR.aiDone ? '自動で補正しました。よければ「保存」。角がずれていたら「角を合わせる」で直してください'
     : !ed ? '仕上がりです。縁がふくらんで見えたら「ふくらみ」を＋に、へこんで見えたら−にします'
     : CR.n > 1 ? '屏風の両端の角と、折れ目ごとの上と下に丸を合わせてください。丸をタップで拡大鏡（もう一度で閉じる）'
@@ -6822,7 +6882,9 @@ function crDraw(){ const svg = $('#crop .cr-svg'); if (!svg || !CR || !CR.L || C
     + (CR.cht ? (() => { const P = CR.cht.map(([x, y]) => T(x, y)), d2 = 'M' + P.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L') + 'Z', [bx, by] = [(P[0][0] + P[3][0]) / 2, (P[0][1] + P[3][1]) / 2];
       if (!CR.col) return `<path d="${d2}" fill="none" stroke="rgba(255,140,40,.55)" stroke-width="1.2" stroke-dasharray="3 3"/>`; /* 色を合わせないときは、場所だけうすく */
       return `<path d="${d2}" fill="rgba(255,140,40,.12)" stroke="#FF8C28" stroke-width="2" stroke-dasharray="4 3"/><text x="${bx.toFixed(1)}" y="${(by - 8).toFixed(1)}" fill="#FF8C28" font-size="12" font-weight="700" text-anchor="middle">青</text>`
-        + P.map(([X, Y], i) => { const on = CR.drag && CR.drag.a === 'cht' && CR.drag.i === i, sel = !CR.drag && CR.sel && CR.sel.a === 'cht' && CR.sel.i === i; return `<circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="10" fill="rgba(255,140,40,${on || sel ? .55 : .25})" stroke="${sel ? '#FFD84D' : '#fff'}" stroke-width="${sel ? 3 : 2}"/>`; }).join(''); })() : ''); }
+        + P.map(([X, Y], i) => { const on = CR.drag && CR.drag.a === 'cht' && CR.drag.i === i, sel = !CR.drag && CR.sel && CR.sel.a === 'cht' && CR.sel.i === i; return `<circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="10" fill="rgba(255,140,40,${on || sel ? .55 : .25})" stroke="${sel ? '#FFD84D' : '#fff'}" stroke-width="${sel ? 3 : 2}"/>`; }).join(''); })() : '')
+    + (CR.wp ? (() => { const [X, Y] = T(CR.wp[0], CR.wp[1]), x = X.toFixed(1), y = Y.toFixed(1); /* 白の基準のところ */
+      return `<circle cx="${x}" cy="${y}" r="10" fill="none" stroke="rgba(0,0,0,.8)" stroke-width="4.5"/><circle cx="${x}" cy="${y}" r="10" fill="none" stroke="#fff" stroke-width="2"/><path d="M${x} ${(Y - 17).toFixed(1)}v6M${x} ${(Y + 11).toFixed(1)}v6M${(X - 17).toFixed(1)} ${y}h6M${(X + 11).toFixed(1)} ${y}h6" stroke="#fff" stroke-width="2"/>`; })() : ''); }
 /* 矢印のボタンで、選んでいる丸を1画素ずつ動かす（押したままだと続けて動く）。動かしているあいだは拡大鏡を出す（10/6 本人） */
 function crSelList(){ const L = []; CR.top.forEach((q, i) => L.push({ a: 'top', i })); for (let i = CR.bot.length - 1; i >= 0; i--) L.push({ a: 'bot', i }); /* 時計回り：左上 → 右上 → 右下 → 左下（10/6 本人） */
   if (crChtOn()) CR.cht.forEach((q, i) => L.push({ a: 'cht', i })); return L; }
@@ -6875,7 +6937,8 @@ function crPreview(){ if (!CR || CR.mode !== 'pv' || !CR.L || !CR.img) return; c
   const s = crPvSrc(), r = crRatio(), L = CR.L, dpr = Math.min(2, devicePixelRatio || 1); let W = L.sw, H = W / r; if (H > L.sh) { H = L.sh; W = H * r; }
   const pw = Math.max(1, Math.round(Math.min(W * dpr, 1000))), ph = Math.max(1, Math.round(pw / r)), c = $('#crop .cr-pv');
   const im = crWarp(s.d, s.w, s.h, CR.top, CR.bot, crK(), pw, ph); crTone(im.data, crUseT()); c.width = pw; c.height = ph; c.getContext('2d').putImageData(im, 0, 0);
-  const css = `left:${(L.sw - W) / 2}px;top:${(L.sh - H) / 2}px;width:${W}px;height:${H}px`; c.style.cssText = css; $('#crop .cr-grid').style.cssText = css; }); }
+  const css = `left:${(L.sw - W) / 2}px;top:${(L.sh - H) / 2}px;width:${W}px;height:${H}px`; c.style.cssText = css; $('#crop .cr-grid').style.cssText = css;
+  const m = $('#crop .cr-wpm'); if (m) { const o = CR.wp && crSrc2Out(CR.wp); m.classList.toggle('hidden', !o); if (o) m.style.cssText = `left:${(L.sw - W) / 2 + o[0] * W}px;top:${(L.sh - H) / 2 + o[1] * H}px`; } }); }
 function crNote(){ const n = $('#crop .cr-note'); if (!n || !CR || !CR.img) return;
   const a = crAutoNow(), fmt = r => r >= 1 ? '縦1：横' + r.toFixed(2) : '縦' + (1 / r).toFixed(2) + '：横1';
   let t = '写真から見た形 ' + fmt(a), warn = false;
@@ -6886,6 +6949,9 @@ function crNote(){ const n = $('#crop .cr-note'); if (!n || !CR || !CR.img) retu
   const bt = CR.cbri ? '（チップで明るさ ' + (CR.cbri > 0 ? '+' : '') + CR.cbri + '%）' : '';
   if (CR.snap) t += CR.snap > 0 ? '　角：額と絵の境目に合わせました' : '　角：境目がはっきりしないので AI の位置のままです';
   t += CR.cht ? (CR.cmode === 'full' ? '　色：カラーチップの9色で、色・明るさ・コントラストを合わせました' + bt : CR.cmode === 'wb' ? '　色：チップの色味が合わないので、白と黒で色・明るさ・コントラストを合わせました' + bt : CR.cmode === 'ng' ? '　⚠ 色：カラーチップを読めません（位置を直してください）' : '') + (CR.col ? '' : '（いまは合わせていません）') : '　色：カラーチップなし';
+  if (CR.col && CR.cht && CR.T && crPct(CR.cs) < 1) t += '（チップの強さ ' + CR.cs + '%）';
+  if (CR.wp) { const v = crWpRead(); if (v) t += Math.max(...v) > .93 ? '　⚠ 白：指定したところが白飛びしています（少し暗めの白・灰色のところを選び直すと正確です）'
+    : .2126 * v[0] + .7152 * v[1] + .0722 * v[2] < .01 ? '　⚠ 白：指定したところが暗すぎて、基準になりません' : '　白：指定したところが色のない白（灰色）になるように、色かぶりを取りました（強さ ' + CR.ws + '%）'; }
   n.textContent = (warn ? '⚠ 台帳のサイズと形が合いません。角の位置か、台帳のサイズを確かめてください。' : '') + t; n.classList.toggle('warn', warn); const mb = $('#crop .cr-morebtn'); if (mb) mb.classList.toggle('warn', warn); }
 function crKey(e){ if (!CR || !$('#crop') || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target || {}).tagName || '') && e.target.type !== 'range') return;
   if (e.key === 'Escape') { e.preventDefault(); $('#crop .cr-x').click(); return; }
@@ -6921,6 +6987,7 @@ function crRatioAsk(){ const c0 = CR; if (!c0 || !c0.led || !c0.img || $('#crop 
     <button type="button" data-cra="frame">台帳のサイズは額を含む<small>額のサイズに移し、作品のサイズは空にします</small></button>
     <button type="button" data-cra="new">正しいサイズ（作品のみ）を入れる</button>
     <div class="cr-asknew hidden"><input inputmode="decimal" id="craH" placeholder="高さ（縦）"><span>×</span><input inputmode="decimal" id="craW" placeholder="幅（横）"><span>cm</span><button type="button" data-cra="newok">保存</button></div>
+    <button type="button" data-cra="flag">要確認にする<small>台帳はこのままで写真を保存し、作品に「要確認」の印をつけます</small></button>
     <button type="button" data-cra="keep">台帳はこのままで保存</button>
     <button type="button" data-cra="back" class="sub">もどる（角を直す）</button>`;
   $('#crop').appendChild(box);
@@ -6928,6 +6995,7 @@ function crRatioAsk(){ const c0 = CR; if (!c0 || !c0.led || !c0.img || $('#crop 
   box.onclick = e => { const b = e.target.closest('[data-cra]'); if (!b) return; const k = b.dataset.cra;
     if (k === 'back') { box.remove(); return; }
     if (k === 'keep') return go(null);
+    if (k === 'flag') { const me = S.user && S.user.name || ''; c0.flagMemo = '補正した写真の形（' + fmt(a) + '）と台帳のサイズ（高さ ' + (w['高さcm'] || '') + ' × 幅 ' + (w['幅cm'] || '') + ' cm）が合わない（' + today() + (me ? ' ' + me : '') + '）'; return go(null); } /* 10/6 本人 */
     if (k === 'swap') return go({ '高さcm': String(w['幅cm']), '幅cm': String(w['高さcm']) }, { h: c0.led.w, w: c0.led.h });
     if (k === 'frame') return go({ '額の高さcm': String(w['高さcm']), '額の幅cm': String(w['幅cm']), '高さcm': '', '幅cm': '', 'サイズの確認': '' }, null);
     if (k === 'new') { box.querySelector('.cr-asknew').classList.remove('hidden'); box.querySelector('#craH').focus(); return; }
@@ -6953,7 +7021,8 @@ async function cropSave(){ const c0 = CR; if (!c0 || c0.saving || !c0.img) retur
     const b64 = oc.toDataURL('image/jpeg', 0.92).split(',')[1]; oc.width = oc.height = 1;
     const shape = c0.n > 1 ? '屏風 ' + c0.n + '曲 上 ' + crPts(c0.top) + ' 下 ' + crPts(c0.bot) : '四隅 ' + crPts(crQuad(c0.top, c0.bot, 0));
     const memo = (/^【仮】/.test(c0.orig['メモ'] || '') ? '【仮】' : '') + '補正：元の写真 ' + c0.orig['写真ID'] + '｜' + shape
-      + '｜ふくらみ ' + c0.v + '｜明るさ ' + (c0.bri || 0) + '%｜比率 ' + (c0.ratio === 'led' && c0.led ? '台帳' : '写真') + '｜色 ' + (c0.col && c0.cht && c0.T ? 'チップ ' + crPts(c0.cht) : 'なし' + (c0.cht ? '｜チップ位置 ' + crPts(c0.cht) : '')) + '｜元の種類 ' + c0.kind;
+      + '｜ふくらみ ' + c0.v + '｜明るさ ' + (c0.bri || 0) + '%｜比率 ' + (c0.ratio === 'led' && c0.led ? '台帳' : '写真') + '｜色 ' + (c0.col && c0.cht && c0.T ? 'チップ ' + crPts(c0.cht) + (crPct(c0.cs) < 1 ? '｜色の強さ ' + c0.cs + '%' : '') : 'なし' + (c0.cht ? '｜チップ位置 ' + crPts(c0.cht) : ''))
+      + (c0.wp ? '｜白 ' + crPts([c0.wp]) + ' ' + c0.ws + '%' : '') + '｜元の種類 ' + c0.kind;
     say('保存しています…'); let pid, ledDone = false;
     const oid = c0.orig['写真ID'], cid0 = c0.corr ? c0.corr['写真ID'] : '', f0 = cid0 ? (crPh(cid0)['ファイルID'] || c0.corr['ファイルID']) : '';
     const wasMain = !cid0 && ((photoBy[c0.no] || [])[0] || {})['写真ID'] === oid; /* 裏で読み直すと写真の行が作り直されるので、ID でくらべる */
@@ -6983,7 +7052,9 @@ async function cropSave(){ const c0 = CR; if (!c0 || c0.saving || !c0.img) retur
     }
     if (c0.ledPatch && !ledDone) { say('台帳のサイズを直しています…'); const P = c0.ledPatch, okL = () => { const w = workOf(c0.no) || {}; return Object.keys(P).every(k => String(w[k] == null ? '' : w[k]) === String(P[k])); };
       const d = await crCall('updateWork', [c0.no, P], okL); if (d && d.works) setData(d); if (!okL()) setData(await call('getData')); }
-    if (CR === c0) cropClose(); crAfter(c0.no, pid); toast(c0.ledPatch ? '補正した写真を保存し、台帳のサイズを直しました' : c0.corr ? '補正を直しました' : '補正した写真を保存しました');
+    if (c0.flagMemo) { say('要確認の印をつけています…'); const fm = c0.flagMemo, okF = () => { const w = workOf(c0.no) || {}; return !!w['要確認'] && String(w['要確認メモ'] || '').indexOf(fm) >= 0; };
+      if (!okF()) { const old = String((workOf(c0.no) || {})['要確認メモ'] || '').trim(), d = await crCall('setFlag', [c0.no, true, old ? old + ' / ' + fm : fm], okF); if (d && d.works) setData(d); } }
+    if (CR === c0) cropClose(); crAfter(c0.no, pid); toast((c0.ledPatch ? '補正した写真を保存し、台帳のサイズを直しました' : c0.corr ? '補正を直しました' : '補正した写真を保存しました') + (c0.flagMemo ? '（要確認の印をつけました）' : ''));
   } catch(e){ alert(isLoginErr(e) ? 'ログインの有効期限が切れました。もう一度ログインしてください。' : '保存できませんでした。\n' + (e.message || e)); refreshData().catch(() => {}); }
   finally { busy(false); c0.saving = false; if (CR === c0) { const o = $('#crop .cr-saving'); if (o) o.remove(); if (sb) sb.textContent = '保存'; if (hint) { hint.classList.remove('cr-busy'); hint.textContent = h0; } crUI(); } }
 }
