@@ -2197,7 +2197,12 @@ button.ulrow{cursor:pointer}
 .cr-wpb svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.cr-wpb.set{border-color:rgba(255,255,255,.62)}.cr-wpb.on{background:#faf9f5;border-color:#faf9f5;color:#1c1c1b}
 .cr-sl2.one{grid-template-columns:1fr}
 #crop.crpick .cr-stage{cursor:crosshair}#crop .cr-hint.cr-pk{color:#fff;font-weight:700}
-#crop .cr-grid{display:none!important} /* 仕上がりの格子（3分割の線）と枠の線は出さない（10/6 本人「邪魔」） */
+#crop .cr-grid{display:none!important}
+/* 「最新版にしています」「最新の情報を読み込んでいます」は、補正の保存と同じ見た目：画面全体をぼかして、まん中に大きいくるくると今していること（10/6 本人） */
+#bigwait{position:fixed;inset:0;z-index:1205;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;background:rgba(28,28,27,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#faf9f5;text-align:center;animation:bvin .2s ease}
+#bigwait .ldspin{width:38px;height:38px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:ldrot .8s linear infinite}#bigwait b{font-size:16px}#bigwait small{font-size:12.5px;line-height:1.5;opacity:.75;max-width:280px}
+#bigwait i{display:none;font-style:normal;font-size:13px;margin-top:8px}body.blong #bigwait i{display:block}body.bfree #bigwait{display:none}
+body.bbig #loading.loading,body.bbig #busyveil{display:none!important} /* 仕上がりの格子（3分割の線）と枠の線は出さない（10/6 本人「邪魔」） */
 @media not all and (min-width:900px) and (min-aspect-ratio:5/4){#crop.crpick .cr-more,#crop.crpick .cr-nudge{display:none!important}}
 .cr-wpm{position:absolute;z-index:3;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1.5px rgba(0,0,0,.8),inset 0 0 0 1.5px rgba(0,0,0,.8);pointer-events:none}
 .cr-ask{position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:6;max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:18px;background:#2f2f2d;border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 40px rgba(0,0,0,.6);max-height:80vh;overflow:auto}
@@ -2274,7 +2279,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '893e49a9ca', APP_URL = location.origin + location.pathname;
+const BUILD = 'cf9d973f02', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2462,7 +2467,13 @@ function fpSheetRedraw(first){ if (!FP.sheet || (!first && ($('#sheet').classLis
     fpChip(); fpSheetRedraw(); }; }
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('#sheetbox #ok, #sheetbox .btns .primary'); if (!b) return;
   if (!$('#loading').classList.contains('hidden')) { e.preventDefault(); e.stopImmediatePropagation(); toast('保存しています。終わるまで、そのままお待ちください'); } }, true);
-function busy(on, text){ $('#loading').innerHTML = '<span class="ldsp"></span>' + esc(text || '読み込み中…'); $('#loading').classList.toggle('hidden', !on); tbSync(); busyVeil(on); }
+function busy(on, text){ $('#loading').innerHTML = '<span class="ldsp"></span>' + esc(text || '読み込み中…'); $('#loading').classList.toggle('hidden', !on); tbSync(); busyVeil(on);
+  const bw = document.getElementById('bigwait'); if (bw) { if (on) bw.querySelector('b').textContent = text || '読み込み中…'; else { bw.remove(); document.body.classList.remove('bbig'); } } }
+/* 大きい待ち表示（補正の保存と同じ見た目）。busy(false) で消える（10/6 本人） */
+function bigWait(text){ const b = document.body; if (!b) return busy(true, text); b.classList.add('bbig'); let o = document.getElementById('bigwait');
+  if (!o) { o = document.createElement('div'); o.id = 'bigwait'; o.setAttribute('role', 'status'); o.innerHTML = '<span class="ldspin"></span><b></b><small>Google 側が混んでいると1分ほどかかります。このままお待ちください</small><i>画面をタップすると、待たずにさわれます</i>';
+    o.addEventListener('pointerdown', () => { if (b.classList.contains('blong')) b.classList.add('bfree'); }); b.appendChild(o); }
+  busy(true, text); }
 /* 待っているあいだ（削除中・保存中・更新中など）は、後ろの画面をうすくぼかして、さわれないようにする（10/6 本人）。
    0.3秒より短ければぼかさない（チカチカしない）。45秒たっても終わらなければ、画面をタップすると待たずにさわれる（通信が止まっても動かなくならないように） */
 const BV = { t: 0, t2: 0 };
@@ -8896,7 +8907,7 @@ function afterNav(n){
 /* 「最新版に更新」（名前のメニュー）：画面の版も、台帳の情報も最新にする。今の状況が分からなくなったときに押す（10/5 本人）。
    端末の控え（前に読んだ台帳）を消し、新しい画面を読み込み直してから、Google から全部読み直す。終わったら「最新版になりました」と出す */
 async function freshReload(n){
-  busy(true, '最新版にしています…'); try { clearTimeout(BV.t); document.body.classList.add('bveil'); } catch(e){} /* すぐぼかす（画面を切りかえるので、さわらないように） */
+  bigWait('最新版にしています…'); /* すぐぼかす（画面を切りかえるので、さわらないように） */
   try { localStorage.setItem('smr_fresh', JSON.stringify({ t: Date.now(), n: n || 0 })); } catch(e){}
   try { await new Promise(ok => { setTimeout(ok, 1500); const r = indexedDB.open('smr_cache', 1);
     r.onupgradeneeded = () => { try { r.result.createObjectStore('kv'); } catch(e){} };
@@ -8911,7 +8922,7 @@ async function freshDone(f){ let lb = ''; try { lb = await call('appBuild'); } c
 (async () => {
   let shown = false, fresh = null;
   try { fresh = JSON.parse(localStorage.getItem('smr_fresh') || 'null'); localStorage.removeItem('smr_fresh'); if (fresh && !(Date.now() - fresh.t < 120000)) fresh = null; } catch(e){ fresh = null; }
-  if (fresh) { busy(true, '最新の情報を読み込んでいます…'); try { clearTimeout(BV.t); document.body.classList.add('bveil'); } catch(e){} }
+  if (fresh) bigWait('最新の情報を読み込んでいます…');
   try { const c = !fresh && S.token && window.__smrCached ? await window.__smrCached() : null; if (c) { setData(c); const nv = restoreNav(); applyStart(); render(); afterNav(nv); busy(false); shown = true; } } catch(e){}
   const getDataWait = async () => { for (let k = 0; ; k++) { try { return await call('getData'); } /* デプロイの直後は数分 404 になることがある（10/5） */
       catch(e){ if (isLoginErr(e) || !netErr(e) || k >= 4) throw e; if (!shown) busy(true, 'Googleにつながるのを待っています…（' + (k + 1) + '/4）'); await new Promise(r => setTimeout(r, 4000 + k * 4000)); } } };
