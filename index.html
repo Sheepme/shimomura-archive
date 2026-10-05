@@ -614,6 +614,7 @@ html{touch-action:pan-x pan-y} /* 画面全体の2本指の拡大を止める（
 .mas .tile img:not([src]){aspect-ratio:4/5;background:var(--wash)}
 .mas .tile .ph.noph{aspect-ratio:4/3;background:var(--wash);padding:8%;border-radius:var(--r,10px)}
 .mas .tile .cap{padding-top:8px}
+@media(max-width:699px){.mas .mcol{gap:12px}.mas .tile .cap{padding-top:6px}.mas.mid .mcol{gap:8px}.mas.mid .tile .cap{padding-top:4px}.mas.mid .tile .no,.mas.mid .tile .tt{line-height:1.3}} /* スマホの2・3列：縦のすき間をつめる（列のあいだを16pxにしたらパラパラして見えたため。10/6 本人） */
 .mas .tile .ph,.mas .tile img,.mas .tile .ph.noph,.mas.dense .tile img{border-radius:var(--mr,10px)!important}
 #wseg button{white-space:nowrap}
 .info dd{overflow-wrap:anywhere}
@@ -2221,7 +2222,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '87c8645693', APP_URL = location.origin + location.pathname;
+const BUILD = '8d2100b943', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
