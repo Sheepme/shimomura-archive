@@ -2093,6 +2093,7 @@ button.ulrow{cursor:pointer}
 .phist .phre{border:0;background:none;padding:0 0 0 6px;color:var(--acc);font:inherit;text-decoration:underline;cursor:pointer}
 /* スマホの資料（本）のページ：表紙の写真と「© 転載元」のボタンを左右のまん中に（10/5 本人） */
 @media (max-width: 999px){ .pagebody .cover{margin-left:auto;margin-right:auto} .pagebody .cvcopy{display:block;margin:10px auto 0} }
+.cover .cvpen{position:absolute;top:10px;right:10px;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--paper);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;padding:0;box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:pointer}
 </style>
 </head>
 <body>
@@ -2162,7 +2163,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '332b33515a', APP_URL = location.origin + location.pathname;
+const BUILD = 'a1831c144a', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4125,6 +4126,24 @@ function wkCands(v, skip, n){ const all = S.works.concat(S.others || []).filter(
 function susList(){ const L = []; (S.docs || []).forEach(d => { if (d['状態'] !== '登録済み') return; String(d['作品番号'] || '').split(',').map(x => x.trim()).filter(Boolean).forEach(no => { const m = docSus(d, no); if (m) L.push({ d, no, m }); }); }); return L; }
 /* ---------- ページ画像を作る（パソコンで1回。PDFを1ページずつ画像にしてドライブへ） ---------- */
 const pimgTodo = () => (S.docs || []).filter(d => d['状態'] === '登録済み' && docPdfFid(d) && !PIMG[docPdfFid(d)]);
+/* ページの表示（ページ画像）を、いまの元のファイル（PDF）から作り直す。PDF の中身を差し替えたあとなど、表示が元のファイルと違うとき（10/5 本人：パンリアル作品展 出品目録の2ページ目）。
+   ページ画像は「PDF のファイルが同じなら使い続ける」ので、同じファイルのまま中身が変わると古いままになる。端末に保存した PDF とページ画像も消してから作る */
+async function pimgRebuild(did){ const d = docById(did), fid = d && docPdfFid(d); if (!fid || !canEdit()) return;
+  if (!confirm('元のファイル（PDF）から、ページの表示を作り直しますか？\n（ページが多いと1分ほどかかります）')) return;
+  const old = (S.pimg || []).filter(r => r[0] === did).map(r => r[3]);
+  delete DPDF[fid]; delete DPDFP[fid]; delete PDOC[fid]; delete PDOCI[fid];
+  old.forEach(i => { delete TH['1600_' + i]; delete PIU[i]; }); try { await thDel(['pdf_' + fid].concat(old.map(i => '1600_' + i))); } catch(e){}
+  busy(true, '元のファイルを読み込んでいます…');
+  try { const doc = await pdfRealDoc(fid); let batch = [], first = true, rows = [];
+    for (let i = 1; i <= doc.numPages; i++) { busy(true, 'ページの表示を作っています（' + i + ' / ' + doc.numPages + '）');
+      const pg = await doc.getPage(i), v0 = pg.getViewport({ scale: 1 }), sc = Math.min(3, 1600 / v0.width), vp = pg.getViewport({ scale: sc }), c = document.createElement('canvas'); c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+      const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); await pg.render({ canvasContext: g, viewport: vp }).promise;
+      batch.push({ p: i, b64: c.toDataURL('image/jpeg', .72).split(',')[1], w: Math.round(v0.width * 100) / 100, h: Math.round(v0.height * 100) / 100 }); c.width = c.height = 0;
+      if (batch.length >= 3 || i === doc.numPages) { rows = rows.concat(await call('savePageImgs', did, fid, String(d['更新日時'] || ''), batch, first)); first = false; batch = []; } }
+    S.pimg = (S.pimg || []).filter(r => r[0] !== did).concat(rows); pimgIndex(); delete PDOCI[fid];
+    busy(false); toast('ページの表示を作り直しました（' + doc.numPages + 'ページ）'); sheetDocReview(did); }
+  catch(e){ busy(false); alert('作り直せませんでした。\n' + (e.message || e)); } }
+document.addEventListener('click', e => { const b = e.target.closest('[data-pimgre]'); if (b) pimgRebuild(b.dataset.pimgre); });
 function openPimgTool(){ const el = document.createElement('div'); el.className = 'noteview pimgv'; let stop = false, run = false;
   const draw = (msg) => { const L = pimgTodo(); el.innerHTML = `<div class="nvin"><h2 class="nvt">ハイライトを速くする</h2><p class="hint">書類のPDFを1ページずつ軽い画像にして、Googleドライブに保存します。ハイライトの時はPDFを開かず、そのページの画像だけを取るので速くなります。AIは使わないので費用はかかりません。</p>
     <p class="pimgn">まだの書類：<b>${L.length}</b>通（全${(S.docs || []).filter(d => docPdfFid(d)).length}通）</p>${msg ? `<p class="pimgmsg">${msg}</p>` : ''}
@@ -4586,6 +4605,7 @@ function sheetDocReview(id){ try { const d0 = docById(id); if (d0) pdfPrefetch([
     openSheet(`<h3 class="dttl">${esc(docTitle(d))}<button type="button" class="edbtn" id="dvTtl" aria-label="タイトルを直す">✎</button></h3>${noteMode ? `<button type="button" class="act main pdfopen dvnote" data-note="${esc(id)}">📖 ノートで読む（資料の文字）</button><button type="button" class="act pdfopen" id="dvImgs">🖼 原本の画像を見る（${pg.length}枚）</button><div id="dvImgsBox"></div>` : imgs}
       ${d['全文あり'] && !noteMode ? `<button type="button" class="act main pdfopen dvnote" data-note="${esc(id)}">📖 ノートで読む（資料の文字）</button>` : ''}
       ${driveBtn(pg[0], pg.length > 1 && !r.PDF ? '元のファイルを確認（1枚目）' : '')}<!-- 見る方法（ノート・元のファイル）は上にまとめる -->
+      ${canEdit() && r.PDF && docPdfFid(d) && PIMG[docPdfFid(d)] ? `<button type="button" class="act pdfopen" data-pimgre="${esc(id)}">↻ ページの表示を作り直す（元のファイルと違うとき）</button>` : ''}
       <p class="hint">${esc([r['日付'], r['相手先'] && r.PDF ? r['相手先'] : '', r['要約']].filter(Boolean).join('　'))}</p>
       ${r['要確認'] ? `<div class="dchk"><b>⚠ 要確認</b>${esc(r['要確認'])}<button type="button" class="act" id="dvChk">確認した</button></div>` : ''}
       ${(r['食い違い']||[]).length ? `<h3 class="sec" style="font-size:18px">台帳との食い違い</h3><p class="hint">押すと、書類と作品を並べて見比べる画面が開き、「どっちが正しい？」を決められます。</p>${r['食い違い'].map((x, i) => dfCard(d, x, i)).join('')}` : ''}
@@ -5760,6 +5780,15 @@ function bindPhoto(onReady){
 }
 function setPick(id, v){ const g = $('#' + id); if (!g) return; g.dataset.v = v; g.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.o===v)); }
 document.addEventListener('click', e => { const b = e.target.closest('[data-cvcopy]'); if (!b || !canEdit()) return; const ph = coverPh(pbById[b.dataset.cvcopy]); if (ph) sheetCopy(ph); });
+/* 資料のページ：表紙の写真の右上の鉛筆（10/5 本人「書籍ページの編集は画像の右上の鉛筆に」）。表紙の差し替え・転載元（©）をここから */
+function sheetCvEdit(id){ const x = pbById[id]; if (!x || !canEdit()) return; const ph = coverPh(x), c = ph && copyOf(ph);
+  openSheet(`<h3>表紙の写真を直す</h3><p class="hint">${esc(x['タイトル'] || id)}</p>
+    <button type="button" class="act main pdfopen" id="cvRep">📷 表紙の写真を差し替える（カメラ・写真・URL・貼り付け）</button>
+    ${ph ? `<button type="button" class="act pdfopen" id="cvCopy">© 転載元を${c ? '直す（いま：' + esc(c.mu) + '）' : '入れる'}</button>` : ''}
+    <div class="btns"><button type="button" data-close>やめる</button></div>`);
+  $('#cvRep').onclick = () => sheetCover(id);
+  if ($('#cvCopy')) $('#cvCopy').onclick = () => sheetCopy(ph); }
+document.addEventListener('click', e => { const b = e.target.closest('[data-cvedit]'); if (b) { e.stopPropagation(); sheetCvEdit(b.dataset.cvedit); } });
 function sheetCover(id){
   const x = pbById[id]; if (!x) return;
   const old = x['表紙写真ファイルID'] ? S.photos.find(p => p['ファイルID']===x['表紙写真ファイルID']) : null;
@@ -5988,7 +6017,7 @@ function openPb(id, keepScroll, restoreSc){
     <div class="pagebody one"><div class="eyebrow">${esc(x['種類']||'出版物')}</div>
     <h2 class="title">${esc(x['タイトル']||'（書名未入力）')}</h2>
     <div class="tombstone">${esc([fmtDate(x['発行年月']), x['発行元'], x['著者・編者']].filter(Boolean).join('　|　'))}</div>
-    ${cover ? `<div class="cover">${thImg(x['表紙写真ファイルID'], 800)}${wm(coverPh(x))}</div>${creditHTML([coverPh(x)].filter(Boolean))}${canEdit() ? `<button type="button" class="act cvcopy" data-cvcopy="${esc(id)}">© 転載元を入れる・直す</button>` : ''}` : ''}
+    ${cover ? `<div class="cover">${thImg(x['表紙写真ファイルID'], 800)}${wm(coverPh(x))}${canEdit() ? `<button type="button" class="cvpen" data-cvedit="${esc(id)}" aria-label="表紙を直す">${PEN}</button>` : ''}</div>${creditHTML([coverPh(x)].filter(Boolean))}` : ''}
     ${(P => P.length ? `<h3 class="sec">中のページ ${P.length}枚</h3><div class="pbin">${P.map(ph => `<button type="button" class="pbinp" data-pbin="${esc(id)}|${esc(ph['写真ID'])}">${thImg(ph['ファイルID'], 400)}</button>`).join('')}</div>` : '')(pbInner(id))}
     <h3 class="sec">掲載作品 ${new Set(nos).size}点</h3>${linkedGrid('pb', id)}${docLinks('資料ID', id)}${memosFor(id)}
     <h3 class="sec">資料の情報</h3>
