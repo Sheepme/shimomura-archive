@@ -1509,6 +1509,7 @@ dl.info dd.iedit textarea.iein{min-height:84px;resize:vertical}
 dl.info dd.iedit .iesz{display:flex;align-items:center;gap:8px}
 dl.info dd.iedit .iesz .iein{flex:1;min-width:0}
 dl.info dd.iedit .iesz span{flex:none;color:var(--sub)}
+dl.info dd.iedit .iechk{display:flex;align-items:center;gap:8px;margin:10px 0 2px;font-size:14px;color:var(--ink)}dl.info dd.iedit .iechk input{width:20px;height:20px;flex:none}dl.info dd.iedit .iesub{display:block;margin:10px 0 4px;font-size:12.5px;color:var(--sub)}
 dl.info dd.iedit .ieb{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
 dl.info dd.iedit .ieb button{height:40px;padding:0 18px;border-radius:20px;font:600 15px/1 var(--sans);cursor:pointer}
 dl.info dd.iedit .ieno{background:none;border:1px solid var(--line);color:var(--ink)}
@@ -2131,6 +2132,11 @@ button.ulrow{cursor:pointer}
 .cr-stage.busy::after{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.12) 50%,transparent 70%) 0 0/300% 100%;animation:ldshim 1.4s linear infinite;pointer-events:none}
 .cr-links button:disabled{opacity:.4}
 .cr-seg button:disabled{opacity:.35}
+.cr-ask{position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:6;max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:18px;background:#2f2f2d;border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 40px rgba(0,0,0,.6);max-height:80vh;overflow:auto}
+.cr-ask>b{font-size:16px;color:#FFC800}.cr-ask>p{margin:0 0 4px;font-size:14px;line-height:1.6;color:rgba(250,249,245,.85)}
+.cr-ask button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;min-height:44px;padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.22);background:#3a3a38;color:#faf9f5;font:inherit;font-size:15px;font-weight:600;text-align:left;cursor:pointer}
+.cr-ask button small{font-size:12.5px;font-weight:400;color:rgba(250,249,245,.7)}.cr-ask button.pri{background:#1CB0F6;border-color:#1CB0F6}.cr-ask button.pri small{color:rgba(255,255,255,.85)}.cr-ask button.sub{background:transparent;border-color:transparent;color:#6CB4FF;min-height:36px}
+.cr-asknew{display:flex;align-items:center;gap:6px}.cr-asknew input{flex:1;min-width:0;height:40px;padding:0 10px;border-radius:10px;border:1px solid rgba(255,255,255,.3);background:#1c1c1b;color:#faf9f5;font:inherit;font-size:16px}.cr-asknew span{color:rgba(250,249,245,.7)}.cr-asknew button{width:auto;flex:none;min-height:40px;padding:0 14px;background:#58A700;border-color:#58A700;align-items:center}
 </style>
 </head>
 <body>
@@ -2200,7 +2206,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '98d2abd26a', APP_URL = location.origin + location.pathname;
+const BUILD = 'd2b8e33bef', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4778,11 +4784,14 @@ function quizIndex(){ QZI = {}; (S.quiz||[]).forEach(r => { if (r['種類']==='�
 const qzLast = (no, item) => QZI[no + '|' + item];
 const qzDone = (no, item, v) => { const r = qzLast(no, item); return !!r && ((r['答え']==='はい' && r['値']===String(v||'')) || (r['答え']==='不明' && r['値']===String(v||''))); };
 const qzUnknown = (no, item) => { const r = qzLast(no, item); return !!r && r['答え']==='不明'; };
-const sizeOf = w => (w['幅cm']||w['高さcm']) ? `幅${w['幅cm']||'?'}センチ、高さ${w['高さcm']||'?'}センチ${w['奥行きcm'] ? '、奥行き' + w['奥行きcm'] + 'センチ' : ''}` : '';
+const sizeOf = w => (w['幅cm']||w['高さcm']) ? `高さ${w['高さcm']||'?'}センチ、幅${w['幅cm']||'?'}センチ${w['奥行きcm'] ? '、奥行き' + w['奥行きcm'] + 'センチ' : ''}` : '';
 /* 版画かどうか（エディションの欄を出す） */
 const isPrint = w => !!w && (w['種別']==='版画' || !!w['エディション'] || /版画|エッチング|リトグラフ|木版|銅版|シルクスクリーン/.test(String(w['画材']||'')));
 /* サイズの表示（立体物は奥行きも）：long＝「幅 × 高さ × 奥行き cm」、短い形＝「幅 × 高さ × 奥行き」 */
-const dimTxt = (w, long, unit) => (w['幅cm']||w['高さcm']||w['奥行きcm']) ? (long ? `幅 ${w['幅cm']||'?'} × 高さ ${w['高さcm']||'?'}${w['奥行きcm'] ? ' × 奥行き ' + w['奥行きcm'] : ''} cm` : `${w['幅cm']||'?'} × ${w['高さcm']||'?'}${w['奥行きcm'] ? ' × ' + w['奥行きcm'] : ''}${unit || ''}`) : '';
+const dimTxt = (w, long, unit) => (w['幅cm']||w['高さcm']||w['奥行きcm']) ? (long ? `高さ ${w['高さcm']||'?'} × 幅 ${w['幅cm']||'?'}${w['奥行きcm'] ? ' × 奥行き ' + w['奥行きcm'] : ''} cm` : `${w['高さcm']||'?'} × ${w['幅cm']||'?'}${w['奥行きcm'] ? ' × ' + w['奥行きcm'] : ''}${unit || ''}`) : ''; /* 標準の「縦×横」（高さ × 幅） */
+/* 作品ページのサイズの行：作品のみと分かっていれば（作品のみ）、額のサイズがあれば「額 高さ × 幅」も */
+const frameTxt = w => (w['額の高さcm'] || w['額の幅cm']) ? `額 高さ ${w['額の高さcm'] || '?'} × 幅 ${w['額の幅cm'] || '?'} cm` : '';
+const sizeLine = w => { const a = dimTxt(w, true); return [a ? a + (w['サイズの確認'] === '作品のみ' ? '（作品のみ）' : '') : '', frameTxt(w)].filter(Boolean).join('／'); };
 const evText = e => { const y = yr(e['日付']); return [y ? y + '年' : '年は分からない', (e['相手先・場所']||'') + (e['相手先・場所'] ? 'に' : ''), e['種類']].filter(Boolean).join('、'); };
 const toSeireki = t => String(t||'').normalize('NFKC').replace(/昭和\s*(\d+)\s*年?/, (m, n) => (1925 + +n) + '年').replace(/平成\s*(\d+)\s*年?/, (m, n) => (1988 + +n) + '年').replace(/大正\s*(\d+)\s*年?/, (m, n) => (1911 + +n) + '年');
 function qzSteps(no, first){
@@ -5539,7 +5548,7 @@ function openWork(no, keepScroll, restoreSc){
       <h3 class="sec">作品の情報</h3>
       <dl class="info">
         ${dd('作品名', w['作品名'], 'w1')}
-        ${dd('サイズ', dimTxt(w, true), 'w3')}
+        ${dd('サイズ', sizeLine(w), 'w3')}
         ${isPrint(w) ? dd('エディション', w['エディション'], 'w4e') : ''}
         ${dd('制作年', w['制作年'], 'w5')}${dd('画材', [w['画材'], w['仕立て']].filter(Boolean).join('／'), 'w6')}${dd(ot ? '種類' : '種別', w['種別'], 'w7')}${dd('シリーズ', w['シリーズ'], 'w8')}
         ${dd('状態', w['状態メモ'], 'w9')}${dd('メモ', w['補足'], 'w10')}
@@ -6561,7 +6570,32 @@ async function crCall(fn, args, done){
       try { setData(await call('getData')); if (done()) return null; } catch(x){}
       busy(true, '保存しています…'); } } }
 const crPh = id => S.photos.find(x => x['写真ID'] === id) || {};
-async function cropSave(){ const c0 = CR; if (!c0 || c0.saving || !c0.img) return; c0.saving = true;
+/* 写真の絵の形と台帳のサイズが明らかに違う（15%より大きい）ときは、保存の前に確かめる（10/5 本人）。
+   入れかえ／額を含む（額のサイズに移す）／正しいサイズを入れる／このまま／もどる。選んだ台帳の直しは、写真を保存したあとで送る */
+function crRatioAsk(){ const c0 = CR; if (!c0 || !c0.led || !c0.img || $('#crop .cr-ask')) return !!$('#crop .cr-ask');
+  const a = crAutoNow(), lr = c0.led.w / c0.led.h; if (Math.abs(Math.log(lr / a)) <= Math.log(1.15)) return false;
+  const w = workOf(c0.no) || {}, swapFit = Math.abs(Math.log(1 / lr / a)) <= Math.log(1.15), fmt = r => r >= 1 ? '縦1：横' + r.toFixed(2) : '縦' + (1 / r).toFixed(2) + '：横1';
+  const box = document.createElement('div'); box.className = 'cr-ask';
+  box.innerHTML = `<b>台帳のサイズと、写真の絵の形が合いません</b>
+    <p>写真の絵の形：${fmt(a)}<br>台帳：高さ ${esc(w['高さcm'])} × 幅 ${esc(w['幅cm'])} cm（${fmt(lr)}）</p>
+    ${swapFit ? `<button type="button" data-cra="swap" class="pri">台帳の高さと幅を入れかえる<small>高さ ${esc(w['幅cm'])} × 幅 ${esc(w['高さcm'])} cm にします</small></button>` : ''}
+    <button type="button" data-cra="frame">台帳のサイズは額を含む<small>額のサイズに移し、作品のサイズは空にします</small></button>
+    <button type="button" data-cra="new">正しいサイズ（作品のみ）を入れる</button>
+    <div class="cr-asknew hidden"><input inputmode="decimal" id="craH" placeholder="高さ（縦）"><span>×</span><input inputmode="decimal" id="craW" placeholder="幅（横）"><span>cm</span><button type="button" data-cra="newok">保存</button></div>
+    <button type="button" data-cra="keep">台帳はこのままで保存</button>
+    <button type="button" data-cra="back" class="sub">もどる（角を直す）</button>`;
+  $('#crop').appendChild(box);
+  const go = (patch, led) => { c0.ledPatch = patch; if (led !== undefined) { c0.led = led; if (!led) c0.ratio = 'auto'; } c0.ratioOk = true; box.remove(); crUI(); crNote(); cropSave(); };
+  box.onclick = e => { const b = e.target.closest('[data-cra]'); if (!b) return; const k = b.dataset.cra;
+    if (k === 'back') { box.remove(); return; }
+    if (k === 'keep') return go(null);
+    if (k === 'swap') return go({ '高さcm': String(w['幅cm']), '幅cm': String(w['高さcm']) }, { h: c0.led.w, w: c0.led.h });
+    if (k === 'frame') return go({ '額の高さcm': String(w['高さcm']), '額の幅cm': String(w['幅cm']), '高さcm': '', '幅cm': '', 'サイズの確認': '' }, null);
+    if (k === 'new') { box.querySelector('.cr-asknew').classList.remove('hidden'); box.querySelector('#craH').focus(); return; }
+    if (k === 'newok') { const h = parseFloat(box.querySelector('#craH').value), ww = parseFloat(box.querySelector('#craW').value); if (!(h > 0 && ww > 0)) return alert('高さと幅を数字で入れてください');
+      return go({ '高さcm': String(h), '幅cm': String(ww), 'サイズの確認': '作品のみ' }, { h, w: ww }); } };
+  return true; }
+async function cropSave(){ const c0 = CR; if (!c0 || c0.saving || !c0.img) return; if (!c0.ratioOk && crRatioAsk()) return; c0.saving = true;
   if (!c0.corr) { const ch = S.photos.find(x => x['作品番号'] === c0.no && (crInfo(x) || {}).orig === c0.orig['写真ID']); if (ch) c0.corr = ch; } /* 前の保存が通信の失敗で終わったのに、Google 側では入っていたとき：二重にせず、その写真を直す */
   busy(true, '補正した写真を作っています…'); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 30)));
   try {
@@ -6591,7 +6625,9 @@ async function cropSave(){ const c0 = CR; if (!c0 || c0.saving || !c0.img) retur
       const np = S.photos.filter(x => x['作品番号'] === c0.no && (crInfo(x) || {}).orig === oid).pop(); pid = np && np['写真ID'];
       if (pid && wasMain) { await crCall('setMainPhoto', [pid], () => !!crPh(pid)['メイン']); S.photos.forEach(x => { if (x['作品番号'] === c0.no) x['メイン'] = x['写真ID'] === pid ? 'メイン' : ''; }); index(); }
     }
-    if (CR === c0) cropClose(); crAfter(c0.no, pid); toast(c0.corr ? '補正を直しました' : '補正した写真を保存しました');
+    if (c0.ledPatch) { busy(true, '台帳のサイズを直しています…'); const P = c0.ledPatch, okL = () => { const w = workOf(c0.no) || {}; return Object.keys(P).every(k => String(w[k] == null ? '' : w[k]) === String(P[k])); };
+      const d = await crCall('updateWork', [c0.no, P], okL); if (d && d.works) setData(d); if (!okL()) setData(await call('getData')); }
+    if (CR === c0) cropClose(); crAfter(c0.no, pid); toast(c0.ledPatch ? '補正した写真を保存し、台帳のサイズを直しました' : c0.corr ? '補正を直しました' : '補正した写真を保存しました');
   } catch(e){ alert(isLoginErr(e) ? 'ログインの有効期限が切れました。もう一度ログインしてください。' : '保存できませんでした。\n' + (e.message || e)); refreshData().catch(() => {}); }
   finally { busy(false); c0.saving = false; }
 }
@@ -6843,7 +6879,7 @@ function sheetEdit(no, focusId){
   openSheet(`<h3>情報を直す</h3><p class="hint">${isOtNo(no) ? '' : 'No.'}${esc(no)}　分からないところは空のままで大丈夫です</p>
     ${F('作品名', inp('w1', w['作品名']))}
     ${F('別名・仮題など', inp('w2', w['作品名メモ']))}
-    <div class="two">${F('幅（cm）', inp('w3', w['幅cm'], '', 'text'))}${F('高さ（cm）', inp('w4', w['高さcm'], '', 'text'))}</div>
+    <div class="two">${F('高さ・縦（cm）', inp('w4', w['高さcm'], '', 'text'))}${F('幅・横（cm）', inp('w3', w['幅cm'], '', 'text'))}</div>
     ${isOtNo(no) || w['奥行きcm'] ? F('奥行き（cm）', inp('w4d', w['奥行きcm'], 'やきものなど立体のとき', 'text')) : ''}
     ${isPrint(w) ? F('エディション', inp('w4e', w['エディション'], '例：3/30（30部のうち3番）、AP', 'text')) : ''}
     ${F('制作年', inp('w5', w['制作年'], '例：1961年 / 1960年代'))}
@@ -6875,14 +6911,16 @@ function inlineEdit(btn, no, f){
   let body;
   if (f === 'w7') body = `<select class="iein" data-k="種別">${['', ...KINDS, ...(w['種別'] && !KINDS.includes(w['種別']) ? [w['種別']] : [])].map(k => `<option value="${esc(k)}" ${(w['種別']||'')===k?'selected':''}>${k ? esc(k) : '（未入力）'}</option>`).join('')}</select>`;
   else if (f === 'w6') body = matPick('iemat', w['画材']) + '<div class="mpg"><small>仕立て</small>' + formPick('ieform', w['仕立て']) + '</div>';
-  else if (f === 'w3') body = `<div class="iesz"><input class="iein" data-k="幅cm" inputmode="decimal" value="${esc(w['幅cm']||'')}" placeholder="幅"><span>×</span><input class="iein" data-k="高さcm" inputmode="decimal" value="${esc(w['高さcm']||'')}" placeholder="高さ"><span>cm</span></div>`;
+  else if (f === 'w3') body = `<div class="iesz"><input class="iein" data-k="高さcm" inputmode="decimal" value="${esc(w['高さcm']||'')}" placeholder="高さ（縦）"><span>×</span><input class="iein" data-k="幅cm" inputmode="decimal" value="${esc(w['幅cm']||'')}" placeholder="幅（横）"><span>cm</span></div>
+    <label class="iechk"><input type="checkbox" class="iein" data-k="サイズの確認" ${w['サイズの確認'] === '作品のみ' ? 'checked' : ''}>このサイズは作品のみ（額を含まない）</label>
+    <small class="iesub">額のサイズ（分かれば）</small><div class="iesz"><input class="iein" data-k="額の高さcm" inputmode="decimal" value="${esc(w['額の高さcm']||'')}" placeholder="額の高さ"><span>×</span><input class="iein" data-k="額の幅cm" inputmode="decimal" value="${esc(w['額の幅cm']||'')}" placeholder="額の幅"><span>cm</span></div>`;
   else if (IE_AREA[f]) body = `<textarea class="iein" data-k="${spec[0][0]}" rows="3">${esc(w[spec[0][0]]||'')}</textarea>`;
   else body = `<input class="iein" data-k="${spec[0][0]}" value="${esc(w[spec[0][0]]||'')}" placeholder="${esc(spec[0][1]||'')}" enterkeyhint="done">`;
   dd.innerHTML = body + `<div class="ieb"><button type="button" class="ieno" data-ie="no">やめる</button><button type="button" class="ieok" data-ie="ok">保存</button></div>`;
   dd.querySelectorAll('.iein').forEach(i => i.dataset.v0 = i.value);
   const first = dd.querySelector('.iein'); if (first) setTimeout(() => { first.focus(); if (first.select && first.tagName === 'INPUT') first.select(); }, 30);
   const go = () => { const patch = {}; if (f === 'w6') { const m = matVal('iemat'), fm = formVal('ieform'); if (m !== String(w['画材']||'')) patch['画材'] = m; if (fm !== String(w['仕立て']||'')) patch['仕立て'] = fm; }
-    dd.querySelectorAll('.iein').forEach(i => { const v = i.value.trim(); if (v !== String(w[i.dataset.k]||'')) patch[i.dataset.k] = v; });
+    dd.querySelectorAll('.iein').forEach(i => { const v = i.type === 'checkbox' ? (i.checked ? '作品のみ' : '') : i.value.trim(); if (v !== String(w[i.dataset.k]||'')) patch[i.dataset.k] = v; });
     if (!Object.keys(patch).length) { inlineCancel(); return; }
     dd.querySelectorAll('button,.iein').forEach(x => x.disabled = true); quickWorkSave([{ no, patch }], '保存しました'); };
   dd.querySelector('[data-ie="ok"]').onclick = e => { e.stopPropagation(); go(); };
