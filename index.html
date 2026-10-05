@@ -1925,6 +1925,7 @@ html[data-theme=dark] .qc-chip{background:#16384A;color:#9ADDFF}
 html[data-theme=dark] .fdb-tx .fdb-r{color:#FFC800}.fdb-b{position:sticky;bottom:0;padding:10px 0 4px;background:var(--hg-bg)}
 /* 写真の自動補正（10/5 開発 v5） */
 #crop .cr-hint.cr-busy{color:#FFC800;font-weight:700}
+.ac-fs{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:10px 12px;border-radius:12px;background:var(--hg-sf);color:var(--hg-h);font-size:14px;line-height:1.5}.ac-fs small{flex-basis:100%;color:var(--hg-s);font-size:12.5px}
 #crop .cr-ld{flex-direction:column;gap:10px;text-align:center}#crop .cr-retry{padding:9px 16px;border-radius:10px;border:0;background:#1CB0F6;color:#fff;font:inherit;font-size:15px;font-weight:700;cursor:pointer}
 .ac-prog{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--hg-sf);color:var(--hg-h)}.ac-prog b{font-size:15px}.ac-prog small{display:block;font-size:13px;line-height:1.5;color:var(--hg-s)}
 .ac-msg{margin:0;padding:10px 12px;border-radius:12px;background:rgba(255,150,0,.13);color:var(--hg-h);font-size:14px;line-height:1.5}
@@ -2217,7 +2218,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'edbfe0b09b', APP_URL = location.origin + location.pathname;
+const BUILD = '8738c85ed2', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2243,7 +2244,8 @@ function call(fn, ...args){ return callQ(false, fn, args); }
 function callLow(fn, ...args){ return callQ(true, fn, args); }
 function callQ(low, fn, args){
   if (!NO_TOKEN.includes(fn)) args.unshift(S.token || '');
-  const ln = fn === 'getThumbs' || fn === 'getDocThumbs' ? THLANE : null;
+  const one = fn === 'getThumbs' && Array.isArray(args[1]) && args[1].length === 1 && +args[2] >= 1200; /* 大きい写真を1枚だけ（補正画面・写真の拡大など、いま見たいもの）は待たせない */
+  const ln = !one && (fn === 'getThumbs' || fn === 'getDocThumbs') ? THLANE : null;
   const go = () => { CALLS.n++; const done = () => { CALLS.n = Math.max(0, CALLS.n - 1); if (ln) { const nx = ln.q.shift() || ln.lq.shift(); if (nx) nx(); else ln.n = Math.max(0, ln.n - 1); } };
     return new Promise((ok, ng) => google.script.run.withSuccessHandler(v => { done(); ok(v); }).withFailureHandler(e => { done(); ng(e); })[fn](...args)); };
   if (!ln) return go();
@@ -6711,7 +6713,7 @@ function acState(){ const R = {}; (S.autoc || []).forEach(r => { R[r[0]] = r; })
 const acEta = s => s >= 3600 ? Math.floor(s / 3600) + '時間' + Math.round(s % 3600 / 60) + '分' : Math.max(1, Math.round(s / 60)) + '分';
 const acSec = () => AC.n && AC.t0 ? (Date.now() - AC.t0) / 1000 / AC.n : 90;
 function acProgHTML(){ if (!AC.run) return ''; if (!AC.N) return `<div class="ac-prog"><span class="ldspin"></span><div><b>準備しています</b><small>${esc(AC.step || '')}</small></div></div>`;
-  return `<div class="ac-prog"><span class="ldspin"></span><div><b>${Math.min(AC.n + 1, AC.N)} / ${AC.N} 枚目</b><small>${esc(AC.cur ? nol(AC.cur.no) + '　' + (AC.cur.w['作品名'] || '') : '')}${AC.step ? '：' + esc(AC.step) : ''}<br>のこり およそ${acEta(Math.max(1, AC.N - AC.n) * acSec())}${AC.stop ? '・この1枚が終わったら止まります' : ''}</small></div></div>`; }
+  return `<div class="ac-prog"><span class="ldspin"></span><div><b>${AC.n} / ${AC.N} 枚 すみ</b><small>${(AC.curs || []).map(it => esc(nol(it.no) + '　' + (it.w['作品名'] || '') + (it.step ? '：' + it.step : ''))).join('<br>')}<br>のこり およそ${acEta(Math.max(1, AC.N - AC.n) * acSec())}${AC.nfs ? '・Mac のフォルダから直接読んでいます' : ''}${AC.stop ? '<br>いま進めている分が終わったら止まります' : ''}</small></div></div>`; }
 function acDraw(){ const el = $('#acb'); if (!el || !AC.open) return; const y = el.scrollTop, { L, n } = acState(), tab = AC.tab, left = n.todo;
   const th = f => `<span class="ac-th">${f ? thImg(f, 200) : ''}</span>`;
   const item = x => { const wt = esc(nol(x.no) + '　' + (x.w['作品名'] || '作品名なし')), why = acWhy(x.why);
@@ -6721,7 +6723,7 @@ function acDraw(){ const el = $('#acb'); if (!el || !AC.open) return; const y = 
   const list = L.filter(x => x.st === tab);
   el.innerHTML = `<div class="qc-w fdb-w ac-w"><div class="qc-top"><button type="button" class="qc-x" data-ac="end" aria-label="閉じる">${QCSVG.x}</button><b class="fdb-h">写真の自動補正（管理者）</b></div>
     <p class="qc-hint">家で撮ったメイン写真を1枚ずつ、自動でトリミング（額の内側で切り抜き・ゆがみの補正）します。色と明るさは変えません。自信のあるものだけ保存し、ほかは「確認が必要」に残します。台帳のサイズは変えません。元の写真は「記録写真」として残ります。</p>
-    <div id="acProg">${acProgHTML()}</div>${AC.msg && !AC.run ? `<p class="ac-msg">${esc(AC.msg)}</p>` : ''}
+    <div id="acProg">${acProgHTML()}</div>${acFsOk() ? `<div class="ac-fs">${AC.dir ? `写真は <b>Mac の「${esc(AC.dir.name)}」フォルダから直接</b> 読みます${AC.dirOk ? '' : '（始めるときに、読んでよいかたずねられます）'}<button type="button" class="hg-link" data-ac="pick">選び直す</button>` : `<button type="button" class="hg-link" data-ac="pick">Mac のドライブの「下村良之介」フォルダを選ぶ（速くなります）</button><small>Finder の左の「Google Drive」→「マイドライブ」→「下村良之介」を選びます</small>`}</div>` : ''}${AC.msg && !AC.run ? `<p class="ac-msg">${esc(AC.msg)}</p>` : ''}
     <div class="ac-go">${AC.run ? `<button type="button" class="hg-go ac-stop" data-ac="stop" ${AC.stop ? 'disabled' : ''}>${AC.stop ? '止めています…' : '止める'}</button>`
       : left ? `<button type="button" class="hg-go" data-ac="go:10">${Math.min(10, left)}枚だけ補正する</button>${left > 10 ? `<button type="button" class="hg-link" data-ac="go:0">のこり${left}枚を続けて補正する（およそ${acEta(left * acSec())}）</button>` : ''}` : '<p class="hg-note">まだの写真はありません</p>'}</div>
     <p class="hg-note">補正のあいだは、このページを開いたままにしてください（パソコンのブラウザがおすすめ）。止めたり閉じたりしても、次は続きから始めます。AI の1日の上限に当たったら止まります。</p>
@@ -6730,16 +6732,35 @@ function acDraw(){ const el = $('#acb'); if (!el || !AC.open) return; const y = 
     <div class="ac-l">${(L2 => L2.length ? L2.map(item).join('') : '<p class="hg-note">ありません</p>')(tab === 'auto' && AC.chip ? list.filter(x => (crInfo(x.c) || {}).cht) : list)}</div>
     ${n.manual ? `<p class="hg-note">手で補正ずみの作品：${n.manual}点（ここでは触りません）</p>` : ''}</div>`;
   hydrate(el); el.scrollTop = y; }
-function acStep(t){ AC.step = t; const b = $('#acProg'); if (b) b.innerHTML = acProgHTML(); }
+function acStep(t, it){ if (it) it.step = t; else AC.step = t; const b = $('#acProg'); if (b) b.innerHTML = acProgHTML(); }
 function acOpen(){ if (!(S.user && S.user.role === '管理')) return; closeSheet(); closeAllPages(); AC.open = true;
   let el = $('#acb'); if (!el) { el = document.createElement('div'); el.id = 'acb'; el.className = 'qc hm2 fdb'; document.body.appendChild(el);
     el.addEventListener('click', e => { const t = e.target.closest('[data-ac]'); if (!t || !AC.open) return; const i = t.dataset.ac.indexOf(':'), a = i < 0 ? t.dataset.ac : t.dataset.ac.slice(0, i), v = i < 0 ? '' : t.dataset.ac.slice(i + 1);
-      if (a === 'end') return acEnd(); if (a === 'stop') { AC.stop = true; return acDraw(); } if (a === 'chip') { AC.chip = !AC.chip; return acDraw(); } if (a === 'go') return acRun(+v);
+      if (a === 'end') return acEnd(); if (a === 'stop') { AC.stop = true; return acDraw(); } if (a === 'chip') { AC.chip = !AC.chip; return acDraw(); } if (a === 'go') return acRun(+v); if (a === 'pick') return acPickDir();
       if (a === 'tab') { AC.tab = v; el.scrollTop = 0; return acDraw(); }
       const x = acState().L.find(q => q.no === v); if (!x) return;
       if (a === 'open') { S.cur = x.no; return openCrop(x.c || x.p); }
       if (a === 'undo') return acUndo(x); }); }
-  el.classList.remove('hidden'); el.scrollTop = 0; qcLock(true); acDraw(); hpushLater('a'); }
+  el.classList.remove('hidden'); el.scrollTop = 0; qcLock(true); acDraw(); hpushLater('a'); if (acFsOk() && !AC.dir) acDirReady(false).then(acDraw); }
+/* Mac に同期した Google ドライブの「下村良之介」フォルダから、写真を直接読む（Chrome の File System Access。10/6 開発 v5）。
+   選んだフォルダは IndexedDB に覚え、次からは始めるときに読む許可だけたずねる。写真の場所（写真/001-250/035.jpg など）は Google 側の photoPaths で調べる */
+const acFsOk = () => typeof window.showDirectoryPicker === 'function';
+const FSDB = () => new Promise(ok => { try { const r = indexedDB.open('smr_fs', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => ok(r.result); r.onerror = () => ok(null); } catch(e){ ok(null); } });
+async function fsGet(){ const d = await FSDB(); if (!d) return null; return new Promise(ok => { try { const q = d.transaction('kv').objectStore('kv').get('dir'); q.onsuccess = () => ok(q.result || null); q.onerror = () => ok(null); } catch(e){ ok(null); } }); }
+async function fsPut(h){ const d = await FSDB(); if (!d) return; try { d.transaction('kv', 'readwrite').objectStore('kv').put(h, 'dir'); } catch(e){} }
+async function acPickDir(){ if (AC.run) return;
+  try { const h = await window.showDirectoryPicker({ id: 'smr-drive', mode: 'read' });
+    let ok = false; try { await h.getDirectoryHandle('写真'); ok = true; } catch(e){}
+    if (!ok) { alert('「' + h.name + '」の中に「写真」フォルダがありません。\nGoogle ドライブの「下村良之介」フォルダを選んでください。'); return; }
+    AC.dir = h; AC.dirOk = true; await fsPut(h); toast('「' + h.name + '」から写真を読みます'); }
+  catch(e){ if (e && e.name === 'AbortError') return; alert('このフォルダは選べませんでした。\n' + (e.message || e)); }
+  acDraw(); }
+async function acDirReady(ask){ if (!AC.dir) AC.dir = await fsGet(); if (!AC.dir) return false;
+  try { let p = await AC.dir.queryPermission({ mode: 'read' }); if (p !== 'granted' && ask) p = await AC.dir.requestPermission({ mode: 'read' }); AC.dirOk = p === 'granted'; } catch(e){ AC.dirOk = false; }
+  return AC.dirOk; }
+async function acLocalFile(path){ const parts = String(path || '').split('/').filter(Boolean); if (!parts.length || !AC.dir) return null; let d = AC.dir;
+  for (let i = 0; i < parts.length - 1; i++) d = await d.getDirectoryHandle(parts[i]);
+  return (await d.getFileHandle(parts[parts.length - 1])).getFile(); }
 function acEnd(fromHist){ const was = AC.open, el = $('#acb'); AC.open = false; if (el) { el.classList.add('hidden'); el.innerHTML = ''; } qcLock(false); if (was && !fromHist) hback(); if (S.view === 'home') renderHome(); }
 /* 画面を消さない（パソコンが眠ると止まるため）。使えないブラウザでは何もしない */
 async function acWake(on){ try { if (on && navigator.wakeLock && document.visibilityState === 'visible' && !AC.wl) AC.wl = await navigator.wakeLock.request('screen'); else if (!on && AC.wl) { const w = AC.wl; AC.wl = null; await w.release(); } } catch(e){} }
@@ -6754,12 +6775,19 @@ function acPreAI(pid){ const r = (S.autoc || []).find(x => x[0] === pid), m = r 
   const P = t => String(t || '').trim().split(/\s+/).map(x => x.split(',').map(Number)), art = P(m[1]), chart = m[2] ? P(m[2]) : null; return acPtOk(art) ? { art, chart: acPtOk(chart) ? chart : null } : null; }
 async function acMark(it, why){ why = String(why) + acAIs(it.ai); await acRetry(() => call('autoCropMark', [{ pid: it.p['写真ID'], no: it.no, res: '確認', why }])); acRowSet([it.p['写真ID'], it.no, '確認', why, '', '', (S.user || {}).name || '']); }
 /* 1600px の写真と AI の結果を用意する（次の1枚の分は、いまの1枚を保存しているあいだに先に用意する） */
-function acPrep(it){ return it.prep || (it.prep = (async () => { const fid = it.p['ファイルID'];
+function acPrep(it){ return it.prep || (it.prep = (async () => { const fid = it.p['ファイルID'], path = AC.dirOk && AC.paths && AC.paths[fid];
+  if (path) { let full = null;
+    try { const f = await acLocalFile(path); if (f) { const u = URL.createObjectURL(f); try { full = await loadImg(u); } finally { URL.revokeObjectURL(u); } } } catch(e){ full = null; }
+    if (full && full.naturalWidth) { const k = Math.min(1, 1600 / Math.max(full.naturalWidth, full.naturalHeight)), c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(full.naturalWidth * k)); c.height = Math.max(1, Math.round(full.naturalHeight * k)); c.getContext('2d').drawImage(full, 0, 0, c.width, c.height);
+      const small = c.toDataURL('image/jpeg', 0.85); c.width = c.height = 1;
+      const ai = await acAi(fid, small); if (ai) delete ai.img; AC.nfs = (AC.nfs || 0) + 1;
+      return { img: await loadImg(small), ai, full }; } }
   const ai = await acAi(fid), th = (ai && ai.img) || TH['1600_' + fid] || (await acRetry(() => call('getThumbs', [fid], 1600)))[fid];
   if (ai) delete ai.img; const img = th ? await loadImg(th) : null; if (!img) throw new Error('写真を読み込めませんでした');
   return { img, ai }; })()); }
-/* AI が混み合っているときは、少し長く待ってやり直す */
-async function acAi(fid){ for (let t = 1; ; t++) { try { return await acRetry(() => call('detectCrop', fid, true)); } catch(e){ const m = String(e && e.message || e); if (t >= 4 || !/混み合って|AIの返事がありません|AIの返事を読めません/.test(m)) throw e; await new Promise(z => setTimeout(z, 15000 * t)); } } }
+/* AI が混み合っているときは、少し長く待ってやり直す。small：Mac で縮めた写真（あれば Google 側はドライブから取り寄せない） */
+async function acAi(fid, small){ for (let t = 1; ; t++) { try { return await acRetry(() => small ? call('detectCrop', fid, false, small) : call('detectCrop', fid, true)); } catch(e){ const m = String(e && e.message || e); if (t >= 4 || !/混み合って|AIの返事がありません|AIの返事を読めません/.test(m)) throw e; await new Promise(z => setTimeout(z, 15000 * t)); } } }
 /* 画面の書きかえを待つ（setTimeout は、ウィンドウが隠れていると1分ごとにしか動かないことがあるので使わない） */
 const acYield = () => new Promise(r => { const c = new MessageChannel(); c.port1.onmessage = () => r(); c.port2.postMessage(0); });
 const acPtOk = a => Array.isArray(a) && a.length === 4 && a.every(p => Array.isArray(p) && p.length === 2 && p.every(v => isFinite(v) && v >= -0.01 && v <= 1.01));
@@ -6781,47 +6809,55 @@ function acBuild(c, im){ const prev = CR; CR = c;
     const b64 = oc.toDataURL('image/jpeg', 0.92).split(',')[1]; oc.width = oc.height = 1; return b64;
   } finally { CR = prev; } }
 async function acOne(it){ const p = it.p, no = it.no, fid = p['ファイルID'], w = workOf(no) || it.w, hh = parseFloat(w['高さcm']), ww = parseFloat(w['幅cm']), led = hh > 0 && ww > 0 ? { h: hh, w: ww } : null;
-  acStep('AI で角とカラーチップを探しています');
-  const { img, ai } = await acPrep(it); it.prep = null; it.ai = ai;
+  acStep('AI で角を探しています', it);
+  const { img, ai, full: f0 } = await acPrep(it); it.prep = null; it.ai = ai;
   if (!ai || !acPtOk(ai.art)) return acMark(it, 'art：AI が絵の角を見つけられませんでした');
   if (ai.conf === 'low') return acMark(it, 'low：AI が角の位置に自信がありません');
   const r = acCalc(img, ai, led);
   if (r.small) return acMark(it, 'small：絵が小さく写っているか、角の位置があやしい');
   if (!r.snap) return acMark(it, 'snap：額と絵の境目がはっきりしません（角を手で確かめてください）');
   if (led && Math.abs(Math.log(led.w / led.h / r.a)) > Math.log(1.15)) return acMark(it, 'shape：写真の絵の形（' + acFmt(r.a) + '）が、台帳（高さ ' + led.h + ' × 幅 ' + led.w + ' cm）と合いません');
-  acStep('元の写真を読み込んでいます');
-  let full = null;
-  try { const o = await acRetry(() => call('getOriginal', fid), 3, 240000); if (o && o.b64) full = await loadImg('data:' + o.mime + ';base64,' + o.b64); } catch(e){ if (isLoginErr(e)) throw e; }
+  acStep('元の写真を読み込んでいます', it);
+  let full = f0 || null;
+  if (!full) try { const o = await acRetry(() => call('getOriginal', fid), 3, 240000); if (o && o.b64) full = await loadImg('data:' + o.mime + ';base64,' + o.b64); } catch(e){ if (isLoginErr(e)) throw e; }
   if (!full) { try { const t = (await acRetry(() => call('getThumbs', [fid], 3200)))[fid]; if (t) full = await loadImg(t); } catch(e){ if (isLoginErr(e)) throw e; } }
-  acStep('補正した写真を作っています'); await acYield();
+  acStep('補正した写真を作っています', it); await acYield();
   const b64 = acBuild(r.c, full || img); full = null;
   const kind = p['種類'] && p['種類'] !== '記録写真' ? p['種類'] : '表', d = new Date(), day = d.getFullYear() + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + String(d.getDate()).padStart(2, '0');
   const why = [r.c.cht ? 'カラーチップあり（色はまだ合わせていません）' : 'カラーチップなし', led ? '' : '台帳にサイズがないので、形は写真から計算'].filter(Boolean).join('・');
   const memo = (/^【仮】/.test(p['メモ'] || '') ? '【仮】' : '') + '補正：元の写真 ' + p['写真ID'] + '｜四隅 ' + crPts(crQuad(r.c.top, r.c.bot, 0)) + '｜ふくらみ 0｜明るさ 0%｜比率 ' + (led ? '台帳' : '写真') + '｜色 なし' + (r.c.cht ? '｜チップ位置 ' + crPts(r.c.cht) : '') + '｜元の種類 ' + kind + '｜自動 ' + day;
-  acStep('保存しています');
+  acStep('保存しています', it);
   const res = await acRetry(() => call('saveAutoCrop', no, p['写真ID'], b64, 'image/jpeg', kind, memo, true, why), 4, 240000);
   const pid = res && res.pid; if (!pid) throw new Error('保存の結果がわかりません');
   S.photos.forEach(x => { if (x['作品番号'] !== no) return; if (x['写真ID'] === p['写真ID']) x['種類'] = '記録写真'; x['メイン'] = x['写真ID'] === pid ? 'メイン' : ''; });
   if (!S.photos.some(x => x['写真ID'] === pid)) S.photos.push({ '写真ID': pid, '作品番号': no, '種類': kind, 'ファイルID': res.fid, 'メモ': res.memo || memo, '登録者': (S.user || {}).name || '', '登録日時': '', '向き判定': '', 'メイン': 'メイン' });
   index(); acRowSet([p['写真ID'], no, '保存', why, pid, '', (S.user || {}).name || '']); }
 async function acRun(limit){ if (AC.run) return;
+  Object.assign(AC, { run: true, stop: false, n: 0, N: 0, msg: '', curs: [], step: '準備しています', nfs: 0, paths: {} });
+  const useFs = acFsOk() && AC.dir ? await acDirReady(true) : false; /* 読む許可は、押してすぐたずねる（時間がたつとたずねられないため） */
+  acStep('最新の状態を読み込んでいます'); acDraw();
   /* 始める前に最新のデータを読む（開いた直後は、端末に保存してある少し前のデータを出しているため。古いままだと済んだ写真をもう一度 AI に見せてしまう） */
-  Object.assign(AC, { run: true, stop: false, n: 0, N: 0, msg: '', cur: null, step: '最新の状態を読み込んでいます' }); acDraw();
   try { const d = await acRetry(() => call('getData'), 3, 150000); if (d && d.works) setData(d); }
   catch(e){ AC.run = false; AC.step = ''; AC.msg = isLoginErr(e) ? 'ログインの有効期限が切れました。もう一度ログインしてください' : '最新の状態を読み込めませんでした。少し待ってから、もう一度押してください'; return acDraw(); }
   const Q = acState().L.filter(x => x.st === 'todo').slice(0, limit || 1e9); if (!Q.length) { AC.run = false; AC.step = ''; acDraw(); return toast('補正する写真はもうありません'); }
-  Object.assign(AC, { N: Q.length, t0: Date.now(), step: '' }); acWake(true); acDraw(); let errs = 0;
-  try { for (let i = 0; i < Q.length && !AC.stop; i++) { const it = Q[i]; AC.cur = it; AC.step = ''; acDraw();
-      if (Q[i + 1]) acPrep(Q[i + 1]).catch(() => {});
+  let fsNote = '';
+  if (useFs) { acStep('Mac のフォルダの中の、写真の場所を調べています（1分ほど）');
+    try { AC.paths = (await acRetry(() => call('photoPaths', Q.map(x => x.p['ファイルID'])), 2, 300000)) || {}; } catch(e){ AC.paths = {}; fsNote = '（写真の場所を調べられなかったので、Google 経由で読みました）'; } }
+  else if (AC.dir) fsNote = '（Mac のフォルダを読む許可がなかったので、Google 経由で読みました）';
+  Object.assign(AC, { N: Q.length, t0: Date.now(), step: '' }); acWake(true); acDraw();
+  let qi = 0, errs = 0, fatal = '';
+  const worker = async () => { while (!AC.stop && !fatal && qi < Q.length) { const it = Q[qi++]; it.step = ''; AC.curs.push(it); acStep('', null);
       try { await acOne(it); errs = 0; }
       catch(e){ const m = String(e && e.message || e);
-        if (isLoginErr(e)) { AC.msg = 'ログインの有効期限が切れました。もう一度ログインして、続きから始めてください'; break; }
-        if (/上限/.test(m)) { AC.msg = '今日の AI の上限に達しました。明日、続きから始めてください'; break; }
-        if (/この操作はできません/.test(m)) { AC.msg = 'まだ Google 側の更新が済んでいません'; break; }
-        errs++; try { await acMark(it, 'err：うまくいきませんでした（' + m.replace(/\s+/g, ' ').slice(0, 120) + '）'); } catch(x){}
-        if (errs >= 3) { AC.msg = 'うまくいかない写真が続いたので止めました：' + m.slice(0, 120); AC.n++; break; } }
-      AC.n++; } }
-  finally { const done = AC.n; AC.run = false; AC.cur = null; AC.step = ''; acWake(false); Q.forEach(x => { x.prep = null; }); if (!AC.msg) AC.msg = done + '枚を処理しました' + (AC.stop ? '（止めました）' : ''); acDraw(); if (!AC.open && S.view === 'home') renderHome(); } }
+        if (isLoginErr(e)) fatal = 'ログインの有効期限が切れました。もう一度ログインして、続きから始めてください';
+        else if (/上限/.test(m)) fatal = '今日の AI の上限に達しました。明日、続きから始めてください';
+        else if (/この操作はできません/.test(m)) fatal = 'まだ Google 側の更新が済んでいません';
+        else { errs++; try { await acMark(it, 'err：うまくいきませんでした（' + m.replace(/\s+/g, ' ').slice(0, 120) + '）'); } catch(x){}
+          if (errs >= 4) fatal = 'うまくいかない写真が続いたので止めました：' + m.slice(0, 120); } }
+      AC.n++; AC.curs = AC.curs.filter(x => x !== it); acDraw(); } };
+  try { await Promise.all([worker(), worker(), worker()]); } /* 3枚ずつ同時に（AI と保存の待ち時間を重ねる） */
+  finally { const done = AC.n; AC.run = false; AC.curs = []; AC.step = ''; acWake(false); Q.forEach(x => { x.prep = null; });
+    AC.msg = fatal || (done + '枚を処理しました' + (AC.stop ? '（止めました）' : '') + (AC.nfs ? '。Mac のフォルダから直接読んだ写真：' + AC.nfs + '枚' : '') + fsNote); acDraw(); if (!AC.open && S.view === 'home') renderHome(); } }
 /* 自動補正をやめて元にもどす（1枚ずつ。補正した写真はアーカイブへ。アーカイブからいつでも戻せる） */
 async function acUndo(x){ if (!x.c || !x.p || AC.busy) return; if (!confirm(nol(x.no) + ' の自動補正をやめて、元の写真にもどしますか？\n（補正した写真はアーカイブへ移します）')) return;
   AC.busy = true; busy(true, '元の写真にもどしています…');
