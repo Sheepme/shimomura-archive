@@ -2174,6 +2174,18 @@ button.ulrow{cursor:pointer}
 .cr-pad button,.cr-nnext{height:40px;min-width:44px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:#34342f;color:#faf9f5;font:inherit;font-size:18px;font-weight:700;cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none}
 .cr-pad button:active,.cr-nnext:active{background:#4a4a44}
 .cr-nnext{font-size:13px;font-weight:600;padding:0 10px;min-width:0}
+/* パソコン（横長の画面）：写真を左いっぱいに、操作は右の列に。設定はいつも開いておく（10/6 本人） */
+@media (min-width:900px) and (min-aspect-ratio:5/4){
+  #crop{display:grid!important;grid-template-columns:minmax(0,1fr) 380px;grid-template-rows:auto auto minmax(0,1fr);grid-template-areas:"top top" "stage hint" "stage side"}
+  #crop .cr-top{grid-area:top;padding-left:20px;padding-right:20px}
+  #crop .cr-hint{grid-area:hint;text-align:left;padding:14px 22px 6px;background:#262624;border-left:1px solid rgba(255,255,255,.08);margin:0}
+  #crop .cr-stage{grid-area:stage;margin:6px 20px 20px 24px;min-height:0}
+  #crop .cr-bot{grid-area:side;overflow:auto;border-top:0;border-left:1px solid rgba(255,255,255,.08);padding:8px 22px 20px!important;gap:12px;justify-content:flex-start}
+  #crop .cr-more{display:flex!important}
+  #crop .cr-morebtn{display:none}
+  #crop .cr-row{flex-wrap:wrap}
+  #crop .cr-row .cr-seg.sm{flex:1 1 auto}
+}
 .cr-saving{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;background:rgba(28,28,27,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#faf9f5;text-align:center;animation:bvin .2s ease}
 .cr-saving .ldspin{width:38px;height:38px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:ldrot .8s linear infinite}.cr-saving b{font-size:16px}.cr-saving small{font-size:12.5px;line-height:1.5;opacity:.75;max-width:280px}
 .cr-z1{position:absolute;right:8px;top:8px;z-index:4;height:32px;padding:0 12px;border-radius:16px;border:0;background:rgba(0,0,0,.6);color:#fff;font:inherit;font-size:13px;font-weight:600;cursor:pointer}.cr-z1.hidden{display:none}
@@ -2254,7 +2266,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'aecf924fff', APP_URL = location.origin + location.pathname;
+const BUILD = '1881e21c24', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
