@@ -2070,7 +2070,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd81d59bef0', APP_URL = location.origin + location.pathname;
+const BUILD = '2ebf7774bb', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3557,8 +3557,8 @@ let NOTEQ = '';
 function dt2(v){ const s = String(v || '').trim(); if (!s) return '<small>日付なし</small>'; const m = /^(\d{4})[\/\-.年]?(.*)$/.exec(s); if (!m) return esc(s);
   const rest = m[2].replace(/^[\/\-.]/, '').replace(/[\-.]/g, '/'); return `<b>${m[1]}</b>${rest ? `<small>${esc(rest)}</small>` : ''}`; }
 function devUnwrap(){ document.querySelectorAll('#sheetbox .devbox').forEach(bx => { const r = bx.querySelector('.dtr'); if (r) bx.before(r); bx.remove(); }); document.querySelectorAll('#sheetbox .devpv').forEach(x => x.remove()); }
-function docEvHTML(d){ const ids = String(d['出来事ID']||'').split(',').filter(Boolean); if (!ids.length) return '';
-  const ev = ids.map(i => S.events.find(e => e['出来事ID']===i)).filter(Boolean).sort((a, b) => String(a['日付']).localeCompare(String(b['日付'])));
+function docEvHTML(d){ const ids = String(d['出来事ID']||'').split(',').filter(Boolean), did = d['書類ID']; /* 書類の出来事IDに加えて、根拠・出典にこの書類がある出来事も出す（あとから手で足したもの） */
+  const ev = [...new Set(ids.map(i => S.events.find(e => e['出来事ID']===i)).filter(Boolean).concat((S.events || []).filter(e => evDocs(e).includes(did))))].sort((a, b) => String(a['日付']).localeCompare(String(b['日付'])));
   if (!ev.length) return '';
   return `<h3 class="sec" style="font-size:18px">この書類からわかった来歴（${ev.length}件）</h3><p class="hint" style="margin:-4px 0 6px">${docRes(d).PDF ? '押すと、書類のその出来事が書かれたところが光ります（もう一度押すと閉じます）。' : ''}</p><div class="dtoc devs">${ev.map(e => `<${docRes(d).PDF ? 'button type="button"' : 'div'} class="dtr" data-dev="${esc(e['出来事ID'])}"><span class="dtp">${dt2(e['日付'])}</span><span><b>${esc(e['種類'])}</b>　${esc(e['相手先・場所']||'')}${wLabel(e['作品番号']) ? `<span class="devwk">${esc(wLabel(e['作品番号']))}</span>` : ''}${e['内容'] ? `<small class="muted">${esc(e['内容'])}</small>` : ''}</span>${docRes(d).PDF ? '<em class="devgo" aria-hidden="true"></em>' : ''}</${docRes(d).PDF ? 'button' : 'div'}>`).join('')}</div>`; }
 function docTocHTML(d){ const pgs = docRes(d)['ページ'] || []; if (pgs.length < 2) return '';
@@ -3573,7 +3573,7 @@ function wdHighlight(btn){ const [did, no] = btn.dataset.wdhl.split('|'), d = do
 function evSrc(btn){ const e = (S.events || []).find(x => x['出来事ID'] === btn.dataset.evsrc), box = btn.nextElementSibling; if (!e || !box) return;
   if (btn.classList.contains('on')) { btn.classList.remove('on'); btn.textContent = '該当箇所を確認 ↓'; box.className = 'evsrcbox'; box.innerHTML = ''; return; }
   const docs = evDocs(e).map(docById).filter(d => d && docRes(d).PDF); if (!docs.length) return toast('この来歴にはPDFの書類がありません');
-  let at = null; try { at = JSON.parse(e['位置'] || 'null'); } catch(x){} if (!(at && at.p)) at = null;
+  let at = null; try { at = JSON.parse(e['位置'] || 'null'); } catch(x){} if (!(at && at.p)) at = mlinkAt(e['作品番号'], docs[0]['書類ID']);
   btn.classList.add('on'); btn.textContent = '閉じる ↑'; box.className = 'dfx evx evsrcbox open';
   box.innerHTML = (docs.length > 1 ? `<div class="evsdocs">${docs.map((d, i) => `<button type="button" data-evsd="${esc(d['書類ID'])}">${esc(docTitle(d))}</button>`).join('')}</div>` : `<p class="evsdt">📄 ${esc(docTitle(docs[0]))}</p>`) + '<span data-dfhl="evs" hidden></span>' + `<button type="button" class="wfix evfix" data-evedit="${esc(e['出来事ID'])}">日付・内容が違う？</button>`;
   box._show = did => { const d = docs.find(x => x['書類ID'] === did) || docs[0]; box.querySelectorAll('[data-evsd]').forEach(b => b.classList.toggle('on', b.dataset.evsd === d['書類ID']));
@@ -4188,7 +4188,7 @@ function sheetDocReview(id){ try { const d0 = docById(id); if (d0) pdfPrefetch([
       dfPreview(c, d, { doc: '', at: { p: pn }, toc: 1 }, true); });
     /* この書類からわかった来歴：押すと、その出来事が書かれたところを光らせる（パソコンは左のビューワー、スマホはその下に開く） */
     document.querySelectorAll('#sheetbox button[data-dev]').forEach(b => b.onclick = () => { const e = (S.events || []).find(x => x['出来事ID'] === b.dataset.dev); if (!e) return;
-      let at = null; try { at = JSON.parse(e['位置'] || 'null'); } catch(x){} if (!(at && at.p)) at = null; const q = e['相手先・場所'] || e['日付'] || '', L = document.querySelector('#sheetbox.split .dsv');
+      let at = null; try { at = JSON.parse(e['位置'] || 'null'); } catch(x){} if (!(at && at.p)) at = mlinkAt(e['作品番号'], d['書類ID']); const q = e['相手先・場所'] || e['日付'] || '', L = document.querySelector('#sheetbox.split .dsv');
       const was = b.classList.contains('on'); document.querySelectorAll('#sheetbox .dtr.on').forEach(x => x.classList.remove('on')); devUnwrap();
       document.querySelectorAll('#sheetbox .devw').forEach(x => x.remove());
       const devW = () => { const no = String(e['作品番号'] || ''), w = document.createElement('div'); w.className = 'wl2 devw'; /* 作品の確認と、読み違いの直し（ひも付けのときと同じ形） */
@@ -5331,6 +5331,8 @@ const escU = v => mlinkHTML(esc(v).replace(/https?:\/\/(?:(?!&quot;|&#39;|&lt;|&
    作り方：書類ビューワーの 🖍 で書いてある所を囲み、作品を選ぶ（位置はページの縦横を1000とした数） */
 function mlinkHTML(s){ return String(s).replace(/［資料\s+([^\s［］]+)\s+p\.?\s*(\d+)(?:\s+(\d+),(\d+),(\d+),(\d+))?\s*］/g, (m, did, p, t, l, b, r) => docById(did)
   ? `<button type="button" class="evsrc mlink" data-mlink="${esc(did)}|${p}|${t != null ? [t, l, b, r].join(',') : ''}">📄 資料の該当箇所（p.${p}）↓</button><span class="evsrcbox"></span>` : `（資料 p.${p}）`); }
+/* 出来事に位置がないとき、作品のメモにある同じ書類の資料リンクの位置を使う */
+function mlinkAt(no, did){ const w = workOf(no); if (!w || !did) return null; const re = /［資料\s+([^\s［］]+)\s+p\.?\s*(\d+)(?:\s+(\d+),(\d+),(\d+),(\d+))?\s*］/g; let m; while ((m = re.exec(String(w['補足'] || '')))) if (m[1] === did) return { p: +m[2], box: m[3] != null ? [+m[3], +m[4], +m[5], +m[6]] : null }; return null; }
 const docByFile = fid => (S.docs || []).find(d => docPages(d).includes(fid));
 function mlinkOpen(btn){ const box = btn.nextElementSibling; if (!box) return; const [did, p, bs] = btn.dataset.mlink.split('|'), d = docById(did);
   if (btn.classList.contains('on')) { btn.classList.remove('on'); btn.textContent = btn.dataset.lb || '📄 資料の該当箇所 ↓'; box.className = 'evsrcbox'; box.innerHTML = ''; return; }
