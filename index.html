@@ -2090,6 +2090,7 @@ button.ulrow{cursor:pointer}
 .pbin{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin:8px 0 12px}
 .pbinp{border:0;padding:0;background:var(--wash);border-radius:8px;overflow:hidden;aspect-ratio:3/4;cursor:zoom-in}
 .pbinp img{width:100%;height:100%;object-fit:cover;min-height:0!important;display:block}
+.phist .phre{border:0;background:none;padding:0 0 0 6px;color:var(--acc);font:inherit;text-decoration:underline;cursor:pointer}
 </style>
 </head>
 <body>
@@ -2159,7 +2160,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'f55acbf5a9', APP_URL = location.origin + location.pathname;
+const BUILD = '2fc5a47db3', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5536,16 +5537,20 @@ function histBlock(id, last, who){
   const d = String(last || '').slice(0, 10);
   return `<div class="phist" data-phist="${esc(id)}">${d ? `<p>最終更新：${esc(d)}（${esc(who || '不明')}）</p>` : ''}<div class="phb">${histLines(id)}</div></div>`;
 }
+document.addEventListener('click', e => { const b = e.target.closest('[data-phre]'); if (!b) return; const id = b.dataset.phre; delete HISTC[id];
+  document.querySelectorAll('[data-phist]').forEach(el => { if (el.dataset.phist === id) el.querySelector('.phb').innerHTML = histLines(id); }); histLoad(id); });
 function histLines(id){ const c = HISTC[id];
   if (!c) return '<p class="phw">更新履歴を読み込んでいます…</p>';
-  if (c.err) return '';
+  if (c.err) return `<p class="phw">更新履歴を読み込めませんでした。<button type="button" class="phre" data-phre="${esc(id)}">もう一度読む</button></p>`;
   if (!c.g.length) return '';
   const more = c.g.length > 40 ? `<p>ほかに ${c.g.length - 40}日分（くわしくは「更新記録」へ）</p>` : '';
   return `<p>更新履歴：</p>` + c.g.slice(0, 40).map(x => `<p class="phr">${esc(x.d)}（${esc(x.w)}）${esc(x.it.join('・'))}</p>`).join('') + more; }
 async function histLoad(id){
   const c = HISTC[id]; if (c && (c.busy || Date.now() - c.t < 15000)) return; /* 開き直しが続いたときは読み直さない（15秒） */
   HISTC[id] = Object.assign(c || { g: [] }, { busy: true });
-  try { const L = await call('getWorkLog', id), g = [], at = {};
+  try { let L; for (let k = 0; ; k++) { try { L = await call('getWorkLog', id); break; } /* Google 側が一時的に 404 などを返すことがある（10/5）。少し待って3回まで */
+      catch(e){ if (isLoginErr(e) || !netErr(e) || k >= 2) throw e; await new Promise(r => setTimeout(r, 3000 * (k + 1))); } }
+    const g = [], at = {};
     (L || []).forEach(r => { const d = String(r['日時'] || '').slice(0, 10), w = r['変更者'] || '不明', k = d + '|' + w, lab = histLab(r);
       let x = at[k]; if (!x) { x = at[k] = { d: d || '日付なし', w, it: [] }; g.push(x); } if (lab && x.it.indexOf(lab) < 0) x.it.push(lab); });
     HISTC[id] = { g, t: Date.now() }; }
