@@ -2160,7 +2160,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '2fc5a47db3', APP_URL = location.origin + location.pathname;
+const BUILD = 'a2be049f36', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2243,7 +2243,7 @@ function docCacheSync(docs){ let V = {}; try { V = JSON.parse(localStorage.getIt
   if (del.length) thDel(del); try { localStorage.setItem('smr_dver', JSON.stringify(N)); } catch(e){} }
 function setData(d){ if (S.upd) S.upd.t = 0; try { if (d && d.docs && d.docs.length) docCacheSync(d.docs); } catch(e){}
   const allW = d.works || []; d = Object.assign({}, d, {works: allW.filter(w => !OTRE.test(w['作品番号'])), others: allW.filter(w => OTRE.test(w['作品番号']))});
-  Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, museums:d.museums||[], exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], finds:d.finds||[], lits:d.lits||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], faces:d.faces||[], memoChecker:d.memoChecker||'直美', marks:d.marks||[], pimg:d.pimg||S.pimg||[], user:d.user, ai:d.ai, publicView:d.publicView}); if (S.token && !d.user) setToken(''); index(); try { pimgIndex(); } catch(e){} renderUser(); try { faceInit(); } catch(e){}  if (d.user) setTimeout(prefetchThumbs, 0); }
+  Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, museums:d.museums||[], exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], finds:d.finds||[], lits:d.lits||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], faces:d.faces||[], memoChecker:d.memoChecker||'直美', marks:d.marks||[], pimg:d.pimg||S.pimg||[], hist:Array.isArray(d.hist) ? d.hist : (S.hist || null), user:d.user, ai:d.ai, publicView:d.publicView}); if (S.token && !d.user) setToken(''); index(); try { pimgIndex(); } catch(e){} renderUser(); try { faceInit(); } catch(e){}  if (d.user) setTimeout(prefetchThumbs, 0); }
 const canRole = () => !!(S.user && ['編集','管理'].includes(S.user.role));
 const canEdit = () => canRole();
 try { S.edit = localStorage.getItem('smr_edit') === '1'; } catch(e){ S.edit = false; }
@@ -5532,8 +5532,16 @@ function histLab(r){ const t = r['対象'] || '', f = r['項目'] || '';
   if (t === '書類') return '書類';
   if (t === '調べ') return '調べの記録';
   return t + (f ? '（' + f + '）' : ''); }
+/* Google が台帳といっしょに送ってくる「更新履歴のまとめ」（S.hist：[番号, 日付, 人, '対象:項目' をタブでつないだもの]）から作る。ページを開くたびに読みに行かない */
+let HIDX = null, HIDX_K = null;
+function histFromS(id){
+  if (HIDX_K !== S.hist) { HIDX_K = S.hist; HIDX = {}; (S.hist || []).forEach(r => { (HIDX[r[0]] = HIDX[r[0]] || []).push(r); }); }
+  const g = (HIDX[id] || []).slice().reverse().map(r => ({ d: r[1] || '日付なし', w: r[2] || '不明', it: String(r[3] || '').split('\t').map(l => { const i = l.indexOf(':'); return histLab({ '対象': i >= 0 ? l.slice(0, i) : '', '項目': i >= 0 ? l.slice(i + 1) : l }); }).filter((v, i, a) => v && a.indexOf(v) === i) }))
+    .sort((a, b) => a.d < b.d ? 1 : a.d > b.d ? -1 : 0);
+  return { g, t: Date.now(), local: 1 };
+}
 function histBlock(id, last, who){
-  setTimeout(() => histLoad(id), 0);
+  if (Array.isArray(S.hist)) HISTC[id] = histFromS(id); else setTimeout(() => histLoad(id), 0);
   const d = String(last || '').slice(0, 10);
   return `<div class="phist" data-phist="${esc(id)}">${d ? `<p>最終更新：${esc(d)}（${esc(who || '不明')}）</p>` : ''}<div class="phb">${histLines(id)}</div></div>`;
 }
@@ -5546,6 +5554,7 @@ function histLines(id){ const c = HISTC[id];
   const more = c.g.length > 40 ? `<p>ほかに ${c.g.length - 40}日分（くわしくは「更新記録」へ）</p>` : '';
   return `<p>更新履歴：</p>` + c.g.slice(0, 40).map(x => `<p class="phr">${esc(x.d)}（${esc(x.w)}）${esc(x.it.join('・'))}</p>`).join('') + more; }
 async function histLoad(id){
+  if (Array.isArray(S.hist)) { HISTC[id] = histFromS(id); document.querySelectorAll('[data-phist]').forEach(el => { if (el.dataset.phist === id) el.querySelector('.phb').innerHTML = histLines(id); }); return; }
   const c = HISTC[id]; if (c && (c.busy || Date.now() - c.t < 15000)) return; /* 開き直しが続いたときは読み直さない（15秒） */
   HISTC[id] = Object.assign(c || { g: [] }, { busy: true });
   try { let L; for (let k = 0; ; k++) { try { L = await call('getWorkLog', id); break; } /* Google 側が一時的に 404 などを返すことがある（10/5）。少し待って3回まで */
