@@ -1466,6 +1466,11 @@ img.lowres{filter:blur(4px);transition:filter .3s}
 #vspin{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 16px;border-radius:14px;background:rgba(0,0,0,.45);color:#fff;z-index:4;pointer-events:none}#vspin.hidden{display:none}#vspin .ldspin{border-color:rgba(255,255,255,.35);border-top-color:#fff}#vspin small{font-size:12px}
 .vedit{position:absolute;top:12px;right:16px;z-index:6;width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--paper);color:var(--ink);font-size:20px;padding:0;display:flex;align-items:center;justify-content:center}
 .vmenu{position:absolute;top:66px;right:16px;z-index:6;display:none;flex-direction:column;align-items:stretch;gap:8px;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:10px;box-shadow:0 8px 28px rgba(0,0,0,.25);min-width:220px}
+/* 写真の編集の吹き出し：大きく。回転は「画像回転」→ 左90°・180°・右90° の2段階（10/6 本人） */
+#vmenu{min-width:min(290px,calc(100vw - 32px));max-width:calc(100vw - 32px);padding:12px;gap:10px;border-radius:20px}
+#vmenu button{min-height:54px;padding:12px 18px;font-size:17px;font-weight:600;border-radius:14px;line-height:1.3}
+#vmenu .vrot{flex-direction:column;gap:10px}#vmenu .vrot2{display:none;flex-direction:column;gap:10px}#vmenu.rot .vrot2{display:flex}#vmenu.rot .vrotgo{display:none}#vmenu.rot>:not(#vrot){display:none!important}
+#vmenu .vrotgo{display:flex;justify-content:space-between;align-items:center;text-align:left}#vmenu .vrotgo i{font-style:normal;font-size:22px;color:var(--sub)}#vmenu .vrot2 button{text-align:left}#vmenu .vrotbk{min-height:44px;border:0;background:none;color:var(--sub);font-size:15px;padding:6px 8px}
 .vmenu.open{display:flex}.vmenu > button,.vmenu .vrot{position:static!important;top:auto!important;right:auto!important;margin:0}.vmenu > button.hidden,.vmenu .vrot.hidden{display:none}.vmenu .vrot button{flex:1}.vmenu > button{text-align:left}
 html.sa .vedit{top:calc(12px + var(--cap))}html.sa .vmenu{top:calc(66px + var(--cap))}html.sa.tb .vedit{top:calc(12px + var(--cap) - var(--tb))}html.sa.tb .vmenu{top:calc(66px + var(--cap) - var(--tb))}
 /* 画面の重なりを1つにそろえる（2026/10/02）：上のバーはそのまま、その下の画面が入れ替わる（新しい画面は右から、元の画面は左へ） */
@@ -2268,7 +2273,7 @@ body.qcopen #bigwait{visibility:visible!important}body.bbig #toast.tmsg:not(.hid
 <div id="page" class="page hidden"></div>
 <div id="sheet" class="sheet hidden"><div class="box" id="sheetbox"></div></div>
 <div id="confirm" class="sheet hidden" style="z-index:100"><div class="box" id="confirmbox"></div></div>
-<div id="viewer" class="viewer hidden"><button class="vclose scrback" id="vclose">← 戻る</button><button id="vedit" class="vedit hidden" type="button" aria-label="この写真を編集">✎</button><div id="vmenu" class="vmenu"><button id="vmain" class="hidden">★ メイン画像にする</button><button id="vcopy" class="hidden">© 転載元・著作物</button><div id="vrot" class="vrot hidden"><button type="button" data-rot="-90">↺ 左に回す</button><button type="button" data-rot="90">↻ 右に回す</button></div><button id="vcrop" class="hidden">✂ 切り抜き・補正</button><button id="vdrv" class="hidden">☁ 元のファイルを確認</button><button id="vrep" class="hidden">この写真を差し替える</button><button id="vdel" class="hidden">削除</button></div><img id="vimg" alt=""><span id="vwm" class="wm vwm"></span><div class="vbar"><button id="vprev">‹ 前</button><span id="vcount"></span><p id="vcredit" class="credit"></p><button id="vnext">次 ›</button></div><button id="vorig" type="button">高画質で見る</button></div>
+<div id="viewer" class="viewer hidden"><button class="vclose scrback" id="vclose">← 戻る</button><button id="vedit" class="vedit hidden" type="button" aria-label="この写真を編集">✎</button><div id="vmenu" class="vmenu"><button id="vmain" class="hidden">★ メイン画像にする</button><button id="vcopy" class="hidden">© 転載元・著作物</button><div id="vrot" class="vrot hidden"><button type="button" class="vrotgo">⟳ 画像回転<i aria-hidden="true">›</i></button><div class="vrot2"><button type="button" class="vrotbk">‹ もどる</button><button type="button" data-rot="-90">↺ 左90°</button><button type="button" data-rot="180">⟳ 180°</button><button type="button" data-rot="90">↻ 右90°</button></div></div><button id="vcrop" class="hidden">✂ 切り抜き・補正</button><button id="vdrv" class="hidden">☁ 元のファイルを確認</button><button id="vrep" class="hidden">この写真を差し替える</button><button id="vdel" class="hidden">削除</button></div><img id="vimg" alt=""><span id="vwm" class="wm vwm"></span><div class="vbar"><button id="vprev">‹ 前</button><span id="vcount"></span><p id="vcredit" class="credit"></p><button id="vnext">次 ›</button></div><button id="vorig" type="button">高画質で見る</button></div>
 <div id="loading" class="loading hidden">読み込み中…</div>
 <div id="toast" class="tmsg hidden"></div>
 
@@ -2288,7 +2293,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '42ee056c5d', APP_URL = location.origin + location.pathname;
+const BUILD = '4d9aeca88c', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6361,7 +6366,7 @@ function showV(){ const p = V.list[V.i]; if (!p) return;
   $('#vcredit').innerHTML = creditHTML([p]); $('#vwm').innerHTML = wm(p).replace(/<\/?span[^>]*>/g, '');
   const isW = S.cur && workOf(S.cur), isMain = V.i===0; $('#vmain').classList.toggle('hidden', !canEdit() || !isW || V.list.length < 2 || !p['写真ID']); $('#vmain').textContent = isMain ? '★ メイン画像' : '☆ メイン画像にする'; $('#vmain').disabled = isMain;
   $('#vcopy').classList.toggle('hidden', !canEdit() || !p['写真ID']); $('#vcopy').textContent = copyOf(p) ? '© 著作物（' + copyOf(p).mu + '）' : '© 著作物の設定';
-  $('#vedit').classList.toggle('hidden', !canEdit()); $('#vmenu').classList.remove('open');
+  $('#vedit').classList.toggle('hidden', !canEdit()); $('#vmenu').classList.remove('open', 'rot');
   $('#vrep').classList.toggle('hidden', !canEdit()); $('#vdrv').classList.toggle('hidden', !canEdit() || !p['ファイルID'] || !!copyOf(p)); /* 他人の著作物（縮小画像だけ保存）には出さない */ $('#vdel').classList.toggle('hidden', !canEdit() || !p['写真ID']); $('#vrot').classList.toggle('hidden', !canEdit()); { const ok = crCan(p); $('#vcrop').classList.toggle('hidden', !ok); if (ok) $('#vcrop').textContent = crTargets(p).corr ? '✂ 切り抜き・補正（直し直す）' : '✂ 切り抜き・補正'; }
   $('#vorig').textContent = TH['3200_' + p['ファイルID']] ? '高画質で表示中' : '高画質で見る';
   $('#vorig').onclick = () => { const id = p['ファイルID'], k2 = '3200_' + id; if (TH[k2]) { $('#vimg').src = TH[k2]; return; }
@@ -6370,8 +6375,8 @@ function showV(){ const p = V.list[V.i]; if (!p) return;
       .catch(() => { vSpin(false); $('#vorig').textContent = '高画質で見る'; toast('高画質の写真を読み込めませんでした'); }); };
   $('#vprev').style.visibility = V.i>0?'visible':'hidden'; $('#vnext').style.visibility = V.i<V.list.length-1?'visible':'hidden'; }
 $('#vclose').onclick = () => closeViewer();
-$('#vedit').onclick = e => { e.stopPropagation(); $('#vmenu').classList.toggle('open'); }; // 編集のボタンは鉛筆にまとめる
-$('#viewer').addEventListener('click', e => { if (!e.target.closest('#vedit') && (!e.target.closest('#vmenu') || e.target.closest('#vmenu button'))) setTimeout(() => $('#vmenu').classList.remove('open'), 0); });
+$('#vedit').onclick = e => { e.stopPropagation(); $('#vmenu').classList.remove('rot'); $('#vmenu').classList.toggle('open'); }; // 編集のボタンは鉛筆にまとめる
+$('#viewer').addEventListener('click', e => { if (!e.target.closest('#vedit') && (!e.target.closest('#vmenu') || e.target.closest('#vmenu button:not(.vrotgo):not(.vrotbk)'))) setTimeout(() => $('#vmenu').classList.remove('open', 'rot'), 0); });
 /* 写真の拡大画面：指2本で拡大・縮小、拡大中は指1本で動かす、2回タップで拡大／元に戻す、拡大していないときは左右にスワイプで前後の写真 */
 const VZ = { s: 1, x: 0, y: 0 };
 function vzApply(){ const im = $('#vimg'); im.style.transform = VZ.s === 1 ? '' : `translate(${VZ.x}px,${VZ.y}px) scale(${VZ.s})`; im.classList.toggle('zoomed', VZ.s > 1); }
@@ -6406,7 +6411,8 @@ $('#vdel').onclick = () => { const p = V.list[V.i]; if (!p) return; closeViewer(
 $('#vcopy').onclick = () => { const p = V.list[V.i]; if (!p) return; closeViewer(); setTimeout(() => sheetCopy(p), 350); };
 $('#vdrv').onclick = () => { const p = V.list[V.i]; if (p && p['ファイルID']) openOrigFile(p['ファイルID']); };
 $('#vrep').onclick = () => { const p = V.list[V.i], no = S.cur; closeViewer(); setTimeout(() => sheetPhoto(no, p['写真ID']), 350); };
-$('#vrot').onclick = e => { const b = e.target.closest('[data-rot]'); if (b) rotatePhoto(+b.dataset.rot); };
+$('#vrot').onclick = e => { if (e.target.closest('.vrotgo')) return $('#vmenu').classList.add('rot'); if (e.target.closest('.vrotbk')) return $('#vmenu').classList.remove('rot');
+  const b = e.target.closest('[data-rot]'); if (b) rotatePhoto(+b.dataset.rot); };
 $('#vcrop').onclick = () => { const p = V.list[V.i]; if (p) openCrop(p); };
 const loadImg = src => new Promise((ok, ng) => { const im = new Image(); im.onload = () => ok(im); im.onerror = ng; im.src = src; });
 /* 写真を deg 度（時計回り）回した画像を作る */
@@ -6490,7 +6496,7 @@ async function rotatePhoto(deg){
     setData(d); render();
     if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
     S.cur = no; V.list = photoBy[no] || []; V.i = Math.min(i, V.list.length - 1); showV();
-    toast(deg > 0 ? '右に回しました' : '左に回しました');
+    toast(deg === 180 ? '180°回しました' : deg > 0 ? '右に90°回しました' : '左に90°回しました');
   } catch(e){
     if (isLoginErr(e)) { alert('ログインの有効期限が切れました。もう一度ログインしてください。'); }
     else alert('回転できませんでした。\n' + (e.message || e));
