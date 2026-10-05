@@ -738,7 +738,7 @@ html[data-theme=dark] .wm{filter:none}
 #ptr.ready{color:var(--ink);font-weight:600}
 #ptr .ptr-ic{display:inline-block;font-size:18px;line-height:1}
 .prm{display:inline-block;width:.95em;height:.95em;margin-right:.3em;vertical-align:-.1em;background:currentColor;-webkit-mask:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAyMzguNzkgMjM2Ljg3Jz48cGF0aCBmaWxsLXJ1bGU9J2V2ZW5vZGQnIGQ9J00yMzguNzksODIuOTZsLS4wNCwxMy4yNmMtMi4wOSwyOC40Ni0xOC4xLDU0LjA4LTQxLjEyLDY4LjUxLTI2LjUzLDE2LjYzLTU4LjMyLDE4LjQ1LTg2LjM5LDUuMmwtNTEuMjQsNjYuOTUtLjAyLTE4Ni4xOEwwLDBsMTU1LjA5LjQxYzkuMTYuMDIsMTguODQsMy4wNCwyNi43Nyw2LjEsMzIuNjEsMTIuNTYsNTQuMTIsNDIuMjgsNTYuOTMsNzYuNDVaTTE4MC40OCwxMjAuNTJjMC0xNy4yMy0xNC0zMS4yLTMxLjI2LTMxLjJzLTMxLjI2LDEzLjk3LTMxLjI2LDMxLjIsMTQsMzEuMiwzMS4yNiwzMS4yLDMxLjI2LTEzLjk3LDMxLjI2LTMxLjJaJy8+PC9zdmc+) center/contain no-repeat;mask:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAyMzguNzkgMjM2Ljg3Jz48cGF0aCBmaWxsLXJ1bGU9J2V2ZW5vZGQnIGQ9J00yMzguNzksODIuOTZsLS4wNCwxMy4yNmMtMi4wOSwyOC40Ni0xOC4xLDU0LjA4LTQxLjEyLDY4LjUxLTI2LjUzLDE2LjYzLTU4LjMyLDE4LjQ1LTg2LjM5LDUuMmwtNTEuMjQsNjYuOTUtLjAyLTE4Ni4xOEwwLDBsMTU1LjA5LjQxYzkuMTYuMDIsMTguODQsMy4wNCwyNi43Nyw2LjEsMzIuNjEsMTIuNTYsNTQuMTIsNDIuMjgsNTYuOTMsNzYuNDVaTTE4MC40OCwxMjAuNTJjMC0xNy4yMy0xNC0zMS4yLTMxLjI2LTMxLjJzLTMxLjI2LDEzLjk3LTMxLjI2LDMxLjIsMTQsMzEuMiwzMS4yNiwzMS4yLDMxLjI2LTEzLjk3LDMxLjI2LTMxLjJaJy8+PC9zdmc+) center/contain no-repeat;flex:none}
-body:not(.canedit) .edonly{display:none!important}
+body:not(.canedit) .edonly{display:none!important}body:not(.isadm) .admonly{display:none!important}
 .docs .csub{margin-bottom:0}
 .dsteps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0 16px}
 .dstep{border:1px solid var(--line);background:var(--paper);padding:10px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}
@@ -2299,7 +2299,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'eb6fbdb8f7', APP_URL = location.origin + location.pathname;
+const BUILD = 'eef65dd868', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2583,7 +2583,7 @@ function renderUser(){
   $('#userbox').innerHTML = ''; // 上のバーの名前ボタンは使わない（名前のメニューはサイドメニューの下から開く）
   setTimeout(pinDrawer, 0);
   const f = $('#dwFoot'); if (f) f.innerHTML = S.user ? `<button type="button" class="dwme" id="btnMe2"><span class="avatar sm">${esc(String(S.user.name||'？').trim().charAt(0))}</span><span><b>${esc(S.user.name||'')}</b><small>${esc(S.user.role||'')}</small></span></button><button type="button" class="dwtheme" id="dwTheme" aria-label="明るい表示・暗い表示を切り替える">${themeIcon()}</button>` : '';
-  document.body.classList.remove('editing'); document.body.classList.toggle('canedit', on);
+  document.body.classList.remove('editing'); document.body.classList.toggle('canedit', on); document.body.classList.toggle('isadm', !!(S.user && S.user.role === '管理')); /* 展示ビュー（テスト）は管理者だけ */
 }
 function addByContext(){
   if (!canEdit()) return;
@@ -4038,6 +4038,7 @@ function renderHome(){
   document.getElementById('dwNav').innerHTML = `<button type="button" data-v="home"><span class="pic">${HOMEIC}</span><span>ホーム</span></button>`
     + L.map(([v, t, k]) => `<button type="button" data-v="${v}"${v==='doc'?' class="edonly"':''}><span class="pic">${ico(k)}</span><span>${v==='ot' ? 'その他の作品' : v==='pb' ? '画集・資料' : t}</span></button>`).join('')
     + `<button type="button" data-v="upd"><span class="pic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v3.4h3.4"/><path d="M12 8v4.3l2.8 1.8"/></svg></span><span>更新記録</span></button>`
+    + `<button type="button" data-v="exv" class="admonly"><span class="pic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5.5" y="5" width="13" height="10.5" rx="1"/><path d="M3 19.5h18"/></svg></span><span>展示ビュー</span></button>`
     + `<button type="button" data-v="help" class="dwhelp"><span class="pic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.6M12 16.8v.2"/></svg></span><span>使い方</span></button>`; })();
 /* 開いたときの最初の画面（卓也さんだけ作品アルバムから始める） */
 function applyStart(){ if (applyStart.done || !S.user) return; applyStart.done = 1;
@@ -7542,6 +7543,7 @@ function hpushLater(tag){ let n = 0; const go = () => { if (HIST.skip > 0 && n++
 function closeTop(){
   if (!$('#confirm').classList.contains('hidden')) return closeConfirm(true), true;
   if ($('#crop')) { cropClose(true); return true; } /* 写真の切り抜き・補正 */
+  if ($('#exv')) { exvClose(true); return true; } /* 展示ビュー */
   if (AC.open) { acEnd(true); return true; } /* 写真の自動補正の一覧 */
   { const lb = $('#qclb'); if (lb) { lb.remove(); if (QC || FDB) hpush(QC ? 'q' : 'f'); return true; } } /* 写真の拡大だけ閉じて、カードの分の履歴を積み直す */
   if (QC) { qcEnd(true); return true; }
@@ -8513,6 +8515,7 @@ document.addEventListener('click', e => {
   if (t.dataset.dwclose){ closeDrawer(); return; }
   if (t.id==='btnMe2'){ openMe(t); return; }
   if (t.closest('#dwNav')){ closeDrawer(); closeAllPages(); if (S.aiOpen && !aiCol()) closeAI(); }
+  if (t.dataset.v==='exv'){ exvOpen(); return; }
   if (t.id==='fsqClose'){ const fi = $('#fsq'); fi.value = ''; fi.dispatchEvent(new Event('input')); t.classList.add('hidden'); fi.blur(); return; }
   if (t.id==='fmAsk'){ hidePop(); $('#fmSearch').classList.add('hidden'); if (!S.user) return openLogin('質問するにはログインしてください'); return S.aiOpen ? closeAI() : openAI();; }
   if (t.closest('#fmPop, #fmInline')){ hidePop(); closeAllPages(); $('#fmSearch').classList.add('hidden'); }
@@ -8981,15 +8984,17 @@ function pjShow(j){ const was = PJ.j && PJ.j.on; PJ.j = j; let el = $('#pjbg');
     el.textContent = j.mode === 'text' ? `☁ 全文を書き起こし中　${j.done}件${j.left != null ? '・残り ' + j.left + '件' : ''} ›` : `☁ サーバーで読み取り中　登録 ${j.done}件${j.left != null ? '・残り ' + j.left + '件' : ''} ›`; if ($('#pdfHead')) pdfHead(); return; }
   if (el) el.remove(); if ($('#pdfHead')) pdfHead();
   if (!j || !j.end) return;
-  let seen = ''; try { seen = localStorage.getItem('smr_pjseen') || ''; } catch(e){}
-  if (seen === j.end) return; try { localStorage.setItem('smr_pjseen', j.end); } catch(e){}
+  const sig = [j.mode || '', j.done, j.fail || 0, j.capped ? 1 : 0, j.msg || ''].join('|'); /* 同じ結果のお知らせは2回出さない（終わった時刻が毎回変わっても） */
+  let seen = '', seen2 = ''; try { seen = localStorage.getItem('smr_pjseen') || ''; seen2 = localStorage.getItem('smr_pjseen2') || ''; } catch(e){}
+  if (seen === j.end || seen2 === sig || PJ.seen === sig) return; PJ.seen = sig; try { localStorage.setItem('smr_pjseen', j.end); localStorage.setItem('smr_pjseen2', sig); } catch(e){}
   if (j.done) refreshData();
+  if (!S.user || S.user.role !== '管理') return; /* 終わったお知らせは管理者だけ。ほかの人には出さない（10/6 本人） */
   const msg = j.mode === 'text' ? (j.capped ? `使いすぎ防止の上限で、全文の書き起こしが止まりました（${j.done}件）。` : `全文の書き起こしが終わりました（${j.done}件${j.fail ? '・できなかった ' + j.fail + '件' : ''}）。`) : j.msg ? `サーバーでの読み取りが止まりました：${j.msg}（登録 ${j.done}件）` : j.capped ? `使いすぎ防止の上限で、サーバーでの読み取りが止まりました（登録 ${j.done}件）。` : j.stopped ? `サーバーでの読み取りを止めました（登録 ${j.done}件）。`
     : `サーバーでの読み取りと登録が終わりました（登録 ${j.done}件${j.diff ? '・食い違い ' + j.diff + '件' : ''}${j.dupN ? '・同じ書類がありそうで保留 ' + j.dupN + '件' : ''}${j.fail ? '・読めなかった ' + j.fail + '件' : ''}）。`;
   setTimeout(() => { if (!$('#sheet').classList.contains('hidden') && !$('#pdfHead')) { toast(msg); return; }
     if (j.capped) { if (confirm(msg + '\nこのまま続けますか？（今日だけ50件ふやします）')) pjMore(); }
     else if (j.stopped && !was) {}
-    else if (confirm(msg + '\n書類を確かめますか？')) { closeSheet(); closeAllPages(); S.view = 'doc'; render(); window.scrollTo(0, 0); } }, 400);
+    else toast(msg); }, 400); /* 「書類を確かめますか？」の確認は出さず、短いお知らせだけ（毎回出て邪魔なため。10/6 本人） */
 }
 setTimeout(pjPoll, 4000);
 /* 上限で止まったとき「続ける」：今日だけ50件ふやして、続きから読む */
@@ -9056,7 +9061,7 @@ async function refreshData(){ // 保存のあとなどに裏で最新にする�
   const PULL = 110; let y0 = null, dy = 0;
   const pageOpen = () => !$('#page').classList.contains('hidden');
   const atTop = () => pageOpen() ? $('#page').scrollTop <= 0 : (window.scrollY || document.documentElement.scrollTop || 0) <= 0;
-  const blocked = () => !S.user || S.view==='ai' || S.aiOpen || !$('#sheet').classList.contains('hidden') || !$('#confirm').classList.contains('hidden') || !$('#viewer').classList.contains('hidden') || !!$('#tour') || !$('#loading').classList.contains('hidden');
+  const blocked = () => !S.user || S.view==='ai' || S.aiOpen || !$('#sheet').classList.contains('hidden') || !$('#confirm').classList.contains('hidden') || !$('#viewer').classList.contains('hidden') || !!$('#tour') || !!$('#exv') || !$('#loading').classList.contains('hidden');
   const reset = () => { ind.style.transform = ''; ind.classList.remove('show', 'ready'); };
   addEventListener('touchstart', e => { y0 = (e.touches.length === 1 && !blocked() && atTop()) ? e.touches[0].clientY : null; dy = 0; }, {passive:true});
   addEventListener('touchmove', e => {
@@ -9631,6 +9636,243 @@ function mcard(w){
       <div class="mc3">${loc}<span class="mcn">${cnt}</span></div>
       ${w['要確認'] ? `<div class="mc4"><span class="mflag">要確認</span>${esc(w['要確認メモ']||'')}</div>` : ''}
     </div></button>`;
+}
+/* ---------- 展示ビュー（テスト：管理者だけ。開発 v8） ----------
+   作品の写真を、台帳のサイズどおりの縮尺で白い壁に掛けて見る3Dの展示室。制作年の古い順・写真のある作品だけ・サイズがない作品は写真の形と、ほかの作品のふつうの大きさから推定。
+   three.js は開いたときだけ読み込む。写真は一覧と同じ縮小写真（端末に保存したもの・getThumbs）を使い、近くの作品の分だけ読み込む。
+   照明：天井（高さ4m）のレールから鉛直30°。作品ごとに主灯（少し横から）と反対側から弱い補助灯。見る人の後ろ上からのうすい光がカメラと一緒に動く */
+let EXV = null;
+const exvIsAdm = () => !!(S.user && S.user.role === '管理');
+function exvLib(){ return window.THREE ? Promise.resolve() : new Promise((ok, ng) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'; s.onload = () => ok(); s.onerror = () => ng(new Error('3Dの部品を読み込めませんでした')); document.head.appendChild(s); }); }
+const exvOwner = w => { const p = String(w['所在'] || '').trim(); if (!p || /館名は/.test(p)) return ''; if (/^自宅|個人|思文閣|画廊/.test(p)) return '個人蔵';
+  return /美術館|博物館|資料館|記念館|学校|大学|会館|センター|ホール|庁|役所|寺|神社/.test(p) ? p.replace(/[\s（(].*$/, '') + '蔵' : '個人蔵'; };
+const exvYearTxt = w => { const s = String(w['制作年'] || '').trim(); return /^\d{4}$/.test(s) ? s + '年' : s; };
+const exvFolds = (w, r) => { const t = String(w['作品名'] || '') + String(w['種別'] || '') + String(w['画材'] || ''), m = t.match(/([二四六八２４６８2468])曲/);
+  if (m) return ({ '二': 2, '四': 4, '六': 6, '八': 8, '２': 2, '４': 4, '６': 6, '８': 8 })[m[1]] || +m[1]; return r > 1.6 ? 6 : 2; };
+function exvWorks(){ const L = [];
+  (S.works || []).forEach(w => { const no = w['作品番号'], p = (photoBy[no] || [])[0], id = p && p['ファイルID'];
+    if (!id || HIDPH(id) || /廃棄|統合済み/.test(String(w['所在'] || '') + ' ' + String(w['状態'] || ''))) return;
+    const d = dimMain(w), h = +d['高さcm'] || 0, wd = +d['幅cm'] || 0;
+    L.push({ no, w, id, y: yearOf(w['制作年']), h, wd, est: !(h > 0 && wd > 0), frame: szKind(w) === 'frame', b: isScreenW(w) }); });
+  L.sort((a, b) => a.y - b.y || String(a.no).localeCompare(String(b.no), 'ja', { numeric: true }));
+  return L; }
+/* サイズのない作品：縦横の比は写真の形（端末に保存した小さい写真から）、大きさは同じ種類（屏風かどうか）の作品のふつうの大きさ（面積の中央値） */
+async function exvEstimate(L){
+  const med = a => { a.sort((x, y) => x - y); return a.length ? a[a.length >> 1] : 0; };
+  const A = med(L.filter(x => !x.est && !x.b).map(x => x.h * x.wd)) || 6000, Ab = med(L.filter(x => !x.est && x.b).map(x => x.h * x.wd)) || 170 * 360;
+  const need = L.filter(x => x.est); if (!need.length) return;
+  let saved = {}; try { saved = await thGet([].concat(...need.map(x => ['400_' + x.id, '200_' + x.id]))); } catch(e){}
+  await Promise.all(need.map(x => new Promise(ok => { const src = TH['400_' + x.id] || TH['200_' + x.id] || saved['400_' + x.id] || saved['200_' + x.id]; if (!src) return ok();
+    const im = new Image(), t = setTimeout(ok, 2500); im.onload = () => { clearTimeout(t); if (im.naturalWidth) x.r = im.naturalWidth / im.naturalHeight; ok(); }; im.onerror = () => { clearTimeout(t); ok(); }; im.src = src; })));
+  need.forEach(x => { const r = Math.min(4, Math.max(0.25, x.r || (x.b ? 2.1 : 0.78))), a = x.b ? Ab : A; x.h = Math.round(Math.sqrt(a / r)); x.wd = Math.round(x.h * r); });
+}
+function exvCss(){ if (document.getElementById('exvcss')) return; const st = document.createElement('style'); st.id = 'exvcss';
+  st.textContent = `#exv{position:fixed;inset:0;z-index:9000;background:#efede9;color:#33302c;overflow:hidden;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui,sans-serif}
+#exv .xst{position:absolute;inset:0}#exv canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+#exv .xcl{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(51,48,44,.14);background:rgba(250,249,246,.86);color:#33302c;z-index:4;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+#exv .xcl svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.6;fill:none;stroke-linecap:round}
+#exv .xwait{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;letter-spacing:.12em;color:#6f685f;z-index:2}
+#exv .xhint{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 78px);display:flex;justify-content:center;font-size:13px;line-height:1.65;pointer-events:none;transition:opacity .8s;z-index:3}
+#exv .xhint span{background:rgba(250,249,246,.93);border:1px solid rgba(51,48,44,.12);border-radius:10px;padding:8px 14px;max-width:24em;text-align:center}
+#exv .yrs{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);height:50px;z-index:3;overflow:hidden;touch-action:none;cursor:grab;-webkit-mask-image:linear-gradient(90deg,transparent,#000 24%,#000 76%,transparent);mask-image:linear-gradient(90deg,transparent,#000 24%,#000 76%,transparent)}
+#exv .yrs-in{position:absolute;top:0;left:50%;height:100%;display:flex;align-items:center;will-change:transform}
+#exv .yl{flex:0 0 76px;text-align:center;font-size:13px;letter-spacing:.14em;color:#7a736a;font-variant-numeric:tabular-nums;transition:color .3s,font-size .3s}
+#exv .yl.on{color:#33302c;font-size:15.5px;font-weight:600}
+body.exvopen{overflow:hidden}
+@media (prefers-reduced-motion: reduce){#exv .xhint,#exv .yrs-in,#exv .yl{transition:none}}`;
+  document.head.appendChild(st); }
+async function exvOpen(){
+  if (!exvIsAdm() || EXV) return;
+  exvCss(); const root = document.createElement('div'); root.id = 'exv'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-label', '展示ビュー');
+  root.innerHTML = '<div class="xst"></div><div class="xwait">展示室を準備しています…</div><button type="button" class="xcl" aria-label="展示ビューを閉じる"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><div class="xhint" style="opacity:0"><span></span></div><div class="yrs" aria-label="制作年（左右にスワイプで早送り）"><div class="yrs-in"></div></div>';
+  document.body.appendChild(root); document.body.classList.add('exvopen');
+  EXV = { root, close: () => { root.remove(); document.body.classList.remove('exvopen'); EXV = null; } };
+  root.querySelector('.xcl').onclick = () => exvClose(false);
+  hpush('exv');
+  try { await exvLib(); const L = exvWorks(); if (!L.length) throw new Error('写真のある作品がありません'); await exvEstimate(L); if (!EXV || EXV.root !== root) return; exvBuild(root, L); }
+  catch(e){ const wt = root.querySelector('.xwait'); if (wt) wt.textContent = (e && e.message) || '展示ビューを開けませんでした'; }
+}
+function exvClose(fromHist){ if (!EXV) return; const c = EXV.close; try { c(); } catch(e){} if (!fromHist) hback(); }
+
+function exvBuild(root, L){
+  const T3 = THREE, RM = matchMedia('(prefers-reduced-motion: reduce)').matches, TN = Math.tan(Math.PI / 8);
+  const FONT = '"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif';
+  const CY = 1.45, DEPTH = 0.05, OFF = 0.025, CAPW = 300, CAPH = 124, TTW = 360, TTH = 150, CAPWm = 0.18, CAPHm = CAPWm * CAPH / CAPW, CAPX = 0.15, CAPTOP = 1.42;
+  const stage = root.querySelector('.xst'), hint = root.querySelector('.xhint'), hintT = hint.firstChild;
+  const cvs = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return [c, c.getContext('2d')]; };
+  const mkTex = (c, srgb) => { const t = new T3.CanvasTexture(c); if (srgb !== false) t.encoding = T3.sRGBEncoding; t.anisotropy = 8; return t; };
+  const plaster = () => { const N = 512, [c, x] = cvs(N, N); x.fillStyle = '#808080'; x.fillRect(0, 0, N, N);
+    for (let i = 0; i < 160; i++) { const r = 16 + Math.random() * 90, px = Math.random() * N, py = Math.random() * N, a = 0.025 + Math.random() * 0.05, col = Math.random() < .5 ? '0,0,0' : '255,255,255';
+      for (const ox of [-N, 0, N]) for (const oy of [-N, 0, N]) { const g = x.createRadialGradient(px + ox, py + oy, 0, px + ox, py + oy, r); g.addColorStop(0, 'rgba(' + col + ',' + a + ')'); g.addColorStop(1, 'rgba(' + col + ',0)'); x.fillStyle = g; x.fillRect(px + ox - r, py + oy - r, 2 * r, 2 * r); } }
+    const d = x.getImageData(0, 0, N, N), p = d.data; for (let i = 0; i < p.length; i += 4) { const n = (Math.random() - 0.5) * 30; p[i] = p[i + 1] = p[i + 2] = Math.max(0, Math.min(255, p[i] + n)); } x.putImageData(d, 0, 0); return c; };
+  const GR = plaster();
+  /* ごく少しマットに：細かい粒子を重ね、黒をほんの少し持ち上げる */
+  const matte = (x, w, h) => { x.globalCompositeOperation = 'soft-light'; x.globalAlpha = 0.22; for (let yy = 0; yy < h; yy += 512) for (let xx = 0; xx < w; xx += 512) x.drawImage(GR, xx, yy);
+    x.globalCompositeOperation = 'screen'; x.globalAlpha = 0.035; x.fillStyle = '#e9e4dc'; x.fillRect(0, 0, w, h); x.globalCompositeOperation = 'source-over'; x.globalAlpha = 1; };
+  const softShadow = (w, h, m) => { const W = 256, H = Math.max(32, Math.round(W * (h + 2 * m) / (w + 2 * m))), s = W / (w + 2 * m), [c, x] = cvs(W, H);
+    x.shadowColor = 'rgba(0,0,0,0.5)'; x.shadowBlur = Math.max(2, 0.035 * s); x.shadowOffsetX = W * 2; x.fillStyle = '#000'; x.fillRect(m * s - W * 2, m * s, w * s, h * s); return mkTex(c, false); };
+  const wallText = (lines, w, h) => { const K = 3, [c, x] = cvs(w * K, h * K); x.scale(K, K); x.textBaseline = 'top'; let y = 0;
+    lines.forEach(([t, size, wt, col, gap, ls]) => { if (!t) return; let sz = size; const f = () => { x.font = wt + ' ' + sz + 'px ' + FONT; }; f(); if ('letterSpacing' in x) x.letterSpacing = (ls || 0) + 'px';
+      while (x.measureText(t).width > w && sz > 9) { sz -= 0.5; f(); } let s = t; while (x.measureText(s).width > w && s.length > 2) s = s.slice(0, -2) + '…';
+      x.fillStyle = col; x.fillText(s, 0, y); y += sz * 1.35 + (gap || 0); });
+    return mkTex(c); };
+
+  const r = new T3.WebGLRenderer({ antialias: true });
+  const PRH = Math.min(2, window.devicePixelRatio || 1), PRL = Math.min(PRH, 1.25); let PRC = PRH, settle = 0;
+  r.setPixelRatio(PRH); r.shadowMap.enabled = true; r.shadowMap.type = T3.PCFSoftShadowMap; r.outputEncoding = T3.sRGBEncoding;
+  const el = r.domElement; stage.appendChild(el);
+  const sc = new T3.Scene(); sc.background = new T3.Color('#d9d6d0');
+  sc.add(new T3.HemisphereLight('#f6f4f0', '#c9c0b3', 0.5));
+  const cam = new T3.PerspectiveCamera(45, 1, 0.05, 300);
+  const st = { x: 0, y: CY, z: 3 }, stops = []; let ci = 0, tid = 0, W = 1, H = 1, zoomed = false;
+
+  /* 照明 */
+  const HC = 4.0, ZL = (HC - CY) * Math.tan(Math.PI / 6), specs = [];
+  const srand = k => { let t = (k * 2654435761 + 12345) >>> 0; return () => { t = (t + 0x6D2B79F5) >>> 0; let q = Math.imul(t ^ (t >>> 15), 1 | t); q = (q + Math.imul(q ^ (q >>> 7), 61 | q)) ^ q; return ((q ^ (q >>> 14)) >>> 0) / 4294967296; }; };
+  const mkL = (res, far) => { const l = new T3.SpotLight('#ffeedd', 0, 0, 0.3, 0.7, 1); l.castShadow = true; l.shadow.mapSize.set(res, res); l.shadow.camera.near = 0.4; l.shadow.camera.far = far; l.shadow.bias = -0.00025; l.shadow.normalBias = 0.015; l.si = -1; sc.add(l, l.target); return l; };
+  const LK = [0, 1, 2, 3, 4].map(() => mkL(1024, 9)), LF = [0, 1, 2].map(() => mkL(512, 10)), LS = [...LK, ...LF];
+  const VL = mkL(512, 60); VL.color.set('#fff9f2'); VL.intensity = 0.12; VL.penumbra = 1;
+  const aimA = (hw, hv, D) => { let a = Math.atan(hw / D); while (a < 0.5 && Math.sin(a) / Math.sin(Math.PI / 6 + a) < hv / D) a += 0.01; return Math.min(0.62, Math.max(0.1, a)); };
+  const addSpec = (cx, cy, w, h, seed) => { const R = srand(seed + 3), n = Math.max(1, Math.ceil(w / 2.0)), side = R() < .5 ? -1 : 1;
+    for (let j = 0; j < n; j++) { const x = cx - w / 2 + w * (j + 0.5) / n, hc = HC + (R() - .5) * 0.2, zl = ZL + (R() - .5) * 0.24, dx = side * (0.16 + R() * 0.22), D = Math.hypot(hc - cy, zl);
+      specs.push({ k: 'k', x, lx: x + dx, ly: hc, lz: zl, tx: x + (R() - .5) * 0.07, ty: cy + (R() - .5) * 0.05, a: aimA(w / (2 * n) + 0.35 + Math.abs(dx) * 0.5, h / 2 + 0.4, D), pen: 0.6 + R() * 0.15, I: 0.66 + R() * 0.08, c: new T3.Color('#ffecd6').lerp(new T3.Color('#fff3e6'), R()) }); }
+    const fh = HC + (R() - .5) * 0.2, fz = ZL + 0.2 + R() * 0.3, Df = Math.hypot(fh - cy, fz);
+    specs.push({ k: 'f', x: cx, lx: cx - side * (0.55 + R() * 0.4), ly: fh, lz: fz, tx: cx, ty: cy - 0.05, a: Math.min(0.75, aimA(w / 2 + 0.6, h / 2 + 0.5, Df) * 1.15), pen: 0.95, I: 0.17 + R() * 0.06, c: new T3.Color('#f6f2ec') }); };
+  const pick = (pool, kind) => { const near = []; specs.forEach((s, i) => { if (s.k === kind && Math.abs(s.x - st.x) < 30) near.push([Math.abs(s.x - st.x), i]); }); const use = near.sort((a, b) => a[0] - b[0]).slice(0, pool.length).map(a => a[1]);
+    pool.forEach(l => { if (!use.includes(l.si)) { l.si = -1; l.intensity = 0; } });
+    use.forEach(si => { if (pool.some(l => l.si === si)) return; const l = pool.find(l => l.si < 0), s = specs[si]; l.si = si; l.position.set(s.lx, s.ly, s.lz); l.target.position.set(s.tx, s.ty, 0); l.target.updateMatrixWorld(); l.angle = s.a; l.penumbra = s.pen; l.intensity = s.I; l.color.copy(s.c); }); };
+  const pickLights = () => { pick(LK, 'k'); pick(LF, 'f'); const vz = st.z + 0.5, vy = 1.9; VL.position.set(st.x + 0.3, st.y + vy, vz); VL.target.position.set(st.x, st.y - 0.1, 0); VL.target.updateMatrixWorld();
+    VL.angle = Math.min(1.1, Math.max(0.3, Math.atan(st.z * TN * Math.max(1, cam.aspect) * 1.5 / Math.hypot(vy, vz)))); };
+
+  /* 壁・床 */
+  const pc = plaster(), [cc, cx] = cvs(512, 512); cx.fillStyle = '#fbfaf8'; cx.fillRect(0, 0, 512, 512); cx.globalAlpha = 0.06; cx.drawImage(pc, 0, 0);
+  const LW = 6000, LH = 40, cmap = mkTex(cc), bmap = mkTex(pc, false); [cmap, bmap].forEach(t => { t.wrapS = t.wrapT = T3.RepeatWrapping; t.repeat.set(LW / 1.1, LH / 1.1); });
+  const wall = new T3.Mesh(new T3.PlaneGeometry(LW, LH), new T3.MeshStandardMaterial({ map: cmap, bumpMap: bmap, bumpScale: 0.003, roughness: 0.97, dithering: true }));
+  wall.position.set(LW / 2 - 20, CY, 0); wall.receiveShadow = true; sc.add(wall);
+  const fl = new T3.Mesh(new T3.PlaneGeometry(LW, 30), new T3.MeshStandardMaterial({ color: '#bab3a9', roughness: 0.8, dithering: true })); fl.rotation.x = -Math.PI / 2; fl.position.set(LW / 2 - 20, 0, 15); fl.receiveShadow = true; sc.add(fl);
+  const gp = new T3.Mesh(new T3.PlaneGeometry(LW, 0.018), new T3.MeshBasicMaterial({ color: '#8d857b' })); gp.position.set(LW / 2 - 20, 0.009, 0.0008); sc.add(gp);
+  const abm = bmap.clone(); abm.needsUpdate = true; abm.repeat.set(5, 5);
+  const side = new T3.MeshStandardMaterial({ color: '#cfc7bb', roughness: 0.85 }), edge = new T3.MeshStandardMaterial({ color: '#2a2421', roughness: 0.55, dithering: true });
+
+  /* 作品 */
+  const items = L.map((d, i) => { const w = d.wd / 100, h = d.h / 100, g = new T3.Group(), [cv, x0] = cvs(16, 16); x0.fillStyle = '#dcd6cd'; x0.fillRect(0, 0, 16, 16);
+    const base = mkTex(cv), it = { d, w, h, g, cv, tx: [base], req: 0, wm: w, hm: h };
+    const artM = t => new T3.MeshStandardMaterial({ map: t, bumpMap: abm, bumpScale: 0.0015, roughness: 0.96, dithering: true });
+    if (d.b) { const n = exvFolds(d.w, w / h), th = 0.3, pw = w / n, c = Math.cos(th), dd = pw * Math.sin(th), W2 = w * c, zb = 0.14;
+      for (let j = 0; j < n; j++) { const t = j ? base.clone() : base; if (j) { t.needsUpdate = true; it.tx.push(t); } t.repeat.set(1 / n, 1); t.offset.set(j / n, 0);
+        const z0 = (j % 2) * dd, z1 = ((j + 1) % 2) * dd, pn = new T3.Mesh(new T3.BoxGeometry(pw, h, 0.018), [edge, edge, edge, edge, artM(t), edge]);
+        pn.position.set(-W2 / 2 + (j + 0.5) * pw * c, h / 2 + 0.008, zb + (z0 + z1) / 2); pn.rotation.y = -Math.asin((z1 - z0) / pw); pn.castShadow = true; pn.receiveShadow = true; g.add(pn); }
+      const ao = new T3.Mesh(new T3.PlaneGeometry(W2 + 0.3, dd + 0.34), new T3.MeshBasicMaterial({ transparent: true, opacity: 0.34, depthWrite: false })); ao.rotation.x = -Math.PI / 2; ao.position.set(0, 0.002, zb + dd / 2); ao.visible = false; ao.raycast = () => {}; g.add(ao);
+      Object.assign(it, { W: W2, ao, aoMk: () => softShadow(W2, dd + 0.04, 0.15) }); }
+    else { const pn = new T3.Mesh(new T3.BoxGeometry(w, h, DEPTH), [side, side, side, side, artM(base), side]); pn.position.z = OFF + DEPTH / 2; pn.castShadow = true; g.add(pn);
+      const m = 0.12, ao = new T3.Mesh(new T3.PlaneGeometry(w + 2 * m, h + 2 * m), new T3.MeshBasicMaterial({ transparent: true, opacity: 0.28, depthWrite: false })); ao.position.set(0, -0.01, 0.0012); ao.visible = false; ao.raycast = () => {}; g.add(ao);
+      g.position.y = CY; Object.assign(it, { ao, aoMk: () => softShadow(w, h, m) }); }
+    sc.add(g);
+    const capM = new T3.Mesh(new T3.PlaneGeometry(1, 1), new T3.MeshStandardMaterial({ transparent: true, roughness: 0.95, depthWrite: false })); capM.scale.set(CAPWm, CAPHm, 1); capM.visible = false; sc.add(capM); it.capM = capM;
+    return it; });
+  const title = new T3.Mesh(new T3.PlaneGeometry(1, 1), new T3.MeshStandardMaterial({ map: wallText([['展示ビュー', 46, 300, '#2f2c28', 14, 6], ['下村良之介 作品目録 ・ テスト（管理者だけ）', 14, 400, '#4a4540', 4, 1.5], ['写真のある作品 ' + L.length + '点 ・ 制作年の古い順', 12, 400, '#8a8379', 0, 1]], TTW, TTH), transparent: true, roughness: 0.95, depthWrite: false }));
+  sc.add(title);
+
+  /* 近くの作品だけ写真・キャプション・影を読み込み、遠くなったら手放す（スマホのメモリのため） */
+  let rq = 0; const redraw = () => { if (rq) return; rq = requestAnimationFrame(() => { rq = 0; draw(); }); };
+  const capLines = it => { const w = it.d.w, sz = it.d.est ? '約 ' + it.d.h + ' × ' + it.d.wd + ' cm（推定）' : (+it.d.h).toFixed(1) + ' × ' + (+it.d.wd).toFixed(1) + ' cm' + (it.d.frame ? '（額込み）' : '');
+    return [[String(it.d.no), 10.5, 400, '#8a8379', 6, 1], [String(w['作品名'] || '').trim() || '無題', 17, 500, '#2a2724', 6, 1.5], [exvYearTxt(w), 11.5, 400, '#46413b', 2.5, 0.4], [String(w['画材'] || '').trim(), 11.5, 400, '#46413b', 2.5, 0.4], [sz, 11.5, 400, '#46413b', 2.5, 0.4], [exvOwner(w), 11.5, 400, '#46413b', 0, 0.4]]; };
+  const paint = (it, im) => { const iw = im.naturalWidth, ih = im.naturalHeight; if (!iw || !it.req) return;
+    const tr = it.wm / it.hm, ir = iw / ih; let sx = 0, sy = 0, sw = iw, sh = ih;
+    if (Math.abs(ir / tr - 1) > 0.06) { if (ir > tr) { sw = ih * tr; sx = (iw - sw) / 2; } else { sh = iw / tr; sy = (ih - sh) / 2; } } /* 形が台帳と合わないときは、まん中を切り出す */
+    const k = Math.min(1, 1024 / Math.max(sw, sh)), cw = Math.max(2, Math.round(sw * k)), ch = Math.max(2, Math.round(sh * k)), c = it.cv, x = c.getContext('2d');
+    c.width = cw; c.height = ch; x.drawImage(im, sx, sy, sw, sh, 0, 0, cw, ch);
+    try { x.getImageData(0, 0, 1, 1); } catch(e){ c.width = c.height = 16; x.fillStyle = '#dcd6cd'; x.fillRect(0, 0, 16, 16); it.tx.forEach(t => { t.needsUpdate = true; }); return redraw(); }
+    matte(x, cw, ch); it.tx.forEach(t => { t.needsUpdate = true; }); redraw(); };
+  const warm = it => { if (it.req) return; it.req = 1;
+    if (!it.capM.material.map) { it.capM.material.map = wallText(capLines(it), CAPW, CAPH); it.capM.material.needsUpdate = true; } it.capM.visible = true;
+    if (!it.ao.material.map) { it.ao.material.map = it.aoMk(); it.ao.material.needsUpdate = true; } it.ao.visible = true;
+    const im = new Image(); it.im = im; im.dataset.tid = it.d.id; im.dataset.w = '800'; im.onload = () => { if (it.im === im) paint(it, im); }; queueThumb(im); };
+  const cool = it => { if (!it.req) return; it.req = 0; it.im = null; const c = it.cv, x = c.getContext('2d'); c.width = c.height = 16; x.fillStyle = '#dcd6cd'; x.fillRect(0, 0, 16, 16); it.tx.forEach(t => { t.needsUpdate = true; });
+    [it.capM, it.ao].forEach(m => { if (m.material.map) { m.material.map.dispose(); m.material.map = null; m.material.needsUpdate = true; } m.visible = false; }); };
+  const nearIdx = () => { let bi = 0; stops.forEach((s, i) => { if (Math.abs(s.x - st.x) < Math.abs(stops[bi].x - st.x)) bi = i; }); return bi; };
+  const around = k => { items.forEach((it, i) => { const d = i + 1 - k; if (d >= -3 && d <= 4) warm(it); else if (d < -8 || d > 9) cool(it); }); };
+  let wt = 0; const aroundLater = () => { clearTimeout(wt); wt = setTimeout(() => around(nearIdx()), 160); };
+
+  /* 動いている間は少し粗く描き、止まったら細かく描き直す */
+  const setPR = v => { if (v !== PRC) { PRC = v; r.setPixelRatio(v); r.setSize(W, H); } };
+  const draw = () => { cam.position.set(st.x, st.y, st.z); cam.lookAt(st.x, st.y, 0); pickLights(); setPR(PRL); r.render(sc, cam); clearTimeout(settle); settle = setTimeout(() => { setPR(PRH); r.render(sc, cam); }, 200); };
+  const zmin = () => 0.22, zmax = () => 30;
+  const cl = () => { st.z = Math.min(zmax(), Math.max(zmin(), st.z)); st.x = Math.min(stops[stops.length - 1].x + 1, Math.max(stops[0].x - 1, st.x)); st.y = Math.min(3.2, Math.max(0.3, st.y)); };
+
+  const layout = () => { W = stage.clientWidth || innerWidth; H = stage.clientHeight || innerHeight; r.setSize(W, H); cam.aspect = W / H; cam.updateProjectionMatrix();
+    const port = W / H < 1, kz = z => 2 * z * TN / H, kmin = kz(1.5), kmax = kz(14), mx = port ? 14 : 40, my = port ? 190 : 130; stops.length = 0; specs.length = 0; zoomed = false;
+    const TWm = 1.5, THm = TWm * TTH / TTW; title.scale.set(TWm, THm, 1); title.position.set(TWm / 2, 1.55, 0.0016);
+    const kt = Math.max((TWm + 0.6) / (W - 2 * mx), (THm + 0.6) / (H - my)); stops.push({ x: TWm / 2, y: 1.55, z: kt * H / (2 * TN) }); addSpec(TWm / 2, 1.55, TWm, THm, 0);
+    let x = TWm + 1.8;
+    items.forEach((it, ii) => { const h = it.h, w = it.W || it.w, cy = it.d.b ? h / 2 : CY, Lx = x, Rx = x + w, gr = Rx + CAPX + CAPWm; it.g.position.x = Lx + w / 2; addSpec(Lx + w / 2, cy, w, h, ii + 1);
+      it.capM.position.set(Rx + CAPX + CAPWm / 2, CAPTOP - CAPHm / 2, 0.0016);
+      const k = Math.min(kmax, Math.max(kmin, (w + 2 * (CAPX + CAPWm + 0.05)) / (W - 2 * mx), h / (H - my)));
+      stops.push({ x: Lx + w / 2, y: cy, z: k * H / (2 * TN) }); x = gr + 1.0; });
+    LS.forEach(l => { l.si = -1; l.intensity = 0; }); tid++; ci = Math.min(ci, stops.length - 1); Object.assign(st, { x: stops[ci].x, y: stops[ci].y, z: stops[ci].z }); cl(); draw(); };
+
+  const tw = (T, ms) => { const s0 = { x: st.x, y: st.y, z: st.z }, t0 = performance.now(), id = ++tid; ms = ms || 900;
+    if (RM) { Object.assign(st, T); cl(); draw(); return; }
+    const f = n => { if (id !== tid) return; const t = Math.min(1, (n - t0) / ms), e = t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; for (const k in T) st[k] = s0[k] + (T[k] - s0[k]) * e; draw(); if (t < 1) requestAnimationFrame(f); };
+    requestAnimationFrame(f); };
+  const setCnt = () => { if (!yd) showU(uOf[ci], true); };
+  const go = i => { zoomed = false; ci = Math.max(0, Math.min(stops.length - 1, i)); around(ci); setCnt(); const s = stops[ci]; tw({ x: s.x, y: s.y, z: Math.min(zmax(), Math.max(zmin(), s.z)) }); };
+  const zoomBy = k => { st.z *= k; cl(); zoomed = st.z < stops[ci].z * 0.9; draw(); };
+
+  /* タップ：作品・キャプションは近づく（もう一度でもどる）、壁は次の作品へ（左端は前へ） */
+  const ray = new T3.Raycaster(), v2 = new T3.Vector2(), wp = new T3.Plane(new T3.Vector3(0, 0, 1), 0), hit = new T3.Vector3();
+  const tapZoom = e => { if (zoomed) { go(nearIdx()); return; }
+    const b = el.getBoundingClientRect(); v2.set((e.clientX - b.left) / b.width * 2 - 1, -(e.clientY - b.top) / b.height * 2 + 1); ray.setFromCamera(v2, cam); if (!ray.ray.intersectPlane(wp, hit)) return;
+    const mg = Math.max(0.06, 26 * 2 * st.z * TN / H), c = items.find(it => it.capM.visible && Math.abs(hit.x - it.capM.position.x) < CAPWm / 2 + mg && Math.abs(hit.y - it.capM.position.y) < CAPHm / 2 + mg);
+    if (c) { zoomed = true; tw({ x: c.capM.position.x - CAPWm * 0.2, y: c.capM.position.y, z: Math.max(zmin(), (CAPWm * 0.62 / (0.72 * W)) * H / (2 * TN)) }, 850); return; }
+    const near = items.slice(Math.max(0, ci - 3), ci + 3).map(it => it.g), ph = ray.intersectObjects(near, true)[0];
+    if (ph) { zoomed = true; tw({ x: ph.point.x, y: ph.point.y, z: Math.max(zmin(), st.z / 2.6) }, 850); return; }
+    go((e.clientX - b.left) / b.width < 0.3 ? ci - 1 : ci + 1); };
+
+  const P = new Map(); let moved = 0, drag = 0, vel = 0, lastT = 0;
+  el.addEventListener('pointerdown', e => { el.setPointerCapture(e.pointerId); P.set(e.pointerId, [e.clientX, e.clientY]); tid++; moved = 0; drag = 0; vel = 0; lastT = performance.now(); el.style.cursor = 'grabbing'; });
+  el.addEventListener('pointermove', e => { const pr = P.get(e.pointerId); if (!pr) return; const dx = e.clientX - pr[0], dy = e.clientY - pr[1]; moved += Math.abs(dx) + Math.abs(dy);
+    if (P.size > 1) { const q = [...P].find(a => a[0] !== e.pointerId)[1], d0 = Math.hypot(pr[0] - q[0], pr[1] - q[1]), d1 = Math.hypot(e.clientX - q[0], e.clientY - q[1]); P.set(e.pointerId, [e.clientX, e.clientY]); moved += 99; if (d0 > 0 && d1 > 0) zoomBy(d0 / d1); return; }
+    const k = 2 * st.z * TN / el.clientHeight; st.x -= dx * k; drag += dx; if (zoomed) st.y += dy * k; const n = performance.now(), dt = Math.max(1, n - lastT); vel = 0.7 * vel + 0.3 * (-dx * k / dt); lastT = n;
+    P.set(e.pointerId, [e.clientX, e.clientY]); cl(); draw(); });
+  const up = e => { if (!P.has(e.pointerId)) return; P.delete(e.pointerId); el.style.cursor = 'grab'; if (P.size) return;
+    if (moved < 8) { tapZoom(e); return; } if (zoomed) return; if (moved >= 99) { go(ci); return; }
+    const px = st.x + vel * 240; let bi = ci; stops.forEach((s, i) => { if (Math.abs(s.x - px) < Math.abs(stops[bi].x - px)) bi = i; });
+    if (bi === ci && Math.abs(drag) > el.clientWidth * 0.12) bi = ci + (drag < 0 ? 1 : -1); go(bi); };
+  el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+  el.addEventListener('wheel', e => { e.preventDefault(); tid++; zoomBy(1 + e.deltaY * 0.0015); }, { passive: false });
+
+  /* 下の年の帯：数字だけ。左右にスワイプで早送り（壁もいっしょに流れ、はなすと勢いで進んでから作品に止まる） */
+  const LWp = 76, yk = d => d.y >= 99999 ? '—' : String(d.y), yrsU = [...new Set(L.map(yk))], uOf = [-1];
+  { const cn = {}, seen = {}; L.forEach(d => { const y = yk(d); cn[y] = (cn[y] || 0) + 1; }); L.forEach(d => { const y = yk(d), j = yrsU.indexOf(y), q = seen[y] || 0; seen[y] = q + 1; uOf.push(j + (q + 0.5) / cn[y] - 0.5); }); }
+  const yEl = root.querySelector('.yrs'), yIn = root.querySelector('.yrs-in'); yIn.innerHTML = yrsU.map(y => '<span class="yl">' + esc(y) + '</span>').join(''); const yls = [...yIn.children];
+  let U = -1, yd = false, yx = 0, yv = 0, yt = 0, ymv = 0; const uHi = () => uOf[uOf.length - 1];
+  const showU = (u, anim) => { U = u; yIn.style.transition = anim && !RM ? 'transform .9s cubic-bezier(.65,0,.35,1)' : 'none'; yIn.style.transform = 'translateX(' + (-(u + 0.5) * LWp).toFixed(1) + 'px)'; const j = Math.round(u); yls.forEach((e, i) => e.classList.toggle('on', i === j)); };
+  const camU = u => { let k = 0; while (k < uOf.length - 2 && uOf[k + 1] < u) k++; const a = uOf[k], b = uOf[k + 1], t = Math.min(1, Math.max(0, (u - a) / ((b - a) || 1))), A = stops[k], B = stops[k + 1] || A;
+    st.x = A.x + (B.x - A.x) * t; st.y = A.y + (B.y - A.y) * t; st.z = A.z + (B.z - A.z) * t; cl(); draw(); aroundLater(); };
+  const nearK = u => { let k = 0; uOf.forEach((x, i) => { if (Math.abs(x - u) < Math.abs(uOf[k] - u)) k = i; }); return k; };
+  yEl.onpointerdown = e => { yd = true; try { yEl.setPointerCapture(e.pointerId); } catch(_){} tid++; zoomed = false; yx = e.clientX; yv = 0; ymv = 0; yt = performance.now(); showU(U, false); yEl.style.cursor = 'grabbing'; };
+  yEl.onpointermove = e => { if (!yd) return; const dx = e.clientX - yx, n = performance.now(); yx = e.clientX; ymv += Math.abs(dx); const du = -dx / LWp; yv = 0.7 * yv + 0.3 * du / Math.max(1, n - yt); yt = n;
+    const u = Math.min(uHi(), Math.max(-1, U + du)); showU(u, false); camU(u); };
+  yEl.onpointerup = yEl.onpointercancel = e => { if (!yd) return; yd = false; yEl.style.cursor = 'grab';
+    if (ymv < 6) { const b = yEl.getBoundingClientRect(); go(nearK(U + (e.clientX - (b.left + b.width / 2)) / LWp)); return; }
+    const id = ++tid; let last = performance.now(), v = yv;
+    const snap = () => { const k = nearK(U), u0 = U, u1 = uOf[k], t0 = performance.now();
+      const f = n => { if (id !== tid) return; const t = Math.min(1, (n - t0) / 420), q = 1 - Math.pow(1 - t, 3), u = u0 + (u1 - u0) * q; showU(u, false); camU(u); if (t < 1) requestAnimationFrame(f); else { ci = k; zoomed = false; around(ci); } }; requestAnimationFrame(f); };
+    const m = n => { if (id !== tid) return; const dt = n - last; last = n; v *= Math.pow(0.95, dt / 16); let u = U + v * dt; if (u < -1 || u > uHi()) { u = Math.min(uHi(), Math.max(-1, u)); v = 0; } showU(u, false); camU(u); if (Math.abs(v) > 0.0005) requestAnimationFrame(m); else snap(); };
+    if (RM || Math.abs(v) < 0.0005) snap(); else requestAnimationFrame(m); };
+
+  const key = e => { if (e.key === 'ArrowRight') { e.preventDefault(); go(ci + 1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); go(ci - 1); } };
+  const rs = () => layout(); addEventListener('resize', rs); addEventListener('keydown', key);
+  const wait = root.querySelector('.xwait'); if (wait) wait.remove();
+  layout(); around(0); setCnt();
+  hintT.textContent = '作品やキャプションをタップすると近づきます（もう一度タップでもどる）。壁をタップすると次の作品へ（左端は前へ）。下の年の数字を左右にスワイプすると早送りできます。';
+  hint.style.opacity = 1; setTimeout(() => { hint.style.opacity = 0; }, 6500);
+  const close0 = EXV.close;
+  EXV.close = () => { tid++; clearTimeout(settle); clearTimeout(wt); if (rq) cancelAnimationFrame(rq); removeEventListener('resize', rs); removeEventListener('keydown', key);
+    sc.traverse(o => { if (o.geometry) o.geometry.dispose(); const ms = o.material ? [].concat(o.material) : []; ms.forEach(m => { if (m.map) m.map.dispose(); if (m.bumpMap) m.bumpMap.dispose(); m.dispose(); }); });
+    items.forEach(it => it.tx.forEach(t => t.dispose())); r.dispose(); if (r.forceContextLoss) r.forceContextLoss(); close0(); };
+  EXV.go = go; EXV.cur = () => ci; EXV.n = items.length;
 }
 </script>
 </body>
