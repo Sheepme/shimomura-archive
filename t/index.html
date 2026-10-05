@@ -1998,6 +1998,7 @@ html[data-theme=dark] .qc-mn button{background:#16384A;color:#9ADDFF;border-colo
 .pqselp>b{font-size:16px}.pqselp>small{font-size:13px;color:var(--sub);line-height:1.5}.pqselp .act{margin:0;text-align:left;font-size:15px;padding:11px 14px}
 .pqseln{display:flex;gap:8px}.pqseln input{flex:1;min-width:0;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:15px}.pqseln .act{flex:none}
 .pqselx{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pqselx .act{text-align:center}
+dl.info>dd{min-width:0}.mlink+.evsrcbox.open{display:block;min-width:0;max-width:100%} /* メモの中でハイライトを開いても、表の列が横にはみ出さない */
 </style>
 </head>
 <body>
@@ -2067,7 +2068,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '79ce8a21ad', APP_URL = location.origin + location.pathname;
+const BUILD = '53632607fb', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
