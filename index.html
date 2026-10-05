@@ -2254,7 +2254,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '93ced4abc1', APP_URL = location.origin + location.pathname;
+const BUILD = 'aecf924fff', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6686,7 +6686,7 @@ async function openCrop(p){
   el.querySelector('#crK').oninput = e => { CR.v = +e.target.value; CR.dirty = true; $('#crKv').textContent = (CR.v > 0 ? '+' : '') + CR.v; crDraw(); crNote(); crPreview(); };
   el.querySelector('[data-crreset]').onclick = () => { if (CR.Z) CR.Z.s = 1; crSetN(CR.n, CR_P0); CR.v = 0; $('#crK').value = 0; $('#crKv').textContent = '0'; CR.dirty = true; crDraw(); crNote(); crPreview(); };
   if (el.querySelector('[data-crundo]')) el.querySelector('[data-crundo]').onclick = cropUndo;
-  el.querySelectorAll('[data-crc]').forEach(b => b.onclick = () => { if (b.dataset.crc === '1' && !CR.cht) return; CR.col = b.dataset.crc === '1'; CR.dirty = true; crUI(); crNote(); crPreview(); });
+  el.querySelectorAll('[data-crc]').forEach(b => b.onclick = () => { if (b.dataset.crc === '1' && !CR.cht) return; CR.col = b.dataset.crc === '1'; CR.dirty = true; crUI(); crDraw(); crNote(); crPreview(); });
   el.querySelector('[data-crai]').onclick = () => crAI();
   el.querySelector('[data-crcht]').onclick = () => { CR.chtMoved = true; if (!CR.cht) CR.cht = [[.35, .04], [.65, .04], [.65, .09], [.35, .09]]; CR.col = true; CR.mode = 'edit'; CR.dirty = true; crColorCalc(); crUI(); crLayout(); crNote(); };
   const st = el.querySelector('.cr-stage');
@@ -6696,7 +6696,7 @@ async function openCrop(p){
   st.addEventListener('pointerdown', e => { if (!CR || CR.mode !== 'edit' || !CR.L) return; if (e.target.closest && e.target.closest('.cr-z1')) return; const r = st.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
     PT.set(e.pointerId, { x, y }); try { st.setPointerCapture(e.pointerId); } catch(x){}
     if (PT.size >= 2) { e.preventDefault(); if (PT.size === 2) pinchStart(); return; }
-    let best = null, bd = CR.n > 3 ? 40 : 56; ['top', 'bot'].concat(CR.cht ? ['cht'] : []).forEach(a => CR[a].forEach(([qx, qy], i) => { const d = Math.hypot(CR.L.ox + qx * CR.L.w - x, CR.L.oy + qy * CR.L.h - y); if (d < bd) { bd = d; best = { a, i }; } }));
+    let best = null, bd = CR.n > 3 ? 40 : 56; ['top', 'bot'].concat(crChtOn() ? ['cht'] : []).forEach(a => CR[a].forEach(([qx, qy], i) => { const d = Math.hypot(CR.L.ox + qx * CR.L.w - x, CR.L.oy + qy * CR.L.h - y); if (d < bd) { bd = d; best = { a, i }; } }));
     if (!best) { if (CR.pin) { CR.pin = null; crLoupeOff(); }
       const now = Date.now(); if (CR.Z.s > 1 && now - (CR.tap0 || 0) < 320) { CR.tap0 = 0; CR.Z.s = 1; crView(); return; } CR.tap0 = now;
       if (CR.Z.s > 1) { e.preventDefault(); CR.pan = { id: e.pointerId, x, y, cx: CR.Z.cx, cy: CR.Z.cy }; } return; } e.preventDefault();
@@ -6749,6 +6749,7 @@ function crUI(){ const el = $('#crop'); if (!el || !CR) return;
   el.querySelector('[data-crcht]').classList.toggle('hidden', !!CR.cht); el.querySelector('[data-crai]').disabled = CR.ai;
   el.querySelector('.cr-save').disabled = !CR.img || !!CR.saving; el.querySelector('.cr-stage').classList.toggle('busy', CR.ai);
   const ed = CR.mode === 'edit';
+  if (!crChtOn()) { if (CR.sel && CR.sel.a === 'cht') CR.sel = { a: 'top', i: 0 }; if (CR.pin && CR.pin.a === 'cht') { CR.pin = null; crLoupeOff(); } }
   el.querySelector('.cr-nudge').classList.toggle('hidden', !ed); crNudgeLab();
   const vb = el.querySelector('.cr-visb'); vb.classList.toggle('on', !!CR.vis); vb.setAttribute('aria-pressed', CR.vis ? 'true' : 'false'); vb.classList.toggle('hidden', !ed);
   const mb = el.querySelector('.cr-morebtn'), mo = el.classList.contains('crmore'); mb.setAttribute('aria-expanded', mo ? 'true' : 'false'); mb.classList.toggle('open', mo);
@@ -6807,10 +6808,14 @@ function crDraw(){ const svg = $('#crop .cr-svg'); if (!svg || !CR || !CR.L || C
     + ['top', 'bot'].map(a => CR[a].map(([x, y], i) => { const [X, Y] = T(x, y), on = CR.drag && CR.drag.a === a && CR.drag.i === i, fold = i > 0 && i < CR.n, sel = !CR.drag && CR.sel && CR.sel.a === a && CR.sel.i === i;
       return `<circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="${r}" fill="${fold ? 'rgba(255,200,0,' : 'rgba(28,176,246,'}${on || sel ? .5 : .22})" stroke="${sel ? '#FFD84D' : '#fff'}" stroke-width="${sel ? 3.5 : 2.5}"/><circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="2.5" fill="#fff"/>`; }).join('')).join('')
     + (CR.cht ? (() => { const P = CR.cht.map(([x, y]) => T(x, y)), d2 = 'M' + P.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L') + 'Z', [bx, by] = [(P[0][0] + P[3][0]) / 2, (P[0][1] + P[3][1]) / 2];
+      if (!CR.col) return `<path d="${d2}" fill="none" stroke="rgba(255,140,40,.55)" stroke-width="1.2" stroke-dasharray="3 3"/>`; /* 色を合わせないときは、場所だけうすく */
       return `<path d="${d2}" fill="rgba(255,140,40,.12)" stroke="#FF8C28" stroke-width="2" stroke-dasharray="4 3"/><text x="${bx.toFixed(1)}" y="${(by - 8).toFixed(1)}" fill="#FF8C28" font-size="12" font-weight="700" text-anchor="middle">青</text>`
         + P.map(([X, Y], i) => { const on = CR.drag && CR.drag.a === 'cht' && CR.drag.i === i, sel = !CR.drag && CR.sel && CR.sel.a === 'cht' && CR.sel.i === i; return `<circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="10" fill="rgba(255,140,40,${on || sel ? .55 : .25})" stroke="${sel ? '#FFD84D' : '#fff'}" stroke-width="${sel ? 3 : 2}"/>`; }).join(''); })() : ''); }
 /* 矢印のボタンで、選んでいる丸を1画素ずつ動かす（押したままだと続けて動く）。動かしているあいだは拡大鏡を出す（10/6 本人） */
-function crSelList(){ const L = []; ['top', 'bot'].forEach(a => CR[a].forEach((q, i) => L.push({ a, i }))); if (CR.cht) CR.cht.forEach((q, i) => L.push({ a: 'cht', i })); return L; }
+function crSelList(){ const L = []; CR.top.forEach((q, i) => L.push({ a: 'top', i })); for (let i = CR.bot.length - 1; i >= 0; i--) L.push({ a: 'bot', i }); /* 時計回り：左上 → 右上 → 右下 → 左下（10/6 本人） */
+  if (crChtOn()) CR.cht.forEach((q, i) => L.push({ a: 'cht', i })); return L; }
+/* カラーチップの角は「色：チップで合わせる」のときだけ動かせる（10/6 本人） */
+const crChtOn = () => !!(CR && CR.cht && CR.col);
 function crPtName(s){ if (!s) return ''; if (s.a === 'cht') return 'カラーチップの角 ' + (s.i + 1);
   const n = CR.n; if (n === 1) return (s.i ? '右' : '左') + (s.a === 'top' ? '上' : '下') + 'の丸';
   return (s.a === 'top' ? '上' : '下') + 'の ' + (s.i + 1) + '番目（' + (s.i === 0 ? '左端' : s.i === n ? '右端' : '折れ目') + '）'; }
