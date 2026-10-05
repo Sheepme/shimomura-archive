@@ -2217,7 +2217,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd3cb6f3d41', APP_URL = location.origin + location.pathname;
+const BUILD = 'edbfe0b09b', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6710,7 +6710,7 @@ function acState(){ const R = {}; (S.autoc || []).forEach(r => { R[r[0]] = r; })
   return { L, n }; }
 const acEta = s => s >= 3600 ? Math.floor(s / 3600) + '時間' + Math.round(s % 3600 / 60) + '分' : Math.max(1, Math.round(s / 60)) + '分';
 const acSec = () => AC.n && AC.t0 ? (Date.now() - AC.t0) / 1000 / AC.n : 90;
-function acProgHTML(){ if (!AC.run) return '';
+function acProgHTML(){ if (!AC.run) return ''; if (!AC.N) return `<div class="ac-prog"><span class="ldspin"></span><div><b>準備しています</b><small>${esc(AC.step || '')}</small></div></div>`;
   return `<div class="ac-prog"><span class="ldspin"></span><div><b>${Math.min(AC.n + 1, AC.N)} / ${AC.N} 枚目</b><small>${esc(AC.cur ? nol(AC.cur.no) + '　' + (AC.cur.w['作品名'] || '') : '')}${AC.step ? '：' + esc(AC.step) : ''}<br>のこり およそ${acEta(Math.max(1, AC.N - AC.n) * acSec())}${AC.stop ? '・この1枚が終わったら止まります' : ''}</small></div></div>`; }
 function acDraw(){ const el = $('#acb'); if (!el || !AC.open) return; const y = el.scrollTop, { L, n } = acState(), tab = AC.tab, left = n.todo;
   const th = f => `<span class="ac-th">${f ? thImg(f, 200) : ''}</span>`;
@@ -6804,8 +6804,13 @@ async function acOne(it){ const p = it.p, no = it.no, fid = p['ファイルID'],
   S.photos.forEach(x => { if (x['作品番号'] !== no) return; if (x['写真ID'] === p['写真ID']) x['種類'] = '記録写真'; x['メイン'] = x['写真ID'] === pid ? 'メイン' : ''; });
   if (!S.photos.some(x => x['写真ID'] === pid)) S.photos.push({ '写真ID': pid, '作品番号': no, '種類': kind, 'ファイルID': res.fid, 'メモ': res.memo || memo, '登録者': (S.user || {}).name || '', '登録日時': '', '向き判定': '', 'メイン': 'メイン' });
   index(); acRowSet([p['写真ID'], no, '保存', why, pid, '', (S.user || {}).name || '']); }
-async function acRun(limit){ if (AC.run) return; const Q = acState().L.filter(x => x.st === 'todo').slice(0, limit || 1e9); if (!Q.length) return toast('補正する写真はもうありません');
-  Object.assign(AC, { run: true, stop: false, n: 0, N: Q.length, t0: Date.now(), msg: '', cur: null, step: '' }); acWake(true); acDraw(); let errs = 0;
+async function acRun(limit){ if (AC.run) return;
+  /* 始める前に最新のデータを読む（開いた直後は、端末に保存してある少し前のデータを出しているため。古いままだと済んだ写真をもう一度 AI に見せてしまう） */
+  Object.assign(AC, { run: true, stop: false, n: 0, N: 0, msg: '', cur: null, step: '最新の状態を読み込んでいます' }); acDraw();
+  try { const d = await acRetry(() => call('getData'), 3, 150000); if (d && d.works) setData(d); }
+  catch(e){ AC.run = false; AC.step = ''; AC.msg = isLoginErr(e) ? 'ログインの有効期限が切れました。もう一度ログインしてください' : '最新の状態を読み込めませんでした。少し待ってから、もう一度押してください'; return acDraw(); }
+  const Q = acState().L.filter(x => x.st === 'todo').slice(0, limit || 1e9); if (!Q.length) { AC.run = false; AC.step = ''; acDraw(); return toast('補正する写真はもうありません'); }
+  Object.assign(AC, { N: Q.length, t0: Date.now(), step: '' }); acWake(true); acDraw(); let errs = 0;
   try { for (let i = 0; i < Q.length && !AC.stop; i++) { const it = Q[i]; AC.cur = it; AC.step = ''; acDraw();
       if (Q[i + 1]) acPrep(Q[i + 1]).catch(() => {});
       try { await acOne(it); errs = 0; }
