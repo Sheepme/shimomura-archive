@@ -2070,7 +2070,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '2ebf7774bb', APP_URL = location.origin + location.pathname;
+const BUILD = '32d09a1fe4', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2548,7 +2548,7 @@ function qcWorkCards(no){ const w = workOf(no); if (!w) return []; const L = [];
   if (!hasPh(no)) L.push({ no, k: 'photo' });
   if (qcAskOpen(w)) L.push({ no, k: 'ask' });
   (S.docs || []).forEach(d => { if (d['状態'] !== '登録済み') return; if ((docRes(d)['食い違い'] || []).some((x, i) => !x.r && x.t === 'w' && String(x.id) === String(no) && !QDD.has(d['書類ID'] + '|' + i) && !(x.f === '所在' && musSame(x.cur, x.doc)))) L.push({ no, k: 'diff', did: d['書類ID'], g: 1 }); });
-  (S.finds || []).forEach(f => { if (!fdOpen(f)) return; const cs = fdCands(f), j = cs.findIndex(c => c.no === no); if (j >= 0) L.push({ no, k: 'find', id: f['候補ID'], cands: cs, j }); });
+  (S.finds || []).forEach(f => { if (!fdOpen(f) || fdPrint(f)) return; const cs = fdCands(f), j = cs.findIndex(c => c.no === no); if (j >= 0) L.push({ no, k: 'find', id: f['候補ID'], cands: cs, j }); });
   return L; }
 const QCWK = { loc: '場所', conf: '場所の確認', name: '作品名', photo: '写真', diff: '書類との違い', find: '調べの記録', ask: 'お母さんに聞きたいこと' };
 function workQuizHTML(no){ const L = qcWorkCards(no), K = [...new Set(L.map(c => QCWK[c.k]))];
@@ -2653,12 +2653,12 @@ function fdReg(f){ if (f['区分'] !== '一次') return null; const c = fdCands(
   return c && c.s >= 1.6 && w && w['所在区分'] === '美術館' && fdMus(w['所在']) && fdMus(w['所在']) === fdMus(f['相手先']) ? c : null; }
 /* カードにする記録：美術館の記録はすべて、業者の記録は台帳に似た作品があるものだけ */
 function qcFinds(max, mix){ const A = [], B = [], C = [];
-  (S.finds || []).forEach(f => { if (!fdOpen(f) || fdReg(f)) return; const cs = fdCands(f), it = { no: cs[0] ? cs[0].no : '', k: 'find', id: f['候補ID'], cands: cs, j: 0 };
+  (S.finds || []).forEach(f => { if (!fdOpen(f) || fdReg(f) || fdPrint(f)) return; /* 版画はカードに出さない（その他の作品に入れる） */ const cs = fdCands(f), it = { no: cs[0] ? cs[0].no : '', k: 'find', id: f['候補ID'], cands: cs, j: 0 };
     if (f['区分'] === '一次') (cs.length ? A : B).push(it); else if (cs.length) C.push(it); });
   A.sort((a, b) => b.cands[0].s - a.cands[0].s); C.sort((a, b) => b.cands[0].s - a.cands[0].s);
   if (mix) return [A[0], A[1], B[0], C[0]].filter(Boolean).slice(0, max);
   return A.concat(B, C).slice(0, max); }
-function qcFindLeft(){ let all = 0, left = 0; (S.finds || []).forEach(f => { if (f['区分'] !== '一次' && !fdCands(f).length) return; if (fdReg(f) && fdOpen(f)) return; all++; if (fdOpen(f)) left++; }); return { all, left }; }
+function qcFindLeft(){ let all = 0, left = 0; (S.finds || []).forEach(f => { if (fdPrint(f) || (f['区分'] !== '一次' && !fdCands(f).length)) return; if (fdReg(f) && fdOpen(f)) return; all++; if (fdOpen(f)) left++; }); return { all, left }; }
 /* ===== 管理者：台帳でもう同じ美術館になっている作品の記録を、一覧でまとめて確かめる ===== */
 let FDB = null;
 function fdbOpen(){ const L = (S.finds || []).filter(f => fdOpen(f) && fdReg(f)); if (!L.length) return toast('まとめて確かめる記録はありません');
@@ -3099,8 +3099,10 @@ function qcAct(a, btn){ const c = QC && QC.L[QC.i]; if (!c) return; const no = c
   const L = (kind, place, v) => ask({ item: '場所', value: v || place, answer: 'はい' }, null, { kind, place }, kind === '個人蔵' ? '個人の方' : kind === '委託中' ? '思文閣（委託）' : place);
   if (a === 'home') { QC.subBack = QC.step || ''; QC.pend = { kind: '自宅', det: '' }; QC.step = 'area'; return qcDraw(); }
   if (a === 'askok' || a === 'askunk') { const v = a === 'askunk' ? '' : (($('#qcAsk') || {}).value || '').trim(); if (a === 'askok' && !v) return toast('分かることを入れてください（分からなければ「わからない」）');
-    const me = S.user && S.user.name || '', old = String(w['補足'] || '').trim(), note = '聞いた答え：' + v + '（' + today() + (me ? ' ' + me : '') + '）';
-    return qcSave(no, { item: '要確認', value: v, answer: v ? 'はい' : '不明' }, v ? { '補足': old ? old + ' / ' + note : note } : null); }
+    /* 経緯も残す：いつ・だれが・何を聞かれて・何と答えたか（「わからない」も残す）。問いは要確認メモ（「母に確認」は外す） */
+    const me = S.user && S.user.name || '', old = String(w['補足'] || '').trim(), qq = qcAskMemo(w).replace(/[。、]?\s*(母|お母さん)に(確認|聞く)[。]?/g, '。').replace(/。+/g, '。').replace(/^。|。$/g, '');
+    const note = '【お母さんに聞いた ' + today() + (me ? '・' + me + 'が答えた' : '') + '】問い「' + qq + '」→ 答え「' + (v || 'わからない') + '」';
+    return qcSave(no, { item: '要確認', value: v, answer: v ? 'はい' : '不明' }, { '補足': old ? old + ' / ' + note : note }); }
   if (a === 'ar' || a === 'ar0' || a === 'aradd') { let ar = a === 'ar' ? (btn && btn.dataset.a || '') : '';
     if (a === 'aradd') { ar = areaNorm(($('#qcAr') || {}).value); if (!ar) return toast('新しいエリアの名前を入れてください'); }
     const det = QC.pend && QC.pend.det || '', place = homePlace(ar, det);
