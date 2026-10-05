@@ -2148,6 +2148,21 @@ button.ulrow{cursor:pointer}
 #vcrop{border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:8px 14px;font-size:14px;border-radius:999px}
 .cr-stage.busy::after{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.12) 50%,transparent 70%) 0 0/300% 100%;animation:ldshim 1.4s linear infinite;pointer-events:none}
 .cr-links button:disabled{opacity:.4}
+/* 角の画面：切りかえ以外は「設定」で開く（ふだんは閉じて、写真を大きく）。微調整の矢印（10/6 本人） */
+#crop:not(.more) .cr-more{display:none}
+.cr-sl2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 14px}.cr-half{gap:6px;font-size:13px}.cr-half>span{min-width:0}.cr-half output{min-width:2.4em;font-size:12.5px}
+@media(max-width:340px){.cr-sl2{grid-template-columns:1fr}}
+.cr-more{display:flex;flex-direction:column;gap:9px}
+.cr-segrow{display:flex;align-items:center;gap:8px}.cr-segrow .cr-seg{flex:1;min-width:0}
+.cr-morebtn{flex:none;height:40px;padding:0 12px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:transparent;color:#faf9f5;font:inherit;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;position:relative}
+.cr-morebtn i{font-style:normal;font-size:11px;transition:transform .2s}.cr-morebtn.open i{transform:rotate(180deg)}
+.cr-morebtn.warn::after{content:'';position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:#FFC800}
+.cr-nudge{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(250,249,245,.8)}.cr-nudge.hidden{display:none}
+.cr-nsel{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cr-pad{display:flex;gap:6px}
+.cr-pad button,.cr-nnext{height:40px;min-width:44px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:#34342f;color:#faf9f5;font:inherit;font-size:18px;font-weight:700;cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.cr-pad button:active,.cr-nnext:active{background:#4a4a44}
+.cr-nnext{font-size:13px;font-weight:600;padding:0 10px;min-width:0}
 .cr-seg button:disabled{opacity:.35}
 .cr-ask{position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:6;max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:18px;background:#2f2f2d;border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 40px rgba(0,0,0,.6);max-height:80vh;overflow:auto}
 .cr-ask>b{font-size:16px;color:#FFC800}.cr-ask>p{margin:0 0 4px;font-size:14px;line-height:1.6;color:rgba(250,249,245,.85)}
@@ -2223,7 +2238,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '3811017fe9', APP_URL = location.origin + location.pathname;
+const BUILD = '141feb944f', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6613,16 +6628,28 @@ async function openCrop(p){
     <p class="cr-hint"></p>
     <div class="cr-stage"><canvas class="cr-img"></canvas><canvas class="cr-pv hidden"></canvas><div class="cr-grid hidden"></div><svg class="cr-svg" xmlns="http://www.w3.org/2000/svg"></svg><div class="cr-loupe hidden"><canvas></canvas></div><div class="cr-ld"><span class="ldspin"></span>写真を読み込んでいます…</div></div>
     <div class="cr-bot">
-      <div class="cr-seg"><button type="button" data-crm="edit" class="on">角を合わせる</button><button type="button" data-crm="pv">仕上がりを見る</button></div>
+      <div class="cr-segrow"><div class="cr-seg"><button type="button" data-crm="edit" class="on">角を合わせる</button><button type="button" data-crm="pv">仕上がりを見る</button></div><button type="button" class="cr-morebtn" aria-expanded="false">設定<i aria-hidden="true">▾</i></button></div>
+      <div class="cr-nudge"><span class="cr-nsel"></span><div class="cr-pad"><button type="button" data-crd="-1,0" aria-label="左へ">←</button><button type="button" data-crd="0,-1" aria-label="上へ">↑</button><button type="button" data-crd="0,1" aria-label="下へ">↓</button><button type="button" data-crd="1,0" aria-label="右へ">→</button></div><button type="button" class="cr-nnext" data-crnext>次の丸</button></div>
+      <div class="cr-sl2">
+      <label class="cr-row cr-half"><span>明るさ</span><input type="range" min="-40" max="40" step="1" value="${CR.bri}" id="crB"><output id="crBv">${CR.bri > 0 ? '+' : ''}${CR.bri}%</output></label>
+      <label class="cr-row cr-half"><span>ふくらみ</span><input type="range" min="-10" max="10" step="0.5" value="${CR.v}" id="crK"><output id="crKv">${CR.v > 0 ? '+' : ''}${CR.v}</output></label>
+      </div>
+      <div class="cr-more">
       <div class="cr-row"><span>形</span><div class="cr-seg sm">${CR_NS.map(([n, lb]) => `<button type="button" data-crn="${n}">${lb}</button>`).join('')}</div></div>
-      <label class="cr-row"><span>明るさ</span><input type="range" min="-40" max="40" step="1" value="${CR.bri}" id="crB"><output id="crBv">${CR.bri > 0 ? '+' : ''}${CR.bri}%</output></label>
-      <label class="cr-row"><span>ふくらみ</span><input type="range" min="-10" max="10" step="0.5" value="${CR.v}" id="crK"><output id="crKv">${CR.v > 0 ? '+' : ''}${CR.v}</output></label>
       <div class="cr-row"><span>色</span><div class="cr-seg sm"><button type="button" data-crc="1">チップで合わせる</button><button type="button" data-crc="0">合わせない</button></div></div>
       <div class="cr-row"><span>縦横の比率</span><div class="cr-seg sm">${CR.led ? `<button type="button" data-crr="led">台帳のサイズ</button>` : ''}<button type="button" data-crr="auto">写真から計算</button></div></div>
       <p class="cr-note"></p>
       <div class="cr-links"><button type="button" data-crai>✨ 自動で探し直す</button><button type="button" data-crreset>角を最初の位置にもどす</button><button type="button" data-crcht>カラーチップの位置を指定</button>${CR.corr ? '<button type="button" data-crundo>補正をやめて元の写真にもどす</button>' : ''}</div>
+      </div>
     </div>`;
+  let more = false; try { more = localStorage.getItem('smr_crmore') === '1'; } catch(e){} el.classList.toggle('more', more);
   document.body.appendChild(el); hpush('c'); crUI();
+  el.querySelector('.cr-morebtn').onclick = () => { const on = !el.classList.contains('more'); el.classList.toggle('more', on); try { localStorage.setItem('smr_crmore', on ? '1' : '0'); } catch(e){} crUI(); };
+  el.querySelector('[data-crnext]').onclick = () => { const P = crSelList(), k = P.findIndex(q => q.a === CR.sel.a && q.i === CR.sel.i); CR.sel = P[(k + 1) % P.length]; crDraw(); crNudgeLab(); crNudgeLoupe(); };
+  el.querySelectorAll('[data-crd]').forEach(b => { const [dx, dy] = b.dataset.crd.split(',').map(Number); let t1 = 0, t2 = 0;
+    const stop = () => { clearTimeout(t1); clearInterval(t2); t1 = t2 = 0; };
+    b.addEventListener('pointerdown', e => { e.preventDefault(); stop(); crNudge(dx, dy); t1 = setTimeout(() => { t2 = setInterval(() => crNudge(dx, dy), 60); }, 380); });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(k => b.addEventListener(k, stop)); b.addEventListener('click', e => e.preventDefault()); });
   el.querySelector('.cr-x').onclick = () => { if (CR && CR.dirty && !confirm('直した内容を保存せずに閉じますか？')) return; cropClose(); };
   el.querySelector('.cr-save').onclick = cropSave;
   el.querySelectorAll('[data-crm]').forEach(b => b.onclick = () => { CR.mode = b.dataset.crm; crUI(); crLayout(); });
@@ -6639,7 +6666,7 @@ async function openCrop(p){
   st.addEventListener('pointerdown', e => { if (!CR || CR.mode !== 'edit' || !CR.L) return; const r = st.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
     let best = null, bd = CR.n > 3 ? 40 : 56; ['top', 'bot'].concat(CR.cht ? ['cht'] : []).forEach(a => CR[a].forEach(([qx, qy], i) => { const d = Math.hypot(CR.L.ox + qx * CR.L.w - x, CR.L.oy + qy * CR.L.h - y); if (d < bd) { bd = d; best = { a, i }; } }));
     if (!best) return; e.preventDefault(); try { st.setPointerCapture(e.pointerId); } catch(x){}
-    const pt = CR[best.a][best.i]; CR.drag = best; CR.sel = best;
+    const pt = CR[best.a][best.i]; CR.drag = best; CR.sel = best; crNudgeLab();
     CR.g = { id: e.pointerId, dx: CR.L.ox + pt[0] * CR.L.w - x, dy: CR.L.oy + pt[1] * CR.L.h - y }; /* 指と丸のずれを保つ（丸が指の先から飛ばない） */
     crMove(x, y); });
   st.addEventListener('pointermove', e => { if (!CR || !CR.drag || !CR.g || e.pointerId !== CR.g.id) return; e.preventDefault(); const r = st.getBoundingClientRect(); crMove(e.clientX - r.left, e.clientY - r.top); });
@@ -6675,6 +6702,8 @@ function crUI(){ const el = $('#crop'); if (!el || !CR) return;
   el.querySelector('[data-crcht]').classList.toggle('hidden', !!CR.cht); el.querySelector('[data-crai]').disabled = CR.ai;
   el.querySelector('.cr-save').disabled = !CR.img || !!CR.saving; el.querySelector('.cr-stage').classList.toggle('busy', CR.ai);
   const ed = CR.mode === 'edit';
+  el.querySelector('.cr-nudge').classList.toggle('hidden', !ed); crNudgeLab();
+  const mb = el.querySelector('.cr-morebtn'), mo = el.classList.contains('more'); mb.setAttribute('aria-expanded', mo ? 'true' : 'false'); mb.classList.toggle('open', mo);
   ['.cr-img', '.cr-svg'].forEach(s => el.querySelector(s).classList.toggle('hidden', !ed)); ['.cr-pv', '.cr-grid'].forEach(s => el.querySelector(s).classList.toggle('hidden', ed));
   el.querySelector('.cr-hint').textContent = CR.ai ? 'AI が、額の内側の四隅とカラーチップを探しています…（10〜30秒）'
     : !ed && CR.aiDone ? '自動で補正しました。よければ「保存」。角がずれていたら「角を合わせる」で直してください'
@@ -6705,11 +6734,23 @@ function crDraw(){ const svg = $('#crop .cr-svg'); if (!svg || !CR || !CR.L || C
   svg.setAttribute('viewBox', `0 0 ${L.sw} ${L.sh}`);
   svg.innerHTML = `<path d="M-4 -4H${L.sw + 4}V${L.sh + 4}H-4Z ${d}" fill="rgba(0,0,0,.5)" fill-rule="evenodd"/><path d="${d}${fd}" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="3.2"/><path d="${d}" fill="none" stroke="#1CB0F6" stroke-width="1.6"/>`
     + (fd ? `<path d="${fd}" fill="none" stroke="#FFC800" stroke-width="1.6" stroke-dasharray="6 4"/>` : '')
-    + ['top', 'bot'].map(a => CR[a].map(([x, y], i) => { const [X, Y] = T(x, y), on = CR.drag && CR.drag.a === a && CR.drag.i === i, fold = i > 0 && i < CR.n;
-      return `<circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="${r}" fill="${fold ? 'rgba(255,200,0,' : 'rgba(28,176,246,'}${on ? .5 : .22})" stroke="#fff" stroke-width="2.5"/><circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="2.5" fill="#fff"/>`; }).join('')).join('')
+    + ['top', 'bot'].map(a => CR[a].map(([x, y], i) => { const [X, Y] = T(x, y), on = CR.drag && CR.drag.a === a && CR.drag.i === i, fold = i > 0 && i < CR.n, sel = !CR.drag && CR.sel && CR.sel.a === a && CR.sel.i === i;
+      return `<circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="${r}" fill="${fold ? 'rgba(255,200,0,' : 'rgba(28,176,246,'}${on || sel ? .5 : .22})" stroke="${sel ? '#FFD84D' : '#fff'}" stroke-width="${sel ? 3.5 : 2.5}"/><circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="2.5" fill="#fff"/>`; }).join('')).join('')
     + (CR.cht ? (() => { const P = CR.cht.map(([x, y]) => T(x, y)), d2 = 'M' + P.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L') + 'Z', [bx, by] = [(P[0][0] + P[3][0]) / 2, (P[0][1] + P[3][1]) / 2];
       return `<path d="${d2}" fill="rgba(255,140,40,.12)" stroke="#FF8C28" stroke-width="2" stroke-dasharray="4 3"/><text x="${bx.toFixed(1)}" y="${(by - 8).toFixed(1)}" fill="#FF8C28" font-size="12" font-weight="700" text-anchor="middle">青</text>`
-        + P.map(([X, Y], i) => { const on = CR.drag && CR.drag.a === 'cht' && CR.drag.i === i; return `<circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="10" fill="rgba(255,140,40,${on ? .55 : .25})" stroke="#fff" stroke-width="2"/>`; }).join(''); })() : ''); }
+        + P.map(([X, Y], i) => { const on = CR.drag && CR.drag.a === 'cht' && CR.drag.i === i, sel = !CR.drag && CR.sel && CR.sel.a === 'cht' && CR.sel.i === i; return `<circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="10" fill="rgba(255,140,40,${on || sel ? .55 : .25})" stroke="${sel ? '#FFD84D' : '#fff'}" stroke-width="${sel ? 3 : 2}"/>`; }).join(''); })() : ''); }
+/* 矢印のボタンで、選んでいる丸を1画素ずつ動かす（押したままだと続けて動く）。動かしているあいだは拡大鏡を出す（10/6 本人） */
+function crSelList(){ const L = []; ['top', 'bot'].forEach(a => CR[a].forEach((q, i) => L.push({ a, i }))); if (CR.cht) CR.cht.forEach((q, i) => L.push({ a: 'cht', i })); return L; }
+function crPtName(s){ if (!s) return ''; if (s.a === 'cht') return 'カラーチップの角 ' + (s.i + 1);
+  const n = CR.n; if (n === 1) return (s.i ? '右' : '左') + (s.a === 'top' ? '上' : '下') + 'の丸';
+  return (s.a === 'top' ? '上' : '下') + 'の ' + (s.i + 1) + '番目（' + (s.i === 0 ? '左端' : s.i === n ? '右端' : '折れ目') + '）'; }
+function crNudgeLab(){ const e = $('#crop .cr-nsel'); if (e && CR) e.textContent = crPtName(CR.sel); }
+function crNudgeLoupe(){ if (!CR || !CR.L || !CR.sel) return; const p = CR[CR.sel.a] && CR[CR.sel.a][CR.sel.i]; if (!p) return;
+  crLoupe(p, CR.L.ox + p[0] * CR.L.w, CR.L.oy + p[1] * CR.L.h); clearTimeout(CR.nlt); CR.nlt = setTimeout(() => { const lp = $('#crop .cr-loupe'); if (lp && CR && !CR.drag) lp.classList.add('hidden'); }, 1400); }
+function crNudge(dx, dy){ if (!CR || !CR.L || CR.mode !== 'edit' || !CR.sel) return; const s = CR.sel, p = CR[s.a] && CR[s.a][s.i]; if (!p) return;
+  CR[s.a][s.i] = [Math.min(1, Math.max(0, p[0] + dx / CR.L.w)), Math.min(1, Math.max(0, p[1] + dy / CR.L.h))];
+  if (s.a === 'cht') CR.chtMoved = true; else CR.moved = true; CR.dirty = true; crDraw(); crNudgeLoupe();
+  clearTimeout(CR.nnt); CR.nnt = setTimeout(() => { if (!CR) return; if (s.a === 'cht') { crColorCalc(); crPreview(); } crNote(); }, 400); }
 function crMove(x, y){ const L = CR.L, g = CR.drag; if (!g) return; if (g.a === 'cht') CR.chtMoved = true; else CR.moved = true;
   CR[g.a][g.i] = [Math.min(1, Math.max(0, (x + CR.g.dx - L.ox) / L.w)), Math.min(1, Math.max(0, (y + CR.g.dy - L.oy) / L.h))]; CR.dirty = true;
   crDraw(); crLoupe(CR[g.a][g.i], x, y); }
@@ -6744,7 +6785,7 @@ function crNote(){ const n = $('#crop .cr-note'); if (!n || !CR || !CR.img) retu
   const bt = CR.cbri ? '（チップで明るさ ' + (CR.cbri > 0 ? '+' : '') + CR.cbri + '%）' : '';
   if (CR.snap) t += CR.snap > 0 ? '　角：額と絵の境目に合わせました' : '　角：境目がはっきりしないので AI の位置のままです';
   t += CR.cht ? (CR.cmode === 'full' ? '　色：カラーチップの9色で、色・明るさ・コントラストを合わせました' + bt : CR.cmode === 'wb' ? '　色：チップの色味が合わないので、白と黒で色・明るさ・コントラストを合わせました' + bt : CR.cmode === 'ng' ? '　⚠ 色：カラーチップを読めません（位置を直してください）' : '') + (CR.col ? '' : '（いまは合わせていません）') : '　色：カラーチップなし';
-  n.textContent = (warn ? '⚠ 台帳のサイズと形が合いません。角の位置か、台帳のサイズを確かめてください。' : '') + t; n.classList.toggle('warn', warn); }
+  n.textContent = (warn ? '⚠ 台帳のサイズと形が合いません。角の位置か、台帳のサイズを確かめてください。' : '') + t; n.classList.toggle('warn', warn); const mb = $('#crop .cr-morebtn'); if (mb) mb.classList.toggle('warn', warn); }
 function crKey(e){ if (!CR || !$('#crop') || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target || {}).tagName || '') && e.target.type !== 'range') return;
   if (e.key === 'Escape') { e.preventDefault(); $('#crop .cr-x').click(); return; }
   const dd = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key]; if (!dd || CR.mode !== 'edit' || !CR.L || e.target.type === 'range') return;
