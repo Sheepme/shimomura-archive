@@ -2199,7 +2199,7 @@ button.ulrow{cursor:pointer}
 .cr-seg button:disabled{opacity:.35}
 /* 白の基準（スポイト）とチップ・白の強さ（10/6 開発 v7） */
 .cr-wpb{flex:none;height:40px;padding:0 8px 0 6px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:transparent;color:#faf9f5;font:inherit;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:3px;white-space:nowrap}
-.cr-wpb svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.cr-wpb.set{border-color:rgba(255,255,255,.62)}.cr-wpb.on{background:#faf9f5;border-color:#faf9f5;color:#1c1c1b}
+.cr-wpb svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.cr-wpb.on{background:#faf9f5;border-color:#faf9f5;color:#1c1c1b}.cr-wpb.pick{border-color:#FFC800;color:#FFC800;box-shadow:0 0 0 2px rgba(255,200,0,.35)}
 .cr-sl2.one{grid-template-columns:1fr}
 #crop.crpick .cr-stage{cursor:crosshair}#crop .cr-hint.cr-pk{color:#fff;font-weight:700}
 #crop .cr-grid{display:none!important}
@@ -2293,7 +2293,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '4d9aeca88c', APP_URL = location.origin + location.pathname;
+const BUILD = 'a5d2287e70', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6679,9 +6679,9 @@ function crSrc2Out(p){ const s = crPvSrc(), sw = s.w, sh = s.h, cam = crCam(sw, 
     if (u >= -.002 && u <= 1.002 && v >= -.002 && v <= 1.002) return [(pi + Math.min(1, Math.max(0, u))) / n, Math.min(1, Math.max(0, v))]; }
   return null; }
 /* タップしたところ → 元の写真の位置（角を合わせる画面はそのまま、仕上がりの画面は元にもどして） */
-function crPickAt(e){ const el = $('#crop'), L = CR && CR.L; if (!el || !L) return null;
+function crPickAt(e){ const el = $('#crop'), L = CR && (CR.mode === 'edit' ? CR.L : CR.Lp); if (!el || !L) return null;
   if (CR.mode === 'edit') { const r = el.querySelector('.cr-stage').getBoundingClientRect(), x = (e.clientX - r.left - L.ox) / L.w, y = (e.clientY - r.top - L.oy) / L.h; return x >= 0 && x <= 1 && y >= 0 && y <= 1 ? [x, y] : null; }
-  const r = el.querySelector('.cr-pv').getBoundingClientRect(), u = (e.clientX - r.left) / r.width, v = (e.clientY - r.top) / r.height; return r.width > 0 && u >= 0 && u <= 1 && v >= 0 && v <= 1 ? crOut2Src(u, v) : null; }
+  const r = el.querySelector('.cr-stage').getBoundingClientRect(), u = (e.clientX - r.left - L.ox) / L.w, v = (e.clientY - r.top - L.oy) / L.h; return u >= 0 && u <= 1 && v >= 0 && v <= 1 ? crOut2Src(u, v) : null; }
 function crSetWp(p){ CR.wp = p; CR.wpick = false; CR.dirty = true; if (CR.mode === 'edit') { CR.mode = 'pv'; CR.pin = null; crLoupeOff(); }
   crUI(); crLayout(); crNote(); const v = crWpRead();
   toast(v && Math.max(...v) > .93 ? '指定したところは白飛びしています。少し暗めの白・灰色のところを選ぶと正確です' : '白の基準を決めました。効きすぎるときは「白の強さ」で弱めてください'); }
@@ -6756,7 +6756,7 @@ async function openCrop(p){
       <div class="cr-row"><span>色</span><div class="cr-seg sm"><button type="button" data-crc="1">チップで合わせる</button><button type="button" data-crc="0">合わせない</button></div></div>
       <div class="cr-row"><span>縦横の比率</span><div class="cr-seg sm">${CR.led ? `<button type="button" data-crr="led">台帳のサイズ</button>` : ''}<button type="button" data-crr="auto">写真から計算</button></div></div>
       <p class="cr-note"></p>
-      <div class="cr-links"><button type="button" data-crai>✨ 自動で探し直す</button><button type="button" data-crreset>角を最初の位置にもどす</button><button type="button" data-crcht>カラーチップの位置を指定</button><button type="button" data-crwpx class="hidden">白の指定をやめる</button>${CR.corr ? '<button type="button" data-crundo>補正をやめて元の写真にもどす</button>' : ''}</div>
+      <div class="cr-links"><button type="button" data-crai>✨ 自動で探し直す</button><button type="button" data-crreset>角を最初の位置にもどす</button><button type="button" data-crcht>カラーチップの位置を指定</button>${CR.corr ? '<button type="button" data-crundo>補正をやめて元の写真にもどす</button>' : ''}</div>
       </div>
     </div>`;
   let more = false; try { more = localStorage.getItem('smr_crmore') === '1'; CR.vis = localStorage.getItem('smr_crvis') === '1'; } catch(e){} el.classList.toggle('crmore', more); /* .more はアプリの「もっと見る」のボタンと同じ名前になるので使わない（10/6） */
@@ -6778,8 +6778,9 @@ async function openCrop(p){
   el.querySelector('#crK').oninput = e => { CR.v = +e.target.value; CR.dirty = true; $('#crKv').textContent = (CR.v > 0 ? '+' : '') + CR.v; crDraw(); crNote(); crPreview(); };
   el.querySelector('#crCS').oninput = e => { CR.cs = +e.target.value; CR.dirty = true; $('#crCSv').textContent = CR.cs + '%'; try { localStorage.setItem('smr_crcs', String(CR.cs)); } catch(x){} crNote(); crPreview(); };
   el.querySelector('#crWS').oninput = e => { CR.ws = +e.target.value; CR.dirty = true; $('#crWSv').textContent = CR.ws + '%'; crNote(); crPreview(); };
-  el.querySelector('.cr-wpb').onclick = () => { CR.wpick = !CR.wpick; if (CR.wpick) { CR.pin = null; crLoupeOff(); } crUI(); crLayout(); };
-  el.querySelector('[data-crwpx]').onclick = () => { CR.wp = null; CR.wpick = false; CR.dirty = true; crUI(); crDraw(); crNote(); crPreview(); };
+  /* 「白」：効いていないとき → 押すと白いところを選ぶ（もう一度押すとやめる）。効いているとき（オン）→ 押すとオフ（10/6 本人） */
+  el.querySelector('.cr-wpb').onclick = () => { if (CR.wpick) CR.wpick = false; else if (CR.wp) { CR.wp = null; CR.dirty = true; toast('白の基準をオフにしました'); } else { CR.wpick = true; CR.pin = null; crLoupeOff(); }
+    crUI(); crDraw(); crNote(); crLayout(); };
   el.querySelector('[data-crreset]').onclick = () => { if (CR.Z) CR.Z.s = 1; crSetN(CR.n, CR_P0); CR.v = 0; $('#crK').value = 0; $('#crKv').textContent = '0'; CR.dirty = true; crDraw(); crNote(); crPreview(); };
   if (el.querySelector('[data-crundo]')) el.querySelector('[data-crundo]').onclick = cropUndo;
   el.querySelectorAll('[data-crc]').forEach(b => b.onclick = () => { if (b.dataset.crc === '1' && !CR.cht) return; CR.col = b.dataset.crc === '1'; CR.dirty = true; crUI(); crDraw(); crNote(); crPreview(); });
@@ -6787,14 +6788,15 @@ async function openCrop(p){
   el.querySelector('[data-crcht]').onclick = () => { CR.chtMoved = true; if (!CR.cht) CR.cht = [[.35, .04], [.65, .04], [.65, .09], [.35, .09]]; CR.col = true; CR.mode = 'edit'; CR.dirty = true; crColorCalc(); crUI(); crLayout(); crNote(); };
   const st = el.querySelector('.cr-stage');
   /* 2本指で拡大・縮小（つまむ・広げる）、拡大中は1本指で何もないところをなぞると動かす。何もないところを2回タップで全体にもどす（10/6 本人） */
-  const PT = new Map(), pinchStart = () => { const [a, b] = [...PT.values()], m = [(a.x + b.x) / 2, (a.y + b.y) / 2], L = CR.L;
-    CR.drag = null; CR.g = null; CR.pan = null; CR.pz = { d0: Math.hypot(a.x - b.x, a.y - b.y) || 1, s0: CR.Z.s, P: [(m[0] - L.ox) / L.w, (m[1] - L.oy) / L.h] }; if (!CR.pin) crLoupeOff(); crDraw(); };
+  const PT = new Map(), pinchStart = () => { const [a, b] = [...PT.values()], m = [(a.x + b.x) / 2, (a.y + b.y) / 2], [Z, L] = crZL();
+    CR.drag = null; CR.g = null; CR.pan = null; CR.pz = { d0: Math.hypot(a.x - b.x, a.y - b.y) || 1, s0: Z.s, P: [(m[0] - L.ox) / L.w, (m[1] - L.oy) / L.h] }; if (!CR.pin) crLoupeOff(); crDraw(); };
   st.addEventListener('pointerdown', e => { if (!CR || !CR.L) return; if (e.target.closest && e.target.closest('.cr-zg')) return;
-    if (CR.wpick && CR.mode !== 'edit') { e.preventDefault(); const p = crPickAt(e); if (p) crSetWp(p); return; } /* 仕上がりの画面で白を指定 */
-    if (CR.mode !== 'edit') return; const r = st.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+    const pv = CR.mode === 'pv'; if (pv && !CR.Lp) return; const r = st.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, [Z0] = crZL();
     PT.set(e.pointerId, { x, y }); try { st.setPointerCapture(e.pointerId); } catch(x){}
     if (PT.size >= 2) { e.preventDefault(); CR.pk = null; if (PT.size === 2) pinchStart(); return; }
-    if (CR.wpick) { e.preventDefault(); CR.pk = { id: e.pointerId, cx: e.clientX, cy: e.clientY }; if (CR.Z.s > 1) CR.pan = { id: e.pointerId, x, y, cx: CR.Z.cx, cy: CR.Z.cy }; return; } /* 白を指定：指を離したところ（拡大中はなぞると動かせる） */
+    if (CR.wpick) { e.preventDefault(); CR.pk = { id: e.pointerId, cx: e.clientX, cy: e.clientY }; if (Z0.s > 1) CR.pan = { id: e.pointerId, x, y, cx: Z0.cx, cy: Z0.cy }; return; }
+    if (pv) { const now = Date.now(); if (Z0.s > 1 && now - (CR.tap0 || 0) < 320) { CR.tap0 = 0; Z0.s = 1; crRedraw(); return; } CR.tap0 = now; /* 仕上がりの画面：2回タップで全体、拡大中はなぞって動かす */
+      if (Z0.s > 1) { e.preventDefault(); CR.pan = { id: e.pointerId, x, y, cx: Z0.cx, cy: Z0.cy }; } return; } /* 白を指定：指を離したところ（拡大中はなぞると動かせる） */
     let best = null, bd = CR.n > 3 ? 40 : 56; ['top', 'bot'].concat(crChtOn() ? ['cht'] : []).forEach(a => CR[a].forEach(([qx, qy], i) => { const d = Math.hypot(CR.L.ox + qx * CR.L.w - x, CR.L.oy + qy * CR.L.h - y); if (d < bd) { bd = d; best = { a, i }; } }));
     if (!best) { if (CR.pin) { CR.pin = null; crLoupeOff(); }
       const now = Date.now(); if (CR.Z.s > 1 && now - (CR.tap0 || 0) < 320) { CR.tap0 = 0; CR.Z.s = 1; crView(); return; } CR.tap0 = now;
@@ -6805,7 +6807,7 @@ async function openCrop(p){
   /* 指が少し（6px）動いてから丸を動かす：タップしただけで丸がずれないように */
   st.addEventListener('pointermove', e => { if (!CR) return; const r = st.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top; if (PT.has(e.pointerId)) PT.set(e.pointerId, { x, y });
     if (CR.pz) { if (PT.size < 2) return; e.preventDefault(); const [a, b] = [...PT.values()]; crZoom(CR.pz.s0 * Math.hypot(a.x - b.x, a.y - b.y) / CR.pz.d0, CR.pz.P, (a.x + b.x) / 2, (a.y + b.y) / 2); if (CR.pin) crNudgeLoupe(); return; }
-    if (CR.pan) { if (e.pointerId !== CR.pan.id) return; e.preventDefault(); const L = CR.L; CR.Z.cx = CR.pan.cx - (x - CR.pan.x) / L.w; CR.Z.cy = CR.pan.cy - (y - CR.pan.y) / L.h; crView(); if (CR.pin) crNudgeLoupe(); return; }
+    if (CR.pan) { if (e.pointerId !== CR.pan.id) return; e.preventDefault(); const [Z, L] = crZL(); Z.cx = CR.pan.cx - (x - CR.pan.x) / L.w; Z.cy = CR.pan.cy - (y - CR.pan.y) / L.h; crRedraw(); if (CR.pin) crNudgeLoupe(); return; }
     if (!CR.drag || !CR.g || e.pointerId !== CR.g.id) return; e.preventDefault();
     if (!CR.g.live) { if (Math.hypot(x - CR.g.sx, y - CR.g.sy) < 6) return; CR.g.live = true; } crMove(x, y); });
   /* 丸をタップすると拡大鏡を出したままにする（もう一度タップで閉じる。10/6 本人）。出したまま動かしたら、その丸の拡大鏡のまま */
@@ -6816,9 +6818,9 @@ async function openCrop(p){
     if (!live) CR.pin = CR.pin && CR.pin.a === d.a && CR.pin.i === d.i ? null : d; else if (CR.pin) CR.pin = d;
     crDraw(); if (CR.pin) crNudgeLoupe(); else crLoupeOff(); if (live) crNote(); };
   st.addEventListener('pointerup', up); st.addEventListener('pointercancel', up);
-  st.addEventListener('wheel', e => { if (!CR || CR.mode !== 'edit' || !CR.L) return; e.preventDefault(); const r = st.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, L = CR.L;
-    crZoom(CR.Z.s * Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.002)), [(x - L.ox) / L.w, (y - L.oy) / L.h], x, y); if (CR.pin) crNudgeLoupe(); }, { passive: false });
-  el.querySelector('.cr-z1').onclick = () => { CR.Z.s = 1; crView(); if (CR.pin) crNudgeLoupe(); };
+  st.addEventListener('wheel', e => { if (!CR || !CR.L) return; const [Z, L] = crZL(); if (!Z || !L) return; e.preventDefault(); const r = st.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+    crZoom(Z.s * Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.002)), [(x - L.ox) / L.w, (y - L.oy) / L.h], x, y); if (CR.pin) crNudgeLoupe(); }, { passive: false });
+  el.querySelector('.cr-z1').onclick = () => { const [Z] = crZL(); if (Z) Z.s = 1; crRedraw(); if (CR.pin) crNudgeLoupe(); };
   document.addEventListener('keydown', crKey);
   try { CR.ro = new ResizeObserver(() => crLayout()); CR.ro.observe(st); } catch(e){ addEventListener('resize', crLayout); }
   /* 表示用の写真（1600px）を先に出し、元のファイル（保存に使う）は裏で読む。前の補正がなければ、AI で角とカラーチップを自動で探す */
@@ -6851,9 +6853,9 @@ function crUI(){ const el = $('#crop'); if (!el || !CR) return;
   const ed = CR.mode === 'edit';
   if (!crChtOn()) { if (CR.sel && CR.sel.a === 'cht') CR.sel = { a: 'top', i: 0 }; if (CR.pin && CR.pin.a === 'cht') { CR.pin = null; crLoupeOff(); } }
   el.querySelector('.cr-nudge').classList.toggle('hidden', !ed); crNudgeLab();
-  const wb = el.querySelector('.cr-wpb'); wb.classList.toggle('on', !!CR.wpick); wb.classList.toggle('set', !!CR.wp); wb.setAttribute('aria-pressed', CR.wpick ? 'true' : 'false'); wb.classList.toggle('hidden', ed && !CR.wpick); el.classList.toggle('crpick', !!CR.wpick); /* 「白」は仕上がりの画面だけ（角の画面は ☀ の場所。スマホの幅に収めるため） */
+  const wb = el.querySelector('.cr-wpb'); wb.classList.toggle('on', !!CR.wp && !CR.wpick); wb.classList.toggle('pick', !!CR.wpick); wb.setAttribute('aria-pressed', CR.wp ? 'true' : 'false'); wb.classList.toggle('hidden', ed && !CR.wpick); el.classList.toggle('crpick', !!CR.wpick); /* 「白」は仕上がりの画面だけ（角の画面は ☀ の場所。スマホの幅に収めるため） */
   const chs = !!(CR.col && CR.cht && CR.T), wss = !!CR.wp, r2 = el.querySelector('.cr-sl2c'); el.querySelector('.cr-chs').classList.toggle('hidden', !chs); el.querySelector('.cr-wss').classList.toggle('hidden', !wss);
-  r2.classList.toggle('hidden', !chs && !wss); r2.classList.toggle('one', chs !== wss); el.querySelector('[data-crwpx]').classList.toggle('hidden', !CR.wp); if (ed || !CR.wp) el.querySelector('.cr-wpm').classList.add('hidden');
+  r2.classList.toggle('hidden', !chs && !wss); r2.classList.toggle('one', chs !== wss); if (ed || !CR.wp) el.querySelector('.cr-wpm').classList.add('hidden');
   const vb = el.querySelector('.cr-visb'); vb.classList.toggle('on', !!CR.vis); vb.setAttribute('aria-pressed', CR.vis ? 'true' : 'false'); vb.classList.toggle('hidden', !ed);
   const mb = el.querySelector('.cr-morebtn'), mo = el.classList.contains('crmore'); mb.setAttribute('aria-expanded', mo ? 'true' : 'false'); mb.classList.toggle('open', mo);
   ['.cr-img', '.cr-svg'].forEach(s => el.querySelector(s).classList.toggle('hidden', !ed)); ['.cr-pv', '.cr-grid'].forEach(s => el.querySelector(s).classList.toggle('hidden', ed));
@@ -6880,9 +6882,13 @@ function crView(){ const el = $('#crop'), st = el && el.querySelector('.cr-stage
   const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.clearRect(0, 0, cw, ch);
   g.drawImage(src, 0, 0, src.width || src.naturalWidth, src.height || src.naturalHeight, ox * dpr, oy * dpr, w * dpr, h * dpr);
   c.style.cssText = `left:0;top:0;width:${r.width}px;height:${r.height}px`;
-  const zb = el.querySelector('.cr-z1'); if (zb) zb.classList.toggle('hidden', !(CR.mode === 'edit' && Z.s > 1.01));
-  const zg = el.querySelector('.cr-zg'); if (zg) { zg.classList.toggle('hidden', CR.mode !== 'edit'); zg.querySelector('[data-crz="-1"]').disabled = Z.s <= 1.01; zg.querySelector('[data-crz="1"]').disabled = Z.s >= 7.99; }
-  crDraw(); }
+  crZoomUI(); crDraw(); }
+/* 拡大の状態：角の画面は CR.Z（元の写真の位置）、仕上がりの画面は CR.Zp（仕上がりの位置）。L は表示の大きさと位置（CR.L ／ CR.Lp） */
+const crZL = () => CR.mode === 'pv' ? [CR.Zp || (CR.Zp = { s: 1, cx: .5, cy: .5 }), CR.Lp] : [CR.Z, CR.L];
+const crRedraw = () => CR.mode === 'pv' ? crPreview() : crView();
+function crZoomUI(){ const el = $('#crop'); if (!el || !CR) return; const [Z] = crZL(), s = Z ? Z.s : 1;
+  const zb = el.querySelector('.cr-z1'); if (zb) zb.classList.toggle('hidden', !(s > 1.01));
+  const zg = el.querySelector('.cr-zg'); if (zg) { zg.classList.remove('hidden'); zg.querySelector('[data-crz="-1"]').disabled = s <= 1.01; zg.querySelector('[data-crz="1"]').disabled = s >= 7.99; } }
 function crBaseSrc(){ if (CR.baseC && CR.baseC._img === CR.img) return CR.baseC; const im = CR.img, k = Math.min(1, 2400 / Math.max(im.naturalWidth, im.naturalHeight)); if (k >= 1) return im;
   const c = document.createElement('canvas'); c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k); const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(im, 0, 0, c.width, c.height); c._img = im; CR.baseC = c; return c; }
 /* 見やすく用に、明るくした写真を一度だけ作っておく（長い辺 2400px まで） */
@@ -6892,15 +6898,16 @@ function crVisSrc(){ if (CR.visC && CR.visC._img === CR.img) return CR.visC;
   c._img = im; CR.visC = c; return c; }
 /* 拡大：倍率 s（1〜8）にして、画面の (mx, my) にある写真の点 P を (mx, my) に置く */
 /* ＋・－のボタン：1.6倍ずつ。選んでいる丸が画面に見えていれば、その丸の位置を動かさずに拡大・縮小する（丸が画面から外れない）。見えていなければ画面のまん中で（10/6 本人） */
-function crZoomStep(d){ if (!CR || !CR.L || !CR.Z || CR.mode !== 'edit') return; const Z = CR.Z, L = CR.L, s0 = Z.s, ns = Math.min(8, Math.max(1, d > 0 ? s0 * 1.6 : s0 / 1.6)); if (Math.abs(ns - s0) < 1e-3) return;
-  const p = CR.sel && CR[CR.sel.a] && CR[CR.sel.a][CR.sel.i], mx = p ? L.ox + p[0] * L.w : -1, my = p ? L.oy + p[1] * L.h : -1, vis = p && mx >= 0 && mx <= L.sw && my >= 0 && my <= L.sh;
+function crZoomStep(d){ if (!CR || !CR.L) return; const [Z, L] = crZL(); if (!Z || !L) return; const s0 = Z.s, ns = Math.min(8, Math.max(1, d > 0 ? s0 * 1.6 : s0 / 1.6)); if (Math.abs(ns - s0) < 1e-3) return;
+  const p = CR.mode === 'edit' && CR.sel && CR[CR.sel.a] && CR[CR.sel.a][CR.sel.i], mx = p ? L.ox + p[0] * L.w : -1, my = p ? L.oy + p[1] * L.h : -1, vis = p && mx >= 0 && mx <= L.sw && my >= 0 && my <= L.sh;
   if (vis) crZoom(ns < 1.05 ? 1 : ns, p, mx, my); else crZoom(ns < 1.05 ? 1 : ns, [(L.sw / 2 - L.ox) / L.w, (L.sh / 2 - L.oy) / L.h], L.sw / 2, L.sh / 2);
   if (CR.pin) crNudgeLoupe(); }
 /* 拡大しているときは、選んだ丸を画面のまん中に（「次の丸」。10/6 本人） */
 function crFocusSel(){ const Z = CR && CR.Z, p = CR && CR.sel && CR[CR.sel.a] && CR[CR.sel.a][CR.sel.i]; if (!Z || !p || CR.mode !== 'edit' || Z.s <= 1.01) return; Z.cx = p[0]; Z.cy = p[1]; crView(); }
-function crZoom(s, P, mx, my){ const Z = CR.Z, L = CR.L; if (!L || !Z) return; const iw = CR.img.naturalWidth, ih = CR.img.naturalHeight, s0 = Math.min(L.sw / iw, L.sh / ih);
-  Z.s = Math.min(8, Math.max(1, s)); const w = iw * s0 * Z.s, h = ih * s0 * Z.s;
-  Z.cx = (L.sw / 2 - (mx - P[0] * w)) / w; Z.cy = (L.sh / 2 - (my - P[1] * h)) / h; crView(); }
+function crZoom(s, P, mx, my){ const [Z, L] = crZL(); if (!L || !Z) return; let bw = L.bw, bh = L.bh;
+  if (CR.mode !== 'pv') { const iw = CR.img.naturalWidth, ih = CR.img.naturalHeight, s0 = Math.min(L.sw / iw, L.sh / ih); bw = iw * s0; bh = ih * s0; }
+  Z.s = Math.min(8, Math.max(1, s)); const w = bw * Z.s, h = bh * Z.s;
+  Z.cx = (L.sw / 2 - (mx - P[0] * w)) / w; Z.cy = (L.sh / 2 - (my - P[1] * h)) / h; crRedraw(); }
 
 /* 線を、ふくらみに合わせた曲線の点の列にする（T：0〜1 の位置 → 描く場所）。外まわり（上の点 → 右の辺 → 下の点を逆に → 左の辺）と、折れ目の線 */
 function crEdges(T){ const iw = CR.img.naturalWidth, ih = CR.img.naturalHeight, cam = crCam(iw, ih, crK()), U = a => crU(a[0] * iw, a[1] * ih, cam);
@@ -6975,11 +6982,40 @@ function crPvSrc(){ if (CR.pv && CR.pv.img === CR.img) return CR.pv; const iw = 
   const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(iw * k)); c.height = Math.max(1, Math.round(ih * k)); const g = c.getContext('2d'); g.drawImage(CR.img, 0, 0, c.width, c.height);
   return CR.pv = { img: CR.img, w: c.width, h: c.height, d: g.getImageData(0, 0, c.width, c.height).data }; }
 function crPreview(){ if (!CR || CR.mode !== 'pv' || !CR.L || !CR.img) return; cancelAnimationFrame(CR.raf); CR.raf = requestAnimationFrame(() => { if (!CR || CR.mode !== 'pv') return;
-  const s = crPvSrc(), r = crRatio(), L = CR.L, dpr = Math.min(2, devicePixelRatio || 1); let W = L.sw, H = W / r; if (H > L.sh) { H = L.sh; W = H * r; }
-  const pw = Math.max(1, Math.round(Math.min(W * dpr, 1000))), ph = Math.max(1, Math.round(pw / r)), c = $('#crop .cr-pv');
-  const im = crWarp(s.d, s.w, s.h, CR.top, CR.bot, crK(), pw, ph); crTone(im.data, crUseT()); c.width = pw; c.height = ph; c.getContext('2d').putImageData(im, 0, 0);
-  const css = `left:${(L.sw - W) / 2}px;top:${(L.sh - H) / 2}px;width:${W}px;height:${H}px`; c.style.cssText = css; $('#crop .cr-grid').style.cssText = css;
-  const m = $('#crop .cr-wpm'); if (m) { const o = CR.wp && crSrc2Out(CR.wp); m.classList.toggle('hidden', !o); if (o) m.style.cssText = `left:${(L.sw - W) / 2 + o[0] * W}px;top:${(L.sh - H) / 2 + o[1] * H}px`; } }); }
+  const r = crRatio(), L = CR.L, dpr = Math.min(2, devicePixelRatio || 1), Z = CR.Zp || (CR.Zp = { s: 1, cx: .5, cy: .5 }), c = $('#crop .cr-pv'); let W = L.sw, H = W / r; if (H > L.sh) { H = L.sh; W = H * r; }
+  let Lp, css;
+  if (Z.s <= 1.01) { Z.s = 1; const s = crPvSrc(), pw = Math.max(1, Math.round(Math.min(W * dpr, 1000))), ph = Math.max(1, Math.round(pw / r));
+    const im = crWarp(s.d, s.w, s.h, CR.top, CR.bot, crK(), pw, ph); crTone(im.data, crUseT()); c.width = pw; c.height = ph; c.getContext('2d').putImageData(im, 0, 0);
+    Lp = { ox: (L.sw - W) / 2, oy: (L.sh - H) / 2, w: W, h: H }; css = `left:${Lp.ox}px;top:${Lp.oy}px;width:${W}px;height:${H}px`; }
+  else { /* 拡大：見えている部分だけを、細かい見本（2400px）から画面の細かさで作る（10/6 本人） */
+    const w = W * Z.s, h = H * Z.s, fit = (o, len, sw) => len <= sw ? (sw - len) / 2 : Math.min(0, Math.max(sw - len, o)), ox = fit(L.sw / 2 - Z.cx * w, w, L.sw), oy = fit(L.sh / 2 - Z.cy * h, h, L.sh);
+    Z.cx = (L.sw / 2 - ox) / w; Z.cy = (L.sh / 2 - oy) / h;
+    const vx = Math.max(0, ox), vy = Math.max(0, oy), vw = Math.min(L.sw, ox + w) - vx, vh = Math.min(L.sh, oy + h) - vy, k = Math.min(dpr, 2000 / Math.max(vw, vh, 1));
+    const VW = Math.max(1, Math.round(w * k)), VH = Math.max(1, Math.round(h * k)), X0 = Math.round((vx - ox) * k), Y0 = Math.round((vy - oy) * k), CW = Math.max(1, Math.min(VW - X0, Math.round(vw * k))), CH = Math.max(1, Math.min(VH - Y0, Math.round(vh * k)));
+    const s = crPvSrcHi(), im = crWarpWin(s.d, s.w, s.h, CR.top, CR.bot, crK(), VW, VH, X0, Y0, CW, CH); crTone(im.data, crUseT()); c.width = CW; c.height = CH; c.getContext('2d').putImageData(im, 0, 0);
+    Lp = { ox, oy, w, h }; css = `left:${vx}px;top:${vy}px;width:${vw}px;height:${vh}px`; }
+  CR.Lp = Object.assign(Lp, { sw: L.sw, sh: L.sh, bw: W, bh: H }); c.style.cssText = css; $('#crop .cr-grid').style.cssText = css;
+  const m = $('#crop .cr-wpm'); if (m) { const o = CR.wp && crSrc2Out(CR.wp); m.classList.toggle('hidden', !o); if (o) m.style.cssText = `left:${Lp.ox + o[0] * Lp.w}px;top:${Lp.oy + o[1] * Lp.h}px`; }
+  crZoomUI(); }); }
+/* 拡大用の細かい見本（長い辺 2400px まで） */
+function crPvSrcHi(){ if (CR.pvh && CR.pvh.img === CR.img) return CR.pvh; const im = CR.img, iw = im.naturalWidth, ih = im.naturalHeight, k = Math.min(1, 2400 / Math.max(iw, ih));
+  if (Math.max(iw, ih) * k <= 1400) return crPvSrc(); const c = document.createElement('canvas'); c.width = Math.round(iw * k); c.height = Math.round(ih * k); const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(im, 0, 0, c.width, c.height);
+  return CR.pvh = { img: im, w: c.width, h: c.height, d: g.getImageData(0, 0, c.width, c.height).data }; }
+/* crWarp の一部だけ：W×H の仕上がりのうち (X0, Y0) から CW×CH の部分を作る */
+function crWarpWin(s, sw, sh, top, bot, k, W, H, X0, Y0, CW, CH){
+  const cam = crCam(sw, sh, k), n = top.length - 1, U = a => a.map(([x, y]) => crU(x * sw, y * sh, cam)), T = U(top), B = U(bot);
+  const out = new ImageData(CW, CH), o = out.data, kk = k / cam.R2, cx = cam.cx, cy = cam.cy, mx = sw - 1, my = sh - 1, j0 = Math.max(0, Y0), j1 = Math.min(H, Y0 + CH);
+  for (let pi = 0; pi < n; pi++) { const M = crSq(crQuad(T, B, pi)), xa = Math.round(pi * W / n), xb = Math.round((pi + 1) * W / n), pw = Math.max(1, xb - xa), i0 = Math.max(xa, X0), i1 = Math.min(xb, X0 + CW);
+    for (let j = j0; j < j1; j++) { const v = (j + .5) / H;
+      for (let i = i0; i < i1; i++) { const u = (i - xa + .5) / pw, z = M.g * u + M.h * v + 1;
+        let X = (M.a * u + M.b * v + M.c) / z, Y = (M.d * u + M.e * v + M.f) / z;
+        if (kk) { const dx = X - cx, dy = Y - cy, f = 1 + kk * (dx * dx + dy * dy); X = cx + dx * f; Y = cy + dy * f; }
+        X -= .5; Y -= .5; if (X < 0) X = 0; else if (X > mx) X = mx; if (Y < 0) Y = 0; else if (Y > my) Y = my;
+        const x0 = X | 0, y0 = Y | 0, x1 = x0 < mx ? x0 + 1 : x0, y1 = y0 < my ? y0 + 1 : y0, fx = X - x0, fy = Y - y0;
+        const p00 = (y0 * sw + x0) * 4, p10 = (y0 * sw + x1) * 4, p01 = (y1 * sw + x0) * 4, p11 = (y1 * sw + x1) * 4, t = ((j - Y0) * CW + (i - X0)) * 4;
+        for (let c = 0; c < 3; c++) { const a = s[p00 + c] + (s[p10 + c] - s[p00 + c]) * fx, b = s[p01 + c] + (s[p11 + c] - s[p01 + c]) * fx; o[t + c] = a + (b - a) * fy; }
+        o[t + 3] = 255; } } }
+  return out; }
 function crNote(){ const n = $('#crop .cr-note'); if (!n || !CR || !CR.img) return;
   const a = crAutoNow(), fmt = r => r >= 1 ? '縦1：横' + r.toFixed(2) : '縦' + (1 / r).toFixed(2) + '：横1';
   let t = '写真から見た形 ' + fmt(a), warn = false;
@@ -6996,7 +7032,7 @@ function crNote(){ const n = $('#crop .cr-note'); if (!n || !CR || !CR.img) retu
   n.textContent = (warn ? '⚠ 台帳のサイズと形が合いません。角の位置か、台帳のサイズを確かめてください。' : '') + t; n.classList.toggle('warn', warn); const mb = $('#crop .cr-morebtn'); if (mb) mb.classList.toggle('warn', warn); }
 function crKey(e){ if (!CR || !$('#crop') || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target || {}).tagName || '') && e.target.type !== 'range') return;
   if (e.key === 'Escape') { e.preventDefault(); $('#crop .cr-x').click(); return; }
-  if (/^[-+=]$/.test(e.key) && CR.mode === 'edit' && e.target.type !== 'range' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); crZoomStep(e.key === '-' ? -1 : 1); return; } /* キーボードの＋・－で拡大・縮小 */
+  if (/^[-+=]$/.test(e.key) && e.target.type !== 'range' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); crZoomStep(e.key === '-' ? -1 : 1); return; } /* キーボードの＋・－で拡大・縮小 */
   const dd = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key]; if (!dd || CR.mode !== 'edit' || !CR.L || e.target.type === 'range') return;
   e.preventDefault(); const st = e.shiftKey ? 10 : 1, s = CR.sel, p = CR[s.a][s.i]; if (!p) return; /* 矢印キーで、最後にさわった点を1画素ずつ（Shift で10） */
   CR[s.a][s.i] = [Math.min(1, Math.max(0, p[0] + dd[0] * st / CR.L.w)), Math.min(1, Math.max(0, p[1] + dd[1] * st / CR.L.h))]; CR.dirty = true; crDraw(); crNote(); }
