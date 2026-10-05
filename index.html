@@ -2220,7 +2220,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '4d22dc5135', APP_URL = location.origin + location.pathname;
+const BUILD = '80b950a0c5', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -8209,7 +8209,7 @@ const colKey = () => 'smr_cols_' + (innerWidth < 700 ? 'm' : innerWidth < 900 ? 
 const colRange = () => innerWidth < 700 ? [1, 5] : innerWidth < 900 ? [2, 6] : [2, 10];
 /* アルバムの角の丸み：1列の幅に合わせる（列が多く小さいほど控えめに） */
 function masR(N){ const W = (document.getElementById('main') || {}).clientWidth || innerWidth; const g = innerWidth < 700 ? (N >= 4 ? 4 : N >= 3 ? 8 : 12) : 28;
-  const cw = (W - g * (N - 1)) / Math.max(1, N); return Math.round(Math.min(14, Math.max(3, cw * 0.05))); }
+  const cw = (W - g * (N - 1)) / Math.max(1, N); return Math.round(Math.min(14, Math.max(3, cw * 0.05)) / 4 * 10) / 10; } /* 10/6 本人：角の丸みを半分の半分（1/4）に */
 function masN(){ const [a, b] = colRange(); let u = 0; try { u = +localStorage.getItem(colKey()) || 0; } catch (e) { } return u ? Math.min(b, Math.max(a, u)) : masBase(); }
 function setCols(d){
   if (!['album','ot'].includes(S.view) || !$('#page').classList.contains('hidden')) return;
