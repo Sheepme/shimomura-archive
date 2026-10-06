@@ -2340,7 +2340,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '41b8e870c1', APP_URL = location.origin + location.pathname;
+const BUILD = '4aa5c71444', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -10158,7 +10158,7 @@ function exvBuild(root, L, start){
   const yrHide = () => { yrEl.classList.remove('xin'); lightTo(1); };
   const yrShow = t => { if (yrEl.dataset.t !== t) { yrEl.dataset.t = t; const ml = t.includes('\n'); yrEl.classList.toggle('xml', ml);
       if (ml) yrEl.innerHTML = t.split('\n').map(x => '<span class="l' + (x === '-' ? ' h' : '') + '">' + esc(x) + '</span>').join(''); else yrEl.textContent = t; } yrEl.classList.add('xin'); lightTo(0); }; /* 出ている間に年が変わったら、数字だけそのまま入れかえ */
-  const yrPos = k => { const it = items[k], up = W < H && it && it.yOff > 0 ? Math.round(it.yOff) : 0; yrEl.style.top = up ? 'calc(50% - ' + up + 'px)' : ''; }; /* 縦長の画面だけ、作品のまん中に見えるよう上げる（10/6 本人） */
+  const yrPos = () => { yrEl.style.top = W < H ? 'calc(50% - 20px)' : ''; }; /* 縦長の画面だけ少し上げる。絵によって高さを変えない（10/6 本人） */
   const yrOff = ms => { clearTimeout(yrT); yrT = setTimeout(yrHide, ms); };
   let yrD = 0, yrLate = 0;
   const flashY = k => { const y = k < 0 ? '' : yrOf(k); if (y === lastY) return; lastY = y; clearTimeout(yrD); if (!y) return; const d = yrLate; yrLate = 0;
