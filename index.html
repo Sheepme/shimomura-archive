@@ -2299,7 +2299,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '37aee7ba54', APP_URL = location.origin + location.pathname;
+const BUILD = 'aefe79d7c0', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2346,8 +2346,9 @@ const FP = { paths: null, pathsP: null, need: new Set(), needP: null, ppNg: 0, d
 const GD = { tok: '', exp: 0, on: false, th: '', meta: {}, lib: null, tc: null, asking: false, q: 0, qq: [], lq: [], err: '' };
 const GDAPI = 'https://www.googleapis.com/drive/v3/files/', GD_SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
 const fpAdmin = () => !!(S.user && S.user.role === '管理');
+const fpGd = () => !!(S.user && ['編集','管理'].includes(S.user.role)); /* Google ドライブから直接（B）は編集の人も（10/6 本人） */
 const fpA = () => { try { return !FP.aOff && fpAdmin() && !!AC.dir && !!AC.dirOk; } catch(e){ return false; } };
-const gdOk = () => GD.on && !!GD.tok && Date.now() < GD.exp - 60000 && fpAdmin() && !!S.gcid;
+const gdOk = () => GD.on && !!GD.tok && Date.now() < GD.exp - 60000 && fpGd() && !!S.gcid;
 const fpOn = () => fpA() || gdOk();
 try { FP.aOff = localStorage.getItem('smr_fpaoff') === '1'; const o = JSON.parse(localStorage.getItem('smr_gd') || 'null'); if (o) Object.assign(GD, { on: !!o.on, tok: o.tok || '', exp: +o.exp || 0, th: o.th || '' }); } catch(e){}
 function gdSave(){ try { localStorage.setItem('smr_gd', JSON.stringify({ on: GD.on, tok: GD.tok, exp: GD.exp, th: GD.th })); } catch(e){} }
@@ -2444,8 +2445,8 @@ async function fpAskDir(){ try { if (await acDirReady(true)) { FP.dh = {}; toast
 function fpWarm(){ if (!fpA()) return; fpPathsLoad().then(() => fpLookup((S.photos || []).map(p => p['ファイルID']).concat(S.faces || []))); }
 /* つなぎ直しが要るときに、画面の下に小さく出す（✕ でこの間は出さない） */
 function fpChip(){ let el = document.getElementById('fpChip'); let msg = '', act = '';
-  try { if (fpAdmin() && sessionStorage.getItem('smr_fpx') !== '1') {
-    if (!FP.aOff && AC.dir && !AC.dirOk && typeof window.showDirectoryPicker === 'function') { msg = 'Mac のフォルダから写真を読む許可が必要です'; act = 'a'; }
+  try { if (fpGd() && sessionStorage.getItem('smr_fpx') !== '1') {
+    if (fpAdmin() && !FP.aOff && AC.dir && !AC.dirOk && typeof window.showDirectoryPicker === 'function') { msg = 'Mac のフォルダから写真を読む許可が必要です'; act = 'a'; }
     else if (GD.on && S.gcid && !gdOk() && !fpA()) { msg = 'Google ドライブとのつながりが切れました（1時間ごと）'; act = 'b'; } } } catch(e){}
   if (!msg) { if (el) el.remove(); return; }
   if (!el) { el = document.createElement('div'); el.id = 'fpChip'; el.className = 'updcard fpcard'; el.setAttribute('role', 'status'); document.body.appendChild(el);
@@ -2453,11 +2454,11 @@ function fpChip(){ let el = document.getElementById('fpChip'); let msg = '', act
       el.remove(); if (el.dataset.act === 'a') fpAskDir(); else gdConnect(); }; }
   el.dataset.act = act; el.innerHTML = `<span class="updic" aria-hidden="true">⚡</span><span class="updtx"><b>写真を速く読む</b><small>${esc(msg)}</small></span><button type="button" class="updgo">${act === 'a' ? '許可する' : 'つなぐ'}</button><button type="button" class="updx" aria-label="今はしない">✕</button>`; }
 /* ログインのあと1回：前に選んだフォルダ・トークンを確かめる */
-function fpInit(){ if (FP.init || !fpAdmin()) return; FP.init = true;
+function fpInit(){ if (FP.init || !fpGd()) return; FP.init = true;
   if (GD.err) { toast('Google につなげませんでした（' + GD.err + '）'); GD.err = ''; } else if (GD.justGot) { GD.justGot = false; setTimeout(() => toast('Google ドライブにつながりました（写真を直接読みます）'), 800); }
   if (GD.on && S.gcid) gdPrep().catch(() => {});
   const fin = () => { fpChip(); if (fpA()) fpWarm(); };
-  if (typeof window.showDirectoryPicker === 'function' && !FP.aOff) acDirReady(false).then(fin, fin); else fin(); }
+  if (fpAdmin() && typeof window.showDirectoryPicker === 'function' && !FP.aOff) acDirReady(false).then(fin, fin); else fin(); }
 /* 名前のメニュー「写真を速く読む」 */
 function fpOpen(){ FP.sheet = true; fpSheetRedraw(true); if (S.gcid) gdPrep().catch(() => {}); }
 function fpSheetRedraw(first){ if (!FP.sheet || (!first && ($('#sheet').classList.contains('hidden') || !$('#fpS')))) return;
@@ -2465,13 +2466,13 @@ function fpSheetRedraw(first){ if (!FP.sheet || (!first && ($('#sheet').classLis
   const left = Math.max(0, Math.round((GD.exp - Date.now()) / 60000));
   const st = (on, t) => `<span class="fpst ${on ? 'on' : ''}">${on ? '●' : '○'} ${t}</span>`;
   openSheet(`<div id="fpS"><h3>写真を速く読む</h3>
-    <p class="hint">写真を Google（Apps Script）を通さずに読みます。読めない写真は、今までどおり Google 経由で読みます。管理者だけの機能です。</p>
-    <h4 class="fph">A　この Mac のフォルダから</h4>
+    <p class="hint">写真を Google（Apps Script）を通さずに読みます。読めない写真は、今までどおり Google 経由で読みます。${fpAdmin() ? '' : '写真のフォルダ（ドライブの「下村良之介」）を見られる Google アカウントでつないでください。'}</p>
+    ${!fpAdmin() ? '' : `<h4 class="fph">A　この Mac のフォルダから</h4>
     ${!fs ? '<p class="hint">この端末のブラウザでは使えません（Mac の Chrome で使えます）。</p>'
       : AC.dir ? `<p>${st(fpA(), FP.aOff ? '使っていません' : AC.dirOk ? '使っています' : '読む許可が必要です')}<br><small>フォルダ：「${esc(AC.dir.name)}」　場所がわかっている写真：${known} / ${all}枚</small></p>
         <div class="fpbt">${!AC.dirOk && !FP.aOff ? '<button class="act main" data-fp="ask">読む許可をたずねる</button>' : ''}${FP.aOff ? '<button class="act main" data-fp="aon">使う</button>' : ''}<button class="act" data-fp="pick">フォルダを選び直す</button>${!FP.aOff ? '<button class="act" data-fp="aoff">使わない</button>' : ''}</div>`
-      : `<div class="fpbt"><button class="act main" data-fp="pick">「下村良之介」フォルダを選ぶ</button></div><p class="hint">Finder の左の「Google Drive」→「マイドライブ」→「下村良之介」を選びます。許可を聞かれたら「サイトの訪問ごとに許可」を選ぶと、次から聞かれません。</p>`}
-    <h4 class="fph">B　Google ドライブから直接（どの端末でも）</h4>
+      : `<div class="fpbt"><button class="act main" data-fp="pick">「下村良之介」フォルダを選ぶ</button></div><p class="hint">Finder の左の「Google Drive」→「マイドライブ」→「下村良之介」を選びます。許可を聞かれたら「サイトの訪問ごとに許可」を選ぶと、次から聞かれません。</p>`}`}
+    <h4 class="fph">${fpAdmin() ? 'B　' : ''}Google ドライブから直接（どの端末でも）</h4>
     ${!S.gcid ? '<p class="hint">まだ Google 側の準備（クライアント ID）ができていません。</p>'
       : `<p>${st(gdOk(), gdOk() ? 'つながっています（あと' + left + '分）' : GD.on ? 'つながりが切れています' : '使っていません')}${GD.th ? `<br><small>小さい写真：${GD.th === 'cors' ? 'ドライブから直接' : GD.th === 'img' ? 'ドライブから直接（表示だけ）' : 'Google 経由（大きい写真だけ直接）'}</small>` : ''}</p>
         <div class="fpbt"><button class="act main" data-fp="gd">${GD.on ? 'つなぎ直す' : 'Google につなぐ'}</button>${GD.on ? '<button class="act" data-fp="gdoff">使わない</button>' : ''}</div>
@@ -8391,7 +8392,7 @@ function openMe(anc){ /* 名前ボタンの上に出る小さな吹き出しメ�
   const it = (id, t) => `<button type="button" data-me="${id}">${t}</button>`;
   const el = document.createElement('div'); el.id = 'mepop'; el.setAttribute('role', 'menu');
   el.innerHTML = `<div class="mehd"><b>${esc(S.user.name||'')}</b><small>権限：${esc(S.user.role)}</small>${S.dataAt ? `<small>情報：${new Date(S.dataAt).getHours()}:${String(new Date(S.dataAt).getMinutes()).padStart(2, '0')} に読み込み</small>` : ''}</div>
-    ${it('upd','最新版に更新')}${it('mic','マイクのテスト')}${canEdit() ? it('face','顔写真を追加') : ''}${it('log','更新記録')}${canEdit() && S.ai ? it('rot','写真の向きをAIでそろえる') : ''}${canEdit() ? it('arc','削除したもの（アーカイブ）') : ''}${S.user.role === '管理' ? it('fp','写真を速く読む') : ''}
+    ${it('upd','最新版に更新')}${it('mic','マイクのテスト')}${canEdit() ? it('face','顔写真を追加') : ''}${it('log','更新記録')}${canEdit() && S.ai ? it('rot','写真の向きをAIでそろえる') : ''}${canEdit() ? it('arc','削除したもの（アーカイブ）') : ''}${fpAdmin() ? it('fp','写真を速く読む') : fpGd() ? it('fp','Google ドライブとつなぐ（写真を速く）') : ''}
     <div class="mesep"></div>${it('out','ログアウト')}<small class="menote">共用のパソコンでは、使い終わったらログアウトしてください</small><i class="metail"></i>`;
   document.body.appendChild(el);
   const r = anc ? anc.getBoundingClientRect() : { left: 12, right: 252, top: innerHeight - 12, bottom: innerHeight - 12, width: 240 };
