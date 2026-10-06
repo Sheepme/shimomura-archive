@@ -2299,7 +2299,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'b433cdd66c', APP_URL = location.origin + location.pathname;
+const BUILD = '823e6ce66e', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -9701,7 +9701,7 @@ function exvClose(fromHist){ if (!EXV) return; const c = EXV.close; try { c(); }
 function exvBuild(root, L){
   const T3 = THREE, RM = matchMedia('(prefers-reduced-motion: reduce)').matches, TN = Math.tan(Math.PI / 8);
   const FONT = '"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif';
-  const CY = 1.45, CAPW = 300, CAPH = 124, TTW = 360, TTH = 150, CAPWm = 0.18, CAPX = 0.12, CPAD = 30, CAPG = 0.07, UP = 0.12, PWm = (CAPW + 2 * CPAD) * CAPWm / CAPW, PHm = (CAPH + 2 * CPAD) * CAPWm / CAPW, CAPMIN = 0.85; /* キャプションは小さな四角いパネル（約22×11cm）。下の端を作品の下の端にそろえ、床から85cmより下にはしない */
+  const CY = 1.45, CAPW = 240, CAPH = 200, TTW = 360, TTH = 150, CAPWm = 0.144, /* 文字の大きさは前と同じ（1単位 0.6mm）。パネルは正方形に近い長方形（約18×16cm） */ CAPX = 0.12, CPAD = 30, CAPG = 0.07, UP = 0.12, PWm = (CAPW + 2 * CPAD) * CAPWm / CAPW, PHm = (CAPH + 2 * CPAD) * CAPWm / CAPW, CAPMIN = 0.85; /* キャプションは小さな四角いパネル（約22×11cm）。下の端を作品の下の端にそろえ、床から85cmより下にはしない */
   const stage = root.querySelector('.xst'), hint = root.querySelector('.xhint'), hintT = hint.firstChild;
   const cvs = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return [c, c.getContext('2d')]; };
   const mkTex = (c, srgb) => { const t = new T3.CanvasTexture(c); if (srgb !== false) t.encoding = T3.sRGBEncoding; t.anisotropy = 8; return t; };
@@ -9920,8 +9920,7 @@ function exvBuild(root, L){
   const rs = () => layout(); addEventListener('resize', rs); addEventListener('keydown', key);
   const wait = root.querySelector('.xwait'); if (wait) wait.remove();
   layout(); around(0); setCnt(); autoNext();
-  hintT.textContent = '作品やキャプションをタップすると近づきます（もう一度タップでもどる）。壁をタップすると次の作品へ（左端は前へ）。下の年に指を当てて左右に動かすと早送り。下の〈 〉で前後の作品へ。しばらくさわらないと、次の作品へ進みます。';
-  hint.style.opacity = 1; setTimeout(() => { hint.style.opacity = 0; }, 6500);
+  /* 最初の使い方の説明は出さない（10/6 本人） */
   const close0 = EXV.close;
   EXV.close = () => { tid++; clearTimeout(autoT); clearTimeout(settle); clearTimeout(wt); if (rq) cancelAnimationFrame(rq); removeEventListener('resize', rs); removeEventListener('keydown', key);
     sc.traverse(o => { if (o.geometry) o.geometry.dispose(); const ms = o.material ? [].concat(o.material) : []; ms.forEach(m => { if (m.map) m.map.dispose(); if (m.bumpMap) m.bumpMap.dispose(); m.dispose(); }); });
