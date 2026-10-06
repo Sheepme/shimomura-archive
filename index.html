@@ -2360,7 +2360,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'dc35588a47', APP_URL = location.origin + location.pathname;
+const BUILD = '88898dfcfb', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -9761,9 +9761,12 @@ function exvSetN(w){ const t = ['補足', '画材', '仕立て', '作品名メ�
 /* 観音開き（仕立て・画材・作品名のどれかに「観音開き」）。屏風と同じく床に立てて置く */
 const isKannon = w => /観音開/.test(['仕立て', '画材', '作品名', '種別'].map(k => String(w[k] || '')).join(' ').normalize('NFKC'));
 /* 屏風の折り：仕立て → 画材 → 種別 → 作品名の順に「六曲」「一折」などを探して合わせる。書いてなければ一折り（2枚）（10/6 本人） */
-const exvFolds = w => { const N = { '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8 }, num = c => N[c] || +String(c).replace(/[１-９]/, x => String.fromCharCode(x.charCodeAt(0) - 0xFEE0)) || 0;
+const exvFolds1 = w => { const N = { '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8 }, num = c => N[c] || +String(c).replace(/[１-９]/, x => String.fromCharCode(x.charCodeAt(0) - 0xFEE0)) || 0;
   for (const k of ['仕立て', '画材', '種別', '作品名']) { const t = String(w[k] || ''); let m = t.match(/([一二三四五六七八1-8１-８])曲/); if (m && num(m[1])) return num(m[1]); m = t.match(/([一二三四五六七1-7１-７])折/); if (m && num(m[1])) return num(m[1]) + 1; }
   return 2; };
+/* 一双（2つで1組）：屏風が2つ並ぶ。二曲一双なら 2×2＝4面（10/7 本人「仕立てを二曲一双にしたので4つ折りに」）。台帳の幅は2つ並べた全体の幅とみる */
+const exvPairW = w => /一双|一雙/.test(['仕立て', '画材', '種別', '作品名'].map(k => String(w[k] || '')).join(' ').normalize('NFKC'));
+const exvFolds = w => exvFolds1(w) * (exvPairW(w) ? 2 : 1), exvScreen = w => exvPairW(w) ? exvFolds1(w) : 0; /* exvScreen：1つの屏風の面の数（一双でなければ 0） */
 let EXVF = { f: 'all', mus: '' }; /* 展示ビューで表示する作品（メニューで選ぶ。アプリを開いている間は覚えておく） */
 /* 作品アルバムのカテゴリ（すべて・自宅・美術館…）に入る作品番号 */
 function exvSet(k, mus, q){ const b = [S.filter, S.mus, S.q]; S.filter = k; S.mus = mus || ''; S.q = q || ''; let a = []; try { a = filtered(); } catch(e){} finally { [S.filter, S.mus, S.q] = b; } return new Set(a.map(w => String(w['作品番号']))); }
@@ -10026,15 +10029,15 @@ function exvBuild(root, L, start){
       [[-1, tL], [1, tR]].forEach(([sd, t]) => { const pv = new T3.Group(); pv.position.set(sd * cw / 2, y0, zb); pv.rotation.y = -sd * th; const dr = pnl(dw, t); dr.position.x = sd * dw / 2; pv.add(dr); g.add(pv); if (sd < 0) it.cpH = { o: dr, x: -dw / 2, y: -h / 2, z: dep / 2 }; }); /* 蝶番はまん中の板の端 */
       const ao = new T3.Mesh(new T3.PlaneGeometry(Wk + 0.3, dz + 0.34), new T3.MeshBasicMaterial({ transparent: true, opacity: 0.34, depthWrite: false })); ao.rotation.x = -Math.PI / 2; ao.position.set(0, 0.002, zb + dz / 2); ao.visible = false; ao.raycast = () => {}; g.add(ao);
       Object.assign(it, { W: Wk, ao, aoMk: () => softShadow(Wk, dz + 0.04, 0.15) }); }
-    else if (d.b) { const n = exvFolds(d.w), th = n > 1 ? 0.3 : 0, pw = w / n, c = Math.cos(th), dd = pw * Math.sin(th), FWb = 0.022, FDb = 0.03, fz = 0.013 - FDb / 2, W2 = w * c + 2 * FWb, zb = EXZB;
+    else if (d.b) { const n = exvFolds(d.w), sp = exvScreen(d.w), th = n > 1 ? 0.3 : 0, pw = w / n, c = Math.cos(th), dd = pw * Math.sin(th), FWb = 0.022, FDb = 0.03, fz = 0.013 - FDb / 2, GP = sp && sp < n ? 2 * FWb + 0.012 : 0, W2 = w * c + 2 * FWb + GP, zb = EXZB; /* 一双は、2つの屏風のあいだに縁2本と 1.2cm のすき間（GP） */
       /* 黒い漆の縁（10/6 本人）：上下は各扇に、左右は両端だけ。角をわずかに丸めて光が縁に乗るように */
       const hB = lacBar(pw, FDb, FWb, 'h'), vB = lacBar(h + 2 * FWb, FWb, FDb, 'v');
       for (let j = 0; j < n; j++) { const t = j ? base.clone() : base; if (j) { t.needsUpdate = true; it.tx.push(t); } t.repeat.set(1 / n, 1); t.offset.set(j / n, 0);
         const z0 = ((j + 1) % 2) * dd, z1 = (j % 2) * dd, /* 両端が手前に出る折り方（10/6 本人「折れ方が逆」） */ pn = new T3.Mesh(new T3.BoxGeometry(pw, h, 0.018), [edge, edge, edge, edge, artM(t), edge]);
-        const pg = new T3.Group(); pg.position.set(-W2 / 2 + FWb + (j + 0.5) * pw * c, h / 2 + FWb + 0.004, zb + (z0 + z1) / 2); pg.rotation.y = -Math.asin((z1 - z0) / pw); g.add(pg);
+        const pg = new T3.Group(); pg.position.set(-W2 / 2 + FWb + (j + 0.5) * pw * c + (GP && j >= sp ? GP : 0), h / 2 + FWb + 0.004, zb + (z0 + z1) / 2); pg.rotation.y = -Math.asin((z1 - z0) / pw); g.add(pg);
         pn.castShadow = true; pn.receiveShadow = true; pg.add(pn); if (j === 0) it.cpH = { o: pn, x: -pw / 2, y: -h / 2, z: 0.009 };
         const bar = (gm, x, y) => { const m = new T3.Mesh(gm, lacM); m.position.set(x, y, fz); m.castShadow = true; m.receiveShadow = true; pg.add(m); };
-        bar(hB, 0, h / 2 + FWb / 2); bar(hB, 0, -h / 2 - FWb / 2); if (j === 0) bar(vB, -pw / 2 - FWb / 2, 0); if (j === n - 1) bar(vB, pw / 2 + FWb / 2, 0); }
+        bar(hB, 0, h / 2 + FWb / 2); bar(hB, 0, -h / 2 - FWb / 2); if (j === 0 || (GP && j === sp)) bar(vB, -pw / 2 - FWb / 2, 0); if (j === n - 1 || (GP && j === sp - 1)) bar(vB, pw / 2 + FWb / 2, 0); } /* 左右の縁は、それぞれの屏風の両端に */
       const ao = new T3.Mesh(new T3.PlaneGeometry(W2 + 0.3, dd + 0.34), new T3.MeshBasicMaterial({ transparent: true, opacity: 0.34, depthWrite: false })); ao.rotation.x = -Math.PI / 2; ao.position.set(0, 0.002, zb + dd / 2); ao.visible = false; ao.raycast = () => {}; g.add(ao);
       Object.assign(it, { W: W2, ao, aoMk: () => softShadow(W2, dd + 0.04, 0.15) }); }
     else { /* 厚みと壁からの浮きは作品の大きさで（小さい作品は薄く・近く、大きい作品は厚く・浮く → 影の出方が変わる） */
