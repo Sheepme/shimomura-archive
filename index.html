@@ -2341,7 +2341,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '0daea692c3', APP_URL = location.origin + location.pathname;
+const BUILD = 'b5f3eba005', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -9917,8 +9917,8 @@ function exvBuild(root, L, start){
     x.globalCompositeOperation = 'screen'; x.globalAlpha = 0.02; x.fillStyle = '#e9e4dc'; x.fillRect(0, 0, w, h); x.globalCompositeOperation = 'source-over'; x.globalAlpha = 1; };
   const cgT = (() => { const [c, x] = cvs(64, 64), im = x.createImageData(64, 64); for (let j = 0; j < 64; j++) for (let i = 0; i < 64; i++) { const v = j / 63, u = i / 63, e = Math.min(1, Math.min(u, 1 - u) / 0.1), a = Math.pow(1 - v, 1.7) * e * e * (3 - 2 * e), k = (j * 64 + i) * 4; im.data[k + 3] = Math.round(a * 255); } x.putImageData(im, 0, 0); return mkTex(c, false); })();
   const cStrip = (len, wid, a, px, py, rot) => { const m = new T3.Mesh(new T3.PlaneGeometry(len, wid), new T3.MeshBasicMaterial({ color: 0, map: cgT, transparent: true, opacity: a, depthWrite: false })); m.position.set(px, py, 0.0014); m.rotation.z = rot; m.raycast = () => {}; return m; };
-  const softShadow = (w, h, m, bl) => { const W = 256, H = Math.max(32, Math.round(W * (h + 2 * m) / (w + 2 * m))), s = W / (w + 2 * m), [c, x] = cvs(W, H);
-    x.shadowColor = 'rgba(0,0,0,0.5)'; x.shadowBlur = Math.max(2, (bl || 0.035) * s); x.shadowOffsetX = W * 2; x.fillStyle = '#000'; x.fillRect(m * s - W * 2, m * s, w * s, h * s); return mkTex(c, false); };
+  const softShadow = (w, h, m, bl, rs) => { /* rs：影を落とす四角（左上から、m）。何面かの組は面ごとに（10/7 本人「4面の後ろに大きな四角の影」） */ const W = 256, H = Math.max(32, Math.round(W * (h + 2 * m) / (w + 2 * m))), s = W / (w + 2 * m), [c, x] = cvs(W, H);
+    x.shadowColor = 'rgba(0,0,0,0.5)'; x.shadowBlur = Math.max(2, (bl || 0.035) * s); x.shadowOffsetX = W * 2; x.fillStyle = '#000'; (rs || [[0, 0, w, h]]).forEach(([rx, ry, rw, rh]) => x.fillRect((m + rx) * s - W * 2, (m + ry) * s, rw * s, rh * s)); return mkTex(c, false); };
   const LKS = 12, LKH = LKS * 1.35 + 10; /* 「作品ページへ」の文字と、その上のあき */
   const wallText = (lines, w, h, pad, bg, fit, link) => { const K = 3, P = pad || 0, [c, x] = cvs((w + 2 * P) * K, (h + 2 * P) * K); x.scale(K, K); const hT = link ? h - LKH : h;
     if (fit) { const L2 = lines.filter(l => l[0]), tot = L2.reduce((a, l, i) => a + l[1] * 1.35 + (i < L2.length - 1 ? (l[4] || 0) : 0), 0), k = Math.min(2.2, hT / tot); lines = L2.map(l => [l[0], l[1] * k, l[2], l[3], (l[4] || 0) * k, (l[5] || 0) * k]); } /* パネルにちょうど入る大きさまで */ if (bg) { x.fillStyle = bg; x.fillRect(0, 0, w + 2 * P, h + 2 * P); x.globalAlpha = 0.06; x.drawImage(GR, 0, 0, w + 2 * P, h + 2 * P); x.globalAlpha = 1; } x.translate(P, P); x.textBaseline = 'top'; let y = 0;
@@ -9997,7 +9997,7 @@ function exvBuild(root, L, start){
         if (vt) pn.position.set(0, h / 2 - ph / 2 - j * (ph + gp), off + dep / 2); else pn.position.set(-w / 2 + pw / 2 + j * (pw + gp), 0, off + dep / 2);
         g.add(pn, cStrip(pw + 0.004, cb, 0.46, pn.position.x, pn.position.y - ph / 2 - cb / 2 + 0.001, 0)); }
       const m = 0.03 + 0.06 * sF, bl = 0.008 + 0.025 * sF, ao = new T3.Mesh(new T3.PlaneGeometry(w + 2 * m, h + 2 * m), new T3.MeshBasicMaterial({ transparent: true, opacity: Math.min(0.32, 0.18 + 0.1 * sF), depthWrite: false })); ao.position.set(0, -0.004 - 0.008 * sF, 0.0012); ao.visible = false; ao.raycast = () => {}; g.add(ao);
-      g.position.y = CY; Object.assign(it, { ao, aoMk: () => softShadow(w, h, m, bl), tr: vt ? pw / (n * ph) : n * pw / ph }); }
+      g.position.y = CY; Object.assign(it, { ao, aoMk: () => softShadow(w, h, m, bl, Array.from({ length: n }, (_, j) => vt ? [0, j * (ph + gp), pw, ph] : [j * (pw + gp), 0, pw, ph])), tr: vt ? pw / (n * ph) : n * pw / ph }); }
     else if (d.k) { /* 観音開き（10/7 本人の写真）：まん中の板は壁と平行、左右の扉を少しだけ手前に開く。写真は開いたところを正面から撮った1枚で、扉：まん中：扉 ＝ 1：2：1 */
       const th = 0.36, cw = w / 2, dw = w / 4, c = Math.cos(th), dz = dw * Math.sin(th), dep = 0.03, zb = EXZB, Wk = cw + 2 * dw * c, y0 = h / 2 + 0.004;
       const tL = base, tC = base.clone(), tR = base.clone(); [tC, tR].forEach(t => { t.needsUpdate = true; it.tx.push(t); });
