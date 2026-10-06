@@ -1521,6 +1521,7 @@ dl.info dd.iedit textarea.iein{min-height:84px;resize:vertical}
 dl.info dd.iedit .iesz{display:flex;align-items:center;gap:8px}
 dl.info dd.iedit .iesz .iein{flex:1;min-width:0}
 dl.info dd.iedit .iesz span{flex:none;color:var(--sub)}
+dl.info dd.iedit .ieswap{display:inline-flex;align-items:center;gap:4px;margin:8px 0 0;padding:6px 2px;border:0;background:none;color:var(--sub);font-size:14px;cursor:pointer;-webkit-tap-highlight-color:transparent}dl.info dd.iedit .ieswap:active{color:var(--ink)}
 dl.info dd.iedit .iechk{display:flex;align-items:center;gap:8px;margin:10px 0 2px;font-size:14px;color:var(--ink)}dl.info dd.iedit .iechk input{width:20px;height:20px;flex:none}dl.info dd.iedit .iesub{display:block;margin:10px 0 4px;font-size:12.5px;color:var(--sub)}
 dl.info dd.iedit .ieb{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
 dl.info dd.iedit .ieb button{height:40px;padding:0 18px;border-radius:20px;font:600 15px/1 var(--sans);cursor:pointer}
@@ -2299,7 +2300,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '3a09154a7b', APP_URL = location.origin + location.pathname;
+const BUILD = '6ea3e49028', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5074,7 +5075,7 @@ const dimTxt = (w, long, unit) => (w['幅cm']||w['高さcm']||w['奥行きcm']) 
 const frameTxt = w => (w['額の高さcm'] || w['額の幅cm']) ? `額 高さ ${w['額の高さcm'] || '?'} × 幅 ${w['額の幅cm'] || '?'} cm` : '';
 /* サイズのメインとサブ（10/6 本人）：美術館・カタログの決まりに合わせて、絵だけ（画面・本紙。屏風は本体）をメイン、額込みはサブ。
    片方しかなければ、ある方をメインにして「額あり（額込みのサイズ）／額なし（絵だけのサイズ）」を添える */
-const isScreenW = w => /屏風|屛風|びょうぶ|[二三四六八2-8]曲|一隻|一双/.test((String(w['作品名'] || '') + String(w['種別'] || '') + String(w['画材'] || '')).normalize('NFKC'));
+const isScreenW = w => /屏風|屛風|びょうぶ|[二三四六八2-8]曲|一隻|一双/.test((String(w['作品名'] || '') + String(w['種別'] || '') + String(w['画材'] || '') + String(w['仕立て'] || '')).normalize('NFKC'));
 const szKind = w => { const a = +w['高さcm'] > 0 || +w['幅cm'] > 0, f = +w['額の高さcm'] > 0 || +w['額の幅cm'] > 0; return a ? (w['サイズの確認'] === '作品のみ' || f ? 'art' : 'unk') : f ? 'frame' : ''; };
 const dimMain = w => szKind(w) === 'frame' ? { '高さcm': w['額の高さcm'], '幅cm': w['額の幅cm'], '奥行きcm': w['奥行きcm'] } : w;
 const szShort = (w, unit) => { const m = dimTxt(dimMain(w), false, unit); return m ? m + (szKind(w) === 'frame' ? '（額込み）' : '') : ''; };
@@ -7726,13 +7727,14 @@ function inlineEdit(btn, no, f){
   let body;
   if (f === 'w7') body = `<select class="iein" data-k="種別">${['', ...KINDS, ...(w['種別'] && !KINDS.includes(w['種別']) ? [w['種別']] : [])].map(k => `<option value="${esc(k)}" ${(w['種別']||'')===k?'selected':''}>${k ? esc(k) : '（未入力）'}</option>`).join('')}</select>`;
   else if (f === 'w6') body = matPick('iemat', w['画材']) + '<div class="mpg"><small>仕立て</small>' + formPick('ieform', w['仕立て']) + '</div>';
-  else if (f === 'w3') body = `<div class="iesz"><input class="iein" data-k="高さcm" inputmode="decimal" value="${esc(w['高さcm']||'')}" placeholder="高さ（縦）"><span>×</span><input class="iein" data-k="幅cm" inputmode="decimal" value="${esc(w['幅cm']||'')}" placeholder="幅（横）"><span>cm</span></div>
+  else if (f === 'w3') body = `<div class="iesz"><input class="iein" data-k="高さcm" inputmode="decimal" value="${esc(w['高さcm']||'')}" placeholder="高さ（縦）"><span>×</span><input class="iein" data-k="幅cm" inputmode="decimal" value="${esc(w['幅cm']||'')}" placeholder="幅（横）"><span>cm</span></div><button type="button" class="ieswap" aria-label="縦と横を入れ替える">⇅ 縦と横を入れ替える</button>
     <label class="iechk"><input type="checkbox" class="iein" data-k="サイズの確認" ${w['サイズの確認'] === '作品のみ' ? 'checked' : ''}>このサイズは作品のみ（額を含まない）</label>
     <small class="iesub">額のサイズ（分かれば）</small><div class="iesz"><input class="iein" data-k="額の高さcm" inputmode="decimal" value="${esc(w['額の高さcm']||'')}" placeholder="額の高さ"><span>×</span><input class="iein" data-k="額の幅cm" inputmode="decimal" value="${esc(w['額の幅cm']||'')}" placeholder="額の幅"><span>cm</span></div>`;
   else if (IE_AREA[f]) body = `<textarea class="iein" data-k="${spec[0][0]}" rows="3">${esc(w[spec[0][0]]||'')}</textarea>`;
   else body = `<input class="iein" data-k="${spec[0][0]}" value="${esc(w[spec[0][0]]||'')}" placeholder="${esc(spec[0][1]||'')}" enterkeyhint="done">`;
   dd.innerHTML = body + `<div class="ieb"><button type="button" class="ieno" data-ie="no">やめる</button><button type="button" class="ieok" data-ie="ok">保存</button></div>`;
   dd.querySelectorAll('.iein').forEach(i => i.dataset.v0 = i.value);
+  const sw = dd.querySelector('.ieswap'); if (sw) sw.onclick = () => { [['高さcm', '幅cm'], ['額の高さcm', '額の幅cm']].forEach(([a, b]) => { const A = dd.querySelector('[data-k="' + a + '"]'), B = dd.querySelector('[data-k="' + b + '"]'); if (A && B && (A.value || B.value)) [A.value, B.value] = [B.value, A.value]; }); };
   const first = dd.querySelector('.iein'); if (first) setTimeout(() => { first.focus(); if (first.select && first.tagName === 'INPUT') first.select(); }, 30);
   const go = () => { const patch = {}; if (f === 'w6') { const m = matVal('iemat'), fm = formVal('ieform'); if (m !== String(w['画材']||'')) patch['画材'] = m; if (fm !== String(w['仕立て']||'')) patch['仕立て'] = fm; }
     dd.querySelectorAll('.iein').forEach(i => { const v = i.type === 'checkbox' ? (i.checked ? '作品のみ' : '') : i.value.trim(); if (v !== String(w[i.dataset.k]||'')) patch[i.dataset.k] = v; });
@@ -9657,9 +9659,9 @@ function exvYearBig(v){ let s = String(v || '').trim().replace(/[０-９]/g, c =
     return y + (/頃|ごろ|位|ころ/.test(p) ? '’s' : /代/.test(p) ? 's' : ''); }).filter(Boolean);
   return out.join('\n-\n'); }
 const exvYearTxt = w => { const s = String(w['制作年'] || '').trim(); return /^\d{4}$/.test(s) ? s + '年' : s; };
-/* 屏風の折り：画材 → 種別 → 作品名の順に「六曲」「一折」などを探して合わせる。書いてなければ一折り（2枚）（10/6 本人） */
+/* 屏風の折り：仕立て → 画材 → 種別 → 作品名の順に「六曲」「一折」などを探して合わせる。書いてなければ一折り（2枚）（10/6 本人） */
 const exvFolds = w => { const N = { '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8 }, num = c => N[c] || +String(c).replace(/[１-９]/, x => String.fromCharCode(x.charCodeAt(0) - 0xFEE0)) || 0;
-  for (const k of ['画材', '種別', '作品名']) { const t = String(w[k] || ''); let m = t.match(/([一二三四五六七八1-8１-８])曲/); if (m && num(m[1])) return num(m[1]); m = t.match(/([一二三四五六七1-7１-７])折/); if (m && num(m[1])) return num(m[1]) + 1; }
+  for (const k of ['仕立て', '画材', '種別', '作品名']) { const t = String(w[k] || ''); let m = t.match(/([一二三四五六七八1-8１-８])曲/); if (m && num(m[1])) return num(m[1]); m = t.match(/([一二三四五六七1-7１-７])折/); if (m && num(m[1])) return num(m[1]) + 1; }
   return 2; };
 function exvWorks(){ const L = [];
   (S.works || []).forEach(w => { const no = w['作品番号'], p = (photoBy[no] || [])[0], id = p && p['ファイルID'];
