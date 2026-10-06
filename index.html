@@ -2340,7 +2340,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'c56d3c71aa', APP_URL = location.origin + location.pathname;
+const BUILD = '0a4f15b32f', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2597,7 +2597,7 @@ function abRender0(){ const h = $('#abTitle'); if (!h) return;
     return; }
   h.innerHTML = S.view === 'home' ? '<span class="crumb chome cur">下村良之介作品目録</span>' : ROOT + SEP + `<span class="crumb cur">${esc(tx)}</span>` + vcn(); }
 /* お知らせ（保存しました など）も、読み込み中と同じ上の帯で出す（緑） */
-function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.remove('hidden'); tbSync(); clearTimeout(toast._t); toast._t=setTimeout(()=>{ el.classList.add('hidden'); tbSync(); },2600); }
+function toast(t){ const el=$('#toast'); try { const fe = document.fullscreenElement || document.webkitFullscreenElement; if (fe && el.parentNode !== fe) fe.appendChild(el); else if (!fe && el.parentNode !== document.body) document.body.appendChild(el); } catch(e){} /* 全画面（展示ビュー）の上でも見えるように */ el.textContent=t; el.classList.remove('hidden'); tbSync(); clearTimeout(toast._t); toast._t=setTimeout(()=>{ el.classList.add('hidden'); tbSync(); },2600); }
 const OTRE = /^[YHZ]\d{3,}$/;
 /* 書類が更新されたら（PDFの向きを直したときなど）、この端末に保存してあるPDF・サムネを捨てて読み直す */
 function docCacheSync(docs){ let V = {}; try { V = JSON.parse(localStorage.getItem('smr_dver') || '{}'); } catch(e){}
@@ -9722,9 +9722,12 @@ const exvYearTxt = w => { const s = String(w['制作年'] || '').trim(); return 
 const exvFolds = w => { const N = { '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8 }, num = c => N[c] || +String(c).replace(/[１-９]/, x => String.fromCharCode(x.charCodeAt(0) - 0xFEE0)) || 0;
   for (const k of ['仕立て', '画材', '種別', '作品名']) { const t = String(w[k] || ''); let m = t.match(/([一二三四五六七八1-8１-８])曲/); if (m && num(m[1])) return num(m[1]); m = t.match(/([一二三四五六七1-7１-７])折/); if (m && num(m[1])) return num(m[1]) + 1; }
   return 2; };
-function exvWorks(){ const L = [];
+let EXVF = { f: 'all', mus: '' }; /* 展示ビューで表示する作品（メニューで選ぶ。アプリを開いている間は覚えておく） */
+/* 作品アルバムのカテゴリ（すべて・自宅・美術館…）に入る作品番号 */
+function exvSet(k, mus){ const b = [S.filter, S.mus, S.q]; S.filter = k; S.mus = mus || ''; S.q = ''; let a = []; try { a = filtered(); } catch(e){} finally { [S.filter, S.mus, S.q] = b; } return new Set(a.map(w => String(w['作品番号']))); }
+function exvWorks(noF){ const L = [], keep = !noF && EXVF.f !== 'all' ? exvSet(EXVF.f, EXVF.mus) : null;
   (S.works || []).forEach(w => { const no = w['作品番号'], p = (photoBy[no] || [])[0], id = p && p['ファイルID'];
-    if (!id || /廃棄|統合済み/.test(String(w['所在'] || '') + ' ' + String(w['状態'] || ''))) return;
+    if (!id || (keep && !keep.has(String(no))) || /廃棄|統合済み/.test(String(w['所在'] || '') + ' ' + String(w['状態'] || ''))) return;
     const d = dimMain(w), h = +d['高さcm'] || 0, wd = +d['幅cm'] || 0;
     L.push({ no, w, id, y: yearOf(w['制作年']), s: String(w['シリーズ'] || '').trim(), h, wd, est: !(h > 0 && wd > 0), frame: szKind(w) === 'frame', b: isScreenW(w), cp: copyOf(p) }); }); /* 転載した写真（©）も出す（10/6 本人）。キャプションに © */
   const gy = {}; L.forEach(d => { if (d.s) gy[d.s] = Math.min(gy[d.s] == null ? 99999 : gy[d.s], d.y); }); /* シリーズは、いちばん古い作品の年のところにまとめる */
@@ -9753,7 +9756,7 @@ function exvCss(){ if (document.getElementById('exvcss')) return; const st = doc
 #exv .xnav{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);width:48px;height:48px;border:0;background:transparent;color:#3a3530;z-index:4;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;mix-blend-mode:multiply;transition:opacity .6s;-webkit-tap-highlight-color:transparent}
 #exv .xcl,#exv .xsh{transition:opacity .6s}#exv .ydots{transition:opacity .6s}#exv.xidle .xnav,#exv.xidle .ydots,#exv.xidle .xpp,#exv.xidle .xcl,#exv.xidle .xsh{opacity:0;pointer-events:none}
 #exv .xpp{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);left:calc(50% - 124px);width:48px;height:48px;border:0;background:transparent;color:#3a3530;z-index:4;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;mix-blend-mode:multiply;transition:opacity .6s;-webkit-tap-highlight-color:transparent}
-#exv .xpp svg{width:20px;height:26px;stroke:currentColor;stroke-width:1.2;fill:none;stroke-linejoin:round;stroke-linecap:round}#exv .xpp:focus-visible{outline:1.5px solid #3a3530;outline-offset:-4px;border-radius:8px}#exv .xsh{right:56px}body.exvopen #toast{z-index:9600!important}#exv .xprev{left:clamp(22px,5vw,72px)}#exv .xnext{right:clamp(22px,5vw,72px)}#exv .xnav svg{width:14px;height:26px;stroke:currentColor;stroke-width:1.2;fill:none;stroke-linecap:round;stroke-linejoin:round}#exv .xnav[disabled]{opacity:0;pointer-events:none}#exv .xnav:focus-visible{outline:1.5px solid #3a3530;outline-offset:-4px;border-radius:8px}
+#exv .xpp svg{width:20px;height:26px;stroke:currentColor;stroke-width:1.2;fill:none;stroke-linejoin:round;stroke-linecap:round}#exv .xpp:focus-visible{outline:1.5px solid #3a3530;outline-offset:-4px;border-radius:8px}#exv .xsh{right:56px}#exv.xmo .xsh{opacity:1;pointer-events:auto}#exv .xmb{position:absolute;inset:0;z-index:7}#exv .xmn{position:absolute;z-index:8;top:calc(env(safe-area-inset-top,0px) + 58px);right:12px;width:min(340px,calc(100vw - 24px));max-height:calc(100% - env(safe-area-inset-top,0px) - 80px);overflow:auto;-webkit-overflow-scrolling:touch;background:rgba(251,250,247,.97);color:#2a2724;border-radius:14px;box-shadow:0 10px 34px rgba(40,34,26,.22),0 1px 3px rgba(40,34,26,.12);padding:14px 14px 16px;font-family:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;animation:xmIn .18s ease}@keyframes xmIn{from{opacity:0;transform:translateY(-6px)}}#exv .xmh{margin:2px 2px 8px;font-size:12px;letter-spacing:.08em;color:#8a8379}#exv .xmh small{display:block;margin-top:2px;font-size:13px;letter-spacing:0;color:#46413b}#exv .xmc{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}#exv .xmc button{border:1px solid #ddd6cb;background:#fff;color:#33302c;border-radius:999px;padding:6px 11px;font:inherit;font-size:14px;line-height:1.3;cursor:pointer}#exv .xmc button i{font-style:normal;margin-left:5px;font-size:11.5px;color:#8a8379}#exv .xmc button.on{background:#33302c;border-color:#33302c;color:#fff}#exv .xmc button.on i{color:#d8d2c8}#exv .xms{padding:10px 0 2px;border-top:1px dashed #e2dbd0}#exv .xmi{display:block;width:100%;text-align:left;border:0;border-top:1px solid #ebe5dc;background:none;color:#2a2724;font:inherit;font-size:15.5px;padding:11px 4px;cursor:pointer}#exv .xmh+.xmi{border-top:0}body.exvopen #toast{z-index:9600!important}#exv .xprev{left:clamp(22px,5vw,72px)}#exv .xnext{right:clamp(22px,5vw,72px)}#exv .xnav svg{width:14px;height:26px;stroke:currentColor;stroke-width:1.2;fill:none;stroke-linecap:round;stroke-linejoin:round}#exv .xnav[disabled]{opacity:0;pointer-events:none}#exv .xnav:focus-visible{outline:1.5px solid #3a3530;outline-offset:-4px;border-radius:8px}
 #exv .ydots{position:absolute;inset:0;pointer-events:none}
 #exv .ynum{transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1)}#exv .ynum.xmv{opacity:0;transform:translateY(4px);transition:opacity .32s ease-in,transform .32s ease-in}
 #exv .xyr{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:block;white-space:pre;text-align:center;padding:0 0 0 .015em;letter-spacing:.015em;font-kerning:normal;font-feature-settings:'kern' 1,'pnum' 1,'lnum' 1;font-variant-numeric:proportional-nums lining-nums;font-family:"Helvetica Neue","Avenir Next","Hiragino Sans","Noto Sans JP",Helvetica,Arial,sans-serif;font-size:clamp(56px,11vw,132px);line-height:1;font-weight:200;color:#fff;text-shadow:0 0 36px rgba(0,0,0,.2);opacity:0;transition:opacity .55s ease;pointer-events:none;z-index:4}
@@ -9804,7 +9807,7 @@ function shOpen(kind, no, link){ if (!S.user) return; if (!canEdit()) { if (link
     <p class="shs-l">ひとこと（なくてもかまいません）</p><textarea id="shsNote" rows="2" maxlength="200" placeholder="例：この絵、覚えてはる？"></textarea>
     <button type="button" class="shs-go" disabled>送る</button>` : `<p class="shs-none">送る相手が見つかりません（Google 側の更新がまだかもしれません）。</p>`}
     ${link ? '<button type="button" class="shs-link">リンクを送る（LINE など）</button>' : ''}<p class="hint" style="font-size:14px;margin:12px 0 0">相手のアプリの「届いたもの」に入ります。ホームのいちばん上にも出ます。</p></div>`;
-  document.body.appendChild(el); hydrate(el);
+  ((typeof EXV !== 'undefined' && EXV && EXV.root) || document.body).appendChild(el); hydrate(el); /* 展示ビューが全画面のときは、その中に出さないと見えない */
   const go = el.querySelector('.shs-go'), sel = () => [...el.querySelectorAll('[data-shto].on')].map(b => b.dataset.shto), close = () => el.remove();
   el.onclick = e => { if (e.target === el || e.target.closest('.shs-x')) return close();
     const b = e.target.closest('[data-shto]'); if (b) { b.classList.toggle('on'); b.setAttribute('aria-pressed', b.classList.contains('on')); if (go) go.disabled = !sel().length; return; }
@@ -9836,7 +9839,7 @@ document.addEventListener('click', e => { const t = e.target;
 const exvSig = L => L.map(d => [d.no, d.id, d.h, d.wd, d.y, d.s, d.b ? 1 : 0, d.frame ? 1 : 0, d.w['作品名'], d.w['制作年'], d.w['画材'], d.w['仕立て'], d.w['所在'], d.cp ? d.cp.mu : ''].join('|')).join('\n');
 function exvSync(){ if (!EXV || !EXV.sig || !EXV.curNo || EXV.syncT) return; let L; try { L = exvWorks(); } catch(e){ return; } if (!L.length || exvSig(L) === EXV.sig) return;
   const go = () => { if (!EXV || !EXV.curNo) return; EXV.syncT = 0; if (EXV.busy()) { EXV.syncT = setTimeout(go, 1500); return; } /* 動いている・さわっている間は待つ */
-    const no = EXV.curNo(), c = EXV.close; try { c(); } catch(e){} exvOpen(no == null ? 0 : String(no), true); }; /* 履歴は増やさない */
+    const no = EXV.curNo(), c = EXV.close, st = no != null && L.some(d => String(d.no) === String(no)) ? String(no) : 0; try { c(); } catch(e){} exvOpen(st, true); }; /* 履歴は増やさない */
   EXV.syncT = setTimeout(go, 400); }
 /* 登録して20分以内の写真か（切り抜き・補正したばかりの写真は、Google 側の縮小写真がまだできていないことがある） */
 function exvFresh(fid){ const p = (S.photos || []).find(x => x['ファイルID'] === fid), m = p && /^(\d{4})\/(\d{1,2})\/(\d{1,2})\s+(\d{1,2}):(\d{2})/.exec(String(p['登録日時'] || ''));
@@ -9844,7 +9847,7 @@ function exvFresh(fid){ const p = (S.photos || []).find(x => x['ファイルID']
 async function exvOpen(start, noPush){
   if (!exvIsAdm() || EXV) return;
   exvCss(); const root = document.createElement('div'); root.id = 'exv'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-label', '展示ビュー');
-  root.innerHTML = '<div class="xst"></div><div class="xwait">展示室を準備しています…</div><button type="button" class="xsh" aria-label="この作品を共有"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14.5V3.5"/><path d="M8.2 7.3 12 3.5l3.8 3.8"/><path d="M8 10.5H6.5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1H16"/></svg></button><button type="button" class="xcl" aria-label="展示ビューを出る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5H6.5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1H14"/><path d="M10.5 12h9M16.5 8.5 20 12l-3.5 3.5"/></svg></button><div class="xhint" style="opacity:0"><span></span></div><button type="button" class="xnav xprev" aria-label="前の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M12 2 2 13l10 11"/></svg></button><button type="button" class="xpp" aria-label="自動再生を一時停止"></button><button type="button" class="xnav xnext" aria-label="次の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M2 2l10 11L2 24"/></svg></button><div class="ynum"></div><div class="xyr" aria-hidden="true"></div><div class="yrs" aria-label="作品の位置（指を当てて左右に動かすと早送り）"><div class="ydots"><i class="yc"></i></div></div>';
+  root.innerHTML = '<div class="xst"></div><div class="xwait">展示室を準備しています…</div><button type="button" class="xsh" aria-label="メニュー（表示する作品・共有）" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 7h15M4.5 12h15M4.5 17h15"/></svg></button><button type="button" class="xcl" aria-label="展示ビューを出る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5H6.5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1H14"/><path d="M10.5 12h9M16.5 8.5 20 12l-3.5 3.5"/></svg></button><div class="xhint" style="opacity:0"><span></span></div><button type="button" class="xnav xprev" aria-label="前の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M12 2 2 13l10 11"/></svg></button><button type="button" class="xpp" aria-label="自動再生を一時停止"></button><button type="button" class="xnav xnext" aria-label="次の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M2 2l10 11L2 24"/></svg></button><div class="ynum"></div><div class="xyr" aria-hidden="true"></div><div class="yrs" aria-label="作品の位置（指を当てて左右に動かすと早送り）"><div class="ydots"><i class="yc"></i></div></div>';
   document.body.appendChild(root); document.body.classList.add('exvopen');
   try { const fs = root.requestFullscreen || root.webkitRequestFullscreen; if (fs) { const q = fs.call(root); if (q && q.catch) q.catch(() => {}); } } catch(e){} /* 押した直後でないと全画面にできない */
   try { const tm = document.querySelector('meta[name="theme-color"]'); if (tm) tm.content = '#ebe8e3'; } catch(e){}
@@ -9852,7 +9855,7 @@ async function exvOpen(start, noPush){
   EXV = { root, close: () => { try { de.style.backgroundColor = bgp[0]; document.body.style.backgroundColor = bgp[1]; } catch(e){} try { if ((document.fullscreenElement || document.webkitFullscreenElement) === root) (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch(e){} root.remove(); document.body.classList.remove('exvopen'); EXV = null; try { syncThemeColor(); } catch(e){} } };
   root.querySelector('.xcl').onclick = () => exvClose(false);
   if (!noPush) hpush('exv');
-  try { await exvLib(); const L = exvWorks(); if (!L.length) throw new Error('写真のある作品がありません'); if (EXV && EXV.root === root) EXV.sig = exvSig(L); await exvEstimate(L); if (!EXV || EXV.root !== root) return; exvBuild(root, L, typeof start === 'string' ? Math.max(0, L.findIndex(d => String(d.no) === start) + 1) : (+start || 0)); }
+  try { await exvLib(); let L = exvWorks(); if (typeof start === 'string' && EXVF.f !== 'all' && !L.some(d => String(d.no) === start)) { EXVF = { f: 'all', mus: '' }; L = exvWorks(); } if (!L.length) throw new Error('写真のある作品がありません'); if (EXV && EXV.root === root) EXV.sig = exvSig(L); await exvEstimate(L); if (!EXV || EXV.root !== root) return; exvBuild(root, L, typeof start === 'string' ? Math.max(0, L.findIndex(d => String(d.no) === start) + 1) : (+start || 0)); }
   catch(e){ const wt = root.querySelector('.xwait'); if (wt) wt.textContent = (e && e.message) || '展示ビューを開けませんでした'; }
 }
 /* 作品ページへ：展示ビューを閉じ（履歴の「展示ビュー」はそのまま作品ページの分に）、作品ページを開く。作品ページを閉じると、同じ作品から展示ビューにもどる（closeWork の 'exv'） */
@@ -9987,7 +9990,7 @@ function exvBuild(root, L, start){
   for (let i = 0; i < items.length; ) { const s0 = items[i].d.s; let j = i + 1; while (s0 && j < items.length && items[j].d.s === s0) j++; if (s0 && j - i >= 2) { const g = { name: s0, n: j - i, m: [] }; for (let q = i; q < j; q++) { g.m.push(q); items[q].grp = g; } } i = j; }
 
   /* 近くの作品だけ写真・キャプション・影を読み込み、遠くなったら手放す（スマホのメモリのため） */
-  let rq = 0; const redraw = () => { if (rq) return; rq = requestAnimationFrame(() => { rq = 0; draw(); }); };
+  let rq = 0, dead = 0; const redraw = () => { if (rq || dead) return; rq = requestAnimationFrame(() => { rq = 0; draw(); }); };
   const capLines = it => { const w = it.d.w, sz = it.d.est ? '約 ' + it.d.h + ' × ' + it.d.wd + ' cm（推定）' : (+it.d.h).toFixed(1) + ' × ' + (+it.d.wd).toFixed(1) + ' cm' + (it.d.frame ? '（額込み）' : '');
     return [[String(it.d.no), 10.5, 400, '#8a8379', 6, 1], [String(w['作品名'] || '').trim() || '無題', 17, 500, '#2a2724', 6, 1.5], [exvYearTxt(w), 11.5, 400, '#46413b', 2.5, 0.4], [String(w['画材'] || '').trim(), 11.5, 400, '#46413b', 2.5, 0.4], [sz, 11.5, 400, '#46413b', 2.5, 0.4], [exvOwner(w), 11.5, 400, '#46413b', it.d.cp ? 4 : 0, 0.4]].concat(it.d.cp ? [['画像 © ' + String(it.d.cp.mu || '').replace(/^[@＠]/, ''), 9.5, 400, '#8a8379', 0, 0.4]] : []); };
   const paint = (it, im) => { const iw = im.naturalWidth, ih = im.naturalHeight; if (!iw || !it.req) return; it.pt = 1; it.fail = 0;
@@ -10053,7 +10056,7 @@ function exvBuild(root, L, start){
   const setPR = v => { if (v !== PRC) { PRC = v; r.setPixelRatio(v); r.setSize(W, H); } };
   const EYE = 1.6; /* カメラは男性の目の高さ。見たい高さが画面のまん中に来るよう、レンズだけずらす（向きは真正面のまま） */
   const eyeAt = y => y >= 1.2 ? EYE : Math.max(1.1, EYE - (1.2 - y) * 0.75); /* 床に置いた作品（屏風）は目の高さを少し下げて、正面に近く見る（10/6 本人） */
-  const draw = () => { const vh = st.z * TN, ey = st.y + Math.max(-0.45 * vh, Math.min(0.45 * vh, eyeAt(st.y) - st.y)); cam.position.set(st.x, ey, st.z); cam.lookAt(st.x, ey, 0); cam.setViewOffset(W, H, 0, (ey - st.y) / (2 * vh) * H, W, H); pickLights(); setPR(PRL); r.render(sc, cam); clearTimeout(settle); settle = setTimeout(() => { setPR(PRH); r.render(sc, cam); topBg(); }, 200); };
+  const draw = () => { if (dead) return; const vh = st.z * TN, ey = st.y + Math.max(-0.45 * vh, Math.min(0.45 * vh, eyeAt(st.y) - st.y)); cam.position.set(st.x, ey, st.z); cam.lookAt(st.x, ey, 0); cam.setViewOffset(W, H, 0, (ey - st.y) / (2 * vh) * H, W, H); pickLights(); setPR(PRL); r.render(sc, cam); clearTimeout(settle); settle = setTimeout(() => { setPR(PRH); r.render(sc, cam); topBg(); }, 200); };
   const topBg = () => { try { const gl = r.getContext(), w = gl.drawingBufferWidth, h = gl.drawingBufferHeight, n = 24, b = new Uint8Array(n * 2 * 4); gl.readPixels(Math.round(w / 2 - n / 2), h - 3, n, 2, gl.RGBA, gl.UNSIGNED_BYTE, b);
     let R0 = 0, G0 = 0, B0 = 0; for (let i = 0; i < b.length; i += 4) { R0 += b[i]; G0 += b[i + 1]; B0 += b[i + 2]; } const k = b.length / 4; if (R0 + G0 + B0 > 0) exvBg('rgb(' + Math.round(R0 / k) + ',' + Math.round(G0 / k) + ',' + Math.round(B0 / k) + ')'); } catch(e){} };
   const zmin = () => 0.22, zmax = () => 30;
@@ -10110,8 +10113,8 @@ function exvBuild(root, L, start){
   const AUTO = 10000; let autoT = 0, playing = true, wake = false; const xPP = root.querySelector('.xpp');
   const PLAY = '<svg viewBox="0 0 20 26" aria-hidden="true"><path d="M4 2.5v21L18 13z"/></svg>', STOP = '<svg viewBox="0 0 20 26" aria-hidden="true"><path d="M6.5 2.5v21M13.5 2.5v21"/></svg>'; /* 一時停止は2本線 */
   const setPlay = v => { playing = v; xPP.innerHTML = v ? STOP : PLAY; xPP.setAttribute('aria-label', v ? '自動再生を一時停止' : '自動再生'); if (v) autoNext(); else clearTimeout(autoT); };
-  const autoNext = () => { clearTimeout(autoT); if (!playing || (EXV && EXV.na)) return; autoT = setTimeout(() => { if (!EXV || document.hidden || zoomed || yd || P.size) return autoNext(); if (ci < stops.length - 1) go(ci + 1); else setPlay(false); }, AUTO); };
-  let idleT = 0; const awake = () => { root.classList.remove('xidle'); clearTimeout(idleT); idleT = setTimeout(() => { if (yd || P.size) awake(); else root.classList.add('xidle'); }, 3000); };
+  const autoNext = () => { clearTimeout(autoT); if (!playing || (EXV && EXV.na)) return; autoT = setTimeout(() => { if (!EXV || document.hidden || zoomed || yd || P.size || root.classList.contains('xmo')) return autoNext(); if (ci < stops.length - 1) go(ci + 1); else setPlay(false); }, AUTO); };
+  let idleT = 0; const awake = () => { root.classList.remove('xidle'); clearTimeout(idleT); idleT = setTimeout(() => { if (yd || P.size || root.classList.contains('xmo')) awake(); else root.classList.add('xidle'); }, 3000); };
   const poke = () => { autoNext(); awake(); }; /* さわったら、消えていたボタンを出す（再生中なら、次へ進むのは10秒後から数えなおし） */
   let holdT = 0;
   const go = (i, v) => { autoNext(); zoomed = false; clearTimeout(holdT); const pv = ci; ci = Math.max(0, Math.min(stops.length - 1, i)); around(ci); if (ci !== pv) tOut(); if (pv === 0 && ci > 0) yrLate = 1200; setCnt();
@@ -10195,7 +10198,24 @@ function exvBuild(root, L, start){
     const m = n => { if (id !== tid) return; const dt = n - last; last = n; v *= Math.pow(0.95, dt / 16); let u = U + v * dt; if (u < -1 || u > uHi()) { u = Math.min(uHi(), Math.max(-1, u)); v = 0; } showU(u); camU(u); if (Math.abs(v) > 0.0008) requestAnimationFrame(m); else snap(); };
     if (RM || Math.abs(v) < 0.0008) snap(); else requestAnimationFrame(m); };
 
-  root.querySelector('.xsh').onclick = () => { poke(); const it = items[ci - 1]; if (it && canEdit()) return shOpen('exv', it.d.no, () => shLink(it)); shLink(it); };
+  /* メニュー（10/6 本人）：表示する作品（作品アルバムのカテゴリと同じ。美術館は館も選べる）と、この作品の共有 */
+  const xmClose = () => { const m = root.querySelector('.xmn'), b = root.querySelector('.xmb'); if (m) m.remove(); if (b) b.remove(); root.classList.remove('xmo'); root.querySelector('.xsh').setAttribute('aria-expanded', 'false'); poke(); };
+  const xmApply = (f, mus) => { const no = EXV.curNo(); EXVF = { f, mus: mus || '' }; const L2 = exvWorks(); if (!L2.length) return;
+    const st = no != null && L2.some(d => String(d.no) === String(no)) ? String(no) : 0, c = EXV.close; try { c(); } catch(e){} exvOpen(st, true); }; /* いまの作品が入っていれば、その作品から。なければ入口から */
+  const xmOpen = () => { if (root.querySelector('.xmn')) return xmClose(); const it = items[ci - 1], all = exvWorks(true), cnt = k => { const set = exvSet(k, ''); return all.filter(d => set.has(String(d.no))).length; };
+    const cats = FILTERS.filter(([k]) => !['nophoto', '廃棄'].includes(k)).map(([k, l]) => [k, l, k === 'all' ? all.length : cnt(k)]).filter(x => x[2] > 0);
+    let sub = ''; if (SUBF[EXVF.f]) { const SF = SUBF[EXVF.f], cm = {}; all.forEach(d => { if (d.w['所在区分'] === EXVF.f) { const m = d.w['所在'] || SF.none; cm[m] = (cm[m] || 0) + 1; } });
+      sub = `<div class="xmc xms"><button type="button" class="${!EXVF.mus ? 'on' : ''}" data-xmm="">${esc(SF.all)}</button>${Object.keys(cm).sort((a, b) => cm[b] - cm[a] || a.localeCompare(b, 'ja')).map(m => `<button type="button" class="${EXVF.mus === m ? 'on' : ''}" data-xmm="${esc(m)}">${esc(m)}<i>${cm[m]}</i></button>`).join('')}</div>`; }
+    const b = document.createElement('div'); b.className = 'xmb'; const m = document.createElement('div'); m.className = 'xmn'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-label', 'メニュー');
+    m.innerHTML = `<p class="xmh">表示する作品</p><div class="xmc">${cats.map(([k, l, n]) => `<button type="button" class="${EXVF.f === k ? 'on' : ''}" data-xmf="${k}">${esc(l)}<i>${n}</i></button>`).join('')}</div>${sub}
+      ${it ? `<p class="xmh">この作品を共有<small>《${esc(String(it.d.w['作品名'] || '').trim() || '無題')}》</small></p>${canEdit() ? '<button type="button" class="xmi" data-xmx="fam">家族に送る</button>' : ''}<button type="button" class="xmi" data-xmx="link">リンクを送る（LINE など）</button>` : ''}`;
+    root.appendChild(b); root.appendChild(m); root.classList.add('xmo'); root.querySelector('.xsh').setAttribute('aria-expanded', 'true'); awake(); clearTimeout(autoT);
+    b.onclick = () => xmClose();
+    m.onclick = e => { const f = e.target.closest('[data-xmf]'), mm = e.target.closest('[data-xmm]'), x = e.target.closest('[data-xmx]');
+      if (f) { if (f.dataset.xmf === EXVF.f && !EXVF.mus) return xmClose(); xmClose(); return xmApply(f.dataset.xmf, ''); }
+      if (mm) { xmClose(); return xmApply(EXVF.f, mm.dataset.xmm); }
+      if (x) { xmClose(); const it2 = items[ci - 1]; if (!it2) return; if (x.dataset.xmx === 'fam') return shOpen('exv', it2.d.no, () => shLink(it2)); shLink(it2); } }; };
+  root.querySelector('.xsh').onclick = () => { poke(); xmOpen(); };
   const shLink = async it => { const url = location.origin + location.pathname + '?exv=' + encodeURIComponent(it ? it.d.no : ''), ttl = it ? '下村良之介「' + (String(it.d.w['作品名'] || '').trim() || '無題') + '」' : '下村良之介';
     try { if (navigator.share) { await navigator.share({ title: ttl, text: ttl + '（展示ビュー）', url }); return; } } catch(e){ if (e && e.name === 'AbortError') return; }
     try { await navigator.clipboard.writeText(url); toast('リンクをコピーしました。LINE などに貼って送れます'); } catch(e){ toast('リンク：' + url); } };
@@ -10208,7 +10228,7 @@ function exvBuild(root, L, start){
   /* 最初の使い方の説明は出さない（10/6 本人） */
   EXV.curNo = () => { const it = items[ci - 1]; return it ? it.d.no : null; }; EXV.busy = () => mv || yd;
   const close0 = EXV.close;
-  EXV.close = () => { tid++; clearInterval(LDT); clearTimeout(EXV.syncT); clearTimeout(autoT); clearTimeout(settle); clearTimeout(wt); if (rq) cancelAnimationFrame(rq); removeEventListener('resize', rs); removeEventListener('keydown', key);
+  EXV.close = () => { tid++; dead = 1; items.forEach(it => { it.req = 0; }); PQ.clear(); clearTimeout(PQT); clearInterval(LDT); clearTimeout(EXV.syncT); /* 閉じたあとに届いた写真で、捨てた描画を動かさない */ clearTimeout(autoT); clearTimeout(settle); clearTimeout(wt); if (rq) cancelAnimationFrame(rq); removeEventListener('resize', rs); removeEventListener('keydown', key);
     sc.traverse(o => { if (o.geometry) o.geometry.dispose(); const ms = o.material ? [].concat(o.material) : []; ms.forEach(m => { if (m.map) m.map.dispose(); if (m.bumpMap) m.bumpMap.dispose(); m.dispose(); }); });
     items.forEach(it => it.tx.forEach(t => t.dispose())); r.dispose(); if (r.forceContextLoss) r.forceContextLoss(); close0(); };
   EXV.go = go; EXV.yrc = () => { const it = items[ci - 1]; if (!it) return null; const v = new T3.Vector3(it.g.position.x, it.cyW, 0).project(cam), b = yrEl.getBoundingClientRect(), rb = root.getBoundingClientRect(); return { art: Math.round((1 - v.y) / 2 * H), yr: Math.round(b.top + b.height / 2 - rb.top), H }; }; EXV.lds = () => items.map(it => [it.d.no, it.pt ? 1 : 0, it.fail ? 1 : 0, it.tries || 0, it.cv.width, it.cv.height]); EXV.cur = () => ci; EXV.n = items.length; EXV.start = ci; EXV.loaded = () => items.map(it => it.hi ? 1 : it.lo ? 0.5 : 0); EXV.light = () => [LFt, +LF.toFixed(2)]; EXV.at = () => { const S = stops[ci]; return !!S && Math.abs(st.x - S.x) < 1e-3 && Math.abs(st.y - S.y) < 1e-3; };
