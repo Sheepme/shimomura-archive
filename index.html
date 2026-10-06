@@ -2299,7 +2299,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'aefe79d7c0', APP_URL = location.origin + location.pathname;
+const BUILD = 'd4c5851cfc', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -9675,8 +9675,8 @@ function exvCss(){ if (document.getElementById('exvcss')) return; const st = doc
 #exv .xwait{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;letter-spacing:.12em;color:#6f685f;z-index:2}
 #exv .xhint{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 78px);display:flex;justify-content:center;font-size:13px;line-height:1.65;pointer-events:none;transition:opacity .8s;z-index:3}
 #exv .xhint span{background:rgba(250,249,246,.93);border:1px solid rgba(51,48,44,.12);border-radius:10px;padding:8px 14px;max-width:24em;text-align:center}
-#exv .yrs{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 6px);height:64px;z-index:3;touch-action:none;cursor:grab}
-#exv .ynum{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:"Helvetica Neue",Helvetica,Arial,"Hiragino Sans",sans-serif;font-size:17px;font-weight:500;letter-spacing:.01em;color:#2b2825;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
+#exv .yrs{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 6px);height:76px;z-index:3;touch-action:none;cursor:grab}
+#exv .ynum{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:"Helvetica Neue","Avenir Next",Helvetica,Arial,sans-serif;font-size:30px;font-weight:200;letter-spacing:.05em;color:#2b2825;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
 #exv .ydots{position:absolute;inset:0;pointer-events:none}
 #exv .yd{position:absolute;left:50%;top:50%;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;border-radius:50%;background:#2b2825;opacity:0;transition:opacity .3s ease}
 #exv .yrs.xon .yd{transition:opacity .12s ease}
@@ -9767,9 +9767,9 @@ function exvBuild(root, L){
       const ao = new T3.Mesh(new T3.PlaneGeometry(W2 + 0.3, dd + 0.34), new T3.MeshBasicMaterial({ transparent: true, opacity: 0.34, depthWrite: false })); ao.rotation.x = -Math.PI / 2; ao.position.set(0, 0.002, zb + dd / 2); ao.visible = false; ao.raycast = () => {}; g.add(ao);
       Object.assign(it, { W: W2, ao, aoMk: () => softShadow(W2, dd + 0.04, 0.15) }); }
     else { /* 厚みと壁からの浮きは作品の大きさで（小さい作品は薄く・近く、大きい作品は厚く・浮く → 影の出方が変わる） */
-      const sF = Math.sqrt(w * h), dep = Math.min(0.035, Math.max(0.016, 0.012 + 0.014 * sF)), off = Math.min(0.035, Math.max(0.014, 0.008 + 0.016 * sF));
+      const sF = Math.sqrt(w * h), dep = Math.min(0.03, Math.max(0.01, 0.008 + 0.012 * sF)), off = 0.002; /* どの大きさも壁にくっつける（10/6 本人） */
       const pn = new T3.Mesh(new T3.BoxGeometry(w, h, dep), [side, side, side, side, artM(base), side]); pn.position.z = off + dep / 2; pn.castShadow = true; g.add(pn);
-      const m = 0.06 + 0.07 * sF, bl = 0.015 + 0.03 * sF, ao = new T3.Mesh(new T3.PlaneGeometry(w + 2 * m, h + 2 * m), new T3.MeshBasicMaterial({ transparent: true, opacity: Math.min(0.34, 0.2 + 0.08 * sF), depthWrite: false })); ao.position.set(0, -0.006 - 0.01 * sF, 0.0012); ao.visible = false; ao.raycast = () => {}; g.add(ao);
+      const m = 0.03 + 0.06 * sF, bl = 0.008 + 0.025 * sF, ao = new T3.Mesh(new T3.PlaneGeometry(w + 2 * m, h + 2 * m), new T3.MeshBasicMaterial({ transparent: true, opacity: Math.min(0.32, 0.18 + 0.1 * sF), depthWrite: false })); ao.position.set(0, -0.004 - 0.008 * sF, 0.0012); ao.visible = false; ao.raycast = () => {}; g.add(ao);
       g.position.y = CY; Object.assign(it, { ao, aoMk: () => softShadow(w, h, m, bl) }); }
     sc.add(g);
     const capF = new T3.MeshStandardMaterial({ color: '#f6f4f0', roughness: 0.92, dithering: true }), capM = new T3.Mesh(new T3.BoxGeometry(PWm, PHm, 0.004), [capS, capS, capS, capS, capF, capS]); capM.castShadow = true; capM.visible = false; sc.add(capM); Object.assign(it, { capM, capF });
@@ -9811,34 +9811,46 @@ function exvBuild(root, L){
 
   /* 動いている間は少し粗く描き、止まったら細かく描き直す */
   const setPR = v => { if (v !== PRC) { PRC = v; r.setPixelRatio(v); r.setSize(W, H); } };
-  const draw = () => { cam.position.set(st.x, st.y, st.z); cam.lookAt(st.x, st.y, 0); pickLights(); setPR(PRL); r.render(sc, cam); clearTimeout(settle); settle = setTimeout(() => { setPR(PRH); r.render(sc, cam); }, 200); };
+  const EYE = 1.6; /* カメラは男性の目の高さ。見たい高さが画面のまん中に来るよう、レンズだけずらす（向きは真正面のまま） */
+  const draw = () => { const vh = st.z * TN, ey = st.y + Math.max(-0.45 * vh, Math.min(0.45 * vh, EYE - st.y)); cam.position.set(st.x, ey, st.z); cam.lookAt(st.x, ey, 0); cam.setViewOffset(W, H, 0, (ey - st.y) / (2 * vh) * H, W, H); pickLights(); setPR(PRL); r.render(sc, cam); clearTimeout(settle); settle = setTimeout(() => { setPR(PRH); r.render(sc, cam); }, 200); };
   const zmin = () => 0.22, zmax = () => 30;
   const cl = () => { st.z = Math.min(zmax(), Math.max(zmin(), st.z)); st.x = Math.min(stops[stops.length - 1].x + 1, Math.max(stops[0].x - 1, st.x)); st.y = Math.min(3.2, Math.max(0.3, st.y)); };
 
   const layout = () => { W = stage.clientWidth || innerWidth; H = stage.clientHeight || innerHeight; r.setSize(W, H); cam.aspect = W / H; cam.updateProjectionMatrix();
-    const port = W / H < 1, up = port ? UP : 0, kz = z => 2 * z * TN / H, kmin = kz(0.55), kmax = kz(14), mx = port ? 22 : 24, my = port ? 280 : 200; stops.length = 0; specs.length = 0; zoomed = false;
+    const port = W / H < 1, kz = z => 2 * z * TN / H, kmin = kz(0.55), kmax = kz(14), mx = port ? 22 : 24, my = port ? 280 : 200; stops.length = 0; specs.length = 0; zoomed = false;
     const TWm = 1.5, THm = TWm * TTH / TTW; title.scale.set(TWm, THm, 1); title.position.set(TWm / 2, 1.55, 0.0016);
-    const kt = Math.max((TWm + 0.6) / (W - 2 * mx), (THm + 0.6) / (H - my)); stops.push({ x: TWm / 2, y: 1.55 - up * kt * H / 2, z: kt * H / (2 * TN) }); addSpec(TWm / 2, 1.55, TWm, THm, 0);
+    const kt = Math.max((TWm + 0.6) / (W - 2 * mx), (THm + 0.6) / (H - my)); stops.push({ x: TWm / 2, y: 1.55, z: kt * H / (2 * TN) }); addSpec(TWm / 2, 1.55, TWm, THm, 0);
     let x = TWm + 1.8;
+    const FW = port ? 0.72 : 0.5, FH = port ? 0.46 : 0.6;
     items.forEach((it, ii) => { const h = it.h, w = it.W || it.w, cy = it.d.b ? h / 2 : CY, Lx = x, Rx = x + w; it.g.position.x = Lx + w / 2; addSpec(Lx + w / 2, cy, w, h, ii + 1);
-      const below = port && !it.d.b && CY - h / 2 - CAPG - PHm >= 0.55; let k, gr, gcy = cy;
-      if (below) { /* スマホの縦：上下に余裕があるので、キャプションは作品の右下（作品の下で、右の端をそろえる）。床に近すぎるときは右横 */
-        it.capM.position.set(Rx - PWm / 2, CY - h / 2 - CAPG - PHm / 2, 0.003); gr = Rx;
-        k = Math.max(Math.max(w, 2 * PWm - w) / (W - 2 * mx), (h + CAPG + PHm) / (H - my)); gcy = CY - (CAPG + PHm) / 2; }
+      /* どの大きさの作品も、画面に占める割合を同じに（スマホの縦：幅の72%か高さの46%、横長：幅の50%か高さの60%）。キャプションは画面に入るように */
+      let k = Math.max(w / (FW * W), h / (FH * H), kz(0.25)), gr, fc = cy;
+      const belowOk = !it.d.b && CY - h / 2 - CAPG - PHm >= 0.55, rightFits = kk => (w / 2 + CAPX + PWm + 0.03) / kk <= W / 2 - 12;
+      if (belowOk && (port || !rightFits(k))) { /* キャプションは作品の右下（作品の下で、右の端をそろえる） */
+        it.capM.position.set(Rx - PWm / 2, CY - h / 2 - CAPG - PHm / 2, 0.003); gr = Rx; fc = cy - (CAPG + PHm) * 0.3;
+        k = Math.max(k, Math.max(w, 2 * PWm - w) / (0.92 * W), (cy + h / 2 - fc) / (H / 2 - 70), (fc - (cy - h / 2 - CAPG - PHm)) / (H / 2 - 110)); }
       else { it.capM.position.set(Rx + CAPX + PWm / 2, Math.max(CAPMIN, it.d.b ? 0 : CY - h / 2) + PHm / 2, 0.003); gr = Rx + CAPX + PWm;
-        k = Math.max((w + 2 * (CAPX + PWm + 0.05)) / (W - 2 * mx), h / (H - my)); }
-      k = Math.min(kmax, Math.max(kmin, k));
-      const z = k * H / (2 * TN); stops.push({ x: Lx + w / 2, y: gcy - up * z * TN, z }); x = gr + 1.0; });
+        if (!rightFits(k)) k = (w / 2 + CAPX + PWm + 0.03) / (W / 2 - 12);
+        k = Math.max(k, (h / 2) / (H / 2 - 90)); }
+      k = Math.min(kmax, k);
+      stops.push({ x: Lx + w / 2, y: fc, z: k * H / (2 * TN) }); x = gr + 1.0; });
     LS.forEach(l => { l.si = -1; l.intensity = 0; }); tid++; ci = Math.min(ci, stops.length - 1); Object.assign(st, { x: stops[ci].x, y: stops[ci].y, z: stops[ci].z }); cl(); draw(); };
 
   const tw = (T, ms) => { const s0 = { x: st.x, y: st.y, z: st.z }, t0 = performance.now(), id = ++tid; ms = ms || 900;
     if (RM) { Object.assign(st, T); cl(); draw(); return; }
-    const f = n => { if (id !== tid) return; const t = Math.min(1, (n - t0) / ms), e = t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; for (const k in T) st[k] = s0[k] + (T[k] - s0[k]) * e; draw(); if (t < 1) requestAnimationFrame(f); };
+    const f = n => { if (id !== tid) return; const t = Math.min(1, (n - t0) / ms), e = 0.5 - 0.5 * Math.cos(Math.PI * t); for (const k in T) st[k] = s0[k] + (T[k] - s0[k]) * e; draw(); if (t < 1) requestAnimationFrame(f); };
+    requestAnimationFrame(f); };
+  /* 美術館を歩くように：ゆっくり始まり、ゆっくり止まる。大きい作品へは先に下がり、小さい作品へは最後に近づく */
+  const walk = T => { const s0 = { x: st.x, y: st.y, z: st.z }, t0 = performance.now(), id = ++tid, ms = Math.min(3400, Math.max(1100, 800 + Math.abs(T.x - s0.x) * 700));
+    if (RM) { Object.assign(st, T); cl(); draw(); return; }
+    const sm = t => t <= 0 ? 0 : t >= 1 ? 1 : 0.5 - 0.5 * Math.cos(Math.PI * t), back = T.z > s0.z;
+    const f = n => { if (id !== tid) return; const t = Math.min(1, (n - t0) / ms), e = sm(t), ez = back ? sm(t / 0.65) : sm((t - 0.35) / 0.65);
+      st.x = s0.x + (T.x - s0.x) * e; st.y = s0.y + (T.y - s0.y) * e; st.z = s0.z + (T.z - s0.z) * ez; draw(); if (t < 1) requestAnimationFrame(f); };
     requestAnimationFrame(f); };
   const setCnt = () => { if (!yd) showU(ci - 1); };
-  const AUTO = 9000; let autoT = 0;
+  const AUTO = 10000; let autoT = 0;
   const autoNext = () => { clearTimeout(autoT); autoT = setTimeout(() => { if (!EXV || document.hidden || zoomed || yd || P.size) return autoNext(); if (ci < stops.length - 1) go(ci + 1); }, AUTO); };
-  const go = i => { autoNext(); zoomed = false; ci = Math.max(0, Math.min(stops.length - 1, i)); around(ci); setCnt(); const s = stops[ci]; tw({ x: s.x, y: s.y, z: Math.min(zmax(), Math.max(zmin(), s.z)) }); };
+  const go = i => { autoNext(); zoomed = false; ci = Math.max(0, Math.min(stops.length - 1, i)); around(ci); setCnt(); const s = stops[ci]; walk({ x: s.x, y: s.y, z: Math.min(zmax(), Math.max(zmin(), s.z)) }); };
   const zoomBy = k => { st.z *= k; cl(); zoomed = st.z < stops[ci].z * 0.9; draw(); };
 
   /* タップ：作品・キャプションは近づく（もう一度でもどる）、壁は次の作品へ（左端は前へ） */
