@@ -2299,7 +2299,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '97eb1b09a2', APP_URL = location.origin + location.pathname;
+const BUILD = '406b9d4dca', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -9650,6 +9650,12 @@ const exvIsAdm = () => !!S.user; /* 展示ビューはログインしている�
 function exvLib(){ return window.THREE ? Promise.resolve() : new Promise((ok, ng) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'; s.onload = () => ok(); s.onerror = () => ng(new Error('3Dの部品を読み込めませんでした')); document.head.appendChild(s); }); }
 const exvOwner = w => { const p = String(w['所在'] || '').trim(); if (!p || /館名は/.test(p)) return ''; if (/^自宅|個人|思文閣|画廊/.test(p)) return '個人蔵';
   return /美術館|博物館|資料館|記念館|学校|大学|会館|センター|ホール|庁|役所|寺|神社/.test(p) ? p.replace(/[\s（(].*$/, '') + '蔵' : '個人蔵'; };
+function exvYearBig(v){ let s = String(v || '').trim().replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+  s = s.replace(/(明治|大正|昭和|平成|令和)\s*(\d{1,2}|元)\s*年?/g, (m, e, n) => ({ 明治: 1867, 大正: 1911, 昭和: 1925, 平成: 1988, 令和: 2018 }[e] + (n === '元' ? 1 : +n)) + '年');
+  const ps = s.split(/\s*[-−–—~〜～ー]\s*/).filter(Boolean).slice(0, 2); let c0 = '';
+  const out = ps.map(p => { const m = p.match(/\d{2,4}/); if (!m) return ''; let y = m[0]; if (y.length === 4) c0 = y.slice(0, 2); else if (y.length === 2 && c0) y = c0 + y; else if (y.length !== 4) return '';
+    return y + (/頃|ごろ|位|ころ/.test(p) ? '’s' : /代/.test(p) ? 's' : ''); }).filter(Boolean);
+  return out.join('\n-\n'); }
 const exvYearTxt = w => { const s = String(w['制作年'] || '').trim(); return /^\d{4}$/.test(s) ? s + '年' : s; };
 /* 屏風の折り：画材 → 種別 → 作品名の順に「六曲」「一折」などを探して合わせる。書いてなければ一折り（2枚）（10/6 本人） */
 const exvFolds = w => { const N = { '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8 }, num = c => N[c] || +String(c).replace(/[１-９]/, x => String.fromCharCode(x.charCodeAt(0) - 0xFEE0)) || 0;
@@ -9689,22 +9695,21 @@ function exvCss(){ if (document.getElementById('exvcss')) return; const st = doc
 #exv .xpp svg{width:20px;height:26px;stroke:currentColor;stroke-width:1.2;fill:none;stroke-linejoin:round;stroke-linecap:round}#exv .xpp:focus-visible{outline:1.5px solid #3a3530;outline-offset:-4px;border-radius:8px}#exv .xsh{right:56px}body.exvopen #toast{z-index:9600!important}#exv .xprev{left:clamp(22px,5vw,72px)}#exv .xnext{right:clamp(22px,5vw,72px)}#exv .xnav svg{width:14px;height:26px;stroke:currentColor;stroke-width:1.2;fill:none;stroke-linecap:round;stroke-linejoin:round}#exv .xnav[disabled]{opacity:0;pointer-events:none}#exv .xnav:focus-visible{outline:1.5px solid #3a3530;outline-offset:-4px;border-radius:8px}
 #exv .ydots{position:absolute;inset:0;pointer-events:none}
 #exv .ynum{transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1)}#exv .ynum.xmv{opacity:0;transform:translateY(4px);transition:opacity .32s ease-in,transform .32s ease-in}
-#exv .xyr{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:block;white-space:nowrap;padding:0 0 .3em .12em;letter-spacing:.12em;font-family:"Helvetica Neue","Avenir Next","Hiragino Sans","Noto Sans JP",Helvetica,Arial,sans-serif;font-size:clamp(56px,11vw,132px);line-height:1;font-weight:200;color:#fff;text-shadow:0 0 36px rgba(0,0,0,.2);font-variant-numeric:tabular-nums;opacity:0;transition:opacity 1s ease;pointer-events:none;z-index:4}
-#exv .xyr.xin{opacity:.95;transition:opacity .6s ease}
-#exv .xyr::after{content:'';position:absolute;left:50%;bottom:0;width:.9em;height:1px;background:rgba(255,255,255,.8);transform:translateX(-50%)}
-#exv .xdim{position:absolute;inset:0;background:radial-gradient(ellipse 75% 65% at 50% 48%,rgba(16,13,10,.5) 0%,rgba(10,8,6,.66) 60%,rgba(6,5,4,.8) 100%);opacity:0;transition:opacity 1.2s ease;pointer-events:none;z-index:2}#exv .xyr.xin+.xdim{opacity:1;transition:opacity .7s ease}
+#exv .xyr{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:block;white-space:pre;text-align:center;padding:0 0 0 .015em;letter-spacing:.015em;font-kerning:normal;font-feature-settings:'kern' 1,'pnum' 1,'lnum' 1;font-variant-numeric:proportional-nums lining-nums;font-family:"Helvetica Neue","Avenir Next","Hiragino Sans","Noto Sans JP",Helvetica,Arial,sans-serif;font-size:clamp(56px,11vw,132px);line-height:1;font-weight:200;color:#fff;text-shadow:0 0 36px rgba(0,0,0,.2);opacity:0;transition:opacity 1s ease;pointer-events:none;z-index:4}
+#exv .xyr.xin{opacity:.95;transition:opacity .6s ease}#exv .xyr.xml{font-size:clamp(46px,9vw,108px);line-height:1.08}
+
 #exv .yc{position:absolute;left:50%;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;border:1.2px solid #2b2825;box-sizing:border-box;opacity:.85}
 #exv .yd{position:absolute;left:50%;top:50%;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;border-radius:50%;background:#2b2825;opacity:0;transition:opacity .3s ease}
 #exv .yrs.xon .yd{transition:opacity .12s ease}
 body.exvopen{overflow:hidden}
-@media (prefers-reduced-motion: reduce){#exv .xhint,#exv .yd,#exv .xyr,#exv .ynum,#exv .xdim{transition:none!important}}`;
+@media (prefers-reduced-motion: reduce){#exv .xhint,#exv .yd,#exv .xyr,#exv .ynum{transition:none!important}}`;
   document.head.appendChild(st); }
 /* 時計のところの帯（iPhone のホーム画面アプリ）は、ページの地の色で塗られるので、壁の色に合わせる */
 function exvBg(c){ try { document.documentElement.style.backgroundColor = c; document.body.style.backgroundColor = c; } catch(e){} }
 async function exvOpen(start, noPush){
   if (!exvIsAdm() || EXV) return;
   exvCss(); const root = document.createElement('div'); root.id = 'exv'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-label', '展示ビュー');
-  root.innerHTML = '<div class="xst"></div><div class="xwait">展示室を準備しています…</div><button type="button" class="xsh" aria-label="この作品を共有"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14.5V3.5"/><path d="M8.2 7.3 12 3.5l3.8 3.8"/><path d="M8 10.5H6.5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1H16"/></svg></button><button type="button" class="xcl" aria-label="展示ビューを出る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5H6.5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1H14"/><path d="M10.5 12h9M16.5 8.5 20 12l-3.5 3.5"/></svg></button><div class="xhint" style="opacity:0"><span></span></div><button type="button" class="xnav xprev" aria-label="前の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M12 2 2 13l10 11"/></svg></button><button type="button" class="xpp" aria-label="自動再生を一時停止"></button><button type="button" class="xnav xnext" aria-label="次の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M2 2l10 11L2 24"/></svg></button><div class="ynum"></div><div class="xyr" aria-hidden="true"></div><div class="xdim"></div><div class="yrs" aria-label="作品の位置（指を当てて左右に動かすと早送り）"><div class="ydots"><i class="yc"></i></div></div>';
+  root.innerHTML = '<div class="xst"></div><div class="xwait">展示室を準備しています…</div><button type="button" class="xsh" aria-label="この作品を共有"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14.5V3.5"/><path d="M8.2 7.3 12 3.5l3.8 3.8"/><path d="M8 10.5H6.5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1H16"/></svg></button><button type="button" class="xcl" aria-label="展示ビューを出る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5H6.5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1H14"/><path d="M10.5 12h9M16.5 8.5 20 12l-3.5 3.5"/></svg></button><div class="xhint" style="opacity:0"><span></span></div><button type="button" class="xnav xprev" aria-label="前の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M12 2 2 13l10 11"/></svg></button><button type="button" class="xpp" aria-label="自動再生を一時停止"></button><button type="button" class="xnav xnext" aria-label="次の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M2 2l10 11L2 24"/></svg></button><div class="ynum"></div><div class="xyr" aria-hidden="true"></div><div class="yrs" aria-label="作品の位置（指を当てて左右に動かすと早送り）"><div class="ydots"><i class="yc"></i></div></div>';
   document.body.appendChild(root); document.body.classList.add('exvopen');
   try { const fs = root.requestFullscreen || root.webkitRequestFullscreen; if (fs) { const q = fs.call(root); if (q && q.catch) q.catch(() => {}); } } catch(e){} /* 押した直後でないと全画面にできない */
   try { const tm = document.querySelector('meta[name="theme-color"]'); if (tm) tm.content = '#ebe8e3'; } catch(e){}
@@ -9764,7 +9769,7 @@ function exvBuild(root, L, start){
   r.setPixelRatio(PRH); r.shadowMap.enabled = true; r.shadowMap.type = T3.PCFSoftShadowMap; r.outputEncoding = T3.sRGBEncoding;
   const el = r.domElement; stage.appendChild(el);
   const sc = new T3.Scene(); sc.background = new T3.Color('#d9d6d0');
-  sc.add(new T3.HemisphereLight('#f6f4f0', '#c9c0b3', 0.5));
+  const HEMI = new T3.HemisphereLight('#f6f4f0', '#c9c0b3', 0.5); sc.add(HEMI); let LF = 1, LFt = 1, LFa = 0, wkT = 0; /* 明かりの強さ（1＝ふだん、0＝落としたとき） */
   const cam = new T3.PerspectiveCamera(45, 1, 0.05, 300);
   const st = { x: 0, y: CY, z: 3 }, stops = []; let ci = 0, tid = 0, W = 1, H = 1, zoomed = false;
 
@@ -9772,7 +9777,7 @@ function exvBuild(root, L, start){
   const HC = 4.0, ZL = (HC - CY) * Math.tan(Math.PI / 6), specs = [];
   const srand = k => { let t = (k * 2654435761 + 12345) >>> 0; return () => { t = (t + 0x6D2B79F5) >>> 0; let q = Math.imul(t ^ (t >>> 15), 1 | t); q = (q + Math.imul(q ^ (q >>> 7), 61 | q)) ^ q; return ((q ^ (q >>> 14)) >>> 0) / 4294967296; }; };
   const mkL = (res, far) => { const l = new T3.SpotLight('#ffeedd', 0, 0, 0.3, 0.7, 1); l.castShadow = true; l.shadow.mapSize.set(res, res); l.shadow.camera.near = 0.4; l.shadow.camera.far = far; l.shadow.bias = -0.0003; l.shadow.normalBias = 0; /* 影を作品の際から落とす（normalBias があると影が浮く） */ l.si = -1; sc.add(l, l.target); return l; };
-  const LK = [0, 1, 2, 3, 4].map(() => mkL(1024, 9)), LF = [0, 1, 2].map(() => mkL(512, 10)), LS = [...LK, ...LF];
+  const LK = [0, 1, 2, 3, 4].map(() => mkL(1024, 9)), LFL = [0, 1, 2].map(() => mkL(512, 10)), LS = [...LK, ...LFL];
   const VL = mkL(512, 60); VL.color.set('#fff9f2'); VL.intensity = 0.12; VL.penumbra = 1;
   const aimA = (hw, hv, D) => { let a = Math.atan(hw / D); while (a < 0.5 && Math.sin(a) / Math.sin(Math.PI / 6 + a) < hv / D) a += 0.01; return Math.min(0.62, Math.max(0.1, a)); };
   const addSpec = (cx, cy, w, h, seed) => { const R = srand(seed + 3), n = Math.max(1, Math.ceil(w / 2.0)), side = R() < .5 ? -1 : 1;
@@ -9783,8 +9788,8 @@ function exvBuild(root, L, start){
   const pick = (pool, kind) => { const near = []; specs.forEach((s, i) => { if (s.k === kind && Math.abs(s.x - st.x) < 30) near.push([Math.abs(s.x - st.x), i]); }); const use = near.sort((a, b) => a[0] - b[0]).slice(0, pool.length).map(a => a[1]);
     pool.forEach(l => { if (!use.includes(l.si)) { l.si = -1; l.intensity = 0; } });
     use.forEach(si => { if (pool.some(l => l.si === si)) return; const l = pool.find(l => l.si < 0), s = specs[si]; l.si = si; l.position.set(s.lx, s.ly, s.lz); l.target.position.set(s.tx, s.ty, 0); l.target.updateMatrixWorld(); l.angle = s.a; l.penumbra = s.pen; l.intensity = s.I; l.color.copy(s.c); }); };
-  const pickLights = () => { pick(LK, 'k'); pick(LF, 'f'); const vz = st.z + 0.5, vy = 1.9; VL.position.set(st.x + 0.3, st.y + vy, vz); VL.target.position.set(st.x, st.y - 0.1, 0); VL.target.updateMatrixWorld();
-    VL.angle = Math.min(1.1, Math.max(0.3, Math.atan(st.z * TN * Math.max(1, cam.aspect) * 1.5 / Math.hypot(vy, vz)))); };
+  const pickLights = () => { pick(LK, 'k'); pick(LFL, 'f'); const fS = 0.16 + 0.84 * LF; LS.forEach(l => { if (l.si >= 0) l.intensity = specs[l.si].I * fS; }); HEMI.intensity = 0.5 * (0.42 + 0.58 * LF); const vz = st.z + 0.5, vy = 1.9; VL.position.set(st.x + 0.3, st.y + vy, vz); VL.target.position.set(st.x, st.y - 0.1, 0); VL.target.updateMatrixWorld();
+    VL.intensity = 0.12 * (0.3 + 0.7 * LF); VL.angle = Math.min(1.1, Math.max(0.3, Math.atan(st.z * TN * Math.max(1, cam.aspect) * 1.5 / Math.hypot(vy, vz)))); };
 
   /* 壁・床 */
   const pc = plaster(), wpt = wallPaint(), [cc, cx] = cvs(512, 512); cx.fillStyle = '#fbfaf8'; cx.fillRect(0, 0, 512, 512); cx.globalAlpha = 0.05; cx.drawImage(wpt, 0, 0);
@@ -9940,7 +9945,7 @@ function exvBuild(root, L, start){
     const m0 = sw && Math.abs(D) > 1e-4 ? Math.max(0, Math.min(2.6, v * ms / D)) : 0; /* スワイプ：はなした速さで動き出して、やわらかく止まる（エルミート曲線） */
     const sm = t => t <= 0 ? 0 : t >= 1 ? 1 : sw ? (t * t * t - 2 * t * t + t) * m0 + (3 * t * t - 2 * t * t * t) : 0.5 - 0.5 * Math.cos(Math.PI * t), back = T.z > s0.z;
     const f = n => { if (id !== tid) return; const t = Math.min(1, (n - t0) / ms), e = sm(t), ez = sw ? 1 - Math.pow(1 - t, 3) : back ? sm(t / 0.65) : sm((t - 0.35) / 0.65);
-      st.x = s0.x + (T.x - s0.x) * e; st.y = s0.y + (T.y - s0.y) * e; st.z = s0.z + (T.z - s0.z) * ez; draw(); if (t < 1) requestAnimationFrame(f); else if (done) done(); };
+      st.x = s0.x + (T.x - s0.x) * e; st.y = s0.y + (T.y - s0.y) * e; st.z = s0.z + (T.z - s0.z) * ez; wkT = performance.now(); draw(); if (t < 1) requestAnimationFrame(f); else if (done) done(); };
     requestAnimationFrame(f); return id; };
   const xPrev = root.querySelector('.xprev'), xNext = root.querySelector('.xnext');
   const setCnt = () => { if (!yd) showU(ci - 1); xPrev.disabled = ci <= 0; xNext.disabled = ci >= stops.length - 1; };
@@ -9951,7 +9956,7 @@ function exvBuild(root, L, start){
   let idleT = 0; const awake = () => { root.classList.remove('xidle'); clearTimeout(idleT); idleT = setTimeout(() => { if (yd || P.size) awake(); else root.classList.add('xidle'); }, 3000); };
   const poke = () => { autoNext(); awake(); }; /* さわったら、消えていたボタンを出す（再生中なら、次へ進むのは10秒後から数えなおし） */
   let holdT = 0;
-  const go = (i, v) => { autoNext(); zoomed = false; clearTimeout(holdT); const pv = ci; ci = Math.max(0, Math.min(stops.length - 1, i)); around(ci); if (ci !== pv) tOut(); setCnt();
+  const go = (i, v) => { autoNext(); zoomed = false; clearTimeout(holdT); const pv = ci; ci = Math.max(0, Math.min(stops.length - 1, i)); around(ci); if (ci !== pv) tOut(); if (pv === 0 && ci > 0) yrLate = 1200; setCnt();
     const s = stops[ci], T = { x: s.x, y: s.y, z: Math.min(zmax(), Math.max(zmin(), s.z)) }, g = items[ci - 1] && items[ci - 1].grp;
     if (g && pv !== ci && !(items[pv - 1] && items[pv - 1].grp === g)) { /* シリーズに入るとき：まず全体を見せてから、1点ずつ */
       g.m.forEach(j => warm(items[j])); pendT = g.name + '　' + g.n + '点'; if (!mv) tIn();
@@ -9993,12 +9998,17 @@ function exvBuild(root, L, start){
   const yG = () => 14;
   xPP.innerHTML = STOP; xPP.onclick = () => { poke(); if (playing) setPlay(false); else { setPlay(true); go(ci < stops.length - 1 ? ci + 1 : 1); } }; /* ▶︎ を押すとすぐ次へ。最後なら最初の作品から */
   const yrEl = root.querySelector('.xyr'); let yrT = 0, lastY = null;
-  const yrOf = k => { const s = String(L[k].w['制作年'] || '').trim(); return /^\d{4}年?$/.test(s) ? s.slice(0, 4) : s; };
+  const yrOf = k => exvYearBig(L[k].w['制作年']);
   let mv = false, pendT = null;
-  const yrHide = () => yrEl.classList.remove('xin');
-  const yrShow = t => { if (yrEl.textContent !== t) yrEl.textContent = t; yrEl.classList.add('xin'); }; /* 出ている間に年が変わったら、数字だけそのまま入れかえ */
+  const lightTo = v => { LFt = v; if (RM) { LF = v; return redraw(); } if (LFa) return; let t0 = performance.now(), l0 = LF;
+    const f = n => { if (!EXV) { LFa = 0; return; } if (LFt !== f.t) { f.t = LFt; t0 = n; l0 = LF; } const ms = LFt < l0 ? 650 : 1100, t = Math.min(1, (n - t0) / ms), e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; LF = l0 + (LFt - l0) * e;
+      if (performance.now() - wkT > 60) draw(); if (t < 1) LFa = requestAnimationFrame(f); else LFa = 0; }; f.t = LFt; LFa = requestAnimationFrame(f); };
+  const yrHide = () => { yrEl.classList.remove('xin'); lightTo(1); };
+  const yrShow = t => { if (yrEl.textContent !== t) { yrEl.textContent = t; yrEl.classList.toggle('xml', t.includes('\n')); } yrEl.classList.add('xin'); lightTo(0); }; /* 出ている間に年が変わったら、数字だけそのまま入れかえ */
   const yrOff = ms => { clearTimeout(yrT); yrT = setTimeout(yrHide, ms); };
-  const flashY = k => { const y = k < 0 ? '' : yrOf(k); if (y === lastY) return; lastY = y; if (!y) return; yrShow(y); clearTimeout(yrT); if (!mv && !yd) yrOff(1900); };
+  let yrD = 0, yrLate = 0;
+  const flashY = k => { const y = k < 0 ? '' : yrOf(k); if (y === lastY) return; lastY = y; clearTimeout(yrD); if (!y) return; const d = yrLate; yrLate = 0;
+    const sh = () => { yrShow(y); clearTimeout(yrT); if (!mv && !yd) yrOff(1900); }; if (d) yrD = setTimeout(() => { if (lastY === y) sh(); }, d); else sh(); };
   const tOut = () => { mv = true; yNum.classList.add('xmv'); }; /* 動き出したら作品名を消す */
   const tIn = () => { mv = false; if (pendT != null) { yNum.textContent = pendT; pendT = null; fitNum(); } yNum.classList.remove('xmv'); if (yrEl.classList.contains('xin')) yrOff(1000); }; /* 真ん中に来たら出す */
   const fitNum = () => { yNum.style.fontSize = ''; let fs = parseFloat(getComputedStyle(yNum).fontSize) || 20; const mw = W - 158; while (yNum.scrollWidth > mw && fs > 14) { fs--; yNum.style.fontSize = fs + 'px'; } };
@@ -10039,9 +10049,9 @@ function exvBuild(root, L, start){
   EXV.close = () => { tid++; clearTimeout(autoT); clearTimeout(settle); clearTimeout(wt); if (rq) cancelAnimationFrame(rq); removeEventListener('resize', rs); removeEventListener('keydown', key);
     sc.traverse(o => { if (o.geometry) o.geometry.dispose(); const ms = o.material ? [].concat(o.material) : []; ms.forEach(m => { if (m.map) m.map.dispose(); if (m.bumpMap) m.bumpMap.dispose(); m.dispose(); }); });
     items.forEach(it => it.tx.forEach(t => t.dispose())); r.dispose(); if (r.forceContextLoss) r.forceContextLoss(); close0(); };
-  EXV.go = go; EXV.cur = () => ci; EXV.n = items.length; EXV.start = ci; EXV.loaded = () => items.map(it => it.hi ? 1 : 0);
+  EXV.go = go; EXV.cur = () => ci; EXV.n = items.length; EXV.start = ci; EXV.loaded = () => items.map(it => it.hi ? 1 : 0); EXV.light = () => [LFt, +LF.toFixed(2)]; EXV.at = () => { const S = stops[ci]; return !!S && Math.abs(st.x - S.x) < 1e-3 && Math.abs(st.y - S.y) < 1e-3; };
   EXV.edges = () => items.map(it => { const w = it.W || it.w, y = it.d.b ? it.h / 2 : CY, b = el.getBoundingClientRect(), f = xx => { const v = new T3.Vector3(xx, y, 0).project(cam); return Math.round(b.left + (v.x + 1) / 2 * b.width); }; return [f(it.g.position.x - w / 2), f(it.capM.position.x + PWm / 2)]; }); /* 確かめ用 */
-  EXV.capRect = () => { const it = items[ci - 1], b = el.getBoundingClientRect(), v = new T3.Vector3(it.capM.position.x - PWm * 0.3, it.capM.position.y - PHm / 2 + PHm * 0.12, 0.006).project(cam); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }; /* 確かめ用：「作品ページへ」のあたり */ EXV.stop = () => ({ y: +st.y.toFixed(3), cy: stops[ci] && stops[ci].y });
+  EXV.capRect = () => { const it = items[ci - 1], b = el.getBoundingClientRect(), v = new T3.Vector3(it.capM.position.x - PWm * 0.3, it.capM.position.y - PHm / 2 + PHm * 0.12, 0.006).project(cam); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }; /* 確かめ用：「作品ページへ」のあたり */ EXV.stop = () => ({ y: +st.y.toFixed(3), cy: stops[ci] && stops[ci].y, x: +st.x.toFixed(3), sx: stops[ci] && +stops[ci].x.toFixed(3), z: +st.z.toFixed(3), sz: stops[ci] && +stops[ci].z.toFixed(3), zoomed, ci });
   EXV.capAt = () => { const it = items[ci - 1]; if (!it) return null; const v = it.capM.position.clone().project(cam), b = el.getBoundingClientRect(); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }; /* 確かめ用 */
 }
 </script>
