@@ -2341,7 +2341,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'fa1ea5d264', APP_URL = location.origin + location.pathname;
+const BUILD = 'dc411cb860', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -9731,6 +9731,8 @@ function exvYearBig(v){ let s = String(v || '').trim().replace(/[０-９]/g, c =
     return y + (/頃|ごろ|位|ころ/.test(p) ? '’s' : /代/.test(p) ? 's' : ''); }).filter(Boolean);
   return out.join('\n-\n'); }
 const exvYearTxt = w => { const s = String(w['制作年'] || '').trim(); return /^\d{4}$/.test(s) ? s + '年' : s; };
+/* 何面で1組か：補足・画材・仕立て・作品名メモに「4面」「四面」などがあれば（10/7 本人：No.579《騒》は横長の4面） */
+function exvSetN(w){ const t = ['補足', '画材', '仕立て', '作品名メモ'].map(k => String(w[k] || '')).join(' ').normalize('NFKC'), m = /([2-9二三四五六七八九])\s*面(?!積|談|会|白|倒|識|前|子|目|接)/.exec(t); if (!m) return 0; return /\d/.test(m[1]) ? +m[1] : '二三四五六七八九'.indexOf(m[1]) + 2; }
 /* 観音開き（仕立て・画材・作品名のどれかに「観音開き」）。屏風と同じく床に立てて置く */
 const isKannon = w => /観音開/.test(['仕立て', '画材', '作品名', '種別'].map(k => String(w[k] || '')).join(' ').normalize('NFKC'));
 /* 屏風の折り：仕立て → 画材 → 種別 → 作品名の順に「六曲」「一折」などを探して合わせる。書いてなければ一折り（2枚）（10/6 本人） */
@@ -9743,8 +9745,10 @@ function exvSet(k, mus){ const b = [S.filter, S.mus, S.q]; S.filter = k; S.mus =
 function exvWorks(noF){ const L = [], keep = !noF && EXVF.f !== 'all' ? exvSet(EXVF.f, EXVF.mus) : null;
   (S.works || []).forEach(w => { const no = w['作品番号'], p = (photoBy[no] || [])[0], id = p && p['ファイルID'];
     if (!id || (keep && !keep.has(String(no))) || /廃棄|統合済み/.test(String(w['所在'] || '') + ' ' + String(w['状態'] || ''))) return;
-    const d = dimMain(w), h = +d['高さcm'] || 0, wd = +d['幅cm'] || 0;
-    L.push({ no, w, id, y: yearOf(w['制作年']), s: String(w['シリーズ'] || '').trim(), h, wd, est: !(h > 0 && wd > 0), frame: szKind(w) === 'frame', b: isScreenW(w) || isKannon(w), k: isKannon(w), cp: copyOf(p) }); }); /* 転載した写真（©）も出す（10/6 本人）。キャプションに © */
+    const d = dimMain(w), h0 = +d['高さcm'] || 0, wd0 = +d['幅cm'] || 0, sn = exvSetN(w), pl = (photoBy[no] || []).filter(x => x['ファイルID'] && x['種類'] !== '記録写真');
+    const set = sn > 1 && pl.length >= sn && h0 > 0 && wd0 > 0 ? { n: sn, ids: pl.slice(0, sn).map(x => x['ファイルID']), pw: wd0, ph: h0, dir: wd0 >= h0 ? 'v' : 'h', gap: 6 } : null; /* 何面かで1組（台帳のサイズは1面ぶん）：横長の面は縦に、縦長の面は横に並べる。写真は面ごとに1枚（はじめの n 枚）。すき間 6cm */
+    const h = set && set.dir === 'v' ? sn * h0 + (sn - 1) * set.gap : h0, wd = set && set.dir === 'h' ? sn * wd0 + (sn - 1) * set.gap : wd0;
+    L.push({ no, w, id, set, y: yearOf(w['制作年']), s: String(w['シリーズ'] || '').trim(), h, wd, est: !(h > 0 && wd > 0), frame: szKind(w) === 'frame', b: isScreenW(w) || isKannon(w), k: isKannon(w), cp: copyOf(p) }); }); /* 転載した写真（©）も出す（10/6 本人）。キャプションに © */
   const gy = {}; L.forEach(d => { if (d.s) gy[d.s] = Math.min(gy[d.s] == null ? 99999 : gy[d.s], d.y); }); /* シリーズは、いちばん古い作品の年のところにまとめる */
   L.sort((a, b) => (a.s ? gy[a.s] : a.y) - (b.s ? gy[b.s] : b.y) || (a.s || '\uffff' + a.no).localeCompare(b.s || '\uffff' + b.no, 'ja', { numeric: true }) || a.y - b.y || String(a.no).localeCompare(String(b.no), 'ja', { numeric: true }));
   return L; }
@@ -9851,7 +9855,7 @@ document.addEventListener('click', e => { const t = e.target;
     shGo(x['種類'], x['対象']); return; }
   const g = t.closest('[data-shgo]'); if (g) { const [k, n] = g.dataset.shgo.split('|'); shGo(k, n); } });
 /* 展示ビューの並びの元（作品・写真・サイズ・年・名前など）。開いている間に最新の台帳が届いて、これが変わったら作り直す（10/6 本人） */
-const exvSig = L => L.map(d => [d.no, d.id, d.h, d.wd, d.y, d.s, d.b ? 1 : 0, d.k ? 1 : 0, d.frame ? 1 : 0, d.w['作品名'], d.w['制作年'], d.w['画材'], d.w['仕立て'], d.w['所在'], d.cp ? d.cp.mu : ''].join('|')).join('\n');
+const exvSig = L => L.map(d => [d.no, d.id, d.set ? d.set.ids.join(',') : '', d.h, d.wd, d.y, d.s, d.b ? 1 : 0, d.k ? 1 : 0, d.frame ? 1 : 0, d.w['作品名'], d.w['制作年'], d.w['画材'], d.w['仕立て'], d.w['所在'], d.cp ? d.cp.mu : ''].join('|')).join('\n');
 function exvSync(){ if (!EXV || !EXV.sig || !EXV.curNo || EXV.syncT) return; let L; try { L = exvWorks(); } catch(e){ return; } if (!L.length || exvSig(L) === EXV.sig) return;
   const go = () => { if (!EXV || !EXV.curNo) return; EXV.syncT = 0; if (EXV.busy()) { EXV.syncT = setTimeout(go, 1500); return; } /* 動いている・さわっている間は待つ */
     const no = EXV.curNo(), c = EXV.close, st = no != null && L.some(d => String(d.no) === String(no)) ? String(no) : 0; try { c(); } catch(e){} exvOpen(st, true); }; /* 履歴は増やさない */
@@ -9978,7 +9982,16 @@ function exvBuild(root, L, start){
   const items = L.map((d, i) => { const w = d.wd / 100, h = d.h / 100, g = new T3.Group(), [cv, x0] = cvs(16, 16); x0.fillStyle = '#dcd6cd'; x0.fillRect(0, 0, 16, 16);
     const base = mkTex(cv), it = { d, w, h, g, cv, tx: [base], req: 0, wm: w, hm: h };
     const artM = t => new T3.MeshStandardMaterial({ map: t, bumpMap: abm, bumpScale: 0.0015, roughness: 0.96, dithering: true });
-    if (d.k) { /* 観音開き（10/7 本人の写真）：まん中の板は壁と平行、左右の扉を少しだけ手前に開く。写真は開いたところを正面から撮った1枚で、扉：まん中：扉 ＝ 1：2：1 */
+    if (d.set) { /* 何面かで1組（10/7 本人）：面ごとの写真を1枚のテクスチャにまとめ（setPaint）、面ごとに貼り分ける。壁に掛ける */
+      const S0 = d.set, n = S0.n, pw = S0.pw / 100, ph = S0.ph / 100, gp = S0.gap / 100, vt = S0.dir === 'v', sF = Math.sqrt(pw * ph), dep = Math.min(0.05, Math.max(0.022, 0.018 + 0.02 * sF)), off = -0.003, cb = 0.012 + dep * 0.4;
+      for (let j = 0; j < n; j++) { const t = j ? base.clone() : base; if (j) { t.needsUpdate = true; it.tx.push(t); }
+        if (vt) { t.repeat.set(1, 1 / n); t.offset.set(0, (n - 1 - j) / n); } else { t.repeat.set(1 / n, 1); t.offset.set(j / n, 0); }
+        const pn = new T3.Mesh(new T3.BoxGeometry(pw, ph, dep), [side, side, side, side, artM(t), side]); pn.castShadow = true;
+        if (vt) pn.position.set(0, h / 2 - ph / 2 - j * (ph + gp), off + dep / 2); else pn.position.set(-w / 2 + pw / 2 + j * (pw + gp), 0, off + dep / 2);
+        g.add(pn, cStrip(pw + 0.004, cb, 0.46, pn.position.x, pn.position.y - ph / 2 - cb / 2 + 0.001, 0)); }
+      const m = 0.03 + 0.06 * sF, bl = 0.008 + 0.025 * sF, ao = new T3.Mesh(new T3.PlaneGeometry(w + 2 * m, h + 2 * m), new T3.MeshBasicMaterial({ transparent: true, opacity: Math.min(0.32, 0.18 + 0.1 * sF), depthWrite: false })); ao.position.set(0, -0.004 - 0.008 * sF, 0.0012); ao.visible = false; ao.raycast = () => {}; g.add(ao);
+      g.position.y = CY; Object.assign(it, { ao, aoMk: () => softShadow(w, h, m, bl), tr: vt ? pw / (n * ph) : n * pw / ph }); }
+    else if (d.k) { /* 観音開き（10/7 本人の写真）：まん中の板は壁と平行、左右の扉を少しだけ手前に開く。写真は開いたところを正面から撮った1枚で、扉：まん中：扉 ＝ 1：2：1 */
       const th = 0.36, cw = w / 2, dw = w / 4, c = Math.cos(th), dz = dw * Math.sin(th), dep = 0.03, zb = 0.12, Wk = cw + 2 * dw * c, y0 = h / 2 + 0.004;
       const tL = base, tC = base.clone(), tR = base.clone(); [tC, tR].forEach(t => { t.needsUpdate = true; it.tx.push(t); });
       tL.repeat.set(0.25, 1); tL.offset.set(0, 0); tC.repeat.set(0.5, 1); tC.offset.set(0.25, 0); tR.repeat.set(0.25, 1); tR.offset.set(0.75, 0);
@@ -10015,26 +10028,34 @@ function exvBuild(root, L, start){
 
   /* 近くの作品だけ写真・キャプション・影を読み込み、遠くなったら手放す（スマホのメモリのため） */
   let rq = 0, dead = 0; const redraw = () => { if (rq || dead) return; rq = requestAnimationFrame(() => { rq = 0; draw(); }); };
-  const capLines = it => { const w = it.d.w, sz = it.d.est ? '約 ' + it.d.h + ' × ' + it.d.wd + ' cm（推定）' : (+it.d.h).toFixed(1) + ' × ' + (+it.d.wd).toFixed(1) + ' cm' + (it.d.frame ? '（額込み）' : '');
+  const capLines = it => { const w = it.d.w, sz = it.d.set ? '各 ' + (+it.d.set.ph).toFixed(1) + ' × ' + (+it.d.set.pw).toFixed(1) + ' cm（' + it.d.set.n + '面）' : it.d.est ? '約 ' + it.d.h + ' × ' + it.d.wd + ' cm（推定）' : (+it.d.h).toFixed(1) + ' × ' + (+it.d.wd).toFixed(1) + ' cm' + (it.d.frame ? '（額込み）' : '');
     return [[String(it.d.no), 10.5, 400, '#8a8379', 6, 1], [String(w['作品名'] || '').trim() || '無題', 17, 500, '#2a2724', 6, 1.5], [exvYearTxt(w), 11.5, 400, '#46413b', 2.5, 0.4], [String(w['画材'] || '').trim(), 11.5, 400, '#46413b', 2.5, 0.4], [sz, 11.5, 400, '#46413b', 2.5, 0.4], [exvOwner(w), 11.5, 400, '#46413b', it.d.cp ? 4 : 0, 0.4]].concat(it.d.cp ? [['画像 © ' + String(it.d.cp.mu || '').replace(/^[@＠]/, ''), 9.5, 400, '#8a8379', 0, 0.4]] : []); };
-  const paint = (it, im) => { const iw = im.naturalWidth, ih = im.naturalHeight; if (!iw || !it.req) return; it.pt = 1; it.fail = 0;
-    const tr = it.wm / it.hm, ir = iw / ih; let sx = 0, sy = 0, sw = iw, sh = ih;
+  const paint = (it, im) => { const iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height; if (!iw || !it.req) return; it.pt = 1; it.fail = 0;
+    const tr = it.tr || it.wm / it.hm, ir = iw / ih; let sx = 0, sy = 0, sw = iw, sh = ih;
     if (Math.abs(ir / tr - 1) > 0.06) { if (ir > tr) { sw = ih * tr; sx = (iw - sw) / 2; } else { sh = iw / tr; sy = (ih - sh) / 2; } } /* 形が台帳と合わないときは、まん中を切り出す */
     const k = Math.min(1, 1024 / Math.max(sw, sh)), cw = Math.max(2, Math.round(sw * k)), ch = Math.max(2, Math.round(sh * k)), c = it.cv, x = c.getContext('2d');
     c.width = cw; c.height = ch; x.drawImage(im, sx, sy, sw, sh, 0, 0, cw, ch);
     try { const id = x.getImageData(0, 0, cw, ch), q = id.data; for (let i = 0; i < q.length; i += 4) { const r0 = q[i], g0 = q[i + 1], b0 = q[i + 2], l = 0.299 * r0 + 0.587 * g0 + 0.114 * b0; q[i] = (l + (r0 - l) * 1.14 - 128) * 1.05 + 128; q[i + 1] = (l + (g0 - l) * 1.14 - 128) * 1.05 + 128; q[i + 2] = (l + (b0 - l) * 1.14 - 128) * 1.05 + 128; } x.putImageData(id, 0, 0); } /* 発色を少しよく（10/6 本人） */ catch(e){ c.width = c.height = 16; x.fillStyle = '#dcd6cd'; x.fillRect(0, 0, 16, 16); it.tx.forEach(t => { t.needsUpdate = true; }); return redraw(); }
     matte(x, cw, ch); it.tx.forEach(t => { t.needsUpdate = true; }); redraw(); };
+  const setPaint = (it, im0, lv) => { const S0 = it.d.set, tok = it.im, rest = S0.ids.slice(1), got = {}; rest.forEach(id => { const v = TH[lv + '_' + id]; if (v && /^data:/.test(v)) got[id] = v; });
+    const need = rest.filter(id => !got[id]);
+    (need.length ? Promise.race([call('getThumbs', need, lv, null, 1), new Promise(r => setTimeout(() => r({}), 30000))]).catch(() => ({})) : Promise.resolve({})).then(m => { need.forEach(id => { const v = m && m[id]; if (v && /^data:/.test(v)) { TH[lv + '_' + id] = v; got[id] = v; } });
+      if (it.im !== tok || !it.req) return; if (rest.some(id => !got[id])) { it.sTry = (it.sTry || 0) + 1; if (it.sTry <= 5) setTimeout(() => { if (it.im === tok && it.req) setPaint(it, im0, lv); }, 3000 * it.sTry); return; }
+      Promise.all(rest.map(id => loadImg(got[id]).catch(() => null))).then(ims => { if (it.im !== tok || !it.req || ims.some(x => !x)) return; const all = [im0].concat(ims), n = S0.n, vt = S0.dir === 'v';
+        const L0 = 1600, pr = S0.ph / S0.pw, cw = vt ? L0 : Math.round(L0 / pr), ch = vt ? Math.round(L0 * pr) : L0, c = document.createElement('canvas'); c.width = vt ? cw : cw * n; c.height = vt ? ch * n : ch; const x = c.getContext('2d');
+        all.forEach((im, j) => x.drawImage(im, vt ? 0 : j * cw, vt ? j * ch : 0, cw, ch)); paint(it, c); c.width = c.height = 1; }); }); };
+  const paintX = (it, im, lv) => it.d.set ? setPaint(it, im, lv) : paint(it, im); /* 何面かの組は、全部の面がそろってから */
   const warm = it => { if (it.req) return; it.req = 1;
     if (!it.capF.map) { it.capF.map = wallText(capLines(it), CAPW, CAPH, CPAD, '#f6f4f0', true, '作品ページへ'); it.capF.color.set('#ffffff'); it.capF.needsUpdate = true; } it.capM.visible = true;
     if (!it.ao.material.map) { it.ao.material.map = it.aoMk(); it.ao.material.needsUpdate = true; } it.ao.visible = true;
-    const tok = {}; it.im = tok; const lo = TH['400_' + it.d.id]; if (lo && /^data:/.test(lo)) { const i0 = new Image(); i0.onload = () => { if (it.im === tok && !it.hi) paint(it, i0); }; i0.src = lo; }
+    const tok = {}; it.im = tok; const lo = TH['400_' + it.d.id]; if (lo && /^data:/.test(lo)) { const i0 = new Image(); i0.onload = () => { if (it.im === tok && !it.hi) paintX(it, i0, 400); }; i0.src = lo; }
     it.hi = 0; it.pt = 0; it.tries = 0; it.fail = 0; it.fresh = exvFresh(it.d.id); ldDraw(it, performance.now()); ldOn(); /* 届くまでは白い紙のまん中にローダー */
     PQ.set(it.d.id, it); clearTimeout(PQT); PQT = setTimeout(pull, 40); };
   const cool = it => { if (!it.req) return; it.req = 0; it.im = null; it.lo = 0; it.pt = 0; PQ.delete(it.d.id); const c = it.cv, x = c.getContext('2d'); c.width = c.height = 16; x.fillStyle = '#dcd6cd'; x.fillRect(0, 0, 16, 16); it.tx.forEach(t => { t.needsUpdate = true; });
     [[it.capM, it.capF], [it.ao, it.ao.material]].forEach(([o, m]) => { if (m.map) { m.map.dispose(); m.map = null; m.needsUpdate = true; } o.visible = false; }); };
   /* 読み込み中の表示（10/6 本人）：白い紙のまん中に細い線の丸いローダー、下に小さな灰色の文字「画像を更新しています」。画面の上で同じくらいの大きさになるよう、
      止まったときの「1画面ピクセルあたりのメートル」（it.kpx）から描く大きさを決める。届かなければ「画像を読み込めませんでした」 */
-  const ldDraw = (it, t) => { if (!it.req || it.pt) return; const kp = it.kpx || 0.002, pw = it.wm / kp, ph = it.hm / kp, q = Math.min(2, 1024 / Math.max(pw, ph, 1));
+  const ldDraw = (it, t) => { if (!it.req || it.pt) return; const kp = it.kpx || 0.002, pw = it.wm / kp, ph = it.tr ? pw / it.tr : it.hm / kp, q = Math.min(2, 1024 / Math.max(pw, ph, 1));
     const cw = Math.max(16, Math.round(pw * q)), ch = Math.max(16, Math.round(ph * q)), c = it.cv; if (c.width !== cw || c.height !== ch) { c.width = cw; c.height = ch; }
     const x = c.getContext('2d'), m = Math.min(cw, ch), R = Math.min(10 * q, 0.16 * m), fs = Math.min(10.5 * q, 0.075 * cw, 0.09 * ch), gap = Math.min(9 * q, 0.06 * m), cx = cw / 2;
     x.fillStyle = '#dcd6cd'; x.fillRect(0, 0, cw, ch);
@@ -10062,7 +10083,7 @@ function exvBuild(root, L, start){
     if (need.length) { let sv = {}; try { sv = (await tmo(thGet(need.flatMap(id => ['800_' + id, '400_' + id])), 4000)) || {}; } catch(e){}
       let rest = need.filter(id => { const v = sv['800_' + id]; if (v && /^data:/.test(v)) { out[id] = v; TH['800_' + id] = v; return false; } return true; });
       /* まず 400px（端末の控え → Google のサムネのシート。どちらも速い）で絵を出し、そのあと 800px に差しかえる（10/7 本人） */
-      const loP = (id, v) => { const it = PQ0[id], tok = it && it.im; if (!it || !it.req || it.hi || it.lo) return; const im = new Image(); im.onload = () => { if (it.im === tok && it.req && !it.hi) { it.lo = 1; paint(it, im); } }; im.src = v; };
+      const loP = (id, v) => { const it = PQ0[id], tok = it && it.im; if (!it || !it.req || it.hi || it.lo) return; const im = new Image(); im.onload = () => { if (it.im === tok && it.req && !it.hi) { it.lo = 1; paintX(it, im, 400); } }; im.src = v; };
       const ask = []; rest.forEach(id => { const v = TH['400_' + id] || sv['400_' + id]; if (v && /^data:/.test(v)) { TH['400_' + id] = v; loP(id, v); } else if (PQ0[id].req && !PQ0[id].lo) ask.push(id); });
       if (ask.length) { try { const m = await tmo(call('getThumbs', ask, 400, null, 1), 20000), kl = {}; ask.forEach(id => { const v = m && m[id]; if (v && /^data:/.test(v)) { TH['400_' + id] = v; kl['400_' + id] = v; loP(id, v); } }); if (Object.keys(kl).length) thPut(kl); } catch(e){} }
       rest = rest.filter(id => PQ0[id].req); /* 遠ざかった作品の 800px は頼まない */
@@ -10072,7 +10093,7 @@ function exvBuild(root, L, start){
       if (rest.length) { try { take(await tmo(call('getThumbs', rest, 800, null, 1), 30000), keep); } catch(e){} } /* 残りは Google から */
       if (Object.keys(keep).length) thPut(keep); }
     batch.forEach(([id, it]) => { const v = out[id]; if (!it.req) return; if (!v) return retry(it); const tok = it.im, im = new Image();
-      im.onload = () => { if (it.im === tok && it.req) { it.hi = 1; it.tries = 0; paint(it, im); } }; im.onerror = () => { delete TH['800_' + id]; retry(it); }; im.src = v; }); };
+      im.onload = () => { if (it.im === tok && it.req) { it.hi = 1; it.tries = 0; paintX(it, im, 800); } }; im.onerror = () => { delete TH['800_' + id]; retry(it); }; im.src = v; }); };
   const nearIdx = () => { let bi = 0; stops.forEach((s, i) => { if (Math.abs(s.x - st.x) < Math.abs(stops[bi].x - st.x)) bi = i; }); return bi; };
   const around = k => { items.forEach((it, i) => { const d = i + 1 - k; if (d >= -3 && d <= 4) warm(it); else if (d < -8 || d > 9) cool(it); }); };
   let wt = 0; const aroundLater = () => { clearTimeout(wt); wt = setTimeout(() => around(nearIdx()), 160); };
