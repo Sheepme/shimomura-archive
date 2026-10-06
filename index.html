@@ -2340,7 +2340,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'fb80c4f1a0', APP_URL = location.origin + location.pathname;
+const BUILD = 'f147ca8ed9', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -9847,7 +9847,7 @@ function exvFresh(fid){ const p = (S.photos || []).find(x => x['ファイルID']
 async function exvOpen(start, noPush){
   if (!exvIsAdm() || EXV) return;
   exvCss(); const root = document.createElement('div'); root.id = 'exv'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-label', '展示ビュー');
-  root.innerHTML = '<div class="xst"></div><div class="xwait">展示室を準備しています…</div><button type="button" class="xsh" aria-label="メニュー（表示する作品・共有）" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 7h15M4.5 12h15M4.5 17h15"/></svg></button><button type="button" class="xcl" aria-label="展示ビューを出る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5H6.5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1H14"/><path d="M10.5 12h9M16.5 8.5 20 12l-3.5 3.5"/></svg></button><div class="xhint" style="opacity:0"><span></span></div><button type="button" class="xnav xprev" aria-label="前の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M12 2 2 13l10 11"/></svg></button><button type="button" class="xpp" aria-label="自動再生を一時停止"></button><button type="button" class="xnav xnext" aria-label="次の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M2 2l10 11L2 24"/></svg></button><div class="ynum"></div><div class="xyr" aria-hidden="true"></div><div class="yrs" aria-label="作品の位置（指を当てて左右に動かすと早送り）"><div class="ydots"><i class="yc"></i></div></div>';
+  root.innerHTML = '<div class="xst"></div><div class="xwait">展示室を準備しています…</div><button type="button" class="xsh" aria-label="メニュー（表示する作品・共有）" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="1.35" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.35" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.35" fill="currentColor" stroke="none"/></svg></button><button type="button" class="xcl" aria-label="展示ビューを出る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5H6.5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1H14"/><path d="M10.5 12h9M16.5 8.5 20 12l-3.5 3.5"/></svg></button><div class="xhint" style="opacity:0"><span></span></div><button type="button" class="xnav xprev" aria-label="前の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M12 2 2 13l10 11"/></svg></button><button type="button" class="xpp" aria-label="自動再生を一時停止"></button><button type="button" class="xnav xnext" aria-label="次の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M2 2l10 11L2 24"/></svg></button><div class="ynum"></div><div class="xyr" aria-hidden="true"></div><div class="yrs" aria-label="作品の位置（指を当てて左右に動かすと早送り）"><div class="ydots"><i class="yc"></i></div></div>';
   document.body.appendChild(root); document.body.classList.add('exvopen');
   try { const fs = root.requestFullscreen || root.webkitRequestFullscreen; if (fs) { const q = fs.call(root); if (q && q.catch) q.catch(() => {}); } } catch(e){} /* 押した直後でないと全画面にできない */
   try { const tm = document.querySelector('meta[name="theme-color"]'); if (tm) tm.content = '#ebe8e3'; } catch(e){}
