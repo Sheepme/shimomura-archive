@@ -2299,7 +2299,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '406b9d4dca', APP_URL = location.origin + location.pathname;
+const BUILD = '51587f1e19', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -9696,7 +9696,7 @@ function exvCss(){ if (document.getElementById('exvcss')) return; const st = doc
 #exv .ydots{position:absolute;inset:0;pointer-events:none}
 #exv .ynum{transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1)}#exv .ynum.xmv{opacity:0;transform:translateY(4px);transition:opacity .32s ease-in,transform .32s ease-in}
 #exv .xyr{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:block;white-space:pre;text-align:center;padding:0 0 0 .015em;letter-spacing:.015em;font-kerning:normal;font-feature-settings:'kern' 1,'pnum' 1,'lnum' 1;font-variant-numeric:proportional-nums lining-nums;font-family:"Helvetica Neue","Avenir Next","Hiragino Sans","Noto Sans JP",Helvetica,Arial,sans-serif;font-size:clamp(56px,11vw,132px);line-height:1;font-weight:200;color:#fff;text-shadow:0 0 36px rgba(0,0,0,.2);opacity:0;transition:opacity 1s ease;pointer-events:none;z-index:4}
-#exv .xyr.xin{opacity:.95;transition:opacity .6s ease}#exv .xyr.xml{font-size:clamp(46px,9vw,108px);line-height:1.08}
+#exv .xyr.xin{opacity:.95;transition:opacity .6s ease}#exv .xyr.xml{font-size:clamp(46px,9vw,108px);line-height:.86}#exv .xyr.xml .l{display:block}#exv .xyr.xml .h{line-height:.5;transform:translateY(-.03em)}
 
 #exv .yc{position:absolute;left:50%;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;border:1.2px solid #2b2825;box-sizing:border-box;opacity:.85}
 #exv .yd{position:absolute;left:50%;top:50%;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;border-radius:50%;background:#2b2825;opacity:0;transition:opacity .3s ease}
@@ -9867,7 +9867,7 @@ function exvBuild(root, L, start){
     if (!it.ao.material.map) { it.ao.material.map = it.aoMk(); it.ao.material.needsUpdate = true; } it.ao.visible = true;
     const tok = {}; it.im = tok; const lo = TH['400_' + it.d.id]; if (lo && /^data:/.test(lo)) { const i0 = new Image(); i0.onload = () => { if (it.im === tok && !it.hi) paint(it, i0); }; i0.src = lo; }
     it.hi = 0; PQ.set(it.d.id, it); clearTimeout(PQT); PQT = setTimeout(pull, 40); };
-  const cool = it => { if (!it.req) return; it.req = 0; it.im = null; PQ.delete(it.d.id); const c = it.cv, x = c.getContext('2d'); c.width = c.height = 16; x.fillStyle = '#dcd6cd'; x.fillRect(0, 0, 16, 16); it.tx.forEach(t => { t.needsUpdate = true; });
+  const cool = it => { if (!it.req) return; it.req = 0; it.im = null; it.lo = 0; PQ.delete(it.d.id); const c = it.cv, x = c.getContext('2d'); c.width = c.height = 16; x.fillStyle = '#dcd6cd'; x.fillRect(0, 0, 16, 16); it.tx.forEach(t => { t.needsUpdate = true; });
     [[it.capM, it.capF], [it.ao, it.ao.material]].forEach(([o, m]) => { if (m.map) { m.map.dispose(); m.map = null; m.needsUpdate = true; } o.visible = false; }); };
   /* 写真の取り寄せ：端末に保存した 800px（data:）→ なければまとめて Google から（Mac・ドライブから速く読む設定でも、3Dに貼れる data: だけ使う） */
   const PQ = new Map(); let PQT = 0;
@@ -9876,15 +9876,20 @@ function exvBuild(root, L, start){
     setTimeout(() => { if (EXV && it.req && !it.hi) { PQ.set(it.d.id, it); clearTimeout(PQT); PQT = setTimeout(pull, 40); } }, ms); };
   const pull = async () => { const cur = ci - 1, all = [...PQ.entries()].sort((a, b) => Math.abs(items.indexOf(a[1]) - cur) - Math.abs(items.indexOf(b[1]) - cur)); /* いま見ている作品から先に */
     const batch = all.slice(0, 6); batch.forEach(([id]) => PQ.delete(id)); if (!batch.length) return; if (PQ.size) PQT = setTimeout(pull, 60);
-    const ids = batch.map(([id]) => id), out = {}, need = [];
+    const ids = batch.map(([id]) => id), out = {}, need = [], PQ0 = Object.fromEntries(batch);
     ids.forEach(id => { const v = TH['800_' + id]; if (v && /^data:/.test(v)) out[id] = v; else need.push(id); });
-    if (need.length) { let sv = {}; try { sv = await thGet(need.map(id => '800_' + id)); } catch(e){}
+    const tmo = (p, ms) => Promise.race([p, new Promise(r => setTimeout(() => r(null), ms))]);
+    if (need.length) { let sv = {}; try { sv = (await tmo(thGet(need.map(id => '800_' + id)), 4000)) || {}; } catch(e){}
       let rest = need.filter(id => { const v = sv['800_' + id]; if (v && /^data:/.test(v)) { out[id] = v; TH['800_' + id] = v; return false; } return true; });
       const take = (m, keep) => { rest = rest.filter(id => { const v = m && m[id]; if (v && /^data:/.test(v)) { out[id] = v; TH['800_' + id] = v; keep['800_' + id] = v; return false; } return true; }); };
       const keep = {};
-      if (rest.length && fpOn()) { try { take(await fpThumbs(false, [rest, 800], false), keep); } catch(e){} } /* Mac・ドライブから速く読む設定：3Dに貼れる data: だけ使う */
-      if (rest.length) { try { take(await call('getThumbs', rest, 800), keep); } catch(e){} } /* 残りは Google から */
-      if (Object.keys(keep).length) thPut(keep); }
+      if (rest.length && fpOn()) { try { take(await tmo(fpThumbs(false, [rest, 800], false), 8000), keep); } catch(e){} } /* Mac・ドライブから速く読む設定：3Dに貼れる data: だけ使う */
+      if (rest.length) { try { take(await tmo(call('getThumbs', rest, 800), 30000), keep); } catch(e){} } /* 残りは Google から */
+      if (Object.keys(keep).length) thPut(keep);
+      const lo = rest.filter(id => { const it = PQ0[id]; return it && it.req && !it.hi && !it.lo; }); /* 800px が来ないときは、400px でもまず出す */
+      if (lo.length) { const got = {}; lo.forEach(id => { const v = TH['400_' + id]; if (v && /^data:/.test(v)) got[id] = v; }); const ask = lo.filter(id => !got[id]);
+        if (ask.length) { try { const m = await tmo(call('getThumbs', ask, 400), 20000); ask.forEach(id => { const v = m && m[id]; if (v && /^data:/.test(v)) got[id] = v; }); } catch(e){} }
+        Object.keys(got).forEach(id => { const it = PQ0[id], tok = it.im, im = new Image(); im.onload = () => { if (it.im === tok && it.req && !it.hi) { it.lo = 1; paint(it, im); } }; im.src = got[id]; }); } }
     batch.forEach(([id, it]) => { const v = out[id]; if (!it.req) return; if (!v) return retry(it); const tok = it.im, im = new Image();
       im.onload = () => { if (it.im === tok && it.req) { it.hi = 1; it.tries = 0; paint(it, im); } }; im.onerror = () => { delete TH['800_' + id]; retry(it); }; im.src = v; }); };
   const nearIdx = () => { let bi = 0; stops.forEach((s, i) => { if (Math.abs(s.x - st.x) < Math.abs(stops[bi].x - st.x)) bi = i; }); return bi; };
@@ -10004,7 +10009,8 @@ function exvBuild(root, L, start){
     const f = n => { if (!EXV) { LFa = 0; return; } if (LFt !== f.t) { f.t = LFt; t0 = n; l0 = LF; } const ms = LFt < l0 ? 650 : 1100, t = Math.min(1, (n - t0) / ms), e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; LF = l0 + (LFt - l0) * e;
       if (performance.now() - wkT > 60) draw(); if (t < 1) LFa = requestAnimationFrame(f); else LFa = 0; }; f.t = LFt; LFa = requestAnimationFrame(f); };
   const yrHide = () => { yrEl.classList.remove('xin'); lightTo(1); };
-  const yrShow = t => { if (yrEl.textContent !== t) { yrEl.textContent = t; yrEl.classList.toggle('xml', t.includes('\n')); } yrEl.classList.add('xin'); lightTo(0); }; /* 出ている間に年が変わったら、数字だけそのまま入れかえ */
+  const yrShow = t => { if (yrEl.dataset.t !== t) { yrEl.dataset.t = t; const ml = t.includes('\n'); yrEl.classList.toggle('xml', ml);
+      if (ml) yrEl.innerHTML = t.split('\n').map(x => '<span class="l' + (x === '-' ? ' h' : '') + '">' + esc(x) + '</span>').join(''); else yrEl.textContent = t; } yrEl.classList.add('xin'); lightTo(0); }; /* 出ている間に年が変わったら、数字だけそのまま入れかえ */
   const yrOff = ms => { clearTimeout(yrT); yrT = setTimeout(yrHide, ms); };
   let yrD = 0, yrLate = 0;
   const flashY = k => { const y = k < 0 ? '' : yrOf(k); if (y === lastY) return; lastY = y; clearTimeout(yrD); if (!y) return; const d = yrLate; yrLate = 0;
@@ -10049,7 +10055,7 @@ function exvBuild(root, L, start){
   EXV.close = () => { tid++; clearTimeout(autoT); clearTimeout(settle); clearTimeout(wt); if (rq) cancelAnimationFrame(rq); removeEventListener('resize', rs); removeEventListener('keydown', key);
     sc.traverse(o => { if (o.geometry) o.geometry.dispose(); const ms = o.material ? [].concat(o.material) : []; ms.forEach(m => { if (m.map) m.map.dispose(); if (m.bumpMap) m.bumpMap.dispose(); m.dispose(); }); });
     items.forEach(it => it.tx.forEach(t => t.dispose())); r.dispose(); if (r.forceContextLoss) r.forceContextLoss(); close0(); };
-  EXV.go = go; EXV.cur = () => ci; EXV.n = items.length; EXV.start = ci; EXV.loaded = () => items.map(it => it.hi ? 1 : 0); EXV.light = () => [LFt, +LF.toFixed(2)]; EXV.at = () => { const S = stops[ci]; return !!S && Math.abs(st.x - S.x) < 1e-3 && Math.abs(st.y - S.y) < 1e-3; };
+  EXV.go = go; EXV.cur = () => ci; EXV.n = items.length; EXV.start = ci; EXV.loaded = () => items.map(it => it.hi ? 1 : it.lo ? 0.5 : 0); EXV.light = () => [LFt, +LF.toFixed(2)]; EXV.at = () => { const S = stops[ci]; return !!S && Math.abs(st.x - S.x) < 1e-3 && Math.abs(st.y - S.y) < 1e-3; };
   EXV.edges = () => items.map(it => { const w = it.W || it.w, y = it.d.b ? it.h / 2 : CY, b = el.getBoundingClientRect(), f = xx => { const v = new T3.Vector3(xx, y, 0).project(cam); return Math.round(b.left + (v.x + 1) / 2 * b.width); }; return [f(it.g.position.x - w / 2), f(it.capM.position.x + PWm / 2)]; }); /* 確かめ用 */
   EXV.capRect = () => { const it = items[ci - 1], b = el.getBoundingClientRect(), v = new T3.Vector3(it.capM.position.x - PWm * 0.3, it.capM.position.y - PHm / 2 + PHm * 0.12, 0.006).project(cam); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }; /* 確かめ用：「作品ページへ」のあたり */ EXV.stop = () => ({ y: +st.y.toFixed(3), cy: stops[ci] && stops[ci].y, x: +st.x.toFixed(3), sx: stops[ci] && +stops[ci].x.toFixed(3), z: +st.z.toFixed(3), sz: stops[ci] && +stops[ci].z.toFixed(3), zoomed, ci });
   EXV.capAt = () => { const it = items[ci - 1]; if (!it) return null; const v = it.capM.position.clone().project(cam), b = el.getBoundingClientRect(); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }; /* 確かめ用 */
