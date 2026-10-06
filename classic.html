@@ -3,6 +3,25 @@
 <head>
 <title>（旧UI）下村良之介 作品目録</title>
 <meta name="robots" content="noindex, nofollow, noarchive, noimageindex, noai, noimageai">
+<meta name="tdm-reservation" content="1">
+<style>
+/* 画像を保存・コピーしにくくする（右クリック・長押し・ドラッグ・選択）。スクリーンショットは防げない（開発 v10） */
+img,canvas,video,picture{-webkit-user-drag:none;user-drag:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+</style>
+<script>
+/* 画像の上の右クリック・長押しのメニュー（画像を保存・コピー）、画像のドラッグ、画像を含む選択のコピーを止める（10/7 開発 v10）。
+   文字だけのコピーと、入力欄のコピー・貼り付け、アプリの「コピー」ボタンはそのまま */
+(function(){ var Q = 'img,canvas,video,picture,svg image';
+  function on(t){ if (t && t.nodeType === 3) t = t.parentNode; return !!(t && t.closest && t.closest(Q)); }
+  document.addEventListener('contextmenu', function(e){ if (on(e.target)) e.preventDefault(); }, true);
+  document.addEventListener('dragstart', function(e){ if (on(e.target)) e.preventDefault(); }, true);
+  function cp(e){ var a = document.activeElement; if (a && (/^(INPUT|TEXTAREA)$/.test(a.tagName) || a.isContentEditable)) return;
+    var s = window.getSelection && getSelection(); if (!s || !s.rangeCount || !e.clipboardData) return;
+    for (var i = 0; i < s.rangeCount; i++){ var f = s.getRangeAt(i).cloneContents();
+      if (f.querySelector && f.querySelector(Q)) { e.clipboardData.setData('text/plain', s.toString()); e.preventDefault(); return; } } }
+  document.addEventListener('copy', cp, true); document.addEventListener('cut', cp, true);
+})();
+</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="作品目録">
