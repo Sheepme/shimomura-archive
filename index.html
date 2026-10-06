@@ -2341,7 +2341,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '3a1a1fbd1c', APP_URL = location.origin + location.pathname;
+const BUILD = '253f234c03', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -9894,6 +9894,7 @@ function exvClose(fromHist){ if (!EXV) return; const c = EXV.close; try { c(); }
 function exvBuild(root, L, start){
   const T3 = THREE, RM = matchMedia('(prefers-reduced-motion: reduce)').matches, TN = Math.tan(Math.PI / 8);
   const FONT = '"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif';
+  const EXZB = 0.35; /* 床に立てる作品（屏風・観音開き）の、壁からの距離（m）。前は 0.12〜0.14、10/7 本人「もう少し手前に」 */
   const CY = 1.45, CAPW = 240, CAPH = 200, TTW = 420, TTH = 100, CAPWm = 0.096, /* 文字の大きさは前と同じ（1単位 0.6mm）。パネルは正方形に近い長方形（約18×16cm） */ CAPX = 0.12, CPAD = 30, CAPG = 0.07, UP = 0.12, PWm = (CAPW + 2 * CPAD) * CAPWm / CAPW, PHm = (CAPH + 2 * CPAD) * CAPWm / CAPW, CAPMIN = 0.85; /* キャプションは小さな四角いパネル（約22×11cm）。下の端を作品の下の端にそろえ、床から85cmより下にはしない */
   const stage = root.querySelector('.xst'), hint = root.querySelector('.xhint'), hintT = hint.firstChild;
   const cvs = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return [c, c.getContext('2d')]; };
@@ -9998,7 +9999,7 @@ function exvBuild(root, L, start){
       const m = 0.03 + 0.06 * sF, bl = 0.008 + 0.025 * sF, ao = new T3.Mesh(new T3.PlaneGeometry(w + 2 * m, h + 2 * m), new T3.MeshBasicMaterial({ transparent: true, opacity: Math.min(0.32, 0.18 + 0.1 * sF), depthWrite: false })); ao.position.set(0, -0.004 - 0.008 * sF, 0.0012); ao.visible = false; ao.raycast = () => {}; g.add(ao);
       g.position.y = CY; Object.assign(it, { ao, aoMk: () => softShadow(w, h, m, bl), tr: vt ? pw / (n * ph) : n * pw / ph }); }
     else if (d.k) { /* 観音開き（10/7 本人の写真）：まん中の板は壁と平行、左右の扉を少しだけ手前に開く。写真は開いたところを正面から撮った1枚で、扉：まん中：扉 ＝ 1：2：1 */
-      const th = 0.36, cw = w / 2, dw = w / 4, c = Math.cos(th), dz = dw * Math.sin(th), dep = 0.03, zb = 0.12, Wk = cw + 2 * dw * c, y0 = h / 2 + 0.004;
+      const th = 0.36, cw = w / 2, dw = w / 4, c = Math.cos(th), dz = dw * Math.sin(th), dep = 0.03, zb = EXZB, Wk = cw + 2 * dw * c, y0 = h / 2 + 0.004;
       const tL = base, tC = base.clone(), tR = base.clone(); [tC, tR].forEach(t => { t.needsUpdate = true; it.tx.push(t); });
       tL.repeat.set(0.25, 1); tL.offset.set(0, 0); tC.repeat.set(0.5, 1); tC.offset.set(0.25, 0); tR.repeat.set(0.25, 1); tR.offset.set(0.75, 0);
       const pnl = (pw, t) => { const m = new T3.Mesh(new T3.BoxGeometry(pw, h, dep), [edge, edge, edge, edge, artM(t), edge]); m.castShadow = true; m.receiveShadow = true; return m; };
@@ -10006,7 +10007,7 @@ function exvBuild(root, L, start){
       [[-1, tL], [1, tR]].forEach(([sd, t]) => { const pv = new T3.Group(); pv.position.set(sd * cw / 2, y0, zb); pv.rotation.y = -sd * th; const dr = pnl(dw, t); dr.position.x = sd * dw / 2; pv.add(dr); g.add(pv); }); /* 蝶番はまん中の板の端 */
       const ao = new T3.Mesh(new T3.PlaneGeometry(Wk + 0.3, dz + 0.34), new T3.MeshBasicMaterial({ transparent: true, opacity: 0.34, depthWrite: false })); ao.rotation.x = -Math.PI / 2; ao.position.set(0, 0.002, zb + dz / 2); ao.visible = false; ao.raycast = () => {}; g.add(ao);
       Object.assign(it, { W: Wk, ao, aoMk: () => softShadow(Wk, dz + 0.04, 0.15) }); }
-    else if (d.b) { const n = exvFolds(d.w), th = n > 1 ? 0.3 : 0, pw = w / n, c = Math.cos(th), dd = pw * Math.sin(th), FWb = 0.022, FDb = 0.03, fz = 0.013 - FDb / 2, W2 = w * c + 2 * FWb, zb = 0.14;
+    else if (d.b) { const n = exvFolds(d.w), th = n > 1 ? 0.3 : 0, pw = w / n, c = Math.cos(th), dd = pw * Math.sin(th), FWb = 0.022, FDb = 0.03, fz = 0.013 - FDb / 2, W2 = w * c + 2 * FWb, zb = EXZB;
       /* 黒い漆の縁（10/6 本人）：上下は各扇に、左右は両端だけ。角をわずかに丸めて光が縁に乗るように */
       const hB = lacBar(pw, FDb, FWb, 'h'), vB = lacBar(h + 2 * FWb, FWb, FDb, 'v');
       for (let j = 0; j < n; j++) { const t = j ? base.clone() : base; if (j) { t.needsUpdate = true; it.tx.push(t); } t.repeat.set(1 / n, 1); t.offset.set(j / n, 0);
@@ -10122,16 +10123,17 @@ function exvBuild(root, L, start){
     const FW = port ? 0.72 : 0.64, FH = port ? 0.46 : 0.62;
     /* 1点ぶんの見せ方：画面に占める割合（シリーズの中は少し大きく＝間をつめて掛ける）・キャプションの置き方・見る高さ */
     const frame = (it, tight) => { const h = it.h, w = it.W || it.w, cy = it.d.b ? h / 2 : CY, fw = FW * (tight ? 1.15 : 1), fh = FH * (tight ? 1.15 : 1);
-      const k0 = Math.max(w / (fw * W), h / (fh * H), kz(0.25)), belowOk = !it.d.b && CY - h / 2 - CAPG - PHm >= 0.55, rightFits = kk => (w / 2 + CAPX + PWm + 0.03) / kk <= W / 2 - 12;
+      const cxo = it.d.b ? CAPX + 0.25 : CAPX; /* 床に立てる作品は手前にあるので、キャプションを少し右に離す（かくれないように） */
+      const k0 = Math.max(w / (fw * W), h / (fh * H), kz(0.25)), belowOk = !it.d.b && CY - h / 2 - CAPG - PHm >= 0.55, rightFits = kk => (w / 2 + cxo + PWm + 0.03) / kk <= W / 2 - 12;
       /* キャプションを横に置く場合と、下（作品の右下）に置く場合の大きさをくらべる。スマホの縦はいつも下。横長の画面は、横に置いても作品がひどく小さくならなければ横（10/6 本人「スマホ表示になってる」） */
-      const kS = Math.max(rightFits(k0) ? k0 : (w / 2 + CAPX + PWm + 0.03) / (W / 2 - 12), k0, (h / 2) / (H / 2 - 90)), fcB = cy - (CAPG + PHm) * 0.3;
+      const kS = Math.max(rightFits(k0) ? k0 : (w / 2 + cxo + PWm + 0.03) / (W / 2 - 12), k0, (h / 2) / (H / 2 - 90)), fcB = cy - (CAPG + PHm) * 0.3;
       const kB = belowOk ? Math.max(k0, Math.max(w, 2 * PWm - w) / (0.92 * W), (cy + h / 2 - fcB) / (H / 2 - 70), (fcB - (cy - h / 2 - CAPG - PHm)) / (H / 2 - 110)) : Infinity;
       const below = belowOk && (port || kS > kB * 1.3); let k = below ? kB : kS; const fc = below ? fcB : cy;
-      k = Math.min(kmax, k); return { it, h, w, cy, k, fc, below, vw: k * W / 2, lo: below ? Math.max(0, PWm - w) : 0, ro: below ? 0 : CAPX + PWm }; };
+      k = Math.min(kmax, k); if (it.d.b) k += EXZB * 2 * TN / H; /* 手前に出した分だけカメラを下げる（k は壁の面での大きさ） */ return { it, h, w, cy, k, fc, below, vw: k * W / 2, lo: below ? Math.max(0, PWm - w) : 0, ro: below ? 0 : cxo + PWm }; };
     /* となりが見えないように置く：vR＝前の作品で止まったときに見える右の端、eR＝前の作品（キャプションまで）の右の端 */
     const place = (f, vR, eR, gap) => Math.max(eR + gap + f.lo, vR + 0.25 + f.lo, eR + 0.25 + f.vw - f.w / 2);
     const put = (f, Lx, seed) => { const it = f.it, Rx = Lx + f.w; it.g.position.x = Lx + f.w / 2; it.kpx = f.k; it.box = null; it.cyW = f.cy; it.yOff = (f.cy - f.fc) / f.k; if (it.req && !it.pt) ldDraw(it, performance.now()); addSpec(Lx + f.w / 2, f.cy, f.w, f.h, seed);
-      if (f.below) it.capM.position.set(Rx - PWm / 2, CY - f.h / 2 - CAPG - PHm / 2, 0.003); else it.capM.position.set(Rx + CAPX + PWm / 2, Math.max(CAPMIN, it.d.b ? 0 : CY - f.h / 2) + PHm / 2, 0.003);
+      if (f.below) it.capM.position.set(Rx - PWm / 2, CY - f.h / 2 - CAPG - PHm / 2, 0.003); else it.capM.position.set(Rx + (it.d.b ? CAPX + 0.25 : CAPX) + PWm / 2, Math.max(CAPMIN, it.d.b ? 0 : CY - f.h / 2) + PHm / 2, 0.003);
       stops.push({ x: Lx + f.w / 2, y: f.fc, z: f.k * H / (2 * TN) }); };
     let vR = TWm / 2 + kt * W / 2, eR = TWm;
     for (let ii = 0; ii < items.length; ii++) { const it = items[ii], g = it.grp;
