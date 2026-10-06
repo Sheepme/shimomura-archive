@@ -2299,7 +2299,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '475fced459', APP_URL = location.origin + location.pathname;
+const BUILD = '97eb1b09a2', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -9686,28 +9686,25 @@ function exvCss(){ if (document.getElementById('exvcss')) return; const st = doc
 #exv .xnav{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);width:48px;height:48px;border:0;background:transparent;color:#3a3530;z-index:4;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;mix-blend-mode:multiply;transition:opacity .6s;-webkit-tap-highlight-color:transparent}
 #exv .xcl,#exv .xsh{transition:opacity .6s}#exv .ydots{transition:opacity .6s}#exv.xidle .xnav,#exv.xidle .ydots,#exv.xidle .xpp,#exv.xidle .xcl,#exv.xidle .xsh{opacity:0;pointer-events:none}
 #exv .xpp{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);left:calc(50% - 124px);width:48px;height:48px;border:0;background:transparent;color:#3a3530;z-index:4;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;mix-blend-mode:multiply;transition:opacity .6s;-webkit-tap-highlight-color:transparent}
-#exv .xpp svg{width:15px;height:15px;stroke:currentColor;stroke-width:1.2;fill:none;stroke-linejoin:round}#exv .xpp:focus-visible{outline:1.5px solid #3a3530;outline-offset:-4px;border-radius:8px}#exv .xsh{right:56px}body.exvopen #toast{z-index:9600!important}#exv .xprev{left:clamp(22px,5vw,72px)}#exv .xnext{right:clamp(22px,5vw,72px)}#exv .xnav svg{width:14px;height:26px;stroke:currentColor;stroke-width:1.2;fill:none;stroke-linecap:round;stroke-linejoin:round}#exv .xnav[disabled]{opacity:0;pointer-events:none}#exv .xnav:focus-visible{outline:1.5px solid #3a3530;outline-offset:-4px;border-radius:8px}
+#exv .xpp svg{width:20px;height:26px;stroke:currentColor;stroke-width:1.2;fill:none;stroke-linejoin:round;stroke-linecap:round}#exv .xpp:focus-visible{outline:1.5px solid #3a3530;outline-offset:-4px;border-radius:8px}#exv .xsh{right:56px}body.exvopen #toast{z-index:9600!important}#exv .xprev{left:clamp(22px,5vw,72px)}#exv .xnext{right:clamp(22px,5vw,72px)}#exv .xnav svg{width:14px;height:26px;stroke:currentColor;stroke-width:1.2;fill:none;stroke-linecap:round;stroke-linejoin:round}#exv .xnav[disabled]{opacity:0;pointer-events:none}#exv .xnav:focus-visible{outline:1.5px solid #3a3530;outline-offset:-4px;border-radius:8px}
 #exv .ydots{position:absolute;inset:0;pointer-events:none}
 #exv .ynum{transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1)}#exv .ynum.xmv{opacity:0;transform:translateY(4px);transition:opacity .32s ease-in,transform .32s ease-in}
-#exv .xyr{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;white-space:nowrap;padding-bottom:.3em;font-family:"Helvetica Neue","Avenir Next","Hiragino Sans","Noto Sans JP",Helvetica,Arial,sans-serif;font-size:clamp(56px,11vw,132px);line-height:1;font-weight:200;color:#fff;text-shadow:0 0 36px rgba(0,0,0,.2);font-variant-numeric:tabular-nums;opacity:0;transition:opacity .9s ease .1s;pointer-events:none;z-index:4}
-#exv .xyr.xin{opacity:.95;transition:opacity .5s ease}
-#exv .xyr .d{position:relative;display:block;overflow:hidden;height:1.08em;line-height:1.08em;transition:margin-left 1.8s cubic-bezier(.2,.7,.1,1)}#exv .xyr .d+.d{margin-left:.34em}#exv .xyr.xin .d+.d{margin-left:.12em}
-#exv .xyr .d i{display:block;font-style:normal;transform:translateY(108%);transition:transform .95s cubic-bezier(.16,.8,.12,1)}#exv .xyr .d i.on{transform:none}
-#exv .xyr .d i.out{position:absolute;left:0;top:0;transform:translateY(-108%);transition:transform .5s cubic-bezier(.55,0,.8,.2)}#exv .xyr.xout .d i.on{transform:translateY(-108%);transition:transform .6s cubic-bezier(.55,0,.8,.2)}
-#exv .xyr::after{content:'';position:absolute;left:50%;bottom:0;width:0;height:1px;background:rgba(255,255,255,.8);transform:translateX(-50%);transition:width .5s ease}#exv .xyr.xin::after{width:.9em;transition:width 1.1s cubic-bezier(.2,.7,.1,1) .35s}
-#exv .xdim{position:absolute;inset:0;background:rgba(20,17,14,.42);opacity:0;transition:opacity 1.1s ease;pointer-events:none;z-index:2}#exv .xyr.xin+.xdim{opacity:1;transition:opacity .7s ease}
+#exv .xyr{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:block;white-space:nowrap;padding:0 0 .3em .12em;letter-spacing:.12em;font-family:"Helvetica Neue","Avenir Next","Hiragino Sans","Noto Sans JP",Helvetica,Arial,sans-serif;font-size:clamp(56px,11vw,132px);line-height:1;font-weight:200;color:#fff;text-shadow:0 0 36px rgba(0,0,0,.2);font-variant-numeric:tabular-nums;opacity:0;transition:opacity 1s ease;pointer-events:none;z-index:4}
+#exv .xyr.xin{opacity:.95;transition:opacity .6s ease}
+#exv .xyr::after{content:'';position:absolute;left:50%;bottom:0;width:.9em;height:1px;background:rgba(255,255,255,.8);transform:translateX(-50%)}
+#exv .xdim{position:absolute;inset:0;background:radial-gradient(ellipse 75% 65% at 50% 48%,rgba(16,13,10,.5) 0%,rgba(10,8,6,.66) 60%,rgba(6,5,4,.8) 100%);opacity:0;transition:opacity 1.2s ease;pointer-events:none;z-index:2}#exv .xyr.xin+.xdim{opacity:1;transition:opacity .7s ease}
 #exv .yc{position:absolute;left:50%;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;border:1.2px solid #2b2825;box-sizing:border-box;opacity:.85}
 #exv .yd{position:absolute;left:50%;top:50%;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;border-radius:50%;background:#2b2825;opacity:0;transition:opacity .3s ease}
 #exv .yrs.xon .yd{transition:opacity .12s ease}
 body.exvopen{overflow:hidden}
-@media (prefers-reduced-motion: reduce){#exv .xhint,#exv .yd,#exv .xyr,#exv .ynum,#exv .xdim,#exv .xyr .d,#exv .xyr .d i,#exv .xyr::after{transition:none!important}}`;
+@media (prefers-reduced-motion: reduce){#exv .xhint,#exv .yd,#exv .xyr,#exv .ynum,#exv .xdim{transition:none!important}}`;
   document.head.appendChild(st); }
 /* 時計のところの帯（iPhone のホーム画面アプリ）は、ページの地の色で塗られるので、壁の色に合わせる */
 function exvBg(c){ try { document.documentElement.style.backgroundColor = c; document.body.style.backgroundColor = c; } catch(e){} }
 async function exvOpen(start, noPush){
   if (!exvIsAdm() || EXV) return;
   exvCss(); const root = document.createElement('div'); root.id = 'exv'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-label', '展示ビュー');
-  root.innerHTML = '<div class="xst"></div><div class="xwait">展示室を準備しています…</div><button type="button" class="xsh" aria-label="この作品を共有"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14.5V3.5"/><path d="M8.2 7.3 12 3.5l3.8 3.8"/><path d="M8 10.5H6.5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1H16"/></svg></button><button type="button" class="xcl" aria-label="展示ビューを出る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5H6.5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1H14"/><path d="M10.5 12h9M16.5 8.5 20 12l-3.5 3.5"/></svg></button><div class="xhint" style="opacity:0"><span></span></div><button type="button" class="xnav xprev" aria-label="前の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M12 2 2 13l10 11"/></svg></button><button type="button" class="xpp" aria-label="自動再生を止める"></button><button type="button" class="xnav xnext" aria-label="次の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M2 2l10 11L2 24"/></svg></button><div class="ynum"></div><div class="xyr" aria-hidden="true"></div><div class="xdim"></div><div class="yrs" aria-label="作品の位置（指を当てて左右に動かすと早送り）"><div class="ydots"><i class="yc"></i></div></div>';
+  root.innerHTML = '<div class="xst"></div><div class="xwait">展示室を準備しています…</div><button type="button" class="xsh" aria-label="この作品を共有"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14.5V3.5"/><path d="M8.2 7.3 12 3.5l3.8 3.8"/><path d="M8 10.5H6.5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1H16"/></svg></button><button type="button" class="xcl" aria-label="展示ビューを出る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5H6.5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1H14"/><path d="M10.5 12h9M16.5 8.5 20 12l-3.5 3.5"/></svg></button><div class="xhint" style="opacity:0"><span></span></div><button type="button" class="xnav xprev" aria-label="前の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M12 2 2 13l10 11"/></svg></button><button type="button" class="xpp" aria-label="自動再生を一時停止"></button><button type="button" class="xnav xnext" aria-label="次の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M2 2l10 11L2 24"/></svg></button><div class="ynum"></div><div class="xyr" aria-hidden="true"></div><div class="xdim"></div><div class="yrs" aria-label="作品の位置（指を当てて左右に動かすと早送り）"><div class="ydots"><i class="yc"></i></div></div>';
   document.body.appendChild(root); document.body.classList.add('exvopen');
   try { const fs = root.requestFullscreen || root.webkitRequestFullscreen; if (fs) { const q = fs.call(root); if (q && q.catch) q.catch(() => {}); } } catch(e){} /* 押した直後でないと全画面にできない */
   try { const tm = document.querySelector('meta[name="theme-color"]'); if (tm) tm.content = '#ebe8e3'; } catch(e){}
@@ -9869,14 +9866,22 @@ function exvBuild(root, L, start){
     [[it.capM, it.capF], [it.ao, it.ao.material]].forEach(([o, m]) => { if (m.map) { m.map.dispose(); m.map = null; m.needsUpdate = true; } o.visible = false; }); };
   /* 写真の取り寄せ：端末に保存した 800px（data:）→ なければまとめて Google から（Mac・ドライブから速く読む設定でも、3Dに貼れる data: だけ使う） */
   const PQ = new Map(); let PQT = 0;
-  const pull = async () => { const batch = [...PQ.entries()].slice(0, 12); batch.forEach(([id]) => PQ.delete(id)); if (!batch.length) return; if (PQ.size) PQT = setTimeout(pull, 60);
+  /* 読めなかった写真は、少し待ってから読み直す（前は一度失敗すると、遠ざかって戻るまで白いままだった。10/6 本人「読み込まれないまま表示される」） */
+  const retry = it => { if (!it.req || it.hi) return; it.tries = (it.tries || 0) + 1; if (it.tries > 5) return; const ms = [1200, 3000, 7000, 15000, 30000][it.tries - 1];
+    setTimeout(() => { if (EXV && it.req && !it.hi) { PQ.set(it.d.id, it); clearTimeout(PQT); PQT = setTimeout(pull, 40); } }, ms); };
+  const pull = async () => { const cur = ci - 1, all = [...PQ.entries()].sort((a, b) => Math.abs(items.indexOf(a[1]) - cur) - Math.abs(items.indexOf(b[1]) - cur)); /* いま見ている作品から先に */
+    const batch = all.slice(0, 6); batch.forEach(([id]) => PQ.delete(id)); if (!batch.length) return; if (PQ.size) PQT = setTimeout(pull, 60);
     const ids = batch.map(([id]) => id), out = {}, need = [];
     ids.forEach(id => { const v = TH['800_' + id]; if (v && /^data:/.test(v)) out[id] = v; else need.push(id); });
     if (need.length) { let sv = {}; try { sv = await thGet(need.map(id => '800_' + id)); } catch(e){}
-      const rest = need.filter(id => { const v = sv['800_' + id]; if (v && /^data:/.test(v)) { out[id] = v; TH['800_' + id] = v; return false; } return true; });
-      if (rest.length) { try { const m = await (fpOn() ? fpThumbs(false, [rest, 800], false) : call('getThumbs', rest, 800)), keep = {};
-          rest.forEach(id => { const v = m && m[id]; if (v && /^data:/.test(v)) { out[id] = v; TH['800_' + id] = v; keep['800_' + id] = v; } }); thPut(keep); } catch(e){} } }
-    batch.forEach(([id, it]) => { const v = out[id]; if (!v || !it.req) return; const tok = it.im, im = new Image(); im.onload = () => { if (it.im === tok && it.req) { it.hi = 1; paint(it, im); } }; im.src = v; }); };
+      let rest = need.filter(id => { const v = sv['800_' + id]; if (v && /^data:/.test(v)) { out[id] = v; TH['800_' + id] = v; return false; } return true; });
+      const take = (m, keep) => { rest = rest.filter(id => { const v = m && m[id]; if (v && /^data:/.test(v)) { out[id] = v; TH['800_' + id] = v; keep['800_' + id] = v; return false; } return true; }); };
+      const keep = {};
+      if (rest.length && fpOn()) { try { take(await fpThumbs(false, [rest, 800], false), keep); } catch(e){} } /* Mac・ドライブから速く読む設定：3Dに貼れる data: だけ使う */
+      if (rest.length) { try { take(await call('getThumbs', rest, 800), keep); } catch(e){} } /* 残りは Google から */
+      if (Object.keys(keep).length) thPut(keep); }
+    batch.forEach(([id, it]) => { const v = out[id]; if (!it.req) return; if (!v) return retry(it); const tok = it.im, im = new Image();
+      im.onload = () => { if (it.im === tok && it.req) { it.hi = 1; it.tries = 0; paint(it, im); } }; im.onerror = () => { delete TH['800_' + id]; retry(it); }; im.src = v; }); };
   const nearIdx = () => { let bi = 0; stops.forEach((s, i) => { if (Math.abs(s.x - st.x) < Math.abs(stops[bi].x - st.x)) bi = i; }); return bi; };
   const around = k => { items.forEach((it, i) => { const d = i + 1 - k; if (d >= -3 && d <= 4) warm(it); else if (d < -8 || d > 9) cool(it); }); };
   let wt = 0; const aroundLater = () => { clearTimeout(wt); wt = setTimeout(() => around(nearIdx()), 160); };
@@ -9940,8 +9945,8 @@ function exvBuild(root, L, start){
   const xPrev = root.querySelector('.xprev'), xNext = root.querySelector('.xnext');
   const setCnt = () => { if (!yd) showU(ci - 1); xPrev.disabled = ci <= 0; xNext.disabled = ci >= stops.length - 1; };
   const AUTO = 10000; let autoT = 0, playing = true, wake = false; const xPP = root.querySelector('.xpp');
-  const PLAY = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.2v11.6L13.4 8z"/></svg>', STOP = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.2" y="3.2" width="9.6" height="9.6" rx=".8"/></svg>';
-  const setPlay = v => { playing = v; xPP.innerHTML = v ? STOP : PLAY; xPP.setAttribute('aria-label', v ? '自動再生を止める' : '自動再生'); if (v) autoNext(); else clearTimeout(autoT); };
+  const PLAY = '<svg viewBox="0 0 20 26" aria-hidden="true"><path d="M4 2.5v21L18 13z"/></svg>', STOP = '<svg viewBox="0 0 20 26" aria-hidden="true"><path d="M6.5 2.5v21M13.5 2.5v21"/></svg>'; /* 一時停止は2本線 */
+  const setPlay = v => { playing = v; xPP.innerHTML = v ? STOP : PLAY; xPP.setAttribute('aria-label', v ? '自動再生を一時停止' : '自動再生'); if (v) autoNext(); else clearTimeout(autoT); };
   const autoNext = () => { clearTimeout(autoT); if (!playing || (EXV && EXV.na)) return; autoT = setTimeout(() => { if (!EXV || document.hidden || zoomed || yd || P.size) return autoNext(); if (ci < stops.length - 1) go(ci + 1); else setPlay(false); }, AUTO); };
   let idleT = 0; const awake = () => { root.classList.remove('xidle'); clearTimeout(idleT); idleT = setTimeout(() => { if (yd || P.size) awake(); else root.classList.add('xidle'); }, 3000); };
   const poke = () => { autoNext(); awake(); }; /* さわったら、消えていたボタンを出す（再生中なら、次へ進むのは10秒後から数えなおし） */
@@ -9990,13 +9995,8 @@ function exvBuild(root, L, start){
   const yrEl = root.querySelector('.xyr'); let yrT = 0, lastY = null;
   const yrOf = k => { const s = String(L[k].w['制作年'] || '').trim(); return /^\d{4}年?$/.test(s) ? s.slice(0, 4) : s; };
   let mv = false, pendT = null;
-  const yrHide = () => { if (!yrEl.classList.contains('xin')) return; [...yrEl.children].forEach((d, i) => { const e = d.querySelector('i.on'); if (e) e.style.transitionDelay = (i * 45) + 'ms'; }); yrEl.classList.remove('xin'); yrEl.classList.add('xout');
-    setTimeout(() => { if (!yrEl.classList.contains('xin')) { yrEl.textContent = ''; yrEl.classList.remove('xout'); } }, 1000); };
-  const yrShow = t => { const fresh = !yrEl.classList.contains('xin'); if (fresh) { yrEl.textContent = ''; yrEl.classList.remove('xout'); yrEl.classList.add('xin'); } const cs = [...t];
-    while (yrEl.children.length > cs.length) yrEl.lastChild.remove(); while (yrEl.children.length < cs.length) { const d = document.createElement('span'); d.className = 'd'; yrEl.appendChild(d); }
-    cs.forEach((c, i) => { const d = yrEl.children[i], cur = d.querySelector('i.on'); if (cur && cur.textContent === c) return;
-      if (cur) { cur.style.transitionDelay = '0ms'; cur.classList.remove('on'); cur.classList.add('out'); setTimeout(() => cur.remove(), 600); } /* 変わった字だけ入れかえ */
-      const n = document.createElement('i'); n.textContent = c; n.style.transitionDelay = (fresh ? 120 + i * 75 : 0) + 'ms'; d.appendChild(n); void n.offsetWidth; n.classList.add('on'); }); };
+  const yrHide = () => yrEl.classList.remove('xin');
+  const yrShow = t => { if (yrEl.textContent !== t) yrEl.textContent = t; yrEl.classList.add('xin'); }; /* 出ている間に年が変わったら、数字だけそのまま入れかえ */
   const yrOff = ms => { clearTimeout(yrT); yrT = setTimeout(yrHide, ms); };
   const flashY = k => { const y = k < 0 ? '' : yrOf(k); if (y === lastY) return; lastY = y; if (!y) return; yrShow(y); clearTimeout(yrT); if (!mv && !yd) yrOff(1900); };
   const tOut = () => { mv = true; yNum.classList.add('xmv'); }; /* 動き出したら作品名を消す */
@@ -10039,7 +10039,7 @@ function exvBuild(root, L, start){
   EXV.close = () => { tid++; clearTimeout(autoT); clearTimeout(settle); clearTimeout(wt); if (rq) cancelAnimationFrame(rq); removeEventListener('resize', rs); removeEventListener('keydown', key);
     sc.traverse(o => { if (o.geometry) o.geometry.dispose(); const ms = o.material ? [].concat(o.material) : []; ms.forEach(m => { if (m.map) m.map.dispose(); if (m.bumpMap) m.bumpMap.dispose(); m.dispose(); }); });
     items.forEach(it => it.tx.forEach(t => t.dispose())); r.dispose(); if (r.forceContextLoss) r.forceContextLoss(); close0(); };
-  EXV.go = go; EXV.cur = () => ci; EXV.n = items.length; EXV.start = ci;
+  EXV.go = go; EXV.cur = () => ci; EXV.n = items.length; EXV.start = ci; EXV.loaded = () => items.map(it => it.hi ? 1 : 0);
   EXV.edges = () => items.map(it => { const w = it.W || it.w, y = it.d.b ? it.h / 2 : CY, b = el.getBoundingClientRect(), f = xx => { const v = new T3.Vector3(xx, y, 0).project(cam); return Math.round(b.left + (v.x + 1) / 2 * b.width); }; return [f(it.g.position.x - w / 2), f(it.capM.position.x + PWm / 2)]; }); /* 確かめ用 */
   EXV.capRect = () => { const it = items[ci - 1], b = el.getBoundingClientRect(), v = new T3.Vector3(it.capM.position.x - PWm * 0.3, it.capM.position.y - PHm / 2 + PHm * 0.12, 0.006).project(cam); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }; /* 確かめ用：「作品ページへ」のあたり */ EXV.stop = () => ({ y: +st.y.toFixed(3), cy: stops[ci] && stops[ci].y });
   EXV.capAt = () => { const it = items[ci - 1]; if (!it) return null; const v = it.capM.position.clone().project(cam), b = el.getBoundingClientRect(); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }; /* 確かめ用 */
