@@ -2299,7 +2299,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '0dd8f37da4', APP_URL = location.origin + location.pathname;
+const BUILD = 'efaf283b66', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -9682,12 +9682,12 @@ function exvCss(){ if (document.getElementById('exvcss')) return; const st = doc
 #exv .xhint{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 78px);display:flex;justify-content:center;font-size:13px;line-height:1.65;pointer-events:none;transition:opacity .8s;z-index:3}
 #exv .xhint span{background:rgba(250,249,246,.93);border:1px solid rgba(51,48,44,.12);border-radius:10px;padding:8px 14px;max-width:24em;text-align:center}
 #exv .yrs{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 6px);height:76px;z-index:3;touch-action:none;cursor:grab;mix-blend-mode:multiply}
-#exv .ynum{position:absolute;left:18px;top:calc(env(safe-area-inset-top,0px) + 8px);height:48px;line-height:48px;font-family:"Helvetica Neue","Avenir Next","Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",Helvetica,Arial,sans-serif;font-size:17px;max-width:calc(100% - 140px);overflow:hidden;text-overflow:ellipsis;font-weight:300;letter-spacing:.06em;color:#3a3530;mix-blend-mode:multiply;z-index:4;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
+#exv .ynum{position:absolute;left:18px;top:calc(env(safe-area-inset-top,0px) + 8px);height:48px;line-height:48px;font-family:"Helvetica Neue","Avenir Next","Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",Helvetica,Arial,sans-serif;font-size:clamp(20px,1.3vw + 15px,28px);max-width:calc(100% - 140px);overflow:hidden;text-overflow:ellipsis;font-weight:300;letter-spacing:.06em;color:#3a3530;mix-blend-mode:multiply;z-index:4;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
 #exv .xnav{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);width:48px;height:48px;border:0;background:transparent;color:#3a3530;z-index:4;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;mix-blend-mode:multiply;transition:opacity .6s;-webkit-tap-highlight-color:transparent}
-#exv.xauto .xnav,#exv.xauto .xcl,#exv.xauto .xsh{opacity:0;pointer-events:none}#exv .xcl,#exv .xsh{transition:opacity .6s}#exv .xsh{right:56px}body.exvopen #toast{z-index:9600!important}#exv .xprev{left:clamp(22px,5vw,72px)}#exv .xnext{right:clamp(22px,5vw,72px)}#exv .xnav svg{width:14px;height:26px;stroke:currentColor;stroke-width:1.2;fill:none;stroke-linecap:round;stroke-linejoin:round}#exv .xnav[disabled]{opacity:0;pointer-events:none}#exv .xnav:focus-visible{outline:1.5px solid #3a3530;outline-offset:-4px;border-radius:8px}
+#exv.xauto .xnav,#exv.xauto .xcl,#exv.xauto .xsh{opacity:0;pointer-events:none}#exv .xcl,#exv .xsh{transition:opacity .6s}#exv .ydots{transition:opacity .6s}#exv.xidle .xnav,#exv.xidle .ydots{opacity:0;pointer-events:none}#exv .xsh{right:56px}body.exvopen #toast{z-index:9600!important}#exv .xprev{left:clamp(22px,5vw,72px)}#exv .xnext{right:clamp(22px,5vw,72px)}#exv .xnav svg{width:14px;height:26px;stroke:currentColor;stroke-width:1.2;fill:none;stroke-linecap:round;stroke-linejoin:round}#exv .xnav[disabled]{opacity:0;pointer-events:none}#exv .xnav:focus-visible{outline:1.5px solid #3a3530;outline-offset:-4px;border-radius:8px}
 #exv .ydots{position:absolute;inset:0;pointer-events:none}
 #exv .ynum{transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1)}#exv .ynum.xmv{opacity:0;transform:translateY(4px);transition:opacity .32s ease-in,transform .32s ease-in}
-#exv .xyr{position:absolute;left:17px;top:calc(env(safe-area-inset-top,0px) + 50px);font-family:"Helvetica Neue","Avenir Next","Hiragino Sans","Noto Sans JP",Helvetica,Arial,sans-serif;font-size:clamp(34px,7vw,58px);line-height:1;font-weight:200;letter-spacing:.04em;color:#3a3530;mix-blend-mode:multiply;font-variant-numeric:tabular-nums;opacity:0;transition:opacity 1.1s ease;pointer-events:none;z-index:4}
+#exv .xyr{position:absolute;left:17px;top:calc(env(safe-area-inset-top,0px) + 58px);font-family:"Helvetica Neue","Avenir Next","Hiragino Sans","Noto Sans JP",Helvetica,Arial,sans-serif;font-size:clamp(34px,7vw,58px);line-height:1;font-weight:200;letter-spacing:.04em;color:#3a3530;mix-blend-mode:multiply;font-variant-numeric:tabular-nums;opacity:0;transition:opacity 1.1s ease;pointer-events:none;z-index:4}
 #exv .xyr.xin{opacity:.78;transition:opacity .7s ease}
 #exv .yc{position:absolute;left:50%;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;border:1.2px solid #2b2825;box-sizing:border-box;opacity:.85}
 #exv .yd{position:absolute;left:50%;top:50%;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;border-radius:50%;background:#2b2825;opacity:0;transition:opacity .3s ease}
@@ -9695,6 +9695,8 @@ function exvCss(){ if (document.getElementById('exvcss')) return; const st = doc
 body.exvopen{overflow:hidden}
 @media (prefers-reduced-motion: reduce){#exv .xhint,#exv .yd,#exv .xyr,#exv .ynum{transition:none}}`;
   document.head.appendChild(st); }
+/* 時計のところの帯（iPhone のホーム画面アプリ）は、ページの地の色で塗られるので、壁の色に合わせる */
+function exvBg(c){ try { document.documentElement.style.backgroundColor = c; document.body.style.backgroundColor = c; } catch(e){} }
 async function exvOpen(start, noPush){
   if (!exvIsAdm() || EXV) return;
   exvCss(); const root = document.createElement('div'); root.id = 'exv'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-label', '展示ビュー');
@@ -9702,7 +9704,8 @@ async function exvOpen(start, noPush){
   document.body.appendChild(root); document.body.classList.add('exvopen');
   try { const fs = root.requestFullscreen || root.webkitRequestFullscreen; if (fs) { const q = fs.call(root); if (q && q.catch) q.catch(() => {}); } } catch(e){} /* 押した直後でないと全画面にできない */
   try { const tm = document.querySelector('meta[name="theme-color"]'); if (tm) tm.content = '#ebe8e3'; } catch(e){}
-  EXV = { root, close: () => { try { if ((document.fullscreenElement || document.webkitFullscreenElement) === root) (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch(e){} root.remove(); document.body.classList.remove('exvopen'); EXV = null; try { syncThemeColor(); } catch(e){} } };
+  const de = document.documentElement, bgp = [de.style.backgroundColor, document.body.style.backgroundColor]; exvBg('#efede9');
+  EXV = { root, close: () => { try { de.style.backgroundColor = bgp[0]; document.body.style.backgroundColor = bgp[1]; } catch(e){} try { if ((document.fullscreenElement || document.webkitFullscreenElement) === root) (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch(e){} root.remove(); document.body.classList.remove('exvopen'); EXV = null; try { syncThemeColor(); } catch(e){} } };
   root.querySelector('.xcl').onclick = () => exvClose(false);
   if (!noPush) hpush('exv');
   try { await exvLib(); const L = exvWorks(); if (!L.length) throw new Error('写真のある作品がありません'); await exvEstimate(L); if (!EXV || EXV.root !== root) return; exvBuild(root, L, typeof start === 'string' ? Math.max(0, L.findIndex(d => String(d.no) === start) + 1) : (+start || 0)); }
@@ -9785,17 +9788,22 @@ function exvBuild(root, L, start){
   const wall = new T3.Mesh(new T3.PlaneGeometry(LW, LH), new T3.MeshStandardMaterial({ map: cmap, bumpMap: bmap, bumpScale: 0.006, roughness: 0.96, dithering: true }));
   wall.position.set(LW / 2 - 20, CY, 0); wall.receiveShadow = true; sc.add(wall);
   const woodTex = () => { const N = 1024, PW = 64, [c, x] = cvs(N, N); /* 2.4m 四方・幅15cmの板。くり返しのつなぎ目が出ないよう、はみ出した分は反対側にも描く */
-    const plank = (x0, y0, len) => { const tone = 0.9 + Math.random() * 0.14, base = [214, 194, 163].map(v => Math.round(v * tone));
-      for (const ox of [-N, 0, N]) { const X = x0 + ox; if (X > N || X + len < 0) continue; x.fillStyle = 'rgb(' + base + ')'; x.fillRect(X, y0, len, PW);
-        for (let k = 0; k < 10; k++) { const yy = y0 + 3 + ((k * 7919 + Math.floor(x0)) % (PW - 6)); x.strokeStyle = 'rgba(125,98,66,' + (0.05 + (k % 4) * 0.025) + ')'; x.lineWidth = 0.6 + (k % 3) * 0.5; x.beginPath(); x.moveTo(X, yy); for (let q = 1; q <= 10; q++) x.lineTo(X + len * q / 10, yy + Math.sin(q * 1.7 + k) * 1.6); x.stroke(); }
-        x.fillStyle = 'rgba(70,52,34,0.28)'; x.fillRect(X, y0, 1.4, PW); } };
-    for (let r = 0; r < N / PW; r++) { let x0 = Math.random() * N; const end = x0 + N; while (x0 < end) { const len = Math.min(end - x0, N * (0.5 + Math.random() * 0.7)); plank(x0, r * PW, len); x0 += len; } x.fillStyle = 'rgba(70,52,34,0.22)'; x.fillRect(0, r * PW, N, 1.2); }
+    const plank = (x0, y0, len) => { const tone = 0.955 + Math.random() * 0.085, warm = Math.random() * 6, base = [206 + warm, 188 + warm * 0.6, 160].map(v => Math.round(v * tone)), sd = Math.random() * 1000;
+      for (const ox of [-N, 0, N]) { const X = x0 + ox; if (X > N || X + len < 0) continue;
+        const g = x.createLinearGradient(X, 0, X + len, 0); g.addColorStop(0, 'rgb(' + base.map(v => Math.round(v * 0.985)) + ')'); g.addColorStop(0.5 + (Math.random() - 0.5) * 0.4, 'rgb(' + base + ')'); g.addColorStop(1, 'rgb(' + base.map(v => Math.round(v * 0.975)) + ')'); x.fillStyle = g; x.fillRect(X, y0, len, PW);
+        for (let k = 0; k < 22; k++) { const yy = y0 + 2 + ((k * 7919 + Math.floor(sd)) % (PW - 4)), a = 0.018 + ((k * 37 + Math.floor(sd)) % 5) * 0.009; x.strokeStyle = 'rgba(120,92,60,' + a + ')'; x.lineWidth = 0.5 + (k % 4) * 0.35; x.beginPath(); x.moveTo(X, yy);
+          for (let q = 1; q <= 16; q++) x.lineTo(X + len * q / 16, yy + Math.sin(q * 0.9 + k * 1.3 + sd) * (0.8 + (k % 3) * 0.7)); x.stroke(); }
+        x.fillStyle = 'rgba(92,70,46,0.13)'; x.fillRect(X, y0, 1, PW); } };
+    for (let r = 0; r < N / PW; r++) { let x0 = Math.random() * N; const end = x0 + N; while (x0 < end) { const len = Math.min(end - x0, N * (0.55 + Math.random() * 0.8)); plank(x0, r * PW, len); x0 += len; } x.fillStyle = 'rgba(92,70,46,0.1)'; x.fillRect(0, r * PW, N, 1); }
+    const im = x.getImageData(0, 0, N, N), d = im.data; for (let k = 0; k < d.length; k += 4) { const n = (Math.random() - 0.5) * 7; d[k] += n; d[k + 1] += n; d[k + 2] += n; } x.putImageData(im, 0, 0); /* 細かいざらつき */
     return c; };
   const wdt = mkTex(woodTex()); wdt.wrapS = wdt.wrapT = T3.RepeatWrapping; wdt.repeat.set(LW / 2.4, 30 / 2.4);
-  const fl = new T3.Mesh(new T3.PlaneGeometry(LW, 30), new T3.MeshStandardMaterial({ map: wdt, roughness: 0.5, metalness: 0, dithering: true })); fl.rotation.x = -Math.PI / 2; fl.position.set(LW / 2 - 20, 0, 15); fl.receiveShadow = true; sc.add(fl);
-  const grad = (a, top) => { const [c, x] = cvs(4, 128), g = x.createLinearGradient(0, top ? 0 : 128, 0, top ? 128 : 0); g.addColorStop(0, 'rgba(0,0,0,' + a + ')'); g.addColorStop(0.3, 'rgba(0,0,0,' + (a * 0.4) + ')'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(0, 0, 4, 128); return mkTex(c, false); };
-  const aoW = new T3.Mesh(new T3.PlaneGeometry(LW, 0.24), new T3.MeshBasicMaterial({ map: grad(0.16, false), transparent: true, depthWrite: false })); aoW.position.set(LW / 2 - 20, 0.12, 0.0012); aoW.raycast = () => {}; sc.add(aoW); /* 壁の下のほうの陰 */
-  const aoF = new T3.Mesh(new T3.PlaneGeometry(LW, 0.4), new T3.MeshBasicMaterial({ map: grad(0.2, true), transparent: true, depthWrite: false })); aoF.rotation.x = -Math.PI / 2; aoF.position.set(LW / 2 - 20, 0.0012, 0.2); aoF.raycast = () => {}; sc.add(aoF); /* 床の壁ぎわの陰 */
+  const fl = new T3.Mesh(new T3.PlaneGeometry(LW, 30), new T3.MeshStandardMaterial({ map: wdt, roughness: 0.74, metalness: 0, dithering: true })); fl.rotation.x = -Math.PI / 2; fl.position.set(LW / 2 - 20, 0, 15); fl.receiveShadow = true; sc.add(fl);
+  const grad = (a, top, stops) => { const [c, x] = cvs(4, 256), g = x.createLinearGradient(0, top ? 0 : 256, 0, top ? 256 : 0); (stops || [[0, 1], [0.12, 0.62], [0.35, 0.25], [0.7, 0.06], [1, 0]]).forEach(([p, v]) => g.addColorStop(p, 'rgba(0,0,0,' + (a * v) + ')')); x.fillStyle = g; x.fillRect(0, 0, 4, 256); return mkTex(c, false); };
+  const aoW = new T3.Mesh(new T3.PlaneGeometry(LW, 0.44), new T3.MeshBasicMaterial({ map: grad(0.17, false), transparent: true, depthWrite: false })); aoW.position.set(LW / 2 - 20, 0.22, 0.0012); aoW.raycast = () => {}; sc.add(aoW); /* 壁の下のほうの陰 */
+  const aoF = new T3.Mesh(new T3.PlaneGeometry(LW, 0.7), new T3.MeshBasicMaterial({ map: grad(0.36, true, [[0, 1], [0.06, 0.82], [0.25, 0.45], [0.6, 0.14], [1, 0]]), transparent: true, depthWrite: false })); aoF.rotation.x = -Math.PI / 2; aoF.position.set(LW / 2 - 20, 0.0012, 0.35); /* 壁ぎわの床：スポットのこぼれ光で光る帯にならないよう、際から沈める */
+  const flSheen = (() => { const [c, x] = cvs(4, 256), g = x.createLinearGradient(0, 0, 0, 256); g.addColorStop(0, 'rgba(255,253,249,0)'); g.addColorStop(0.06, 'rgba(255,253,249,0.04)'); g.addColorStop(0.22, 'rgba(255,253,249,0.02)'); g.addColorStop(0.45, 'rgba(255,253,249,0)'); g.addColorStop(0.6, 'rgba(40,30,20,0)'); g.addColorStop(1, 'rgba(40,30,20,0.2)'); x.fillStyle = g; x.fillRect(0, 0, 4, 256); return mkTex(c, false); })();
+  const flS = new T3.Mesh(new T3.PlaneGeometry(LW, 7), new T3.MeshBasicMaterial({ map: flSheen, transparent: true, depthWrite: false })); flS.rotation.x = -Math.PI / 2; flS.position.set(LW / 2 - 20, 0.0008, 3.5); flS.raycast = () => {}; sc.add(flS); /* 床に映る壁の明るさ（奥）と、手前のかげり */ aoF.raycast = () => {}; sc.add(aoF); /* 床の壁ぎわの陰 */
   const abm = mkTex(pc, false); abm.wrapS = abm.wrapT = T3.RepeatWrapping; abm.repeat.set(5, 5); /* 作品の紙の細かい凹凸は前のまま */
   const lacR = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'), im = x.createImageData(128, 128); for (let i = 0; i < im.data.length; i += 4) { const v = 92 + Math.random() * 22; im.data[i] = im.data[i + 1] = im.data[i + 2] = v; im.data[i + 3] = 255; } x.putImageData(im, 0, 0); const t = new T3.CanvasTexture(c); t.wrapS = t.wrapT = T3.RepeatWrapping; return t; })();
   const lacM = new T3.MeshPhysicalMaterial({ color: '#0d0c0b', roughness: 1, roughnessMap: lacR, metalness: 0, clearcoat: 0.75, clearcoatRoughness: 0.16, dithering: true }); /* 黒漆：深い黒、うすい艶、わずかなムラ */
@@ -9869,7 +9877,10 @@ function exvBuild(root, L, start){
   /* 動いている間は少し粗く描き、止まったら細かく描き直す */
   const setPR = v => { if (v !== PRC) { PRC = v; r.setPixelRatio(v); r.setSize(W, H); } };
   const EYE = 1.6; /* カメラは男性の目の高さ。見たい高さが画面のまん中に来るよう、レンズだけずらす（向きは真正面のまま） */
-  const draw = () => { const vh = st.z * TN, ey = st.y + Math.max(-0.45 * vh, Math.min(0.45 * vh, EYE - st.y)); cam.position.set(st.x, ey, st.z); cam.lookAt(st.x, ey, 0); cam.setViewOffset(W, H, 0, (ey - st.y) / (2 * vh) * H, W, H); pickLights(); setPR(PRL); r.render(sc, cam); clearTimeout(settle); settle = setTimeout(() => { setPR(PRH); r.render(sc, cam); }, 200); };
+  const eyeAt = y => y >= 1.2 ? EYE : Math.max(1.1, EYE - (1.2 - y) * 0.75); /* 床に置いた作品（屏風）は目の高さを少し下げて、正面に近く見る（10/6 本人） */
+  const draw = () => { const vh = st.z * TN, ey = st.y + Math.max(-0.45 * vh, Math.min(0.45 * vh, eyeAt(st.y) - st.y)); cam.position.set(st.x, ey, st.z); cam.lookAt(st.x, ey, 0); cam.setViewOffset(W, H, 0, (ey - st.y) / (2 * vh) * H, W, H); pickLights(); setPR(PRL); r.render(sc, cam); clearTimeout(settle); settle = setTimeout(() => { setPR(PRH); r.render(sc, cam); topBg(); }, 200); };
+  const topBg = () => { try { const gl = r.getContext(), w = gl.drawingBufferWidth, h = gl.drawingBufferHeight, n = 24, b = new Uint8Array(n * 2 * 4); gl.readPixels(Math.round(w / 2 - n / 2), h - 3, n, 2, gl.RGBA, gl.UNSIGNED_BYTE, b);
+    let R0 = 0, G0 = 0, B0 = 0; for (let i = 0; i < b.length; i += 4) { R0 += b[i]; G0 += b[i + 1]; B0 += b[i + 2]; } const k = b.length / 4; if (R0 + G0 + B0 > 0) exvBg('rgb(' + Math.round(R0 / k) + ',' + Math.round(G0 / k) + ',' + Math.round(B0 / k) + ')'); } catch(e){} };
   const zmin = () => 0.22, zmax = () => 30;
   const cl = () => { st.z = Math.min(zmax(), Math.max(zmin(), st.z)); st.x = Math.min(stops[stops.length - 1].x + 1, Math.max(stops[0].x - 1, st.x)); st.y = Math.min(3.2, Math.max(0.3, st.y)); };
 
@@ -9878,7 +9889,7 @@ function exvBuild(root, L, start){
     const TWm = 1.5, THm = TWm * TTH / TTW; title.scale.set(TWm, THm, 1); title.position.set(TWm / 2, 1.55, 0.0016);
     const kt = Math.max((TWm + 0.6) / (W - 2 * mx), (THm + 0.6) / (H - my)); stops.push({ x: TWm / 2, y: 1.55, z: kt * H / (2 * TN) }); addSpec(TWm / 2, 1.55, TWm, THm, 0);
     let x = TWm + 1.8;
-    const FW = port ? 0.72 : 0.5, FH = port ? 0.46 : 0.6;
+    const FW = port ? 0.72 : 0.64, FH = port ? 0.46 : 0.62;
     /* 1点ぶんの見せ方：画面に占める割合（シリーズの中は少し大きく＝間をつめて掛ける）・キャプションの置き方・見る高さ */
     const frame = (it, tight) => { const h = it.h, w = it.W || it.w, cy = it.d.b ? h / 2 : CY, fw = FW * (tight ? 1.15 : 1), fh = FH * (tight ? 1.15 : 1);
       let k = Math.max(w / (fw * W), h / (fh * H), kz(0.25)), fc = cy, below = false;
@@ -9921,8 +9932,9 @@ function exvBuild(root, L, start){
   const setCnt = () => { if (!yd) showU(ci - 1); xPrev.disabled = ci <= 0; xNext.disabled = ci >= stops.length - 1; };
   const AUTO = 10000; let autoT = 0, autoOn = false, wake = false;
   const setAuto = v => { autoOn = v; root.classList.toggle('xauto', v); };
-  const autoNext = () => { clearTimeout(autoT); autoT = setTimeout(() => { if (!EXV || document.hidden || zoomed || yd || P.size) return autoNext(); if (ci < stops.length - 1) { setAuto(true); go(ci + 1); } else setAuto(false); }, AUTO); };
-  const poke = () => { setAuto(false); autoNext(); }; /* さわったら自動再生をやめて〈〉と出口を出す */
+  const autoNext = () => { clearTimeout(autoT); if (EXV && EXV.na) return; autoT = setTimeout(() => { if (!EXV || document.hidden || zoomed || yd || P.size) return autoNext(); if (ci < stops.length - 1) { setAuto(true); go(ci + 1); } else setAuto(false); }, AUTO); };
+  let idleT = 0; const awake = () => { root.classList.remove('xidle'); clearTimeout(idleT); idleT = setTimeout(() => { if (yd || P.size) awake(); else root.classList.add('xidle'); }, 3000); };
+  const poke = () => { setAuto(false); autoNext(); awake(); }; /* さわったら自動再生をやめて〈〉と出口を出す */
   let holdT = 0;
   const go = i => { autoNext(); zoomed = false; clearTimeout(holdT); const pv = ci; ci = Math.max(0, Math.min(stops.length - 1, i)); around(ci); if (ci !== pv) tOut(); setCnt();
     const s = stops[ci], T = { x: s.x, y: s.y, z: Math.min(zmax(), Math.max(zmin(), s.z)) }, g = items[ci - 1] && items[ci - 1].grp;
@@ -9970,7 +9982,7 @@ function exvBuild(root, L, start){
   const flashY = k => { const y = k < 0 ? '' : yrOf(k); if (y === lastY) return; lastY = y; if (!y) return; yrEl.textContent = y; yrEl.classList.add('xin'); clearTimeout(yrT); if (!mv) yrOff(1700); };
   const tOut = () => { mv = true; yNum.classList.add('xmv'); }; /* 動き出したら作品名を消す */
   const tIn = () => { mv = false; if (pendT != null) { yNum.textContent = pendT; pendT = null; fitNum(); } yNum.classList.remove('xmv'); if (yrEl.classList.contains('xin')) yrOff(1000); }; /* 真ん中に来たら出す */
-  const fitNum = () => { let fs = 17; yNum.style.fontSize = fs + 'px'; const mw = W - 158; while (yNum.scrollWidth > mw && fs > 12) { fs--; yNum.style.fontSize = fs + 'px'; } };
+  const fitNum = () => { yNum.style.fontSize = ''; let fs = parseFloat(getComputedStyle(yNum).fontSize) || 20; const mw = W - 158; while (yNum.scrollWidth > mw && fs > 14) { fs--; yNum.style.fontSize = fs + 'px'; } };
   const showU = u => { U = u; const j = Math.max(-1, Math.min(uHi(), Math.round(u))), act = yd || yA, t = yTxt(j); if (mv && !yd) { if (yNum.textContent !== t || pendT != null) pendT = t; } else if (yNum.textContent !== t) { yNum.textContent = t; fitNum(); } flashY(j); yEl.classList.toggle('xon', act);
     const G = 6; let n = 0; /* ○が今の作品、両側に●（ふだんはうすく、指を当てると濃く） */
     for (let k = Math.ceil(u - 5.5); k <= Math.floor(u + 5.5) && n < DOTS.length; k++) { if (k < 0 || k > uHi()) continue; const d = k - u, a = Math.abs(d); if (a < 0.5) continue;
@@ -10000,13 +10012,14 @@ function exvBuild(root, L, start){
   const key = e => { poke(); if (e.key === 'ArrowRight') { e.preventDefault(); go(ci + 1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); go(ci - 1); } };
   const rs = () => layout(); addEventListener('resize', rs); addEventListener('keydown', key);
   const wait = root.querySelector('.xwait'); if (wait) wait.remove();
-  ci = Math.max(0, Math.min(items.length, start || 0)); layout(); around(ci); setCnt(); autoNext();
+  ci = Math.max(0, Math.min(items.length, start || 0)); layout(); around(ci); setCnt(); autoNext(); awake();
+  root.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') awake(); });
   /* 最初の使い方の説明は出さない（10/6 本人） */
   const close0 = EXV.close;
   EXV.close = () => { tid++; clearTimeout(autoT); clearTimeout(settle); clearTimeout(wt); if (rq) cancelAnimationFrame(rq); removeEventListener('resize', rs); removeEventListener('keydown', key);
     sc.traverse(o => { if (o.geometry) o.geometry.dispose(); const ms = o.material ? [].concat(o.material) : []; ms.forEach(m => { if (m.map) m.map.dispose(); if (m.bumpMap) m.bumpMap.dispose(); m.dispose(); }); });
     items.forEach(it => it.tx.forEach(t => t.dispose())); r.dispose(); if (r.forceContextLoss) r.forceContextLoss(); close0(); };
-  EXV.go = go; EXV.cur = () => ci; EXV.n = items.length;
+  EXV.go = go; EXV.cur = () => ci; EXV.n = items.length; EXV.start = ci;
   EXV.edges = () => items.map(it => { const w = it.W || it.w, y = it.d.b ? it.h / 2 : CY, b = el.getBoundingClientRect(), f = xx => { const v = new T3.Vector3(xx, y, 0).project(cam); return Math.round(b.left + (v.x + 1) / 2 * b.width); }; return [f(it.g.position.x - w / 2), f(it.capM.position.x + PWm / 2)]; }); /* 確かめ用 */
   EXV.capRect = () => { const it = items[ci - 1], b = el.getBoundingClientRect(), v = new T3.Vector3(it.capM.position.x - PWm * 0.3, it.capM.position.y - PHm / 2 + PHm * 0.12, 0.006).project(cam); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }; /* 確かめ用：「作品ページへ」のあたり */ EXV.stop = () => ({ y: +st.y.toFixed(3), cy: stops[ci] && stops[ci].y });
   EXV.capAt = () => { const it = items[ci - 1]; if (!it) return null; const v = it.capM.position.clone().project(cam), b = el.getBoundingClientRect(); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }; /* 確かめ用 */
