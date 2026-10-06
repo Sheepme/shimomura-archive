@@ -2340,7 +2340,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '0a4f15b32f', APP_URL = location.origin + location.pathname;
+const BUILD = 'fb80c4f1a0', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -10035,17 +10035,18 @@ function exvBuild(root, L, start){
     const ids = batch.map(([id]) => id), out = {}, need = [], PQ0 = Object.fromEntries(batch);
     ids.forEach(id => { const v = TH['800_' + id]; if (v && /^data:/.test(v)) out[id] = v; else need.push(id); });
     const tmo = (p, ms) => Promise.race([p, new Promise(r => setTimeout(() => r(null), ms))]);
-    if (need.length) { let sv = {}; try { sv = (await tmo(thGet(need.map(id => '800_' + id)), 4000)) || {}; } catch(e){}
+    if (need.length) { let sv = {}; try { sv = (await tmo(thGet(need.flatMap(id => ['800_' + id, '400_' + id])), 4000)) || {}; } catch(e){}
       let rest = need.filter(id => { const v = sv['800_' + id]; if (v && /^data:/.test(v)) { out[id] = v; TH['800_' + id] = v; return false; } return true; });
+      /* まず 400px（端末の控え → Google のサムネのシート。どちらも速い）で絵を出し、そのあと 800px に差しかえる（10/7 本人） */
+      const loP = (id, v) => { const it = PQ0[id], tok = it && it.im; if (!it || !it.req || it.hi || it.lo) return; const im = new Image(); im.onload = () => { if (it.im === tok && it.req && !it.hi) { it.lo = 1; paint(it, im); } }; im.src = v; };
+      const ask = []; rest.forEach(id => { const v = TH['400_' + id] || sv['400_' + id]; if (v && /^data:/.test(v)) { TH['400_' + id] = v; loP(id, v); } else if (PQ0[id].req && !PQ0[id].lo) ask.push(id); });
+      if (ask.length) { try { const m = await tmo(call('getThumbs', ask, 400, null, 1), 20000), kl = {}; ask.forEach(id => { const v = m && m[id]; if (v && /^data:/.test(v)) { TH['400_' + id] = v; kl['400_' + id] = v; loP(id, v); } }); if (Object.keys(kl).length) thPut(kl); } catch(e){} }
+      rest = rest.filter(id => PQ0[id].req); /* 遠ざかった作品の 800px は頼まない */
       const take = (m, keep) => { rest = rest.filter(id => { const v = m && m[id]; if (v && /^data:/.test(v)) { out[id] = v; TH['800_' + id] = v; keep['800_' + id] = v; return false; } return true; }); };
       const keep = {};
       if (rest.length && fpOn()) { try { take(await tmo(fpThumbs(false, [rest, 800], false), 8000), keep); } catch(e){} } /* Mac・ドライブから速く読む設定：3Dに貼れる data: だけ使う */
       if (rest.length) { try { take(await tmo(call('getThumbs', rest, 800, null, 1), 30000), keep); } catch(e){} } /* 残りは Google から */
-      if (Object.keys(keep).length) thPut(keep);
-      const lo = rest.filter(id => { const it = PQ0[id]; return it && it.req && !it.hi && !it.lo; }); /* 800px が来ないときは、400px でもまず出す */
-      if (lo.length) { const got = {}; lo.forEach(id => { const v = TH['400_' + id]; if (v && /^data:/.test(v)) got[id] = v; }); const ask = lo.filter(id => !got[id]);
-        if (ask.length) { try { const m = await tmo(call('getThumbs', ask, 400, null, 1), 20000); ask.forEach(id => { const v = m && m[id]; if (v && /^data:/.test(v)) got[id] = v; }); } catch(e){} }
-        Object.keys(got).forEach(id => { const it = PQ0[id], tok = it.im, im = new Image(); im.onload = () => { if (it.im === tok && it.req && !it.hi) { it.lo = 1; paint(it, im); } }; im.src = got[id]; }); } }
+      if (Object.keys(keep).length) thPut(keep); }
     batch.forEach(([id, it]) => { const v = out[id]; if (!it.req) return; if (!v) return retry(it); const tok = it.im, im = new Image();
       im.onload = () => { if (it.im === tok && it.req) { it.hi = 1; it.tries = 0; paint(it, im); } }; im.onerror = () => { delete TH['800_' + id]; retry(it); }; im.src = v; }); };
   const nearIdx = () => { let bi = 0; stops.forEach((s, i) => { if (Math.abs(s.x - st.x) < Math.abs(stops[bi].x - st.x)) bi = i; }); return bi; };
@@ -10097,7 +10098,7 @@ function exvBuild(root, L, start){
 
   const tw = (T, ms) => { const s0 = { x: st.x, y: st.y, z: st.z }, t0 = performance.now(), id = ++tid; ms = ms || 900; if (mv) tIn();
     if (RM) { Object.assign(st, T); cl(); draw(); return; }
-    const f = n => { if (id !== tid) return; const t = Math.min(1, (n - t0) / ms), e = 0.5 - 0.5 * Math.cos(Math.PI * t); for (const k in T) st[k] = s0[k] + (T[k] - s0[k]) * e; draw(); if (t < 1) requestAnimationFrame(f); };
+    const f = n => { if (id !== tid) return; const t = Math.max(0, Math.min(1, (n - t0) / ms)), e = 0.5 - 0.5 * Math.cos(Math.PI * t); for (const k in T) st[k] = s0[k] + (T[k] - s0[k]) * e; draw(); if (t < 1) requestAnimationFrame(f); };
     requestAnimationFrame(f); };
   /* 美術館を歩くように：ゆっくり始まり、ゆっくり止まる。大きい作品へは先に下がり、小さい作品へは最後に近づく */
   const walk = (T, done, v) => { const s0 = { x: st.x, y: st.y, z: st.z }, t0 = performance.now(), id = ++tid, D = T.x - s0.x, sw = v != null;
@@ -10105,7 +10106,7 @@ function exvBuild(root, L, start){
     if (RM) { Object.assign(st, T); cl(); draw(); if (done) done(); return id; }
     const m0 = sw && Math.abs(D) > 1e-4 ? Math.max(0, Math.min(2.6, v * ms / D)) : 0; /* スワイプ：はなした速さで動き出して、やわらかく止まる（エルミート曲線） */
     const sm = t => t <= 0 ? 0 : t >= 1 ? 1 : sw ? (t * t * t - 2 * t * t + t) * m0 + (3 * t * t - 2 * t * t * t) : 0.5 - 0.5 * Math.cos(Math.PI * t), back = T.z > s0.z;
-    const f = n => { if (id !== tid) return; const t = Math.min(1, (n - t0) / ms), e = sm(t), ez = sw ? 1 - Math.pow(1 - t, 3) : back ? sm(t / 0.65) : sm((t - 0.35) / 0.65);
+    const f = n => { if (id !== tid) return; const t = Math.max(0, Math.min(1, (n - t0) / ms)), e = sm(t), ez = sw ? 1 - Math.pow(1 - t, 3) : back ? sm(t / 0.65) : sm((t - 0.35) / 0.65);
       st.x = s0.x + (T.x - s0.x) * e; st.y = s0.y + (T.y - s0.y) * e; st.z = s0.z + (T.z - s0.z) * ez; wkT = performance.now(); draw(); if (t < 1) requestAnimationFrame(f); else if (done) done(); };
     requestAnimationFrame(f); return id; };
   const xPrev = root.querySelector('.xprev'), xNext = root.querySelector('.xnext');
@@ -10113,7 +10114,7 @@ function exvBuild(root, L, start){
   const AUTO = 10000; let autoT = 0, playing = true, wake = false; const xPP = root.querySelector('.xpp');
   const PLAY = '<svg viewBox="0 0 20 26" aria-hidden="true"><path d="M4 2.5v21L18 13z"/></svg>', STOP = '<svg viewBox="0 0 20 26" aria-hidden="true"><path d="M6.5 2.5v21M13.5 2.5v21"/></svg>'; /* 一時停止は2本線 */
   const setPlay = v => { playing = v; xPP.innerHTML = v ? STOP : PLAY; xPP.setAttribute('aria-label', v ? '自動再生を一時停止' : '自動再生'); if (v) autoNext(); else clearTimeout(autoT); };
-  const autoNext = () => { clearTimeout(autoT); if (!playing || (EXV && EXV.na)) return; autoT = setTimeout(() => { if (!EXV || document.hidden || zoomed || yd || P.size || root.classList.contains('xmo')) return autoNext(); if (ci < stops.length - 1) go(ci + 1); else setPlay(false); }, AUTO); };
+  const autoNext = () => { clearTimeout(autoT); if (!playing || (EXV && EXV.na)) return; autoT = setTimeout(() => { if (!EXV || document.hidden || zoomed || yd || (ym && ym === tid) || P.size || root.classList.contains('xmo')) return autoNext(); if (ci < stops.length - 1) go(ci + 1); else setPlay(false); }, AUTO); };
   let idleT = 0; const awake = () => { root.classList.remove('xidle'); clearTimeout(idleT); idleT = setTimeout(() => { if (yd || P.size || root.classList.contains('xmo')) awake(); else root.classList.add('xidle'); }, 3000); };
   const poke = () => { autoNext(); awake(); }; /* さわったら、消えていたボタンを出す（再生中なら、次へ進むのは10秒後から数えなおし） */
   let holdT = 0;
@@ -10182,20 +10183,20 @@ function exvBuild(root, L, start){
       e.style.transform = 'translateX(' + x.toFixed(1) + 'px)'; e.style.opacity = o.toFixed(2); }
     for (; n < DOTS.length; n++) DOTS[n].style.opacity = '0'; };
   const camU = u => { const f = Math.max(-1, Math.min(uHi(), u)) + 1, k = Math.max(0, Math.min(stops.length - 2, Math.floor(f))), t = f - k, A = stops[k], B = stops[k + 1] || A;
-    st.x = A.x + (B.x - A.x) * t; st.y = A.y + (B.y - A.y) * t; st.z = A.z + (B.z - A.z) * t; cl(); draw(); aroundLater(); };
-  const nearK = u => Math.max(-1, Math.min(uHi(), Math.round(u)));
+    st.x = A.x + (B.x - A.x) * t; st.y = A.y + (B.y - A.y) * t; st.z = A.z + (B.z - A.z) * t; ci = Math.max(0, Math.min(stops.length - 1, nearK(u) + 1)); cl(); draw(); aroundLater(); }; /* 動かしている間も、いちばん近い作品を「いまの作品」に（写真もそこから先に読む） */
+  function nearK(u){ return Math.max(-1, Math.min(uHi(), Math.round(u))); }
   const yOff = () => { clearTimeout(yHide); yHide = setTimeout(() => { if (!yd) { yA = false; showU(U); } }, 800); };
-  let yWake = false;
+  let yWake = false, ym = 0;
   yEl.onpointerdown = e => { yWake = root.classList.contains('xidle'); poke(); if (mv) tIn(); clearTimeout(yrT); lastY = null; yd = true; try { yEl.setPointerCapture(e.pointerId); } catch(_){} tid++; zoomed = false; yx = e.clientX; yv = 0; ymv = 0; yt = performance.now(); yA = true; clearTimeout(yHide); showU(U); yEl.style.cursor = 'grabbing'; };
   yEl.onpointermove = e => { if (!yd) return; const dx = e.clientX - yx, n = performance.now(); yx = e.clientX; ymv += Math.abs(dx); const du = -dx / SP; yv = 0.7 * yv + 0.3 * du / Math.max(1, n - yt); yt = n;
     const u = Math.min(uHi(), Math.max(-1, U + du)); showU(u); camU(u); };
   yEl.onpointerup = yEl.onpointercancel = e => { if (!yd) return; yd = false; yEl.style.cursor = 'grab';
     if (ymv < 6) { if (yWake) { yOff(); yrOff(500); return; } const b = yEl.getBoundingClientRect(), x = e.clientX - (b.left + b.width / 2), G = yG();
       if (Math.abs(x) > G) go(ci + Math.sign(x)); else yrOff(500); yOff(); return; } /* 下の左右をタップ：前・次の作品へ */
-    const id = ++tid; let last = performance.now(), v = yv;
+    const id = ++tid; let last = performance.now(), v = yv; ym = id;
     const snap = () => { const k = nearK(U), u0 = U, t0 = performance.now();
-      const f = n => { if (id !== tid) return; const t = Math.min(1, (n - t0) / 380), q = 1 - Math.pow(1 - t, 3), u = u0 + (k - u0) * q; showU(u); camU(u); if (t < 1) requestAnimationFrame(f); else { ci = k + 1; zoomed = false; around(ci); yOff(); yrOff(500); autoNext(); } }; requestAnimationFrame(f); };
-    const m = n => { if (id !== tid) return; const dt = n - last; last = n; v *= Math.pow(0.95, dt / 16); let u = U + v * dt; if (u < -1 || u > uHi()) { u = Math.min(uHi(), Math.max(-1, u)); v = 0; } showU(u); camU(u); if (Math.abs(v) > 0.0008) requestAnimationFrame(m); else snap(); };
+      const f = n => { if (id !== tid) return; const t = Math.max(0, Math.min(1, (n - t0) / 380)), q = 1 - Math.pow(1 - t, 3), u = u0 + (k - u0) * q; showU(u); camU(u); if (t < 1) requestAnimationFrame(f); else { ci = k + 1; ym = 0; zoomed = false; around(ci); yOff(); yrOff(500); autoNext(); } }; requestAnimationFrame(f); };
+    const m = n => { if (id !== tid) return; const dt = Math.min(50, Math.max(0, n - last)); last = Math.max(last, n); /* 描く時刻は、指をはなした時刻より前のことがある。そのまま使うと時間がマイナスになり、勢いが逆向きに大きく効いて、はじめの作品まで戻っていた（10/7 本人「高速に送ると元に戻る」） */ v *= Math.pow(0.95, dt / 16); let u = U + v * dt; if (u < -1 || u > uHi()) { u = Math.min(uHi(), Math.max(-1, u)); v = 0; } showU(u); camU(u); if (Math.abs(v) > 0.0008) requestAnimationFrame(m); else snap(); };
     if (RM || Math.abs(v) < 0.0008) snap(); else requestAnimationFrame(m); };
 
   /* メニュー（10/6 本人）：表示する作品（作品アルバムのカテゴリと同じ。美術館は館も選べる）と、この作品の共有 */
@@ -10221,12 +10222,12 @@ function exvBuild(root, L, start){
     try { await navigator.clipboard.writeText(url); toast('リンクをコピーしました。LINE などに貼って送れます'); } catch(e){ toast('リンク：' + url); } };
   xPrev.onclick = () => { poke(); go(ci - 1); }; xNext.onclick = () => { poke(); go(ci + 1); };
   const key = e => { poke(); if (e.key === 'ArrowRight') { e.preventDefault(); go(ci + 1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); go(ci - 1); } };
-  const rs = () => layout(); addEventListener('resize', rs); addEventListener('keydown', key);
+  const rs = () => { const w = stage.clientWidth || innerWidth, h = stage.clientHeight || innerHeight; if (w === W && h === H) return; layout(); }; addEventListener('resize', rs); addEventListener('keydown', key);
   const wait = root.querySelector('.xwait'); if (wait) wait.remove();
   ci = Math.max(0, Math.min(items.length, start || 0)); layout(); around(ci); setCnt(); autoNext(); awake();
   root.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') awake(); });
   /* 最初の使い方の説明は出さない（10/6 本人） */
-  EXV.curNo = () => { const it = items[ci - 1]; return it ? it.d.no : null; }; EXV.busy = () => mv || yd;
+  EXV.curNo = () => { const it = items[ci - 1]; return it ? it.d.no : null; }; EXV.busy = () => mv || yd || (ym && ym === tid) || P.size > 0;
   const close0 = EXV.close;
   EXV.close = () => { tid++; dead = 1; items.forEach(it => { it.req = 0; }); PQ.clear(); clearTimeout(PQT); clearInterval(LDT); clearTimeout(EXV.syncT); /* 閉じたあとに届いた写真で、捨てた描画を動かさない */ clearTimeout(autoT); clearTimeout(settle); clearTimeout(wt); if (rq) cancelAnimationFrame(rq); removeEventListener('resize', rs); removeEventListener('keydown', key);
     sc.traverse(o => { if (o.geometry) o.geometry.dispose(); const ms = o.material ? [].concat(o.material) : []; ms.forEach(m => { if (m.map) m.map.dispose(); if (m.bumpMap) m.bumpMap.dispose(); m.dispose(); }); });
