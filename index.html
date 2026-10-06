@@ -2340,7 +2340,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'f147ca8ed9', APP_URL = location.origin + location.pathname;
+const BUILD = 'ab4bb3308b', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -7643,7 +7643,7 @@ const pick = (id, opts, v) => `<div class="pick" id="${id}" data-v="${esc(v||'')
 /* 画材（材質）は選択式：ボタンを複数押して組み合わせる。表記は「紙・紙粘土・顔料」の順にそろう */
 const MAT_OPTS = [['素材', ['紙','和紙','麻紙','新聞紙','紙粘土','キャンバス','麻布','布','板','木材','陶','砂','苆（藁）']], ['絵具・技法', ['顔料','岩絵具','水干絵具','泥絵具','墨','油彩','インク','鉛筆','色鉛筆','着色','コラージュ','エッチング','銅版画']]];
 const MAT_ALL = MAT_OPTS.flatMap(x => x[1]);
-const FORM_OPTS = ['なし','額','パネル','屏風（二曲一隻）','屏風（二曲一双）','屏風','未装'];
+const FORM_OPTS = ['なし','額','パネル','屏風（二曲一隻）','屏風（二曲一双）','屏風','観音開き','未装']; /* 観音開き（10/7 本人）：まん中の板と左右の扉（展示ビューでは扉を少し手前に開く） */
 const matSplit = v => String(v||'').split(/[・\/／、,，]/).map(s => s.trim()).filter(Boolean);
 const matJoin = arr => { const a = [...new Set(arr)]; return a.filter(x => MAT_ALL.includes(x)).sort((x, y) => MAT_ALL.indexOf(x) - MAT_ALL.indexOf(y)).concat(a.filter(x => !MAT_ALL.includes(x))).join('・'); };
 const matPick = (id, v) => { const cur = matSplit(v), ex = cur.filter(x => !MAT_ALL.includes(x));
@@ -9718,6 +9718,8 @@ function exvYearBig(v){ let s = String(v || '').trim().replace(/[０-９]/g, c =
     return y + (/頃|ごろ|位|ころ/.test(p) ? '’s' : /代/.test(p) ? 's' : ''); }).filter(Boolean);
   return out.join('\n-\n'); }
 const exvYearTxt = w => { const s = String(w['制作年'] || '').trim(); return /^\d{4}$/.test(s) ? s + '年' : s; };
+/* 観音開き（仕立て・画材・作品名のどれかに「観音開き」）。屏風と同じく床に立てて置く */
+const isKannon = w => /観音開/.test(['仕立て', '画材', '作品名', '種別'].map(k => String(w[k] || '')).join(' ').normalize('NFKC'));
 /* 屏風の折り：仕立て → 画材 → 種別 → 作品名の順に「六曲」「一折」などを探して合わせる。書いてなければ一折り（2枚）（10/6 本人） */
 const exvFolds = w => { const N = { '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8 }, num = c => N[c] || +String(c).replace(/[１-９]/, x => String.fromCharCode(x.charCodeAt(0) - 0xFEE0)) || 0;
   for (const k of ['仕立て', '画材', '種別', '作品名']) { const t = String(w[k] || ''); let m = t.match(/([一二三四五六七八1-8１-８])曲/); if (m && num(m[1])) return num(m[1]); m = t.match(/([一二三四五六七1-7１-７])折/); if (m && num(m[1])) return num(m[1]) + 1; }
@@ -9729,7 +9731,7 @@ function exvWorks(noF){ const L = [], keep = !noF && EXVF.f !== 'all' ? exvSet(E
   (S.works || []).forEach(w => { const no = w['作品番号'], p = (photoBy[no] || [])[0], id = p && p['ファイルID'];
     if (!id || (keep && !keep.has(String(no))) || /廃棄|統合済み/.test(String(w['所在'] || '') + ' ' + String(w['状態'] || ''))) return;
     const d = dimMain(w), h = +d['高さcm'] || 0, wd = +d['幅cm'] || 0;
-    L.push({ no, w, id, y: yearOf(w['制作年']), s: String(w['シリーズ'] || '').trim(), h, wd, est: !(h > 0 && wd > 0), frame: szKind(w) === 'frame', b: isScreenW(w), cp: copyOf(p) }); }); /* 転載した写真（©）も出す（10/6 本人）。キャプションに © */
+    L.push({ no, w, id, y: yearOf(w['制作年']), s: String(w['シリーズ'] || '').trim(), h, wd, est: !(h > 0 && wd > 0), frame: szKind(w) === 'frame', b: isScreenW(w) || isKannon(w), k: isKannon(w), cp: copyOf(p) }); }); /* 転載した写真（©）も出す（10/6 本人）。キャプションに © */
   const gy = {}; L.forEach(d => { if (d.s) gy[d.s] = Math.min(gy[d.s] == null ? 99999 : gy[d.s], d.y); }); /* シリーズは、いちばん古い作品の年のところにまとめる */
   L.sort((a, b) => (a.s ? gy[a.s] : a.y) - (b.s ? gy[b.s] : b.y) || (a.s || '\uffff' + a.no).localeCompare(b.s || '\uffff' + b.no, 'ja', { numeric: true }) || a.y - b.y || String(a.no).localeCompare(String(b.no), 'ja', { numeric: true }));
   return L; }
@@ -9836,7 +9838,7 @@ document.addEventListener('click', e => { const t = e.target;
     shGo(x['種類'], x['対象']); return; }
   const g = t.closest('[data-shgo]'); if (g) { const [k, n] = g.dataset.shgo.split('|'); shGo(k, n); } });
 /* 展示ビューの並びの元（作品・写真・サイズ・年・名前など）。開いている間に最新の台帳が届いて、これが変わったら作り直す（10/6 本人） */
-const exvSig = L => L.map(d => [d.no, d.id, d.h, d.wd, d.y, d.s, d.b ? 1 : 0, d.frame ? 1 : 0, d.w['作品名'], d.w['制作年'], d.w['画材'], d.w['仕立て'], d.w['所在'], d.cp ? d.cp.mu : ''].join('|')).join('\n');
+const exvSig = L => L.map(d => [d.no, d.id, d.h, d.wd, d.y, d.s, d.b ? 1 : 0, d.k ? 1 : 0, d.frame ? 1 : 0, d.w['作品名'], d.w['制作年'], d.w['画材'], d.w['仕立て'], d.w['所在'], d.cp ? d.cp.mu : ''].join('|')).join('\n');
 function exvSync(){ if (!EXV || !EXV.sig || !EXV.curNo || EXV.syncT) return; let L; try { L = exvWorks(); } catch(e){ return; } if (!L.length || exvSig(L) === EXV.sig) return;
   const go = () => { if (!EXV || !EXV.curNo) return; EXV.syncT = 0; if (EXV.busy()) { EXV.syncT = setTimeout(go, 1500); return; } /* 動いている・さわっている間は待つ */
     const no = EXV.curNo(), c = EXV.close, st = no != null && L.some(d => String(d.no) === String(no)) ? String(no) : 0; try { c(); } catch(e){} exvOpen(st, true); }; /* 履歴は増やさない */
@@ -9963,7 +9965,16 @@ function exvBuild(root, L, start){
   const items = L.map((d, i) => { const w = d.wd / 100, h = d.h / 100, g = new T3.Group(), [cv, x0] = cvs(16, 16); x0.fillStyle = '#dcd6cd'; x0.fillRect(0, 0, 16, 16);
     const base = mkTex(cv), it = { d, w, h, g, cv, tx: [base], req: 0, wm: w, hm: h };
     const artM = t => new T3.MeshStandardMaterial({ map: t, bumpMap: abm, bumpScale: 0.0015, roughness: 0.96, dithering: true });
-    if (d.b) { const n = exvFolds(d.w), th = n > 1 ? 0.3 : 0, pw = w / n, c = Math.cos(th), dd = pw * Math.sin(th), FWb = 0.022, FDb = 0.03, fz = 0.013 - FDb / 2, W2 = w * c + 2 * FWb, zb = 0.14;
+    if (d.k) { /* 観音開き（10/7 本人の写真）：まん中の板は壁と平行、左右の扉を少しだけ手前に開く。写真は開いたところを正面から撮った1枚で、扉：まん中：扉 ＝ 1：2：1 */
+      const th = 0.36, cw = w / 2, dw = w / 4, c = Math.cos(th), dz = dw * Math.sin(th), dep = 0.03, zb = 0.12, Wk = cw + 2 * dw * c, y0 = h / 2 + 0.004;
+      const tL = base, tC = base.clone(), tR = base.clone(); [tC, tR].forEach(t => { t.needsUpdate = true; it.tx.push(t); });
+      tL.repeat.set(0.25, 1); tL.offset.set(0, 0); tC.repeat.set(0.5, 1); tC.offset.set(0.25, 0); tR.repeat.set(0.25, 1); tR.offset.set(0.75, 0);
+      const pnl = (pw, t) => { const m = new T3.Mesh(new T3.BoxGeometry(pw, h, dep), [edge, edge, edge, edge, artM(t), edge]); m.castShadow = true; m.receiveShadow = true; return m; };
+      const ctr = pnl(cw, tC); ctr.position.set(0, y0, zb); g.add(ctr);
+      [[-1, tL], [1, tR]].forEach(([sd, t]) => { const pv = new T3.Group(); pv.position.set(sd * cw / 2, y0, zb); pv.rotation.y = -sd * th; const dr = pnl(dw, t); dr.position.x = sd * dw / 2; pv.add(dr); g.add(pv); }); /* 蝶番はまん中の板の端 */
+      const ao = new T3.Mesh(new T3.PlaneGeometry(Wk + 0.3, dz + 0.34), new T3.MeshBasicMaterial({ transparent: true, opacity: 0.34, depthWrite: false })); ao.rotation.x = -Math.PI / 2; ao.position.set(0, 0.002, zb + dz / 2); ao.visible = false; ao.raycast = () => {}; g.add(ao);
+      Object.assign(it, { W: Wk, ao, aoMk: () => softShadow(Wk, dz + 0.04, 0.15) }); }
+    else if (d.b) { const n = exvFolds(d.w), th = n > 1 ? 0.3 : 0, pw = w / n, c = Math.cos(th), dd = pw * Math.sin(th), FWb = 0.022, FDb = 0.03, fz = 0.013 - FDb / 2, W2 = w * c + 2 * FWb, zb = 0.14;
       /* 黒い漆の縁（10/6 本人）：上下は各扇に、左右は両端だけ。角をわずかに丸めて光が縁に乗るように */
       const hB = lacBar(pw, FDb, FWb, 'h'), vB = lacBar(h + 2 * FWb, FWb, FDb, 'v');
       for (let j = 0; j < n; j++) { const t = j ? base.clone() : base; if (j) { t.needsUpdate = true; it.tx.push(t); } t.repeat.set(1 / n, 1); t.offset.set(j / n, 0);
