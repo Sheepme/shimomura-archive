@@ -2341,7 +2341,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '0c0ffb0e4c', APP_URL = location.origin + location.pathname;
+const BUILD = 'bbd2794bd5', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -10199,7 +10199,7 @@ function exvBuild(root, L, start){
   let wX = 0, wLock = 0, wT = 0;
   el.addEventListener('wheel', e => { poke(); e.preventDefault(); const k = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1, ax = e.deltaX * k, ay = e.deltaY * k, now = e.timeStamp || performance.now(), gap = now - wT; wT = now; /* 時刻は入力が起きた時刻（描画で遅れて届いても、とぎれたと見なさない） */
     const hz = Math.abs(ax) > Math.abs(ay) ? ax : e.shiftKey ? ay : 0;
-    if (hz) { if (wLock && gap > 220 && now - wLock > 650) wLock = 0; if (wLock) return; if (gap > 220) wX = 0; wX += hz; if (Math.abs(wX) > 50) { wLock = now; wX = 0; go(ci + (hz > 0 ? 1 : -1)); } return; } /* 進んだら、0.65秒たって、しかもスクロールがとぎれる（慣性も終わる）まで次へは進まない */
+    if (hz) { if (wLock && gap > 220 && now - wLock > 400) wLock = 0; if (wLock) return; if (gap > 220) wX = 0; wX += hz; if (Math.abs(wX) > 50) { wLock = now; wX = 0; go(ci + (hz > 0 ? 1 : -1), 0); } return; } /* 進んだら、0.4秒たって、しかもスクロールがとぎれる（慣性も終わる）まで次へは進まない。動きはスワイプと同じ速さ（約0.6〜1.5秒。ボタンの「歩く」より速い。10/7 本人「もっと早く」） */
     tid++; if (mv) tIn(); zoomBy(1 + ay * 0.0015); }, { passive: false });
 
   /* 下の年：海外のギャラリーのようなゴシック体で、今の年だけ。指を当てると両側に作品の数だけ●（3つ目からうすく、5つ目で消える）。左右に動かすと早送り、●をタップするとその作品へ */
