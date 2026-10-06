@@ -2299,7 +2299,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'a2a6296030', APP_URL = location.origin + location.pathname;
+const BUILD = '0dd8f37da4', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4039,10 +4039,11 @@ function renderHome(){
   document.getElementById('dwNav').innerHTML = `<button type="button" data-v="home"><span class="pic">${HOMEIC}</span><span>ホーム</span></button>`
     + L.map(([v, t, k]) => `<button type="button" data-v="${v}"${v==='doc'?' class="edonly"':''}><span class="pic">${ico(k)}</span><span>${v==='ot' ? 'その他の作品' : v==='pb' ? '画集・資料' : t}</span></button>`).join('')
     + `<button type="button" data-v="upd"><span class="pic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v3.4h3.4"/><path d="M12 8v4.3l2.8 1.8"/></svg></span><span>更新記録</span></button>`
-    + `<button type="button" data-v="exv" class="admonly"><span class="pic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5.5" y="5" width="13" height="10.5" rx="1"/><path d="M3 19.5h18"/></svg></span><span>展示ビュー</span></button>`
+    + `<button type="button" data-v="exv"><span class="pic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5.5" y="5" width="13" height="10.5" rx="1"/><path d="M3 19.5h18"/></svg></span><span>展示ビュー</span></button>`
     + `<button type="button" data-v="help" class="dwhelp"><span class="pic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.6M12 16.8v.2"/></svg></span><span>使い方</span></button>`; })();
 /* 開いたときの最初の画面（卓也さんだけ作品アルバムから始める） */
 function applyStart(){ if (applyStart.done || !S.user) return; applyStart.done = 1;
+  exvDeep(); /* 共有のリンク（?exv=作品番号）で開いたとき */
   if (S.user.name === '卓也' && S.view === 'home') { S.view = 'album'; S.wmode = 'album'; S.filter = 'all'; S.mus = ''; S.limit = 60; } }
 /* メニューの下（名前の右）：明るい表示／暗い表示の切り替え（いまの表示と反対のアイコン） */
 function themeIcon(){ return document.documentElement.getAttribute('data-theme')==='dark'
@@ -9089,7 +9090,7 @@ function restoreNav(){
   if (restoreNav.done) return null; restoreNav.done = 1;
   let n = null; try { n = JSON.parse(sessionStorage.getItem(NAVKEY) || 'null'); } catch(e){}
   if (!n || Date.now() - n.at > 12 * 3600e3 || !S.user) return null;
-  applyStart.done = 1; // いつもの最初の画面（アルバムなど）には切り替えない
+  applyStart.done = 1; exvDeep(); // いつもの最初の画面（アルバムなど）には切り替えない（共有のリンクで開いたときは展示ビュー）
   ['view', 'wmode', 'filter', 'otk'].forEach(k => { if (n[k] !== undefined && n[k] !== null) S[k] = n[k]; });
   return n;
 }
@@ -9645,19 +9646,22 @@ function mcard(w){
    three.js は開いたときだけ読み込む。写真は一覧と同じ縮小写真（端末に保存したもの・getThumbs）を使い、近くの作品の分だけ読み込む。
    照明：天井（高さ4m）のレールから鉛直30°。作品ごとに主灯（少し横から）と反対側から弱い補助灯。見る人の後ろ上からのうすい光がカメラと一緒に動く */
 let EXV = null;
-const exvIsAdm = () => !!(S.user && S.user.role === '管理');
+const exvIsAdm = () => !!S.user; /* 展示ビューはログインしている人みんな（10/6 本人） */
 function exvLib(){ return window.THREE ? Promise.resolve() : new Promise((ok, ng) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'; s.onload = () => ok(); s.onerror = () => ng(new Error('3Dの部品を読み込めませんでした')); document.head.appendChild(s); }); }
 const exvOwner = w => { const p = String(w['所在'] || '').trim(); if (!p || /館名は/.test(p)) return ''; if (/^自宅|個人|思文閣|画廊/.test(p)) return '個人蔵';
   return /美術館|博物館|資料館|記念館|学校|大学|会館|センター|ホール|庁|役所|寺|神社/.test(p) ? p.replace(/[\s（(].*$/, '') + '蔵' : '個人蔵'; };
 const exvYearTxt = w => { const s = String(w['制作年'] || '').trim(); return /^\d{4}$/.test(s) ? s + '年' : s; };
-const exvFolds = (w, r) => { const t = String(w['作品名'] || '') + String(w['種別'] || '') + String(w['画材'] || ''), m = t.match(/([二四六八２４６８2468])曲/);
-  if (m) return ({ '二': 2, '四': 4, '六': 6, '八': 8, '２': 2, '４': 4, '６': 6, '８': 8 })[m[1]] || +m[1]; return r > 1.6 ? 6 : 2; };
+/* 屏風の折り：画材 → 種別 → 作品名の順に「六曲」「一折」などを探して合わせる。書いてなければ一折り（2枚）（10/6 本人） */
+const exvFolds = w => { const N = { '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8 }, num = c => N[c] || +String(c).replace(/[１-９]/, x => String.fromCharCode(x.charCodeAt(0) - 0xFEE0)) || 0;
+  for (const k of ['画材', '種別', '作品名']) { const t = String(w[k] || ''); let m = t.match(/([一二三四五六七八1-8１-８])曲/); if (m && num(m[1])) return num(m[1]); m = t.match(/([一二三四五六七1-7１-７])折/); if (m && num(m[1])) return num(m[1]) + 1; }
+  return 2; };
 function exvWorks(){ const L = [];
   (S.works || []).forEach(w => { const no = w['作品番号'], p = (photoBy[no] || [])[0], id = p && p['ファイルID'];
     if (!id || HIDPH(id) || /廃棄|統合済み/.test(String(w['所在'] || '') + ' ' + String(w['状態'] || ''))) return;
     const d = dimMain(w), h = +d['高さcm'] || 0, wd = +d['幅cm'] || 0;
-    L.push({ no, w, id, y: yearOf(w['制作年']), h, wd, est: !(h > 0 && wd > 0), frame: szKind(w) === 'frame', b: isScreenW(w) }); });
-  L.sort((a, b) => a.y - b.y || String(a.no).localeCompare(String(b.no), 'ja', { numeric: true }));
+    L.push({ no, w, id, y: yearOf(w['制作年']), s: String(w['シリーズ'] || '').trim(), h, wd, est: !(h > 0 && wd > 0), frame: szKind(w) === 'frame', b: isScreenW(w) }); });
+  const gy = {}; L.forEach(d => { if (d.s) gy[d.s] = Math.min(gy[d.s] == null ? 99999 : gy[d.s], d.y); }); /* シリーズは、いちばん古い作品の年のところにまとめる */
+  L.sort((a, b) => (a.s ? gy[a.s] : a.y) - (b.s ? gy[b.s] : b.y) || (a.s || '\uffff' + a.no).localeCompare(b.s || '\uffff' + b.no, 'ja', { numeric: true }) || a.y - b.y || String(a.no).localeCompare(String(b.no), 'ja', { numeric: true }));
   return L; }
 /* サイズのない作品：縦横の比は写真の形（端末に保存した小さい写真から）、大きさは同じ種類（屏風かどうか）の作品のふつうの大きさ（面積の中央値） */
 async function exvEstimate(L){
@@ -9672,43 +9676,50 @@ async function exvEstimate(L){
 function exvCss(){ if (document.getElementById('exvcss')) return; const st = document.createElement('style'); st.id = 'exvcss';
   st.textContent = `#exv{position:fixed;inset:0;z-index:9000;background:#efede9;color:#33302c;overflow:hidden;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui,sans-serif}
 #exv .xst{position:absolute;inset:0}#exv canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
-#exv .xcl{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8px);right:8px;width:48px;height:48px;border:0;background:transparent;color:#3a3530;mix-blend-mode:multiply;z-index:4;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;-webkit-tap-highlight-color:transparent}
-#exv .xcl svg{width:24px;height:24px;stroke:currentColor;stroke-width:1.4;fill:none;stroke-linecap:round;stroke-linejoin:round}#exv .xcl:focus-visible{outline:1.5px solid #2f2c28;outline-offset:2px;border-radius:8px}
+#exv .xcl,#exv .xsh{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8px);right:8px;width:48px;height:48px;border:0;background:transparent;color:#3a3530;mix-blend-mode:multiply;z-index:4;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;-webkit-tap-highlight-color:transparent}
+#exv .xcl svg,#exv .xsh svg{width:24px;height:24px;stroke:currentColor;stroke-width:1.4;fill:none;stroke-linecap:round;stroke-linejoin:round}#exv .xcl:focus-visible{outline:1.5px solid #2f2c28;outline-offset:2px;border-radius:8px}
 #exv .xwait{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;letter-spacing:.12em;color:#6f685f;z-index:2}
 #exv .xhint{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 78px);display:flex;justify-content:center;font-size:13px;line-height:1.65;pointer-events:none;transition:opacity .8s;z-index:3}
 #exv .xhint span{background:rgba(250,249,246,.93);border:1px solid rgba(51,48,44,.12);border-radius:10px;padding:8px 14px;max-width:24em;text-align:center}
 #exv .yrs{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 6px);height:76px;z-index:3;touch-action:none;cursor:grab;mix-blend-mode:multiply}
-#exv .ynum{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);font-family:"Helvetica Neue","Avenir Next","Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",Helvetica,Arial,sans-serif;font-size:26px;max-width:calc(100% - 150px);overflow:hidden;text-overflow:ellipsis;font-weight:300;letter-spacing:.05em;color:#3a3530;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
+#exv .ynum{position:absolute;left:18px;top:calc(env(safe-area-inset-top,0px) + 8px);height:48px;line-height:48px;font-family:"Helvetica Neue","Avenir Next","Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",Helvetica,Arial,sans-serif;font-size:17px;max-width:calc(100% - 140px);overflow:hidden;text-overflow:ellipsis;font-weight:300;letter-spacing:.06em;color:#3a3530;mix-blend-mode:multiply;z-index:4;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
 #exv .xnav{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);width:48px;height:48px;border:0;background:transparent;color:#3a3530;z-index:4;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;mix-blend-mode:multiply;transition:opacity .6s;-webkit-tap-highlight-color:transparent}
-#exv.xauto .xnav,#exv.xauto .xcl{opacity:0;pointer-events:none}#exv .xcl{transition:opacity .6s}#exv .xprev{left:8px}#exv .xnext{right:8px}#exv .xnav svg{width:14px;height:26px;stroke:currentColor;stroke-width:1.2;fill:none;stroke-linecap:round;stroke-linejoin:round}#exv .xnav[disabled]{opacity:0;pointer-events:none}#exv .xnav:focus-visible{outline:1.5px solid #3a3530;outline-offset:-4px;border-radius:8px}
+#exv.xauto .xnav,#exv.xauto .xcl,#exv.xauto .xsh{opacity:0;pointer-events:none}#exv .xcl,#exv .xsh{transition:opacity .6s}#exv .xsh{right:56px}body.exvopen #toast{z-index:9600!important}#exv .xprev{left:clamp(22px,5vw,72px)}#exv .xnext{right:clamp(22px,5vw,72px)}#exv .xnav svg{width:14px;height:26px;stroke:currentColor;stroke-width:1.2;fill:none;stroke-linecap:round;stroke-linejoin:round}#exv .xnav[disabled]{opacity:0;pointer-events:none}#exv .xnav:focus-visible{outline:1.5px solid #3a3530;outline-offset:-4px;border-radius:8px}
 #exv .ydots{position:absolute;inset:0;pointer-events:none}
-#exv .yd{position:absolute;left:50%;top:80%;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;border-radius:50%;background:#2b2825;opacity:0;transition:opacity .3s ease}
+#exv .ynum{transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1)}#exv .ynum.xmv{opacity:0;transform:translateY(4px);transition:opacity .32s ease-in,transform .32s ease-in}
+#exv .xyr{position:absolute;left:17px;top:calc(env(safe-area-inset-top,0px) + 50px);font-family:"Helvetica Neue","Avenir Next","Hiragino Sans","Noto Sans JP",Helvetica,Arial,sans-serif;font-size:clamp(34px,7vw,58px);line-height:1;font-weight:200;letter-spacing:.04em;color:#3a3530;mix-blend-mode:multiply;font-variant-numeric:tabular-nums;opacity:0;transition:opacity 1.1s ease;pointer-events:none;z-index:4}
+#exv .xyr.xin{opacity:.78;transition:opacity .7s ease}
+#exv .yc{position:absolute;left:50%;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;border:1.2px solid #2b2825;box-sizing:border-box;opacity:.85}
+#exv .yd{position:absolute;left:50%;top:50%;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;border-radius:50%;background:#2b2825;opacity:0;transition:opacity .3s ease}
 #exv .yrs.xon .yd{transition:opacity .12s ease}
 body.exvopen{overflow:hidden}
-@media (prefers-reduced-motion: reduce){#exv .xhint,#exv .yd{transition:none}}`;
+@media (prefers-reduced-motion: reduce){#exv .xhint,#exv .yd,#exv .xyr,#exv .ynum{transition:none}}`;
   document.head.appendChild(st); }
 async function exvOpen(start, noPush){
   if (!exvIsAdm() || EXV) return;
   exvCss(); const root = document.createElement('div'); root.id = 'exv'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-label', '展示ビュー');
-  root.innerHTML = '<div class="xst"></div><div class="xwait">展示室を準備しています…</div><button type="button" class="xcl" aria-label="展示ビューを出る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5H6.5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1H14"/><path d="M10.5 12h9M16.5 8.5 20 12l-3.5 3.5"/></svg></button><div class="xhint" style="opacity:0"><span></span></div><button type="button" class="xnav xprev" aria-label="前の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M12 2 2 13l10 11"/></svg></button><button type="button" class="xnav xnext" aria-label="次の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M2 2l10 11L2 24"/></svg></button><div class="yrs" aria-label="制作年（指を当てて左右に動かすと早送り）"><div class="ydots"></div><div class="ynum"></div></div>';
+  root.innerHTML = '<div class="xst"></div><div class="xwait">展示室を準備しています…</div><button type="button" class="xsh" aria-label="この作品を共有"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14.5V3.5"/><path d="M8.2 7.3 12 3.5l3.8 3.8"/><path d="M8 10.5H6.5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1H16"/></svg></button><button type="button" class="xcl" aria-label="展示ビューを出る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5H6.5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1H14"/><path d="M10.5 12h9M16.5 8.5 20 12l-3.5 3.5"/></svg></button><div class="xhint" style="opacity:0"><span></span></div><button type="button" class="xnav xprev" aria-label="前の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M12 2 2 13l10 11"/></svg></button><button type="button" class="xnav xnext" aria-label="次の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M2 2l10 11L2 24"/></svg></button><div class="ynum"></div><div class="xyr" aria-hidden="true"></div><div class="yrs" aria-label="作品の位置（指を当てて左右に動かすと早送り）"><div class="ydots"><i class="yc"></i></div></div>';
   document.body.appendChild(root); document.body.classList.add('exvopen');
   try { const fs = root.requestFullscreen || root.webkitRequestFullscreen; if (fs) { const q = fs.call(root); if (q && q.catch) q.catch(() => {}); } } catch(e){} /* 押した直後でないと全画面にできない */
   try { const tm = document.querySelector('meta[name="theme-color"]'); if (tm) tm.content = '#ebe8e3'; } catch(e){}
   EXV = { root, close: () => { try { if ((document.fullscreenElement || document.webkitFullscreenElement) === root) (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch(e){} root.remove(); document.body.classList.remove('exvopen'); EXV = null; try { syncThemeColor(); } catch(e){} } };
   root.querySelector('.xcl').onclick = () => exvClose(false);
   if (!noPush) hpush('exv');
-  try { await exvLib(); const L = exvWorks(); if (!L.length) throw new Error('写真のある作品がありません'); await exvEstimate(L); if (!EXV || EXV.root !== root) return; exvBuild(root, L, +start || 0); }
+  try { await exvLib(); const L = exvWorks(); if (!L.length) throw new Error('写真のある作品がありません'); await exvEstimate(L); if (!EXV || EXV.root !== root) return; exvBuild(root, L, typeof start === 'string' ? Math.max(0, L.findIndex(d => String(d.no) === start) + 1) : (+start || 0)); }
   catch(e){ const wt = root.querySelector('.xwait'); if (wt) wt.textContent = (e && e.message) || '展示ビューを開けませんでした'; }
 }
 /* 作品ページへ：展示ビューを閉じ（履歴の「展示ビュー」はそのまま作品ページの分に）、作品ページを開く。作品ページを閉じると、同じ作品から展示ビューにもどる（closeWork の 'exv'） */
 function exvToWork(no, i){ if (EXV) { const c = EXV.close; try { c(); } catch(e){} }
   OWC = true; try { openWork(no); } finally { OWC = false; } S.stack = [{ t: 'exv', i }]; try { scrHead(); abSync(); } catch(e){} }
+/* 共有のリンク（?exv=作品番号）で開いたとき：ログインしてデータがそろったら、その作品から展示ビュー（applyStart と restoreNav から呼ぶ） */
+function exvDeep(){ if (exvDeep.done) return; let q = null; try { q = new URLSearchParams(location.search).get('exv'); } catch(e){} if (q == null) return; exvDeep.done = 1;
+  try { history.replaceState(history.state, '', location.pathname + location.hash); } catch(e){} setTimeout(() => exvOpen(q), 600); }
 function exvClose(fromHist){ if (!EXV) return; const c = EXV.close; try { c(); } catch(e){} if (!fromHist) hback(); }
 
 function exvBuild(root, L, start){
   const T3 = THREE, RM = matchMedia('(prefers-reduced-motion: reduce)').matches, TN = Math.tan(Math.PI / 8);
   const FONT = '"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif';
-  const CY = 1.45, CAPW = 240, CAPH = 200, TTW = 360, TTH = 150, CAPWm = 0.144, /* 文字の大きさは前と同じ（1単位 0.6mm）。パネルは正方形に近い長方形（約18×16cm） */ CAPX = 0.12, CPAD = 30, CAPG = 0.07, UP = 0.12, PWm = (CAPW + 2 * CPAD) * CAPWm / CAPW, PHm = (CAPH + 2 * CPAD) * CAPWm / CAPW, CAPMIN = 0.85; /* キャプションは小さな四角いパネル（約22×11cm）。下の端を作品の下の端にそろえ、床から85cmより下にはしない */
+  const CY = 1.45, CAPW = 240, CAPH = 200, TTW = 420, TTH = 100, CAPWm = 0.096, /* 文字の大きさは前と同じ（1単位 0.6mm）。パネルは正方形に近い長方形（約18×16cm） */ CAPX = 0.12, CPAD = 30, CAPG = 0.07, UP = 0.12, PWm = (CAPW + 2 * CPAD) * CAPWm / CAPW, PHm = (CAPH + 2 * CPAD) * CAPWm / CAPW, CAPMIN = 0.85; /* キャプションは小さな四角いパネル（約22×11cm）。下の端を作品の下の端にそろえ、床から85cmより下にはしない */
   const stage = root.querySelector('.xst'), hint = root.querySelector('.xhint'), hintT = hint.firstChild;
   const cvs = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return [c, c.getContext('2d')]; };
   const mkTex = (c, srgb) => { const t = new T3.CanvasTexture(c); if (srgb !== false) t.encoding = T3.sRGBEncoding; t.anisotropy = 8; return t; };
@@ -9726,8 +9737,10 @@ function exvBuild(root, L, start){
       const o = (yy * N + xx) * 4; p[o] = p[o + 1] = p[o + 2] = v; p[o + 3] = 255; }
     x.putImageData(d, 0, 0); return c; };
   /* ごく少しマットに：細かい粒子を重ね、黒をほんの少し持ち上げる */
-  const matte = (x, w, h) => { x.globalCompositeOperation = 'soft-light'; x.globalAlpha = 0.22; for (let yy = 0; yy < h; yy += 512) for (let xx = 0; xx < w; xx += 512) x.drawImage(GR, xx, yy);
-    x.globalCompositeOperation = 'screen'; x.globalAlpha = 0.035; x.fillStyle = '#e9e4dc'; x.fillRect(0, 0, w, h); x.globalCompositeOperation = 'source-over'; x.globalAlpha = 1; };
+  const matte = (x, w, h) => { x.globalCompositeOperation = 'soft-light'; x.globalAlpha = 0.16; for (let yy = 0; yy < h; yy += 512) for (let xx = 0; xx < w; xx += 512) x.drawImage(GR, xx, yy);
+    x.globalCompositeOperation = 'screen'; x.globalAlpha = 0.02; x.fillStyle = '#e9e4dc'; x.fillRect(0, 0, w, h); x.globalCompositeOperation = 'source-over'; x.globalAlpha = 1; };
+  const cgT = (() => { const [c, x] = cvs(64, 64), im = x.createImageData(64, 64); for (let j = 0; j < 64; j++) for (let i = 0; i < 64; i++) { const v = j / 63, u = i / 63, e = Math.min(1, Math.min(u, 1 - u) / 0.1), a = Math.pow(1 - v, 1.7) * e * e * (3 - 2 * e), k = (j * 64 + i) * 4; im.data[k + 3] = Math.round(a * 255); } x.putImageData(im, 0, 0); return mkTex(c, false); })();
+  const cStrip = (len, wid, a, px, py, rot) => { const m = new T3.Mesh(new T3.PlaneGeometry(len, wid), new T3.MeshBasicMaterial({ color: 0, map: cgT, transparent: true, opacity: a, depthWrite: false })); m.position.set(px, py, 0.0014); m.rotation.z = rot; m.raycast = () => {}; return m; };
   const softShadow = (w, h, m, bl) => { const W = 256, H = Math.max(32, Math.round(W * (h + 2 * m) / (w + 2 * m))), s = W / (w + 2 * m), [c, x] = cvs(W, H);
     x.shadowColor = 'rgba(0,0,0,0.5)'; x.shadowBlur = Math.max(2, (bl || 0.035) * s); x.shadowOffsetX = W * 2; x.fillStyle = '#000'; x.fillRect(m * s - W * 2, m * s, w * s, h * s); return mkTex(c, false); };
   const LKS = 12, LKH = LKS * 1.35 + 10; /* 「作品ページへ」の文字と、その上のあき */
@@ -9771,31 +9784,55 @@ function exvBuild(root, L, start){
   const LW = 6000, LH = 40, cmap = mkTex(cc), bmap = mkTex(wpt, false); [cmap, bmap].forEach(t => { t.wrapS = t.wrapT = T3.RepeatWrapping; t.repeat.set(LW / 1.2, LH / 1.2); });
   const wall = new T3.Mesh(new T3.PlaneGeometry(LW, LH), new T3.MeshStandardMaterial({ map: cmap, bumpMap: bmap, bumpScale: 0.006, roughness: 0.96, dithering: true }));
   wall.position.set(LW / 2 - 20, CY, 0); wall.receiveShadow = true; sc.add(wall);
-  const fl = new T3.Mesh(new T3.PlaneGeometry(LW, 30), new T3.MeshStandardMaterial({ color: '#bab3a9', roughness: 0.8, dithering: true })); fl.rotation.x = -Math.PI / 2; fl.position.set(LW / 2 - 20, 0, 15); fl.receiveShadow = true; sc.add(fl);
-  const gp = new T3.Mesh(new T3.PlaneGeometry(LW, 0.018), new T3.MeshBasicMaterial({ color: '#8d857b' })); gp.position.set(LW / 2 - 20, 0.009, 0.0008); sc.add(gp);
+  const woodTex = () => { const N = 1024, PW = 64, [c, x] = cvs(N, N); /* 2.4m 四方・幅15cmの板。くり返しのつなぎ目が出ないよう、はみ出した分は反対側にも描く */
+    const plank = (x0, y0, len) => { const tone = 0.9 + Math.random() * 0.14, base = [214, 194, 163].map(v => Math.round(v * tone));
+      for (const ox of [-N, 0, N]) { const X = x0 + ox; if (X > N || X + len < 0) continue; x.fillStyle = 'rgb(' + base + ')'; x.fillRect(X, y0, len, PW);
+        for (let k = 0; k < 10; k++) { const yy = y0 + 3 + ((k * 7919 + Math.floor(x0)) % (PW - 6)); x.strokeStyle = 'rgba(125,98,66,' + (0.05 + (k % 4) * 0.025) + ')'; x.lineWidth = 0.6 + (k % 3) * 0.5; x.beginPath(); x.moveTo(X, yy); for (let q = 1; q <= 10; q++) x.lineTo(X + len * q / 10, yy + Math.sin(q * 1.7 + k) * 1.6); x.stroke(); }
+        x.fillStyle = 'rgba(70,52,34,0.28)'; x.fillRect(X, y0, 1.4, PW); } };
+    for (let r = 0; r < N / PW; r++) { let x0 = Math.random() * N; const end = x0 + N; while (x0 < end) { const len = Math.min(end - x0, N * (0.5 + Math.random() * 0.7)); plank(x0, r * PW, len); x0 += len; } x.fillStyle = 'rgba(70,52,34,0.22)'; x.fillRect(0, r * PW, N, 1.2); }
+    return c; };
+  const wdt = mkTex(woodTex()); wdt.wrapS = wdt.wrapT = T3.RepeatWrapping; wdt.repeat.set(LW / 2.4, 30 / 2.4);
+  const fl = new T3.Mesh(new T3.PlaneGeometry(LW, 30), new T3.MeshStandardMaterial({ map: wdt, roughness: 0.5, metalness: 0, dithering: true })); fl.rotation.x = -Math.PI / 2; fl.position.set(LW / 2 - 20, 0, 15); fl.receiveShadow = true; sc.add(fl);
+  const grad = (a, top) => { const [c, x] = cvs(4, 128), g = x.createLinearGradient(0, top ? 0 : 128, 0, top ? 128 : 0); g.addColorStop(0, 'rgba(0,0,0,' + a + ')'); g.addColorStop(0.3, 'rgba(0,0,0,' + (a * 0.4) + ')'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(0, 0, 4, 128); return mkTex(c, false); };
+  const aoW = new T3.Mesh(new T3.PlaneGeometry(LW, 0.24), new T3.MeshBasicMaterial({ map: grad(0.16, false), transparent: true, depthWrite: false })); aoW.position.set(LW / 2 - 20, 0.12, 0.0012); aoW.raycast = () => {}; sc.add(aoW); /* 壁の下のほうの陰 */
+  const aoF = new T3.Mesh(new T3.PlaneGeometry(LW, 0.4), new T3.MeshBasicMaterial({ map: grad(0.2, true), transparent: true, depthWrite: false })); aoF.rotation.x = -Math.PI / 2; aoF.position.set(LW / 2 - 20, 0.0012, 0.2); aoF.raycast = () => {}; sc.add(aoF); /* 床の壁ぎわの陰 */
   const abm = mkTex(pc, false); abm.wrapS = abm.wrapT = T3.RepeatWrapping; abm.repeat.set(5, 5); /* 作品の紙の細かい凹凸は前のまま */
+  const lacR = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'), im = x.createImageData(128, 128); for (let i = 0; i < im.data.length; i += 4) { const v = 92 + Math.random() * 22; im.data[i] = im.data[i + 1] = im.data[i + 2] = v; im.data[i + 3] = 255; } x.putImageData(im, 0, 0); const t = new T3.CanvasTexture(c); t.wrapS = t.wrapT = T3.RepeatWrapping; return t; })();
+  const lacM = new T3.MeshPhysicalMaterial({ color: '#0d0c0b', roughness: 1, roughnessMap: lacR, metalness: 0, clearcoat: 0.75, clearcoatRoughness: 0.16, dithering: true }); /* 黒漆：深い黒、うすい艶、わずかなムラ */
+  const lacBar = (L, a, b, dir) => { const r = Math.min(a, b) * 0.16, s = new T3.Shape(), x = -a / 2, y = -b / 2;
+    s.moveTo(x + r, y); s.lineTo(x + a - r, y); s.quadraticCurveTo(x + a, y, x + a, y + r); s.lineTo(x + a, y + b - r); s.quadraticCurveTo(x + a, y + b, x + a - r, y + b); s.lineTo(x + r, y + b); s.quadraticCurveTo(x, y + b, x, y + b - r); s.lineTo(x, y + r); s.quadraticCurveTo(x, y, x + r, y);
+    const gm = new T3.ExtrudeGeometry(s, { depth: L, bevelEnabled: false, curveSegments: 4 }); gm.translate(0, 0, -L / 2); if (dir === 'h') gm.rotateY(Math.PI / 2); else gm.rotateX(-Math.PI / 2); return gm; };
   const capS = new T3.MeshStandardMaterial({ color: '#e7e3dc', roughness: 0.9 }), side = new T3.MeshStandardMaterial({ color: '#cfc7bb', roughness: 0.85 }), edge = new T3.MeshStandardMaterial({ color: '#2a2421', roughness: 0.55, dithering: true });
 
   /* 作品 */
   const items = L.map((d, i) => { const w = d.wd / 100, h = d.h / 100, g = new T3.Group(), [cv, x0] = cvs(16, 16); x0.fillStyle = '#dcd6cd'; x0.fillRect(0, 0, 16, 16);
     const base = mkTex(cv), it = { d, w, h, g, cv, tx: [base], req: 0, wm: w, hm: h };
     const artM = t => new T3.MeshStandardMaterial({ map: t, bumpMap: abm, bumpScale: 0.0015, roughness: 0.96, dithering: true });
-    if (d.b) { const n = exvFolds(d.w, w / h), th = 0.3, pw = w / n, c = Math.cos(th), dd = pw * Math.sin(th), W2 = w * c, zb = 0.14;
+    if (d.b) { const n = exvFolds(d.w), th = n > 1 ? 0.3 : 0, pw = w / n, c = Math.cos(th), dd = pw * Math.sin(th), FWb = 0.022, FDb = 0.03, fz = 0.013 - FDb / 2, W2 = w * c + 2 * FWb, zb = 0.14;
+      /* 黒い漆の縁（10/6 本人）：上下は各扇に、左右は両端だけ。角をわずかに丸めて光が縁に乗るように */
+      const hB = lacBar(pw, FDb, FWb, 'h'), vB = lacBar(h + 2 * FWb, FWb, FDb, 'v');
       for (let j = 0; j < n; j++) { const t = j ? base.clone() : base; if (j) { t.needsUpdate = true; it.tx.push(t); } t.repeat.set(1 / n, 1); t.offset.set(j / n, 0);
         const z0 = ((j + 1) % 2) * dd, z1 = (j % 2) * dd, /* 両端が手前に出る折り方（10/6 本人「折れ方が逆」） */ pn = new T3.Mesh(new T3.BoxGeometry(pw, h, 0.018), [edge, edge, edge, edge, artM(t), edge]);
-        pn.position.set(-W2 / 2 + (j + 0.5) * pw * c, h / 2 + 0.008, zb + (z0 + z1) / 2); pn.rotation.y = -Math.asin((z1 - z0) / pw); pn.castShadow = true; pn.receiveShadow = true; g.add(pn); }
+        const pg = new T3.Group(); pg.position.set(-W2 / 2 + FWb + (j + 0.5) * pw * c, h / 2 + FWb + 0.004, zb + (z0 + z1) / 2); pg.rotation.y = -Math.asin((z1 - z0) / pw); g.add(pg);
+        pn.castShadow = true; pn.receiveShadow = true; pg.add(pn);
+        const bar = (gm, x, y) => { const m = new T3.Mesh(gm, lacM); m.position.set(x, y, fz); m.castShadow = true; m.receiveShadow = true; pg.add(m); };
+        bar(hB, 0, h / 2 + FWb / 2); bar(hB, 0, -h / 2 - FWb / 2); if (j === 0) bar(vB, -pw / 2 - FWb / 2, 0); if (j === n - 1) bar(vB, pw / 2 + FWb / 2, 0); }
       const ao = new T3.Mesh(new T3.PlaneGeometry(W2 + 0.3, dd + 0.34), new T3.MeshBasicMaterial({ transparent: true, opacity: 0.34, depthWrite: false })); ao.rotation.x = -Math.PI / 2; ao.position.set(0, 0.002, zb + dd / 2); ao.visible = false; ao.raycast = () => {}; g.add(ao);
       Object.assign(it, { W: W2, ao, aoMk: () => softShadow(W2, dd + 0.04, 0.15) }); }
     else { /* 厚みと壁からの浮きは作品の大きさで（小さい作品は薄く・近く、大きい作品は厚く・浮く → 影の出方が変わる） */
-      const sF = Math.sqrt(w * h), dep = Math.min(0.05, Math.max(0.022, 0.018 + 0.02 * sF)), off = 0.002; /* どの大きさも壁にくっつける（10/6 本人） */
+      const sF = Math.sqrt(w * h), dep = Math.min(0.05, Math.max(0.022, 0.018 + 0.02 * sF)), off = -0.003; /* どの大きさも壁にくっつける（10/6 本人）：裏を壁に少しめりこませて、際から光がもれないように */
       const pn = new T3.Mesh(new T3.BoxGeometry(w, h, dep), [side, side, side, side, artM(base), side]); pn.position.z = off + dep / 2; pn.castShadow = true; g.add(pn);
       const m = 0.03 + 0.06 * sF, bl = 0.008 + 0.025 * sF, ao = new T3.Mesh(new T3.PlaneGeometry(w + 2 * m, h + 2 * m), new T3.MeshBasicMaterial({ transparent: true, opacity: Math.min(0.32, 0.18 + 0.1 * sF), depthWrite: false })); ao.position.set(0, -0.004 - 0.008 * sF, 0.0012); ao.visible = false; ao.raycast = () => {}; g.add(ao);
+      /* 壁との際の濃い影（接地影）：下はやや広く濃く、左右と上はごく細く。これで「壁に掛かっている」と見える（10/6 本人「浮いている」） */
+      const cb = 0.012 + dep * 0.4; g.add(cStrip(w + 0.004, cb, 0.46, 0, -h / 2 - cb / 2 + 0.001, 0), cStrip(h, 0.007, 0.2, -w / 2 - 0.0035 + 0.001, 0, -Math.PI / 2), cStrip(h, 0.007, 0.2, w / 2 + 0.0035 - 0.001, 0, Math.PI / 2), cStrip(w, 0.004, 0.1, 0, h / 2 + 0.002 - 0.001, Math.PI));
       g.position.y = CY; Object.assign(it, { ao, aoMk: () => softShadow(w, h, m, bl) }); }
     sc.add(g);
     const capF = new T3.MeshStandardMaterial({ color: '#f6f4f0', roughness: 0.92, dithering: true }), capM = new T3.Mesh(new T3.BoxGeometry(PWm, PHm, 0.004), [capS, capS, capS, capS, capF, capS]); capM.castShadow = true; capM.visible = false; sc.add(capM); Object.assign(it, { capM, capF });
     return it; });
-  const title = new T3.Mesh(new T3.PlaneGeometry(1, 1), new T3.MeshStandardMaterial({ map: wallText([['展示ビュー', 46, 300, '#2f2c28', 14, 6], ['下村良之介 作品目録 ・ テスト（管理者だけ）', 14, 400, '#4a4540', 4, 1.5], ['写真のある作品 ' + L.length + '点 ・ 制作年の古い順', 12, 400, '#8a8379', 0, 1]], TTW, TTH), transparent: true, roughness: 0.95, depthWrite: false }));
+  const title = new T3.Mesh(new T3.PlaneGeometry(1, 1), new T3.MeshStandardMaterial({ map: wallText([['下村良之介', 64, 300, '#2f2c28', 0, 18]], TTW, TTH), transparent: true, roughness: 0.95, depthWrite: false }));
   sc.add(title);
+  /* シリーズ：同じシリーズ名が続く作品（2点以上）をひとまとまりに */
+  for (let i = 0; i < items.length; ) { const s0 = items[i].d.s; let j = i + 1; while (s0 && j < items.length && items[j].d.s === s0) j++; if (s0 && j - i >= 2) { const g = { name: s0, n: j - i, m: [] }; for (let q = i; q < j; q++) { g.m.push(q); items[q].grp = g; } } i = j; }
 
   /* 近くの作品だけ写真・キャプション・影を読み込み、遠くなったら手放す（スマホのメモリのため） */
   let rq = 0; const redraw = () => { if (rq) return; rq = requestAnimationFrame(() => { rq = 0; draw(); }); };
@@ -9806,7 +9843,7 @@ function exvBuild(root, L, start){
     if (Math.abs(ir / tr - 1) > 0.06) { if (ir > tr) { sw = ih * tr; sx = (iw - sw) / 2; } else { sh = iw / tr; sy = (ih - sh) / 2; } } /* 形が台帳と合わないときは、まん中を切り出す */
     const k = Math.min(1, 1024 / Math.max(sw, sh)), cw = Math.max(2, Math.round(sw * k)), ch = Math.max(2, Math.round(sh * k)), c = it.cv, x = c.getContext('2d');
     c.width = cw; c.height = ch; x.drawImage(im, sx, sy, sw, sh, 0, 0, cw, ch);
-    try { x.getImageData(0, 0, 1, 1); } catch(e){ c.width = c.height = 16; x.fillStyle = '#dcd6cd'; x.fillRect(0, 0, 16, 16); it.tx.forEach(t => { t.needsUpdate = true; }); return redraw(); }
+    try { const id = x.getImageData(0, 0, cw, ch), q = id.data; for (let i = 0; i < q.length; i += 4) { const r0 = q[i], g0 = q[i + 1], b0 = q[i + 2], l = 0.299 * r0 + 0.587 * g0 + 0.114 * b0; q[i] = (l + (r0 - l) * 1.14 - 128) * 1.05 + 128; q[i + 1] = (l + (g0 - l) * 1.14 - 128) * 1.05 + 128; q[i + 2] = (l + (b0 - l) * 1.14 - 128) * 1.05 + 128; } x.putImageData(id, 0, 0); } /* 発色を少しよく（10/6 本人） */ catch(e){ c.width = c.height = 16; x.fillStyle = '#dcd6cd'; x.fillRect(0, 0, 16, 16); it.tx.forEach(t => { t.needsUpdate = true; }); return redraw(); }
     matte(x, cw, ch); it.tx.forEach(t => { t.needsUpdate = true; }); redraw(); };
   const warm = it => { if (it.req) return; it.req = 1;
     if (!it.capF.map) { it.capF.map = wallText(capLines(it), CAPW, CAPH, CPAD, '#f6f4f0', true, '作品ページへ'); it.capF.color.set('#ffffff'); it.capF.needsUpdate = true; } it.capM.visible = true;
@@ -9842,40 +9879,57 @@ function exvBuild(root, L, start){
     const kt = Math.max((TWm + 0.6) / (W - 2 * mx), (THm + 0.6) / (H - my)); stops.push({ x: TWm / 2, y: 1.55, z: kt * H / (2 * TN) }); addSpec(TWm / 2, 1.55, TWm, THm, 0);
     let x = TWm + 1.8;
     const FW = port ? 0.72 : 0.5, FH = port ? 0.46 : 0.6;
-    let px = TWm / 2, pvw = kt * W / 2, pgr = TWm; /* 前の作品：止まる位置・そこで見える左右の半分・キャプションまでの右の端 */
-    items.forEach((it, ii) => { const h = it.h, w = it.W || it.w, cy = it.d.b ? h / 2 : CY;
-      /* どの大きさの作品も、画面に占める割合を同じに（スマホの縦：幅の72%か高さの46%、横長：幅の50%か高さの60%）。キャプションは画面に入るように */
-      let k = Math.max(w / (FW * W), h / (FH * H), kz(0.25)), fc = cy, below = false;
+    /* 1点ぶんの見せ方：画面に占める割合（シリーズの中は少し大きく＝間をつめて掛ける）・キャプションの置き方・見る高さ */
+    const frame = (it, tight) => { const h = it.h, w = it.W || it.w, cy = it.d.b ? h / 2 : CY, fw = FW * (tight ? 1.15 : 1), fh = FH * (tight ? 1.15 : 1);
+      let k = Math.max(w / (fw * W), h / (fh * H), kz(0.25)), fc = cy, below = false;
       const belowOk = !it.d.b && CY - h / 2 - CAPG - PHm >= 0.55, rightFits = kk => (w / 2 + CAPX + PWm + 0.03) / kk <= W / 2 - 12;
       if (belowOk && (port || !rightFits(k))) { below = true; fc = cy - (CAPG + PHm) * 0.3; /* キャプションは作品の右下（作品の下で、右の端をそろえる） */
         k = Math.max(k, Math.max(w, 2 * PWm - w) / (0.92 * W), (cy + h / 2 - fc) / (H / 2 - 70), (fc - (cy - h / 2 - CAPG - PHm)) / (H / 2 - 110)); }
       else { if (!rightFits(k)) k = (w / 2 + CAPX + PWm + 0.03) / (W / 2 - 12); k = Math.max(k, (h / 2) / (H / 2 - 90)); }
-      k = Math.min(kmax, k); const vw = k * W / 2;
-      const Lx = Math.max(pgr + 1.0, px + pvw + 0.25, pgr + vw - w / 2 + 0.25), Rx = Lx + w; /* 前の作品から見えない・この作品から前の作品が見えない */
-      it.g.position.x = Lx + w / 2; addSpec(Lx + w / 2, cy, w, h, ii + 1); let gr;
-      if (below) { it.capM.position.set(Rx - PWm / 2, CY - h / 2 - CAPG - PHm / 2, 0.003); gr = Rx; }
-      else { it.capM.position.set(Rx + CAPX + PWm / 2, Math.max(CAPMIN, it.d.b ? 0 : CY - h / 2) + PHm / 2, 0.003); gr = Rx + CAPX + PWm; }
-      stops.push({ x: Lx + w / 2, y: fc, z: k * H / (2 * TN) }); px = Lx + w / 2; pvw = vw; pgr = gr; });
-    LS.forEach(l => { l.si = -1; l.intensity = 0; }); tid++; ci = Math.min(ci, stops.length - 1); Object.assign(st, { x: stops[ci].x, y: stops[ci].y, z: stops[ci].z }); cl(); draw(); };
+      k = Math.min(kmax, k); return { it, h, w, cy, k, fc, below, vw: k * W / 2, lo: below ? Math.max(0, PWm - w) : 0, ro: below ? 0 : CAPX + PWm }; };
+    /* となりが見えないように置く：vR＝前の作品で止まったときに見える右の端、eR＝前の作品（キャプションまで）の右の端 */
+    const place = (f, vR, eR, gap) => Math.max(eR + gap + f.lo, vR + 0.25 + f.lo, eR + 0.25 + f.vw - f.w / 2);
+    const put = (f, Lx, seed) => { const it = f.it, Rx = Lx + f.w; it.g.position.x = Lx + f.w / 2; addSpec(Lx + f.w / 2, f.cy, f.w, f.h, seed);
+      if (f.below) it.capM.position.set(Rx - PWm / 2, CY - f.h / 2 - CAPG - PHm / 2, 0.003); else it.capM.position.set(Rx + CAPX + PWm / 2, Math.max(CAPMIN, it.d.b ? 0 : CY - f.h / 2) + PHm / 2, 0.003);
+      stops.push({ x: Lx + f.w / 2, y: f.fc, z: f.k * H / (2 * TN) }); };
+    let vR = TWm / 2 + kt * W / 2, eR = TWm;
+    for (let ii = 0; ii < items.length; ii++) { const it = items[ii], g = it.grp;
+      if (!g) { const f = frame(it), Lx = place(f, vR, eR, 1.0); put(f, Lx, ii + 1); vR = Lx + f.w / 2 + f.vw; eR = Lx + f.w + f.ro; continue; }
+      /* シリーズ：中は間をつめて置き（止まったときにとなりが見えない範囲で）、最初に全体を見せる位置も決める */
+      const fs = g.m.map(j => frame(items[j], true)), rel = []; let r = -1e9, e = -1e9;
+      fs.forEach((f, q) => { const Lx = q ? place(f, r, e, 0.5) : 0; rel.push(Lx); r = Lx + f.w / 2 + f.vw; e = Lx + f.w + f.ro; });
+      const gL = Math.min(...fs.map((f, q) => rel[q] - f.lo)), gR = Math.max(...fs.map((f, q) => rel[q] + f.w + f.ro)), gH = Math.max(...fs.map(f => f.h + (f.below ? CAPG + PHm : 0)));
+      const kov = Math.min(kmax, Math.max((gR - gL + 0.3) / (0.9 * W), (gH + 0.3) / (0.62 * H))), vov = kov * W / 2, gc = (gL + gR) / 2, f0 = fs[0];
+      const D = Math.max(eR + 1.0 - gL, vR + 0.25 - gL, eR + 0.25 + vov - gc, eR + 0.25 + f0.vw - f0.w / 2);
+      fs.forEach((f, q) => put(f, rel[q] + D, g.m[q] + 1));
+      g.ov = { x: gc + D, y: CY - (fs.some(f => f.below) ? (CAPG + PHm) / 2 : 0), z: kov * H / (2 * TN) };
+      const fl = fs[fs.length - 1]; vR = Math.max(rel[fs.length - 1] + D + fl.w / 2 + fl.vw, gc + D + vov); eR = gR + D; ii = g.m[g.m.length - 1]; }
+    LS.forEach(l => { l.si = -1; l.intensity = 0; }); tid++; if (mv) tIn(); ci = Math.min(ci, stops.length - 1); Object.assign(st, { x: stops[ci].x, y: stops[ci].y, z: stops[ci].z }); cl(); draw(); };
 
-  const tw = (T, ms) => { const s0 = { x: st.x, y: st.y, z: st.z }, t0 = performance.now(), id = ++tid; ms = ms || 900;
+  const tw = (T, ms) => { const s0 = { x: st.x, y: st.y, z: st.z }, t0 = performance.now(), id = ++tid; ms = ms || 900; if (mv) tIn();
     if (RM) { Object.assign(st, T); cl(); draw(); return; }
     const f = n => { if (id !== tid) return; const t = Math.min(1, (n - t0) / ms), e = 0.5 - 0.5 * Math.cos(Math.PI * t); for (const k in T) st[k] = s0[k] + (T[k] - s0[k]) * e; draw(); if (t < 1) requestAnimationFrame(f); };
     requestAnimationFrame(f); };
   /* 美術館を歩くように：ゆっくり始まり、ゆっくり止まる。大きい作品へは先に下がり、小さい作品へは最後に近づく */
-  const walk = T => { const s0 = { x: st.x, y: st.y, z: st.z }, t0 = performance.now(), id = ++tid, ms = Math.min(3400, Math.max(1100, 800 + Math.abs(T.x - s0.x) * 700));
-    if (RM) { Object.assign(st, T); cl(); draw(); return; }
+  const walk = (T, done) => { const s0 = { x: st.x, y: st.y, z: st.z }, t0 = performance.now(), id = ++tid, ms = Math.min(3400, Math.max(1100, 800 + Math.abs(T.x - s0.x) * 700));
+    if (RM) { Object.assign(st, T); cl(); draw(); if (done) done(); return id; }
     const sm = t => t <= 0 ? 0 : t >= 1 ? 1 : 0.5 - 0.5 * Math.cos(Math.PI * t), back = T.z > s0.z;
     const f = n => { if (id !== tid) return; const t = Math.min(1, (n - t0) / ms), e = sm(t), ez = back ? sm(t / 0.65) : sm((t - 0.35) / 0.65);
-      st.x = s0.x + (T.x - s0.x) * e; st.y = s0.y + (T.y - s0.y) * e; st.z = s0.z + (T.z - s0.z) * ez; draw(); if (t < 1) requestAnimationFrame(f); };
-    requestAnimationFrame(f); };
+      st.x = s0.x + (T.x - s0.x) * e; st.y = s0.y + (T.y - s0.y) * e; st.z = s0.z + (T.z - s0.z) * ez; draw(); if (t < 1) requestAnimationFrame(f); else if (done) done(); };
+    requestAnimationFrame(f); return id; };
   const xPrev = root.querySelector('.xprev'), xNext = root.querySelector('.xnext');
   const setCnt = () => { if (!yd) showU(ci - 1); xPrev.disabled = ci <= 0; xNext.disabled = ci >= stops.length - 1; };
   const AUTO = 10000; let autoT = 0, autoOn = false, wake = false;
   const setAuto = v => { autoOn = v; root.classList.toggle('xauto', v); };
   const autoNext = () => { clearTimeout(autoT); autoT = setTimeout(() => { if (!EXV || document.hidden || zoomed || yd || P.size) return autoNext(); if (ci < stops.length - 1) { setAuto(true); go(ci + 1); } else setAuto(false); }, AUTO); };
   const poke = () => { setAuto(false); autoNext(); }; /* さわったら自動再生をやめて〈〉と出口を出す */
-  const go = i => { autoNext(); zoomed = false; ci = Math.max(0, Math.min(stops.length - 1, i)); around(ci); setCnt(); const s = stops[ci]; walk({ x: s.x, y: s.y, z: Math.min(zmax(), Math.max(zmin(), s.z)) }); };
+  let holdT = 0;
+  const go = i => { autoNext(); zoomed = false; clearTimeout(holdT); const pv = ci; ci = Math.max(0, Math.min(stops.length - 1, i)); around(ci); if (ci !== pv) tOut(); setCnt();
+    const s = stops[ci], T = { x: s.x, y: s.y, z: Math.min(zmax(), Math.max(zmin(), s.z)) }, g = items[ci - 1] && items[ci - 1].grp;
+    if (g && pv !== ci && !(items[pv - 1] && items[pv - 1].grp === g)) { /* シリーズに入るとき：まず全体を見せてから、1点ずつ */
+      g.m.forEach(j => warm(items[j])); pendT = g.name + '　' + g.n + '点'; if (!mv) tIn();
+      const id = walk(g.ov, () => { tIn(); holdT = setTimeout(() => { if (tid !== id) return; tOut(); setCnt(); walk(T, () => { tIn(); autoNext(); }); }, 1800); }); }
+    else walk(T, tIn); };
   const zoomBy = k => { st.z *= k; cl(); zoomed = st.z < stops[ci].z * 0.9; draw(); };
 
   /* タップ：作品・キャプションは近づく（もう一度でもどる）、壁は次の作品へ（左端は前へ） */
@@ -9891,7 +9945,7 @@ function exvBuild(root, L, start){
     go((e.clientX - b.left) / b.width < 0.3 ? ci - 1 : ci + 1); };
 
   const P = new Map(); let moved = 0, drag = 0, vel = 0, lastT = 0;
-  el.addEventListener('pointerdown', e => { wake = autoOn; poke(); el.setPointerCapture(e.pointerId); P.set(e.pointerId, [e.clientX, e.clientY]); tid++; moved = 0; drag = 0; vel = 0; lastT = performance.now(); el.style.cursor = 'grabbing'; });
+  el.addEventListener('pointerdown', e => { wake = autoOn; poke(); el.setPointerCapture(e.pointerId); P.set(e.pointerId, [e.clientX, e.clientY]); tid++; if (mv) tIn(); moved = 0; drag = 0; vel = 0; lastT = performance.now(); el.style.cursor = 'grabbing'; });
   el.addEventListener('pointermove', e => { const pr = P.get(e.pointerId); if (!pr) return; const dx = e.clientX - pr[0], dy = e.clientY - pr[1]; moved += Math.abs(dx) + Math.abs(dy);
     if (P.size > 1) { const q = [...P].find(a => a[0] !== e.pointerId)[1], d0 = Math.hypot(pr[0] - q[0], pr[1] - q[1]), d1 = Math.hypot(e.clientX - q[0], e.clientY - q[1]); P.set(e.pointerId, [e.clientX, e.clientY]); moved += 99; if (d0 > 0 && d1 > 0) zoomBy(d0 / d1); return; }
     const k = 2 * st.z * TN / el.clientHeight; st.x -= dx * k; drag += dx; if (zoomed) st.y += dy * k; const n = performance.now(), dt = Math.max(1, n - lastT); vel = 0.7 * vel + 0.3 * (-dx * k / dt); lastT = n;
@@ -9901,26 +9955,33 @@ function exvBuild(root, L, start){
     const px = st.x + vel * 240; let bi = ci; stops.forEach((s, i) => { if (Math.abs(s.x - px) < Math.abs(stops[bi].x - px)) bi = i; });
     if (bi === ci && Math.abs(drag) > el.clientWidth * 0.12) bi = ci + (drag < 0 ? 1 : -1); go(bi); };
   el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
-  el.addEventListener('wheel', e => { poke(); e.preventDefault(); tid++; zoomBy(1 + e.deltaY * 0.0015); }, { passive: false });
+  el.addEventListener('wheel', e => { poke(); e.preventDefault(); tid++; if (mv) tIn(); zoomBy(1 + e.deltaY * 0.0015); }, { passive: false });
 
   /* 下の年：海外のギャラリーのようなゴシック体で、今の年だけ。指を当てると両側に作品の数だけ●（3つ目からうすく、5つ目で消える）。左右に動かすと早送り、●をタップするとその作品へ */
   const SP = 15, yEl = root.querySelector('.yrs'), yNum = root.querySelector('.ynum'), yDots = root.querySelector('.ydots'), DOTS = [];
   for (let i = 0; i < 12; i++) { const d = document.createElement('i'); d.className = 'yd'; yDots.appendChild(d); DOTS.push(d); }
   let U = -1, yd = false, yA = false, yx = 0, yv = 0, yt = 0, ymv = 0, yHide = 0; const uHi = () => items.length - 1;
   const yTxt = k => k < 0 ? '' : (String(L[k].w['作品名'] || '').trim() || '無題');
-  const yG = () => Math.max(18, yNum.offsetWidth / 2 + 13);
-  const fitNum = () => { let fs = 26; yNum.style.fontSize = fs + 'px'; const mw = W - 150; while (yNum.scrollWidth > mw && fs > 15) { fs--; yNum.style.fontSize = fs + 'px'; } };
-  const showU = u => { U = u; const j = Math.max(-1, Math.min(uHi(), Math.round(u))), act = yd || yA, t = yTxt(j); if (yNum.textContent !== t) { yNum.textContent = t; fitNum(); } yEl.classList.toggle('xon', act);
-    const G = 9; let n = 0; /* ●は作品名の下に一列。まん中のすき間が今の作品 */
+  const yG = () => 14;
+  const yrEl = root.querySelector('.xyr'); let yrT = 0, lastY = null;
+  const yrOf = k => { const s = String(L[k].w['制作年'] || '').trim(); return /^\d{4}年?$/.test(s) ? s.slice(0, 4) : s; };
+  let mv = false, pendT = null;
+  const yrOff = ms => { clearTimeout(yrT); yrT = setTimeout(() => yrEl.classList.remove('xin'), ms); };
+  const flashY = k => { const y = k < 0 ? '' : yrOf(k); if (y === lastY) return; lastY = y; if (!y) return; yrEl.textContent = y; yrEl.classList.add('xin'); clearTimeout(yrT); if (!mv) yrOff(1700); };
+  const tOut = () => { mv = true; yNum.classList.add('xmv'); }; /* 動き出したら作品名を消す */
+  const tIn = () => { mv = false; if (pendT != null) { yNum.textContent = pendT; pendT = null; fitNum(); } yNum.classList.remove('xmv'); if (yrEl.classList.contains('xin')) yrOff(1000); }; /* 真ん中に来たら出す */
+  const fitNum = () => { let fs = 17; yNum.style.fontSize = fs + 'px'; const mw = W - 158; while (yNum.scrollWidth > mw && fs > 12) { fs--; yNum.style.fontSize = fs + 'px'; } };
+  const showU = u => { U = u; const j = Math.max(-1, Math.min(uHi(), Math.round(u))), act = yd || yA, t = yTxt(j); if (mv && !yd) { if (yNum.textContent !== t || pendT != null) pendT = t; } else if (yNum.textContent !== t) { yNum.textContent = t; fitNum(); } flashY(j); yEl.classList.toggle('xon', act);
+    const G = 6; let n = 0; /* ○が今の作品、両側に●（ふだんはうすく、指を当てると濃く） */
     for (let k = Math.ceil(u - 5.5); k <= Math.floor(u + 5.5) && n < DOTS.length; k++) { if (k < 0 || k > uHi()) continue; const d = k - u, a = Math.abs(d); if (a < 0.5) continue;
-      const e = DOTS[n++], x = Math.sign(d) * (G + (a - 0.5) * SP), o = act ? Math.max(0, Math.min(0.9, 0.9 * (1 - (a - 2.2) / 2.8))) : 0;
+      const e = DOTS[n++], x = Math.sign(d) * (G + (a - 0.5) * SP), o = Math.max(0, Math.min(0.9, 0.9 * (1 - (a - 2.2) / 2.8))) * (act ? 1 : 0.45);
       e.style.transform = 'translateX(' + x.toFixed(1) + 'px)'; e.style.opacity = o.toFixed(2); }
     for (; n < DOTS.length; n++) DOTS[n].style.opacity = '0'; };
   const camU = u => { const f = Math.max(-1, Math.min(uHi(), u)) + 1, k = Math.max(0, Math.min(stops.length - 2, Math.floor(f))), t = f - k, A = stops[k], B = stops[k + 1] || A;
     st.x = A.x + (B.x - A.x) * t; st.y = A.y + (B.y - A.y) * t; st.z = A.z + (B.z - A.z) * t; cl(); draw(); aroundLater(); };
   const nearK = u => Math.max(-1, Math.min(uHi(), Math.round(u)));
   const yOff = () => { clearTimeout(yHide); yHide = setTimeout(() => { if (!yd) { yA = false; showU(U); } }, 800); };
-  yEl.onpointerdown = e => { poke(); yd = true; try { yEl.setPointerCapture(e.pointerId); } catch(_){} tid++; zoomed = false; yx = e.clientX; yv = 0; ymv = 0; yt = performance.now(); yA = true; clearTimeout(yHide); showU(U); yEl.style.cursor = 'grabbing'; };
+  yEl.onpointerdown = e => { poke(); if (mv) tIn(); yd = true; try { yEl.setPointerCapture(e.pointerId); } catch(_){} tid++; zoomed = false; yx = e.clientX; yv = 0; ymv = 0; yt = performance.now(); yA = true; clearTimeout(yHide); showU(U); yEl.style.cursor = 'grabbing'; };
   yEl.onpointermove = e => { if (!yd) return; const dx = e.clientX - yx, n = performance.now(); yx = e.clientX; ymv += Math.abs(dx); const du = -dx / SP; yv = 0.7 * yv + 0.3 * du / Math.max(1, n - yt); yt = n;
     const u = Math.min(uHi(), Math.max(-1, U + du)); showU(u); camU(u); };
   yEl.onpointerup = yEl.onpointercancel = e => { if (!yd) return; yd = false; yEl.style.cursor = 'grab';
@@ -9932,6 +9993,9 @@ function exvBuild(root, L, start){
     const m = n => { if (id !== tid) return; const dt = n - last; last = n; v *= Math.pow(0.95, dt / 16); let u = U + v * dt; if (u < -1 || u > uHi()) { u = Math.min(uHi(), Math.max(-1, u)); v = 0; } showU(u); camU(u); if (Math.abs(v) > 0.0008) requestAnimationFrame(m); else snap(); };
     if (RM || Math.abs(v) < 0.0008) snap(); else requestAnimationFrame(m); };
 
+  root.querySelector('.xsh').onclick = async () => { poke(); const it = items[ci - 1], url = location.origin + location.pathname + '?exv=' + encodeURIComponent(it ? it.d.no : ''), ttl = it ? '下村良之介「' + (String(it.d.w['作品名'] || '').trim() || '無題') + '」' : '下村良之介';
+    try { if (navigator.share) { await navigator.share({ title: ttl, text: ttl + '（展示ビュー）', url }); return; } } catch(e){ if (e && e.name === 'AbortError') return; }
+    try { await navigator.clipboard.writeText(url); toast('リンクをコピーしました。LINE などに貼って送れます'); } catch(e){ toast('リンク：' + url); } };
   xPrev.onclick = () => { poke(); go(ci - 1); }; xNext.onclick = () => { poke(); go(ci + 1); };
   const key = e => { poke(); if (e.key === 'ArrowRight') { e.preventDefault(); go(ci + 1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); go(ci - 1); } };
   const rs = () => layout(); addEventListener('resize', rs); addEventListener('keydown', key);
