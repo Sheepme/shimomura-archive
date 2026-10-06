@@ -2173,6 +2173,7 @@ button.ulrow{cursor:pointer}
 .cr-links button:disabled{opacity:.4}
 /* 角の画面：切りかえ以外は「設定」で開く（ふだんは閉じて、写真を大きく）。微調整の矢印（10/6 本人） */
 #crop:not(.crmore) .cr-more{display:none}
+#crop .cr-sz{gap:6px;align-items:center}#crop .cr-sz input{width:4.6em;min-width:0;padding:5px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);color:inherit;font:inherit;font-size:16px;text-align:right}#crop .cr-sz i{font-style:normal;opacity:.7;font-size:13px}#crop .cr-szn{flex:1;min-width:0;font-size:11.5px;opacity:.7;text-align:right}#crop .cr-rs{cursor:pointer;-webkit-user-select:none;user-select:none;touch-action:manipulation}
 .cr-str output{min-width:4.6em;font-size:12.5px;text-align:right}
 .cr-sl2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 14px}.cr-half{gap:6px;font-size:13px}.cr-half>span{min-width:0}.cr-half output{min-width:2.4em;font-size:12.5px}
 @media(max-width:340px){.cr-sl2{grid-template-columns:1fr}}
@@ -2340,7 +2341,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'ab4bb3308b', APP_URL = location.origin + location.pathname;
+const BUILD = 'fa1ea5d264', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6814,6 +6815,7 @@ async function openCrop(p){
       <label class="cr-row cr-half"><span>ふくらみ</span><input type="range" min="-15" max="15" step="0.5" value="${CR.v}" id="crK"><output id="crKv">${CR.v > 0 ? '+' : ''}${CR.v}</output></label>
       </div>
       <label class="cr-row cr-str hidden"><span>縦横の調整</span><input type="range" min="-40" max="40" step="1" value="${CR.st}" id="crST" aria-label="縦横の調整（左で縦長に、右で横長に）"><output id="crSTv">${crStTxt(CR.st)}</output></label>
+      <div class="cr-row cr-sz"><span>サイズ</span><input id="crSzH" inputmode="decimal" enterkeyhint="next" placeholder="高さ" value="${CR.led ? esc(String(CR.led.h)) : ''}" aria-label="作品の高さ（cm）"><i>×</i><input id="crSzW" inputmode="decimal" enterkeyhint="done" placeholder="幅" value="${CR.led ? esc(String(CR.led.w)) : ''}" aria-label="作品の幅（cm）"><i>cm</i><small class="cr-szn"></small></div>
       <div class="cr-sl2 cr-sl2c hidden">
       <label class="cr-row cr-half cr-chs hidden"><span>チップの強さ</span><input type="range" min="0" max="100" step="5" value="${CR.cs}" id="crCS"><output id="crCSv">${CR.cs}%</output></label>
       <label class="cr-row cr-half cr-wss hidden"><span>白の強さ</span><input type="range" min="0" max="100" step="5" value="${CR.ws}" id="crWS"><output id="crWSv">${CR.ws}%</output></label>
@@ -6822,7 +6824,7 @@ async function openCrop(p){
       <div class="cr-row"><span>向き</span><div class="cr-seg sm"><button type="button" data-crrot="-90">↺ 左90°</button><button type="button" data-crrot="180">180°</button><button type="button" data-crrot="90">右90° ↻</button></div></div>
       <div class="cr-row"><span>形</span><div class="cr-seg sm">${CR_NS.map(([n, lb]) => `<button type="button" data-crn="${n}">${lb}</button>`).join('')}</div></div>
       <div class="cr-row"><span>色</span><div class="cr-seg sm"><button type="button" data-crc="1">チップで合わせる</button><button type="button" data-crc="0">合わせない</button></div></div>
-      <div class="cr-row"><span>縦横の比率</span><div class="cr-seg sm">${CR.led ? `<button type="button" data-crr="led">台帳のサイズ</button>` : ''}<button type="button" data-crr="auto">写真から計算</button></div></div>
+      <div class="cr-row"><span>縦横の比率</span><div class="cr-seg sm"><button type="button" data-crr="led"${CR.led ? '' : ' class="hidden"'}>台帳のサイズ</button><button type="button" data-crr="auto">写真から計算</button></div></div>
       <p class="cr-note"></p>
       <div class="cr-links"><button type="button" data-crai>✨ 自動で探し直す</button><button type="button" data-crreset>角を最初の位置にもどす</button><button type="button" data-crcht>カラーチップの位置を指定</button>${CR.corr ? '<button type="button" data-crundo>補正をやめて元の写真にもどす</button>' : ''}</div>
       </div>
@@ -6843,6 +6845,17 @@ async function openCrop(p){
   el.querySelectorAll('[data-crn]').forEach(b => b.onclick = () => { const n = +b.dataset.crn; if (n === CR.n) return; crSetN(n); CR.sel = { a: 'top', i: 0 }; CR.dirty = true; crUI(); crDraw(); crNote(); crPreview(); });
   el.querySelectorAll('[data-crr]').forEach(b => b.onclick = () => { CR.ratio = b.dataset.crr; CR.dirty = true; crUI(); crNote(); crPreview(); });
   el.querySelector('#crB').oninput = e => { CR.bri = +e.target.value; CR.dirty = true; $('#crBv').textContent = (CR.bri > 0 ? '+' : '') + CR.bri + '%'; crNote(); crPreview(); };
+  CR.led0 = CR.led; CR.ratio0 = CR.ratio;
+  const szIn = () => { const nv = v => { const x = parseFloat(String(v || '').normalize('NFKC').replace(/[^\d.]/g, '')); return x > 0 ? Math.round(x * 10) / 10 : 0; }, h = nv($('#crSzH').value), w = nv($('#crSzW').value), n = el.querySelector('.cr-szn');
+    if (h && w) { const L0 = CR.led0, same = L0 && +L0.h === h && +L0.w === w; CR.led = { h, w }; CR.ratio = 'led'; CR.ledPatch = same ? null : { '高さcm': String(h), '幅cm': String(w), 'サイズの確認': '作品のみ' }; CR.ratioOk = true; CR.szDone = true; n.textContent = same ? '台帳のサイズ' : '保存すると台帳も直します'; }
+    else { CR.led = CR.led0; CR.ratio = CR.ratio0; CR.ledPatch = null; CR.ratioOk = false; CR.szDone = false; n.textContent = !$('#crSzH').value && !$('#crSzW').value ? '' : '高さと幅の両方を入れてください'; }
+    CR.dirty = true; crUI(); crNote(); crPreview(); };
+  ['#crSzH', '#crSzW'].forEach(k => { const i = el.querySelector(k); i.oninput = szIn; i.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); if (k === '#crSzH') el.querySelector('#crSzW').focus(); else i.blur(); } }; });
+  /* 数字（明るさ・ふくらみ・縦横の調整・チップの強さ・白の強さ）をダブルクリック（スマホはダブルタップ）で元にもどす（10/7 本人） */
+  [['#crBv', '#crB', 0], ['#crKv', '#crK', 0], ['#crSTv', '#crST', 0], ['#crCSv', '#crCS', 100], ['#crWSv', '#crWS', 100]].forEach(([o, i, d]) => { const oe = el.querySelector(o), ie = el.querySelector(i); if (!oe || !ie) return;
+    oe.title = 'ダブルクリックで元にもどす'; oe.classList.add('cr-rs'); let lt = 0; const reset = () => { if (+ie.value === d) return; ie.value = d; ie.dispatchEvent(new Event('input', { bubbles: true })); };
+    oe.addEventListener('dblclick', e => { e.preventDefault(); reset(); });
+    oe.addEventListener('pointerup', e => { if (e.pointerType === 'mouse') return; const t = performance.now(); if (t - lt < 380) { lt = 0; e.preventDefault(); reset(); } else lt = t; }); });
   el.querySelector('#crST').oninput = e => { CR.st = +e.target.value; CR.dirty = true; $('#crSTv').textContent = crStTxt(CR.st); crNote();
     if (CR.mode !== 'pv') { CR.mode = 'pv'; CR.pin = null; crLoupeOff(); crUI(); crLayout(); } else crPreview(); }; /* 動かすと仕上がりの画面で見せる */
   el.querySelector('#crK').oninput = e => { CR.v = +e.target.value; CR.dirty = true; $('#crKv').textContent = (CR.v > 0 ? '+' : '') + CR.v; crDraw(); crNote(); crPreview(); };
@@ -6917,7 +6930,7 @@ function crSetImg(im){ CR.img0 = im; CR.img = crRotImg(im, CR.rot); CR.pv = null
 function crUI(){ const el = $('#crop'); if (!el || !CR) return;
   el.querySelectorAll('[data-crm]').forEach(b => b.classList.toggle('on', b.dataset.crm === CR.mode));
   el.querySelectorAll('[data-crn]').forEach(b => b.classList.toggle('on', +b.dataset.crn === CR.n));
-  el.querySelectorAll('[data-crr]').forEach(b => b.classList.toggle('on', b.dataset.crr === CR.ratio)); el.querySelector('.cr-str').classList.toggle('hidden', CR.ratio === 'led');
+  el.querySelectorAll('[data-crr]').forEach(b => b.classList.toggle('on', b.dataset.crr === CR.ratio)); el.querySelector('.cr-str').classList.toggle('hidden', CR.ratio === 'led'); el.querySelector('[data-crr="led"]').classList.toggle('hidden', !CR.led);
   el.querySelectorAll('[data-crc]').forEach(b => { b.classList.toggle('on', (b.dataset.crc === '1') === !!(CR.col && CR.cht)); if (b.dataset.crc === '1') b.disabled = !CR.cht; });
   el.querySelector('[data-crcht]').classList.toggle('hidden', !!CR.cht); el.querySelector('[data-crai]').disabled = CR.ai; el.querySelector('[data-crai]').classList.toggle('hidden', !!CR.cp);
   el.querySelector('.cr-save').disabled = !CR.img || !!CR.saving; el.querySelector('.cr-stage').classList.toggle('busy', CR.ai);
@@ -10161,7 +10174,12 @@ function exvBuild(root, L, start){
     const vpx = vel / k, flick = Math.abs(vpx) > 0.3, dir = Math.abs(drag) > el.clientWidth * 0.12 ? -Math.sign(drag) : flick ? Math.sign(vel) : 0; /* 画面の12%以上動かすか、さっとはらうと次・前へ */
     const bi = Math.max(0, Math.min(stops.length - 1, ci + dir)); go(bi, Math.sign(stops[bi].x - st.x) === Math.sign(vel) ? Math.abs(vel) * Math.sign(stops[bi].x - st.x) : 0); };
   el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
-  el.addEventListener('wheel', e => { poke(); e.preventDefault(); tid++; if (mv) tIn(); zoomBy(1 + e.deltaY * 0.0015); }, { passive: false });
+  /* ホイール：縦は拡大・縮小。横スクロール（トラックパッドの2本指の左右・Shift＋ホイール）は前・次の作品へ。1回のスワイプで1点（とぎれるまで次は数えない）（10/7 本人） */
+  let wX = 0, wLock = 0, wT = 0;
+  el.addEventListener('wheel', e => { poke(); e.preventDefault(); const k = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1, ax = e.deltaX * k, ay = e.deltaY * k, now = e.timeStamp || performance.now(), gap = now - wT; wT = now; /* 時刻は入力が起きた時刻（描画で遅れて届いても、とぎれたと見なさない） */
+    const hz = Math.abs(ax) > Math.abs(ay) ? ax : e.shiftKey ? ay : 0;
+    if (hz) { if (wLock && gap > 220 && now - wLock > 650) wLock = 0; if (wLock) return; if (gap > 220) wX = 0; wX += hz; if (Math.abs(wX) > 50) { wLock = now; wX = 0; go(ci + (hz > 0 ? 1 : -1)); } return; } /* 進んだら、0.65秒たって、しかもスクロールがとぎれる（慣性も終わる）まで次へは進まない */
+    tid++; if (mv) tIn(); zoomBy(1 + ay * 0.0015); }, { passive: false });
 
   /* 下の年：海外のギャラリーのようなゴシック体で、今の年だけ。指を当てると両側に作品の数だけ●（3つ目からうすく、5つ目で消える）。左右に動かすと早送り、●をタップするとその作品へ */
   const SP = 15, yEl = root.querySelector('.yrs'), yNum = root.querySelector('.ynum'), yDots = root.querySelector('.ydots'), DOTS = [];
