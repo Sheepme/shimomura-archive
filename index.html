@@ -2341,7 +2341,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'b5f3eba005', APP_URL = location.origin + location.pathname;
+const BUILD = 'a19ea0b7ba', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -9995,7 +9995,7 @@ function exvBuild(root, L, start){
         if (vt) { t.repeat.set(1, 1 / n); t.offset.set(0, (n - 1 - j) / n); } else { t.repeat.set(1 / n, 1); t.offset.set(j / n, 0); }
         const pn = new T3.Mesh(new T3.BoxGeometry(pw, ph, dep), [side, side, side, side, artM(t), side]); pn.castShadow = true;
         if (vt) pn.position.set(0, h / 2 - ph / 2 - j * (ph + gp), off + dep / 2); else pn.position.set(-w / 2 + pw / 2 + j * (pw + gp), 0, off + dep / 2);
-        g.add(pn, cStrip(pw + 0.004, cb, 0.46, pn.position.x, pn.position.y - ph / 2 - cb / 2 + 0.001, 0)); }
+        g.add(pn, cStrip(pw + 0.004, cb, 0.46, pn.position.x, pn.position.y - ph / 2 - cb / 2 + 0.001, 0)); if (vt ? j === n - 1 : j === 0) it.cpH = { o: g, x: pn.position.x - pw / 2, y: pn.position.y - ph / 2, z: off + dep }; }
       const m = 0.03 + 0.06 * sF, bl = 0.008 + 0.025 * sF, ao = new T3.Mesh(new T3.PlaneGeometry(w + 2 * m, h + 2 * m), new T3.MeshBasicMaterial({ transparent: true, opacity: Math.min(0.32, 0.18 + 0.1 * sF), depthWrite: false })); ao.position.set(0, -0.004 - 0.008 * sF, 0.0012); ao.visible = false; ao.raycast = () => {}; g.add(ao);
       g.position.y = CY; Object.assign(it, { ao, aoMk: () => softShadow(w, h, m, bl, Array.from({ length: n }, (_, j) => vt ? [0, j * (ph + gp), pw, ph] : [j * (pw + gp), 0, pw, ph])), tr: vt ? pw / (n * ph) : n * pw / ph }); }
     else if (d.k) { /* 観音開き（10/7 本人の写真）：まん中の板は壁と平行、左右の扉を少しだけ手前に開く。写真は開いたところを正面から撮った1枚で、扉：まん中：扉 ＝ 1：2：1 */
@@ -10004,7 +10004,7 @@ function exvBuild(root, L, start){
       tL.repeat.set(0.25, 1); tL.offset.set(0, 0); tC.repeat.set(0.5, 1); tC.offset.set(0.25, 0); tR.repeat.set(0.25, 1); tR.offset.set(0.75, 0);
       const pnl = (pw, t) => { const m = new T3.Mesh(new T3.BoxGeometry(pw, h, dep), [edge, edge, edge, edge, artM(t), edge]); m.castShadow = true; m.receiveShadow = true; return m; };
       const ctr = pnl(cw, tC); ctr.position.set(0, y0, zb); g.add(ctr);
-      [[-1, tL], [1, tR]].forEach(([sd, t]) => { const pv = new T3.Group(); pv.position.set(sd * cw / 2, y0, zb); pv.rotation.y = -sd * th; const dr = pnl(dw, t); dr.position.x = sd * dw / 2; pv.add(dr); g.add(pv); }); /* 蝶番はまん中の板の端 */
+      [[-1, tL], [1, tR]].forEach(([sd, t]) => { const pv = new T3.Group(); pv.position.set(sd * cw / 2, y0, zb); pv.rotation.y = -sd * th; const dr = pnl(dw, t); dr.position.x = sd * dw / 2; pv.add(dr); g.add(pv); if (sd < 0) it.cpH = { o: dr, x: -dw / 2, y: -h / 2, z: dep / 2 }; }); /* 蝶番はまん中の板の端 */
       const ao = new T3.Mesh(new T3.PlaneGeometry(Wk + 0.3, dz + 0.34), new T3.MeshBasicMaterial({ transparent: true, opacity: 0.34, depthWrite: false })); ao.rotation.x = -Math.PI / 2; ao.position.set(0, 0.002, zb + dz / 2); ao.visible = false; ao.raycast = () => {}; g.add(ao);
       Object.assign(it, { W: Wk, ao, aoMk: () => softShadow(Wk, dz + 0.04, 0.15) }); }
     else if (d.b) { const n = exvFolds(d.w), th = n > 1 ? 0.3 : 0, pw = w / n, c = Math.cos(th), dd = pw * Math.sin(th), FWb = 0.022, FDb = 0.03, fz = 0.013 - FDb / 2, W2 = w * c + 2 * FWb, zb = EXZB;
@@ -10013,23 +10013,23 @@ function exvBuild(root, L, start){
       for (let j = 0; j < n; j++) { const t = j ? base.clone() : base; if (j) { t.needsUpdate = true; it.tx.push(t); } t.repeat.set(1 / n, 1); t.offset.set(j / n, 0);
         const z0 = ((j + 1) % 2) * dd, z1 = (j % 2) * dd, /* 両端が手前に出る折り方（10/6 本人「折れ方が逆」） */ pn = new T3.Mesh(new T3.BoxGeometry(pw, h, 0.018), [edge, edge, edge, edge, artM(t), edge]);
         const pg = new T3.Group(); pg.position.set(-W2 / 2 + FWb + (j + 0.5) * pw * c, h / 2 + FWb + 0.004, zb + (z0 + z1) / 2); pg.rotation.y = -Math.asin((z1 - z0) / pw); g.add(pg);
-        pn.castShadow = true; pn.receiveShadow = true; pg.add(pn);
+        pn.castShadow = true; pn.receiveShadow = true; pg.add(pn); if (j === 0) it.cpH = { o: pn, x: -pw / 2, y: -h / 2, z: 0.009 };
         const bar = (gm, x, y) => { const m = new T3.Mesh(gm, lacM); m.position.set(x, y, fz); m.castShadow = true; m.receiveShadow = true; pg.add(m); };
         bar(hB, 0, h / 2 + FWb / 2); bar(hB, 0, -h / 2 - FWb / 2); if (j === 0) bar(vB, -pw / 2 - FWb / 2, 0); if (j === n - 1) bar(vB, pw / 2 + FWb / 2, 0); }
       const ao = new T3.Mesh(new T3.PlaneGeometry(W2 + 0.3, dd + 0.34), new T3.MeshBasicMaterial({ transparent: true, opacity: 0.34, depthWrite: false })); ao.rotation.x = -Math.PI / 2; ao.position.set(0, 0.002, zb + dd / 2); ao.visible = false; ao.raycast = () => {}; g.add(ao);
       Object.assign(it, { W: W2, ao, aoMk: () => softShadow(W2, dd + 0.04, 0.15) }); }
     else { /* 厚みと壁からの浮きは作品の大きさで（小さい作品は薄く・近く、大きい作品は厚く・浮く → 影の出方が変わる） */
       const sF = Math.sqrt(w * h), dep = Math.min(0.05, Math.max(0.022, 0.018 + 0.02 * sF)), off = -0.003; /* どの大きさも壁にくっつける（10/6 本人）：裏を壁に少しめりこませて、際から光がもれないように */
-      const pn = new T3.Mesh(new T3.BoxGeometry(w, h, dep), [side, side, side, side, artM(base), side]); pn.position.z = off + dep / 2; pn.castShadow = true; g.add(pn);
+      const pn = new T3.Mesh(new T3.BoxGeometry(w, h, dep), [side, side, side, side, artM(base), side]); pn.position.z = off + dep / 2; pn.castShadow = true; g.add(pn); it.cpH = { o: g, x: -w / 2, y: -h / 2, z: off + dep };
       const m = 0.03 + 0.06 * sF, bl = 0.008 + 0.025 * sF, ao = new T3.Mesh(new T3.PlaneGeometry(w + 2 * m, h + 2 * m), new T3.MeshBasicMaterial({ transparent: true, opacity: Math.min(0.32, 0.18 + 0.1 * sF), depthWrite: false })); ao.position.set(0, -0.004 - 0.008 * sF, 0.0012); ao.visible = false; ao.raycast = () => {}; g.add(ao);
       /* 壁との際の濃い影（接地影）：下はやや広く濃く、左右と上はごく細く。これで「壁に掛かっている」と見える（10/6 本人「浮いている」） */
       const cb = 0.012 + dep * 0.4; g.add(cStrip(w + 0.004, cb, 0.46, 0, -h / 2 - cb / 2 + 0.001, 0), cStrip(h, 0.007, 0.2, -w / 2 - 0.0035 + 0.001, 0, -Math.PI / 2), cStrip(h, 0.007, 0.2, w / 2 + 0.0035 - 0.001, 0, Math.PI / 2), cStrip(w, 0.004, 0.1, 0, h / 2 + 0.002 - 0.001, Math.PI));
       g.position.y = CY; Object.assign(it, { ao, aoMk: () => softShadow(w, h, m, bl) }); }
     sc.add(g);
-    if (d.cp) { /* 転載した写真（©）：絵の外、左下の壁に薄い灰色の小さな文字で「© 名前」（10/7 本人）。Webサイトから取り込んだ写真は「@サイト名」。大きさと場所は put で（画面の上で同じくらいの大きさに） */
+    if (d.cp && it.cpH) { /* 転載した写真（©）：絵の上の左下に、薄い灰色の小さな文字で「© 名前」（10/7 本人：はじめ絵の外 → 「このまま画像の上に。位置は左下」）。Webサイトから取り込んだ写真は「@サイト名」。大きさは put で（画面の上で同じくらいの大きさに） */
       const t0 = String(d.cp.mu || '').trim(), t = !t0 ? '©' : /^[@＠]/.test(t0) ? t0 : '© ' + t0, FS = 44, [c0] = cvs(8, 8), x1 = c0.getContext('2d'); x1.font = '400 ' + FS + 'px ' + FONT; const tw = Math.ceil(x1.measureText(t).width) + 8, [cc, xc] = cvs(tw, Math.round(FS * 1.5));
       xc.font = '400 ' + FS + 'px ' + FONT; xc.textBaseline = 'middle'; xc.fillStyle = '#a59e94'; xc.fillText(t, 4, cc.height / 2 + 1);
-      const cpM = new T3.Mesh(new T3.PlaneGeometry(1, 1), new T3.MeshStandardMaterial({ map: mkTex(cc), transparent: true, roughness: 0.95, depthWrite: false })); cpM.visible = false; cpM.raycast = () => {}; g.add(cpM); Object.assign(it, { cpM, cpA: cc.width / cc.height }); }
+      const cpM = new T3.Mesh(new T3.PlaneGeometry(1, 1), new T3.MeshStandardMaterial({ map: mkTex(cc), transparent: true, roughness: 0.95, depthWrite: false })); cpM.visible = false; cpM.raycast = () => {}; it.cpH.o.add(cpM); Object.assign(it, { cpM, cpA: cc.width / cc.height }); }
     const capF = new T3.MeshStandardMaterial({ color: '#f6f4f0', roughness: 0.92, dithering: true }), capM = new T3.Mesh(new T3.BoxGeometry(PWm, PHm, 0.004), [capS, capS, capS, capS, capF, capS]); capM.castShadow = true; capM.visible = false; sc.add(capM); Object.assign(it, { capM, capF });
     return it; });
   const title = new T3.Mesh(new T3.PlaneGeometry(1, 1), new T3.MeshStandardMaterial({ map: wallText([['下村良之介', 64, 300, '#2f2c28', 0, 18]], TTW, TTH), transparent: true, roughness: 0.95, depthWrite: false }));
@@ -10138,8 +10138,7 @@ function exvBuild(root, L, start){
     const place = (f, vR, eR, gap) => Math.max(eR + gap + f.lo, vR + 0.25 + f.lo, eR + 0.25 + f.vw - f.w / 2);
     const put = (f, Lx, seed) => { const it = f.it, Rx = Lx + f.w; it.g.position.x = Lx + f.w / 2;
       if (it.cpM) { const th = Math.min(0.06, Math.max(0.008, 16 * f.k)), tw = th * it.cpA; it.cpM.scale.set(tw, th, 1); /* 文字の高さは画面の上で約11px */
-        if (it.d.b) it.cpM.position.set(-f.w / 2 - 0.25 - tw / 2, 0.03 + th / 2, 0.002); /* 床に立てる作品は、左の壁の床近くに（手前の作品にかくれないよう少し離す） */
-        else it.cpM.position.set(-f.w / 2 + tw / 2 - th * 0.06, -f.h / 2 - 7 * f.k - th / 2, 0.002 - it.g.position.z); } it.kpx = f.k; it.box = null; it.cyW = f.cy; it.yOff = (f.cy - f.fc) / f.k; if (it.req && !it.pt) ldDraw(it, performance.now()); addSpec(Lx + f.w / 2, f.cy, f.w, f.h, seed);
+        const C = it.cpH, pd = th * 0.55; it.cpM.position.set(C.x + pd + tw / 2 - th * 0.06, C.y + pd * 0.8 + th / 2, C.z + 0.0015); } /* 絵の左下のすみから少し内側 */ it.kpx = f.k; it.box = null; it.cyW = f.cy; it.yOff = (f.cy - f.fc) / f.k; if (it.req && !it.pt) ldDraw(it, performance.now()); addSpec(Lx + f.w / 2, f.cy, f.w, f.h, seed);
       if (f.below) it.capM.position.set(Rx - PWm / 2, CY - f.h / 2 - CAPG - PHm / 2, 0.003); else it.capM.position.set(Rx + (it.d.b ? CAPX + 0.25 : CAPX) + PWm / 2, Math.max(CAPMIN, it.d.b ? 0 : CY - f.h / 2) + PHm / 2, 0.003);
       stops.push({ x: Lx + f.w / 2, y: f.fc, z: f.k * H / (2 * TN) }); };
     let vR = TWm / 2 + kt * W / 2, eR = TWm;
