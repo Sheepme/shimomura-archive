@@ -2231,6 +2231,45 @@ body.qcopen #bigwait{visibility:visible!important}body.bbig #toast.tmsg:not(.hid
 .cr-ask button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;min-height:44px;padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.22);background:#3a3a38;color:#faf9f5;font:inherit;font-size:15px;font-weight:600;text-align:left;cursor:pointer}
 .cr-ask button small{font-size:12.5px;font-weight:400;color:rgba(250,249,245,.7)}.cr-ask button.pri{background:#1CB0F6;border-color:#1CB0F6}.cr-ask button.pri small{color:rgba(255,255,255,.85)}.cr-ask button.sub{background:transparent;border-color:transparent;color:#6CB4FF;min-height:36px}
 .cr-asknew{display:flex;align-items:center;gap:6px}.cr-asknew input{flex:1;min-width:0;height:40px;padding:0 10px;border-radius:10px;border:1px solid rgba(255,255,255,.3);background:#1c1c1b;color:#faf9f5;font:inherit;font-size:16px}.cr-asknew span{color:rgba(250,249,245,.7)}.cr-asknew button{width:auto;flex:none;min-height:40px;padding:0 14px;background:#58A700;border-color:#58A700;align-items:center}
+
+/* ---- 家族に送る・届いたもの（10/6 開発 v9） ---- */
+.shs{position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,.36);display:flex;align-items:flex-end;justify-content:center;-webkit-tap-highlight-color:transparent}
+.shs-box{width:100%;max-width:520px;max-height:92%;overflow:auto;background:var(--paper);color:var(--ink);border-radius:18px 18px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.18)}
+@media(min-width:700px){.shs{align-items:center}.shs-box{border-radius:18px}}
+.shs-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.shs-hd b{font-size:20px}
+.shs-x{border:0;background:none;font-size:22px;line-height:1;padding:6px 8px;color:var(--sub)}
+.shs-w{display:flex;gap:12px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:12px;margin-bottom:14px}
+.shs-w .th,.sh-it .th{flex:none;width:64px;height:64px;border-radius:8px;overflow:hidden;background:var(--wash);display:flex;align-items:center;justify-content:center}
+.shs-w .th img,.sh-it .th img{width:100%;height:100%;min-height:0!important;object-fit:cover}
+.shs-w small,.sh-it small{display:block;color:var(--sub);font-size:14px;line-height:1.5}
+.shs-l{font-size:15px;color:var(--sub);margin:4px 0 6px}
+.shs-to{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.shs-to button{border:1.5px solid var(--line);background:var(--bg);border-radius:999px;padding:9px 16px;font-size:17px}
+.shs-to button.on{border-color:var(--ink);background:var(--ink);color:var(--inv)}
+.shs-box textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:17px;background:var(--bg);resize:vertical;margin-bottom:14px}
+.shs-go{width:100%;padding:14px;border-radius:12px;border:0;background:var(--ink);color:var(--inv);font-size:18px;font-weight:600}
+.shs-go:disabled{opacity:.35}
+.shs-link{width:100%;margin-top:10px;padding:12px;border-radius:12px;border:1px solid var(--line);background:none;font-size:16px;color:var(--sub)}
+.shs-none{font-size:16px;color:var(--sub);margin:0 0 14px}
+.shfam{display:inline-flex;align-items:center;gap:6px;margin:12px 0 2px;padding:8px 14px;border:1px solid var(--line);border-radius:999px;background:var(--paper);font-size:15px;color:var(--ink)}
+.shfam svg,.hg-inbox svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
+.hg-inbox{display:flex;align-items:center;gap:14px;width:100%;margin:0 0 18px;padding:16px 18px;border-radius:18px;border:2px solid #f0b429;border-bottom-width:5px;background:#fff7e0;color:#4a3500;text-align:left}
+.hg-inbox .ic{flex:none;width:44px;height:44px;border-radius:50%;background:#f0b429;color:#fff;display:flex;align-items:center;justify-content:center}
+.hg-inbox .ic svg{width:24px;height:24px}
+.hg-inbox b{display:block;font-size:19px}.hg-inbox small{display:block;font-size:15px;opacity:.8;line-height:1.45}
+.hg-inbox em{margin-left:auto;font-style:normal;font-weight:700;font-size:16px;white-space:nowrap}
+html[data-theme=dark] .hg-inbox{background:#3a2f12;color:#ffe9a8;border-color:#a87b12}
+.dwbadge{margin-left:auto;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:#e5484d;color:#fff;font:700 13px/22px var(--sans);text-align:center}
+.dwbadge:empty{display:none}
+.sh-list{display:flex;flex-direction:column;gap:10px;margin:8px 0 22px}
+.sh-it{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--paper)}
+.sh-it.new{border-color:#f0b429;border-width:2px}
+.sh-it b{display:block;font-size:17px;line-height:1.4}
+.sh-it p{margin:4px 0 0;font-size:16px;line-height:1.5;white-space:pre-wrap}
+.sh-it .tg{display:inline-block;margin-top:6px;font-size:13px;padding:1px 8px;border-radius:6px;background:var(--wash);color:var(--sub)}
+.sh-it .nw{display:inline-block;margin-left:6px;font-size:12px;padding:0 6px;border-radius:6px;background:#e5484d;color:#fff;vertical-align:2px}
+.sh-it .seen{color:var(--ok);font-weight:600}
+body.exvopen #toast:not(.hidden){z-index:9600!important} /* 展示ビューの上で「送りました」を見せる */
 </style>
 </head>
 <body>
@@ -2300,7 +2339,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'c26f7ce7b5', APP_URL = location.origin + location.pathname;
+const BUILD = '3a0f44e3fb', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2564,7 +2603,7 @@ function docCacheSync(docs){ let V = {}; try { V = JSON.parse(localStorage.getIt
   const first = !Object.keys(V).length, del = [], N = {};
   (docs || []).forEach(d => { const v = String(d['更新日時'] || ''), fs = docPages(d); fs.forEach(f => { N[f] = v; if (!first && V[f] && V[f] !== v) { del.push('pdf_' + f, ...[100, 200, 300, 400, 800, 1200, 1600, 3200].map(w => 'd' + w + '_' + f)); delete DPDF[f]; if (typeof PDOC !== 'undefined') delete PDOC[f]; Object.keys(DTH).forEach(k => { if (k.endsWith('_' + f)) delete DTH[k]; }); } }); });
   if (del.length) thDel(del); try { localStorage.setItem('smr_dver', JSON.stringify(N)); } catch(e){} }
-function setData(d){ if (S.upd) S.upd.t = 0; try { if (d && d.docs && d.docs.length) docCacheSync(d.docs); } catch(e){}
+function setData(d){ shTake(d); if (S.upd) S.upd.t = 0; try { if (d && d.docs && d.docs.length) docCacheSync(d.docs); } catch(e){}
   const allW = d.works || []; d = Object.assign({}, d, {works: allW.filter(w => !OTRE.test(w['作品番号'])), others: allW.filter(w => OTRE.test(w['作品番号']))});
   Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, museums:d.museums||[], exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], finds:d.finds||[], lits:d.lits||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], faces:d.faces||[], memoChecker:d.memoChecker||'直美', marks:d.marks||[], pimg:d.pimg||S.pimg||[], hist:Array.isArray(d.hist) ? d.hist : (S.hist || null), autoc:Array.isArray(d.autoc) ? d.autoc : (S.autoc || []), user:d.user, ai:d.ai, publicView:d.publicView, gcid:d.gcid || ''}); if (S.token && !d.user) setToken(''); index(); try { pimgIndex(); } catch(e){} renderUser(); try { faceInit(); } catch(e){} try { fpInit(); } catch(e){}  if (d.user) setTimeout(prefetchThumbs, 0); }
 const canRole = () => !!(S.user && ['編集','管理'].includes(S.user.role));
@@ -3998,6 +4037,7 @@ function renderHome(){
   $('#main').innerHTML = `<div class="homegrid"><div class="home hm2">
     <p class="hg-date">${d.getMonth() + 1}月${d.getDate()}日（${'日月火水木金土'[d.getDay()]}）</p>
     <h1 class="hg-hello">${esc(S.user && S.user.name || '')}さん、こんにちは</h1>
+    <div id="hgInbox">${shHomeHTML()}</div>
     <section class="hg-card">${ed ? `<div><div class="hg-ttl">今日の10作品</div><div class="hg-sub">保管場所の確認から・5分ほど。ボタンでも声でも答えられます</div></div>
       <button type="button" class="hg-go" data-hg10="1">${PLAY}はじめる</button>${S.user && S.user.role === '管理' ? '<button type="button" class="hg-link hg-test" data-hgtest="1">練習する（答えは保存しません）</button>' : ''}` : ''}
       <button type="button" class="${ed ? 'hg-btn2' : 'hg-go'}" data-ivgo="1">インタビュー</button></section>
@@ -4041,6 +4081,7 @@ function renderHome(){
     + L.map(([v, t, k]) => `<button type="button" data-v="${v}"${v==='doc'?' class="edonly"':''}><span class="pic">${ico(k)}</span><span>${v==='ot' ? 'その他の作品' : v==='pb' ? '画集・資料' : t}</span></button>`).join('')
     + `<button type="button" data-v="upd"><span class="pic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v3.4h3.4"/><path d="M12 8v4.3l2.8 1.8"/></svg></span><span>更新記録</span></button>`
     + `<button type="button" data-v="exv"><span class="pic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5.5" y="5" width="13" height="10.5" rx="1"/><path d="M3 19.5h18"/></svg></span><span>展示ビュー</span></button>`
+    + `<button type="button" data-v="inbox"><span class="pic">${inbIc()}</span><span>届いたもの</span><b class="dwbadge" id="dwInboxN"></b></button>`
     + `<button type="button" data-v="help" class="dwhelp"><span class="pic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.6M12 16.8v.2"/></svg></span><span>使い方</span></button>`; })();
 /* 開いたときの最初の画面（卓也さんだけ作品アルバムから始める） */
 function applyStart(){ if (applyStart.done || !S.user) return; applyStart.done = 1;
@@ -5833,6 +5874,7 @@ function openWork(no, keepScroll, restoreSc){
       <h2 class="title">${w['作品名']?esc(w['作品名']):`<span class="untitled" style="font-size:24px">${ot ? '名前なし' : '無題'}</span>`}</h2>
       ${w['作品名メモ']?`<div class="subtitle">${esc(w['作品名メモ'])}</div>`:''}
       <div class="tombstone">${esc([w['制作年']||'制作年不明', w['画材'], szShort(w, ' cm')].filter(Boolean).join('　|　'))}</div>
+      ${canEdit() ? `<button type="button" class="shfam" data-share="${esc(no)}">${SHIC}家族に送る</button>` : ''}
       <div class="loc"><span class="lk">いまの場所</span><span style="display:flex;align-items:center"><b>${esc(w['所在']||w['所在区分']||'不明')}</b>${canEdit()?`<button class="pen" data-act="move" aria-label="場所を変える"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.6"/></svg></button>`:''}</span></div>
       ${canEdit() ? `<label class="locok ${w['場所確認日']?'on':''}"><input type="checkbox" id="locOk" ${w['場所確認日']?'checked':''}><span>${w['場所確認日'] ? 'この場所にあることを確認済み<small>' + esc(String(w['場所確認日']).split(' ')[0]) + '　' + esc(w['場所確認者']||'') + '</small>' : 'この場所にあることを確認した'}</span></label>` : (w['場所確認日'] ? `<p class="locokv">場所の確認：${esc(String(w['場所確認日']).split(' ')[0])}（${esc(w['場所確認者']||'')}）</p>` : '')}
       ${w['要確認']?`<div class="flagbox">要確認 — ${escU(w['要確認メモ']||'（メモなし）')}${canEdit()?flagActs(w):''}</div>`:''}
@@ -8526,6 +8568,7 @@ document.addEventListener('click', e => {
   if (t.id==='btnMe2'){ openMe(t); return; }
   if (t.closest('#dwNav')){ closeDrawer(); closeAllPages(); if (S.aiOpen && !aiCol()) closeAI(); }
   if (t.dataset.v==='exv'){ exvOpen(); return; }
+  if (t.dataset.v==='inbox'){ shInbox(); return; }
   if (t.id==='fsqClose'){ const fi = $('#fsq'); fi.value = ''; fi.dispatchEvent(new Event('input')); t.classList.add('hidden'); fi.blur(); return; }
   if (t.id==='fmAsk'){ hidePop(); $('#fmSearch').classList.add('hidden'); if (!S.user) return openLogin('質問するにはログインしてください'); return S.aiOpen ? closeAI() : openAI();; }
   if (t.closest('#fmPop, #fmInline')){ hidePop(); closeAllPages(); $('#fmSearch').classList.add('hidden'); }
@@ -9712,6 +9755,71 @@ body.exvopen{overflow:hidden}
   document.head.appendChild(st); }
 /* 時計のところの帯（iPhone のホーム画面アプリ）は、ページの地の色で塗られるので、壁の色に合わせる */
 function exvBg(c){ try { document.documentElement.style.backgroundColor = c; document.body.style.backgroundColor = c; } catch(e){} }
+/* ========== 家族に送る・届いたもの（10/6 開発 v9）：iPhone のホーム画面のアプリはリンクから開けないので、アプリの中で受け取る。
+   送る：展示ビューの共有ボタン・作品ページの「家族に送る」（編集・管理の人）→ 相手と、ひとこと → Google 側のシート「届いたもの」へ。
+   受け取る：ホームのいちばん上の帯・メニューの「届いたもの」→ 押すと、その作品から展示ビュー（作品ページなら作品ページ）。見たら「見た」 ========== */
+const SH = { t: 0, busy: false };
+const SHIC = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 3.5 10.2 13.8"/><path d="M21 3.5 14.4 20.5l-4.2-6.7-6.7-4.2z"/></svg>';
+function inbIc(){ return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 13.5 6 5.5h12l2.5 8v5h-17z"/><path d="M3.5 13.5h5l1.2 2.2h4.6l1.2-2.2h5"/></svg>'; } /* メニューは先に作られるので関数にする */
+const shMe = () => String((S.user || {}).name || '');
+const shIn = () => (S.shares || []).filter(x => x['宛先'] === shMe());
+const shOut = () => (S.shares || []).filter(x => x['送った人'] === shMe() && x['宛先'] !== shMe());
+const shNew = () => shIn().filter(x => !x['見た日時']);
+const shName = no => { const w = workOf(no) || {}; return String(w['作品名'] || '').trim() || (OTRE.test(String(no)) ? '名前なし' : '無題'); };
+const shTh = no => { const p = (photoBy[no] || [])[0]; return `<span class="th">${p && p['ファイルID'] ? thImg(p['ファイルID'], 200) : ''}</span>`; };
+const shKind = k => k === 'exv' ? '展示ビューで' : '作品ページ';
+function shWhen(t){ const m = /^(\d{4})\/(\d{2})\/(\d{2})\s+(\d{1,2}:\d{2})/.exec(String(t || '')); if (!m) return String(t || '');
+  const d = new Date(+m[1], +m[2] - 1, +m[3]), n = new Date(), day = Math.round((new Date(n.getFullYear(), n.getMonth(), n.getDate()) - d) / 864e5);
+  return (day === 0 ? '今日' : day === 1 ? 'きのう' : (+m[2]) + '月' + (+m[3]) + '日') + ' ' + m[4]; }
+/* getData の shares（自分あて・自分が送ったもの）と family（送る相手の候補）を受け取る。古い Google 側では来ないので、そのときは前のまま */
+function shTake(d){ if (!d) return; if (Array.isArray(d.shares)) S.shares = d.shares; if (Array.isArray(d.family)) S.family = d.family; setTimeout(shBadge, 0); }
+function shHomeHTML(){ const N = shNew(); if (!N.length) return '';
+  const f = N[0], who = [...new Set(N.map(x => x['送った人']))];
+  return `<button type="button" class="hg-inbox" data-shinbox><span class="ic">${inbIc()}</span><span><b>届いたものがあります（${N.length}）</b><small>${esc(who.slice(0, 2).join('さん・'))}さんから《${esc(shName(f['対象']))}》${N.length > 1 ? ' ほか' : ''}</small></span><em>見る ›</em></button>`; }
+function shBadge(){ const b = $('#dwInboxN'); if (b) b.textContent = shNew().length || ''; const h = $('#hgInbox'); if (h) h.innerHTML = shHomeHTML(); }
+/* アプリにもどったとき・3分ごと（画面が出ているとき）に、届いたものだけ読み直す（台帳全部は読まない） */
+function shPoll(force){ if (!S.user || SH.poll || (!force && Date.now() - SH.t < 45000)) return; SH.t = Date.now(); SH.poll = 1;
+  call('getShares').then(r => { if (Array.isArray(r)) { S.shares = r; shBadge(); } }).catch(() => {}).finally(() => { SH.poll = 0; }); }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') shPoll(); });
+setInterval(() => { if (document.visibilityState === 'visible') shPoll(); }, 180000);
+/* 送る画面（展示ビューの上にも出るよう、いちばん上に重ねる）。link：展示ビューから開いたときの「リンクを送る（LINE など）」 */
+function shOpen(kind, no, link){ if (!S.user) return; if (!canEdit()) { if (link) link(); return; }
+  const old = $('#shs'); if (old) old.remove();
+  const fam = S.family || [], el = document.createElement('div'); el.id = 'shs'; el.className = 'shs'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', '家族に送る');
+  el.innerHTML = `<div class="shs-box"><div class="shs-hd"><b>家族に送る</b><button type="button" class="shs-x" aria-label="閉じる">✕</button></div>
+    <div class="shs-w">${shTh(no)}<div><b>《${esc(shName(no))}》</b><small>${esc(nol(no))}・${kind === 'exv' ? '展示ビューで、この作品から' : '作品ページ'}</small></div></div>
+    ${fam.length ? `<p class="shs-l">送る相手（いくつでも）</p><div class="shs-to">${fam.map(n => `<button type="button" data-shto="${esc(n)}" aria-pressed="false">${esc(n)}</button>`).join('')}</div>
+    <p class="shs-l">ひとこと（なくてもかまいません）</p><textarea id="shsNote" rows="2" maxlength="200" placeholder="例：この絵、覚えてはる？"></textarea>
+    <button type="button" class="shs-go" disabled>送る</button>` : `<p class="shs-none">送る相手が見つかりません（Google 側の更新がまだかもしれません）。</p>`}
+    ${link ? '<button type="button" class="shs-link">リンクを送る（LINE など）</button>' : ''}<p class="hint" style="font-size:14px;margin:12px 0 0">相手のアプリの「届いたもの」に入ります。ホームのいちばん上にも出ます。</p></div>`;
+  document.body.appendChild(el); hydrate(el);
+  const go = el.querySelector('.shs-go'), sel = () => [...el.querySelectorAll('[data-shto].on')].map(b => b.dataset.shto), close = () => el.remove();
+  el.onclick = e => { if (e.target === el || e.target.closest('.shs-x')) return close();
+    const b = e.target.closest('[data-shto]'); if (b) { b.classList.toggle('on'); b.setAttribute('aria-pressed', b.classList.contains('on')); if (go) go.disabled = !sel().length; return; }
+    if (e.target.closest('.shs-link')) { close(); link(); return; }
+    if (e.target.closest('.shs-go') && !SH.busy) { const to = sel(); if (!to.length) return; SH.busy = true; go.disabled = true; go.textContent = '送っています…';
+      call('sendShare', to, kind, String(no), ($('#shsNote') || {}).value || '').then(r => { if (r && Array.isArray(r.shares)) S.shares = r.shares; close(); toast(to.join('さん・') + 'さんに送りました'); })
+        .catch(e => { go.disabled = false; go.textContent = '送る'; alert(/この操作はできません/.test(String(e && e.message || e)) ? 'まだ Google 側の更新が済んでいません' : '送れませんでした：' + (e && e.message || e)); })
+        .finally(() => { SH.busy = false; }); } };
+}
+/* 届いたもの（と、自分が送ったもの） */
+function shInbox(){ if (!S.user) return; shPoll(true);
+  const I = shIn(), O = shOut().slice(0, 30);
+  const it = x => `<button type="button" class="sh-it${x['見た日時'] ? '' : ' new'}" data-shopen="${esc(x['送付ID'])}">${shTh(x['対象'])}<span><b>《${esc(shName(x['対象']))}》${x['見た日時'] ? '' : '<i class="nw">新着</i>'}</b>
+    <small>${esc(x['送った人'])}さんから・${esc(shWhen(x['日時']))}</small>${x['ひとこと'] ? `<p>${esc(x['ひとこと'])}</p>` : ''}<span class="tg">${shKind(x['種類'])}</span></span></button>`;
+  const ot = x => `<button type="button" class="sh-it" data-shgo="${esc(x['種類'])}|${esc(x['対象'])}">${shTh(x['対象'])}<span><b>《${esc(shName(x['対象']))}》</b>
+    <small>${esc(x['宛先'])}さんへ・${esc(shWhen(x['日時']))}・${x['見た日時'] ? '<span class="seen">見た ✓</span>' : 'まだ見ていない'}</small>${x['ひとこと'] ? `<p>${esc(x['ひとこと'])}</p>` : ''}</span></button>`;
+  openSheet(`<h3>届いたもの</h3>${I.length ? `<div class="sh-list">${I.map(it).join('')}</div>` : '<p class="hint">まだ届いたものはありません。</p>'}
+    ${O.length ? `<h3 style="margin-top:8px">送ったもの</h3><div class="sh-list">${O.map(ot).join('')}</div>` : ''}<div class="btns"><button type="button" data-close>閉じる</button></div>`); hydrate($('#sheetbox')); }
+function shGo(kind, no){ closeSheet(); if (kind === 'exv' && exvWorks().some(d => String(d.no) === String(no))) { exvOpen(String(no), true); hpushLater('exv'); }
+  else { let k = 0; const go = () => { if (HIST.skip > 0 && k++ < 30) return setTimeout(go, 50); openWork(no); }; go(); } } /* 閉じた画面の「戻る」が済んでから開く（履歴がずれないように） */
+document.addEventListener('click', e => { const t = e.target;
+  const a = t.closest('[data-share]'); if (a) { shOpen('work', a.dataset.share); return; }
+  if (t.closest('[data-shinbox]')) { shInbox(); return; }
+  const o = t.closest('[data-shopen]'); if (o) { const x = (S.shares || []).find(r => r['送付ID'] === o.dataset.shopen); if (!x) return;
+    if (!x['見た日時']) { x['見た日時'] = '（いま）'; shBadge(); call('readShare', [x['送付ID']]).catch(() => {}); }
+    shGo(x['種類'], x['対象']); return; }
+  const g = t.closest('[data-shgo]'); if (g) { const [k, n] = g.dataset.shgo.split('|'); shGo(k, n); } });
 async function exvOpen(start, noPush){
   if (!exvIsAdm() || EXV) return;
   exvCss(); const root = document.createElement('div'); root.id = 'exv'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-label', '展示ビュー');
@@ -10047,7 +10155,8 @@ function exvBuild(root, L, start){
     const m = n => { if (id !== tid) return; const dt = n - last; last = n; v *= Math.pow(0.95, dt / 16); let u = U + v * dt; if (u < -1 || u > uHi()) { u = Math.min(uHi(), Math.max(-1, u)); v = 0; } showU(u); camU(u); if (Math.abs(v) > 0.0008) requestAnimationFrame(m); else snap(); };
     if (RM || Math.abs(v) < 0.0008) snap(); else requestAnimationFrame(m); };
 
-  root.querySelector('.xsh').onclick = async () => { poke(); const it = items[ci - 1], url = location.origin + location.pathname + '?exv=' + encodeURIComponent(it ? it.d.no : ''), ttl = it ? '下村良之介「' + (String(it.d.w['作品名'] || '').trim() || '無題') + '」' : '下村良之介';
+  root.querySelector('.xsh').onclick = () => { poke(); const it = items[ci - 1]; if (it && canEdit()) return shOpen('exv', it.d.no, () => shLink(it)); shLink(it); };
+  const shLink = async it => { const url = location.origin + location.pathname + '?exv=' + encodeURIComponent(it ? it.d.no : ''), ttl = it ? '下村良之介「' + (String(it.d.w['作品名'] || '').trim() || '無題') + '」' : '下村良之介';
     try { if (navigator.share) { await navigator.share({ title: ttl, text: ttl + '（展示ビュー）', url }); return; } } catch(e){ if (e && e.name === 'AbortError') return; }
     try { await navigator.clipboard.writeText(url); toast('リンクをコピーしました。LINE などに貼って送れます'); } catch(e){ toast('リンク：' + url); } };
   xPrev.onclick = () => { poke(); go(ci - 1); }; xNext.onclick = () => { poke(); go(ci + 1); };
