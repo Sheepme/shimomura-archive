@@ -2360,7 +2360,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '34d4c12d93', APP_URL = location.origin + location.pathname;
+const BUILD = 'dc35588a47', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -10226,15 +10226,34 @@ function exvBuild(root, L, start){
     if (moved < 8) { if (wake) { wake = false; return; } tapZoom(e); return; } /* ボタンが消えているときの最初のタップは、ボタンを出すだけ */ if (zoomed) return; if (pinch) { go(ci); return; }
     const k = 2 * st.z * TN / el.clientHeight; if (performance.now() - lastT > 90) vel = 0; /* 止めてからはなしたら、勢いはなし */
     const vpx = vel / k, flick = Math.abs(vpx) > 0.3, dir = Math.abs(drag) > el.clientWidth * 0.12 ? -Math.sign(drag) : flick ? Math.sign(vel) : 0; /* 画面の12%以上動かすか、さっとはらうと次・前へ */
-    const bi = Math.max(0, Math.min(stops.length - 1, ci + dir)); go(bi, Math.sign(stops[bi].x - st.x) === Math.sign(vel) ? Math.abs(vel) * Math.sign(stops[bi].x - st.x) : 0); };
+    /* 慣性（10/7 本人「スワイプに慣性を。気持ち良く」）：はらった速さで先へ流れる。ふつうのスワイプは1点、強くはらうと2点・3点…（8点まで）。流れる距離は 速さ×0.35秒 */
+    const u1 = uAtX(st.x), A = pathAt(Math.floor(u1)), B = pathAt(Math.floor(u1) + 1), vU = Math.abs(B.x - A.x) > 1e-4 ? vel / (B.x - A.x) : 0, k0 = ci - 1;
+    const nn = dir && vU * dir > 0 ? Math.max(1, Math.min(8, Math.round(Math.abs(u1 + vU * 350 - k0)))) : 1;
+    if (nn > 1) { showU(u1); glide(k0 + dir * nn, vU); return; }
+    const bi = Math.max(0, Math.min(stops.length - 1, ci + dir)); go(bi, Math.sign(stops[bi].x - st.x) === Math.sign(vel) ? Math.abs(vel) * Math.sign(stops[bi].x - st.x) : 0); }; /* 1点：今までどおり（シリーズに入るときの見せ方も） */
   el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
   /* ホイール・トラックパッド：スクロール（縦・横どちらも）で前・次の作品へ（下・右で次）。1回のスワイプで1点（とぎれるまで次は数えない）（10/7 本人「スクロールで作品送りに」）。
      拡大・縮小は、トラックパッドのピンチ（ブラウザでは ctrlKey つきのホイールになる）か Ctrl＋ホイール */
-  let wX = 0, wLock = 0, wT = 0;
+  let wLock = 0, wT = 0, wd = 0, wS = 0, wV = 0, wPk = 0, wL = 0, wK = 0, wTo = 0, wO = null, wU0 = 0;
+  /* トラックパッドをはなした（とぎれた）ら：その速さのまま流れて、近い作品でやわらかく止まる。50px 以上動かしていれば、少なくとも1点は進む */
+  const wRel = () => { clearTimeout(wTo); if (!wd) return; wd = 0; const dir = Math.sign(wS), v = Math.abs(wV) < 0.00005 ? 0 : wV;
+    let k = nearK(U + v * 200); if (Math.abs(wS) >= 50 && (k - wK) * dir < 1) k = wK + dir; glide(k, v); };
   el.addEventListener('wheel', e => { poke(); e.preventDefault(); const k = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1, ax = e.deltaX * k, ay = e.deltaY * k, now = e.timeStamp || performance.now(), gap = now - wT; wT = now; /* 時刻は入力が起きた時刻（描画で遅れて届いても、とぎれたと見なさない） */
     if (e.ctrlKey) { tid++; if (mv) tIn(); zoomBy(Math.exp(Math.max(-60, Math.min(60, ay)) * 0.005)); return; } /* ピンチは1回の量が小さい。Ctrl＋ホイールは大きいので、1回 35% までに */
     const hz = Math.abs(ax) > Math.abs(ay) ? ax : ay;
-    if (hz) { if (wLock && gap > 220 && now - wLock > 400) wLock = 0; if (wLock) return; if (gap > 220) wX = 0; wX += hz; if (Math.abs(wX) > 50) { wLock = now; wX = 0; uStep(hz > 0 ? 1 : -1); } return; } /* 進んだら、0.4秒たって、しかもスクロールがとぎれる（慣性も終わる）まで次へは進まない。動きはスワイプと同じ速さ（約0.6〜1.5秒。ボタンの「歩く」より速い。10/7 本人「もっと早く」） */
+    if (!hz) return; const a = Math.abs(hz);
+    /* マウスのホイール（1目盛りずつ）：1目盛りで1点。続けて回すと、その勢いのまま先へ */
+    const pad = e.deltaMode === 0 && (e.wheelDeltaY == null || (Math.abs(e.wheelDeltaY + 3 * e.deltaY) <= 3 && Math.abs((e.wheelDeltaX || 0) + 3 * e.deltaX) <= 3));
+    if (!pad) { if (now - wLock < 70) return; wLock = now; uStep(hz > 0 ? 1 : -1); return; }
+    /* トラックパッド（10/7 本人「スクロールに慣性を。気持ち良く」）：指の動きと、はなしたあとの端末の慣性を、そのまま作品の並びの動きに（下の帯を指で動かすのと同じ）。
+       画面の高さの約半分で1点。端末の慣性がゆるんできたら、そこで近い作品へ寄せる（最後のゆっくりした流れは使わない。新しく指で動かしたら、そこから） */
+    if (wLock) { if (gap < 160 && a <= Math.max(6, wL * 1.6)) { wL = a; return; } wLock = 0; }
+    wL = a;
+    if (!wd) { wd = 1; if (mv) tIn(); clearTimeout(holdT); clearTimeout(yrT); lastY = null; zoomed = false; ym = ++tid; wS = 0; wV = 0; wPk = 0; wK = nearK(U); wU0 = U; const p0 = pathAt(U); wO = { x: st.x - p0.x, y: st.y - p0.y, z: st.z - p0.z }; yA = true; clearTimeout(yHide); }
+    const SPW = Math.max(260, Math.min(600, el.clientHeight * 0.5)), dt = Math.max(8, Math.min(50, gap)), u = Math.max(-1, Math.min(uHi(), U + hz / SPW));
+    wS += hz; wV = 0.6 * wV + 0.4 * (u - U) / dt; wPk = Math.max(wPk, Math.abs(wV)); showU(u); camU(u, wO, Math.max(0, 1 - Math.abs(u - wU0) * 3));
+    if (Math.abs(wS) >= 50 && wPk > 0.0006 && Math.abs(wV) < wPk * 0.22 && Math.abs(wV) < 0.0005) { wLock = now; wRel(); return; }
+    clearTimeout(wTo); wTo = setTimeout(wRel, 120);
     }, { passive: false });
   /* Mac の Safari のピンチ（ホイールではなく gesture のイベントで来る）。iPhone・iPad は指の操作で拡大するので使わない */
   if (!navigator.maxTouchPoints) { let gz = 0; el.addEventListener('gesturestart', e => { e.preventDefault(); gz = st.z; });
@@ -10270,8 +10289,13 @@ function exvBuild(root, L, start){
       const e = DOTS[n++], x = Math.sign(d) * (G + (a - 0.5) * SP), o = Math.max(0, Math.min(0.9, 0.9 * (1 - (a - 2.2) / 2.8))) * (act ? 1 : 0.45);
       e.style.transform = 'translateX(' + x.toFixed(1) + 'px)'; e.style.opacity = o.toFixed(2); }
     for (; n < DOTS.length; n++) DOTS[n].style.opacity = '0'; };
-  const camU = u => { const f = Math.max(-1, Math.min(uHi(), u)) + 1, k = Math.max(0, Math.min(stops.length - 2, Math.floor(f))), t = f - k, A = stops[k], B = stops[k + 1] || A;
-    st.x = A.x + (B.x - A.x) * t; st.y = A.y + (B.y - A.y) * t; st.z = A.z + (B.z - A.z) * t; ci = Math.max(0, Math.min(stops.length - 1, nearK(u) + 1)); cl(); draw(); aroundLater(); }; /* 動かしている間も、いちばん近い作品を「いまの作品」に（写真もそこから先に読む） */
+  const pathAt = u => { const f = Math.max(-1, Math.min(uHi(), u)) + 1, k = Math.max(0, Math.min(stops.length - 2, Math.floor(f))), t = f - k, A = stops[k], B = stops[k + 1] || A;
+    return { x: A.x + (B.x - A.x) * t, y: A.y + (B.y - A.y) * t, z: A.z + (B.z - A.z) * t }; };
+  const camU = (u, o, w) => { const p = pathAt(u); w = o ? w || 0 : 0; st.x = p.x + o_(o, "x", w); st.y = p.y + o_(o, "y", w); st.z = p.z + o_(o, "z", w); ci = Math.max(0, Math.min(stops.length - 1, nearK(u) + 1)); cl(); draw(); aroundLater(); }; /* 動かしている間も、いちばん近い作品を「いまの作品」に（写真もそこから先に読む） */
+  const o_ = (o, a, w) => w ? o[a] * w : 0; /* o：カメラが作品の並びの道すじから外れている分（スワイプの途中・拡大中）。w で少しずつ消す */
+  /* 横の位置 x から、作品の並びの上の位置 U をもとめる（スワイプをはなしたところから、そのまま続けて動かすため） */
+  const uAtX = x => { let b = null, bd = 1e9; for (let k = 0; k < stops.length - 1; k++){ const A = stops[k], B = stops[k + 1]; if ((x - A.x) * (x - B.x) > 0) continue; const u = k + (B.x !== A.x ? (x - A.x) / (B.x - A.x) : 0) - 1, d = Math.abs(u - (ci - 1)); if (d < bd) { bd = d; b = u; } }
+    if (b == null) { let m = 1e9; stops.forEach((q, k) => { const d = Math.abs(q.x - x); if (d < m) { m = d; b = k - 1; } }); } return Math.max(-1, Math.min(uHi(), b == null ? U : b)); };
   function nearK(u){ return Math.max(-1, Math.min(uHi(), Math.round(u))); }
   const yOff = () => { clearTimeout(yHide); yHide = setTimeout(() => { if (!yd) { yA = false; showU(U); } }, 800); };
   let yWake = false, ym = 0;
@@ -10281,19 +10305,29 @@ function exvBuild(root, L, start){
   yEl.onpointerup = yEl.onpointercancel = e => { if (!yd) return; yd = false; yEl.style.cursor = 'grab';
     if (ymv < 6) { if (yWake) { yOff(); yrOff(500); return; } const b = yEl.getBoundingClientRect(), x = e.clientX - (b.left + b.width / 2), G = yG();
       if (Math.abs(x) > G) go(ci + Math.sign(x)); else yrOff(500); yOff(); return; } /* 下の左右をタップ：前・次の作品へ */
-    const id = ++tid; let last = performance.now(), v = yv; ym = id;
-    const snap = () => { const k = nearK(U), u0 = U, t0 = performance.now();
-      const f = n => { if (id !== tid) return; const t = Math.max(0, Math.min(1, (n - t0) / 380)), q = 1 - Math.pow(1 - t, 3), u = u0 + (k - u0) * q; showU(u); camU(u); if (t < 1) requestAnimationFrame(f); else { ci = k + 1; ym = 0; zoomed = false; around(ci); yOff(); yrOff(500); autoNext(); } }; requestAnimationFrame(f); };
-    const m = n => { if (id !== tid) return; const dt = Math.min(50, Math.max(0, n - last)); last = Math.max(last, n); /* 描く時刻は、指をはなした時刻より前のことがある。そのまま使うと時間がマイナスになり、勢いが逆向きに大きく効いて、はじめの作品まで戻っていた（10/7 本人「高速に送ると元に戻る」） */ v *= Math.pow(0.95, dt / 16); let u = U + v * dt; if (u < -1 || u > uHi()) { u = Math.min(uHi(), Math.max(-1, u)); v = 0; } showU(u); camU(u); if (Math.abs(v) > 0.0008) requestAnimationFrame(m); else snap(); };
-    if (RM || Math.abs(v) < 0.0008) snap(); else requestAnimationFrame(m); };
+    /* はなした速さで流れて、近い作品でやわらかく止まる（流れる距離は 速さ×0.31秒）。前は「流れる」と「近い作品へ寄せる」が2つの動きだったのを、1つのなめらかな動きに（10/7 本人「慣性を。気持ち良く」）。
+       描く時刻が指をはなした時刻より前でも、時間はマイナスにならない（glide は t を 0 以上に。10/7「高速に送ると元に戻る」の対策のまま） */
+    const v = performance.now() - yt > 90 || Math.abs(yv) < 0.0003 ? 0 : yv; glide(nearK(U + v * 312), v); };
   /* スクロールで作品送り：下の帯をさっと送ったときと同じ動き（カメラは作品と作品の止まる位置のあいだをまっすぐ移り、最後はゆっくり止まる。年もぱらぱら出る）（10/7 本人「下のバーをスワイプした時と同じモーションに」）。
      動いている途中でまたスクロールしたら、その先の作品へ続けて */
-  let uT = null;
-  const uStep = dir => { const cont = !!ym && ym === tid && uT != null, k = Math.max(-1, Math.min(uHi(), (cont ? uT : nearK(U)) + dir)); if (!cont && Math.abs(U - k) < 1e-3) return;
-    if (mv) tIn(); clearTimeout(holdT); zoomed = false; const id = ++tid, u0 = U, t0 = performance.now(), ms = Math.min(1100, 520 + Math.abs(k - u0) * 180); ym = id; uT = k;
-    const end = () => { ci = k + 1; ym = 0; uT = null; around(ci); setCnt(); yOff(); yrOff(500); autoNext(); };
-    if (RM) { showU(k); camU(k); return end(); }
-    const f = n => { if (id !== tid) return; const t = Math.max(0, Math.min(1, (n - t0) / ms)), q = 1 - Math.pow(1 - t, 3), u = u0 + (k - u0) * q; showU(u); camU(u); if (t < 1) requestAnimationFrame(f); else end(); }; requestAnimationFrame(f); };
+  let uT = null, uV = 0;
+  /* 慣性（10/7 本人「スワイプやスクロールに慣性を。気持ち良く動かしたい」）：作品の並びの上を、いまの速さ v0（1ミリ秒あたりの作品の数）のまま動き出して、作品 k でやわらかく止まる。
+     エルミート曲線なので速さがとぎれない（同じ向きなら行きすぎない）。カメラが並びの道すじから外れていたら（スワイプの途中・拡大中）、そのずれは動きながら消す */
+  const glide = (k, v0) => { k = Math.max(-1, Math.min(uHi(), k)); if (mv) tIn(); clearTimeout(holdT); zoomed = false;
+    const id = ++tid, u0 = U, d = k - u0, p0 = pathAt(u0), o = { x: st.x - p0.x, y: st.y - p0.y, z: st.z - p0.z }, off = Math.abs(o.x) + Math.abs(o.y) + Math.abs(o.z) > 1e-4; ym = id; uT = k;
+    const end = () => { uV = 0; ci = k + 1; ym = 0; uT = null; around(ci); setCnt(); yOff(); yrOff(500); autoNext(); };
+    if (RM || (Math.abs(d) < 1e-4 && !off)) { showU(k); camU(k); return end(); }
+    let T = Math.min(1100, 520 + Math.abs(d) * 180);
+    if (v0 == null) v0 = 3 * d / T; /* 止まっているところから：すっと動き出して、ゆっくり止まる（前と同じ） */
+    else if (v0 * d > 0) { T = Math.max(260, Math.min(1400, 3 * Math.abs(d) / Math.abs(v0))); if (Math.abs(v0) * T > 3 * Math.abs(d)) v0 = 3 * d / T; } /* 同じ向き：その速さのまま流れて、行きすぎずに止まる */
+    else v0 = Math.sign(v0) * Math.min(Math.abs(v0), 1.5 * Math.abs(d) / T); /* 逆の向き：少しだけ流れてから、もどる */
+    const t0 = performance.now();
+    const f = n => { if (id !== tid) return; const s = Math.max(0, Math.min(1, (n - t0) / T)), s2 = s * s, s3 = s2 * s, h = 3 * s2 - 2 * s3, u = u0 + (s3 - 2 * s2 + s) * T * v0 + d * h;
+      uV = ((3 * s2 - 4 * s + 1) * T * v0 + d * 6 * (s - s2)) / T; showU(u); camU(u, off ? o : null, 1 - h); if (s < 1) requestAnimationFrame(f); else end(); };
+    requestAnimationFrame(f); };
+  /* スクロール（マウスのホイール）で1点ずつ。動いている途中なら、その勢いのまま先の作品へ続けて（6点先まで） */
+  const uStep = dir => { const cont = !!ym && ym === tid && uT != null, k = Math.max(-1, Math.min(uHi(), (cont ? uT : nearK(U)) + dir)); if (!cont && Math.abs(U - k) < 1e-3) return; if (Math.abs(k - U) > 6) return;
+    glide(k, cont ? uV : null); };
 
   /* メニュー（10/6 本人）：表示する作品（作品アルバムのカテゴリと同じ。美術館は館も選べる）と、この作品の共有 */
   const xmClose = () => { const m = root.querySelector('.xmn'), b = root.querySelector('.xmb'); if (m) m.remove(); if (b) b.remove(); root.classList.remove('xmo'); root.querySelector('.xsh').setAttribute('aria-expanded', 'false'); poke(); };
