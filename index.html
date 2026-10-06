@@ -2299,7 +2299,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '51587f1e19', APP_URL = location.origin + location.pathname;
+const BUILD = '3a09154a7b', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5074,7 +5074,7 @@ const dimTxt = (w, long, unit) => (w['幅cm']||w['高さcm']||w['奥行きcm']) 
 const frameTxt = w => (w['額の高さcm'] || w['額の幅cm']) ? `額 高さ ${w['額の高さcm'] || '?'} × 幅 ${w['額の幅cm'] || '?'} cm` : '';
 /* サイズのメインとサブ（10/6 本人）：美術館・カタログの決まりに合わせて、絵だけ（画面・本紙。屏風は本体）をメイン、額込みはサブ。
    片方しかなければ、ある方をメインにして「額あり（額込みのサイズ）／額なし（絵だけのサイズ）」を添える */
-const isScreenW = w => /屏風/.test(String(w['作品名'] || '') + String(w['種別'] || '') + String(w['画材'] || ''));
+const isScreenW = w => /屏風|屛風|びょうぶ|[二三四六八2-8]曲|一隻|一双/.test((String(w['作品名'] || '') + String(w['種別'] || '') + String(w['画材'] || '')).normalize('NFKC'));
 const szKind = w => { const a = +w['高さcm'] > 0 || +w['幅cm'] > 0, f = +w['額の高さcm'] > 0 || +w['額の幅cm'] > 0; return a ? (w['サイズの確認'] === '作品のみ' || f ? 'art' : 'unk') : f ? 'frame' : ''; };
 const dimMain = w => szKind(w) === 'frame' ? { '高さcm': w['額の高さcm'], '幅cm': w['額の幅cm'], '奥行きcm': w['奥行きcm'] } : w;
 const szShort = (w, unit) => { const m = dimTxt(dimMain(w), false, unit); return m ? m + (szKind(w) === 'frame' ? '（額込み）' : '') : ''; };
