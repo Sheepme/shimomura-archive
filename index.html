@@ -2299,7 +2299,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd4c5851cfc', APP_URL = location.origin + location.pathname;
+const BUILD = '345a727826', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -9670,13 +9670,15 @@ async function exvEstimate(L){
 function exvCss(){ if (document.getElementById('exvcss')) return; const st = document.createElement('style'); st.id = 'exvcss';
   st.textContent = `#exv{position:fixed;inset:0;z-index:9000;background:#efede9;color:#33302c;overflow:hidden;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui,sans-serif}
 #exv .xst{position:absolute;inset:0}#exv canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
-#exv .xcl{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8px);right:8px;width:48px;height:48px;border:0;background:transparent;color:#2f2c28;z-index:4;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;-webkit-tap-highlight-color:transparent}
+#exv .xcl{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8px);right:8px;width:48px;height:48px;border:0;background:transparent;color:#3a3530;mix-blend-mode:multiply;z-index:4;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;-webkit-tap-highlight-color:transparent}
 #exv .xcl svg{width:24px;height:24px;stroke:currentColor;stroke-width:1.4;fill:none;stroke-linecap:round;stroke-linejoin:round}#exv .xcl:focus-visible{outline:1.5px solid #2f2c28;outline-offset:2px;border-radius:8px}
 #exv .xwait{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;letter-spacing:.12em;color:#6f685f;z-index:2}
 #exv .xhint{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 78px);display:flex;justify-content:center;font-size:13px;line-height:1.65;pointer-events:none;transition:opacity .8s;z-index:3}
 #exv .xhint span{background:rgba(250,249,246,.93);border:1px solid rgba(51,48,44,.12);border-radius:10px;padding:8px 14px;max-width:24em;text-align:center}
-#exv .yrs{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 6px);height:76px;z-index:3;touch-action:none;cursor:grab}
-#exv .ynum{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:"Helvetica Neue","Avenir Next",Helvetica,Arial,sans-serif;font-size:30px;font-weight:200;letter-spacing:.05em;color:#2b2825;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
+#exv .yrs{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 6px);height:76px;z-index:3;touch-action:none;cursor:grab;mix-blend-mode:multiply}
+#exv .ynum{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:"Helvetica Neue","Avenir Next",Helvetica,Arial,sans-serif;font-size:30px;font-weight:300;letter-spacing:.05em;color:#3a3530;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
+#exv .xnav{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);width:48px;height:48px;border:0;background:transparent;color:#3a3530;z-index:4;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;mix-blend-mode:multiply;transition:opacity .3s;-webkit-tap-highlight-color:transparent}
+#exv .xprev{left:8px}#exv .xnext{right:8px}#exv .xnav svg{width:14px;height:26px;stroke:currentColor;stroke-width:1.2;fill:none;stroke-linecap:round;stroke-linejoin:round}#exv .xnav[disabled]{opacity:0;pointer-events:none}#exv .xnav:focus-visible{outline:1.5px solid #3a3530;outline-offset:-4px;border-radius:8px}
 #exv .ydots{position:absolute;inset:0;pointer-events:none}
 #exv .yd{position:absolute;left:50%;top:50%;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;border-radius:50%;background:#2b2825;opacity:0;transition:opacity .3s ease}
 #exv .yrs.xon .yd{transition:opacity .12s ease}
@@ -9686,7 +9688,7 @@ body.exvopen{overflow:hidden}
 async function exvOpen(){
   if (!exvIsAdm() || EXV) return;
   exvCss(); const root = document.createElement('div'); root.id = 'exv'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-label', '展示ビュー');
-  root.innerHTML = '<div class="xst"></div><div class="xwait">展示室を準備しています…</div><button type="button" class="xcl" aria-label="展示ビューを出る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5H6.5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1H14"/><path d="M10.5 12h9M16.5 8.5 20 12l-3.5 3.5"/></svg></button><div class="xhint" style="opacity:0"><span></span></div><div class="yrs" aria-label="制作年（指を当てて左右に動かすと早送り）"><div class="ydots"></div><div class="ynum"></div></div>';
+  root.innerHTML = '<div class="xst"></div><div class="xwait">展示室を準備しています…</div><button type="button" class="xcl" aria-label="展示ビューを出る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5H6.5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1H14"/><path d="M10.5 12h9M16.5 8.5 20 12l-3.5 3.5"/></svg></button><div class="xhint" style="opacity:0"><span></span></div><button type="button" class="xnav xprev" aria-label="前の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M12 2 2 13l10 11"/></svg></button><button type="button" class="xnav xnext" aria-label="次の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M2 2l10 11L2 24"/></svg></button><div class="yrs" aria-label="制作年（指を当てて左右に動かすと早送り）"><div class="ydots"></div><div class="ynum"></div></div>';
   document.body.appendChild(root); document.body.classList.add('exvopen');
   EXV = { root, close: () => { root.remove(); document.body.classList.remove('exvopen'); EXV = null; } };
   root.querySelector('.xcl').onclick = () => exvClose(false);
@@ -9767,7 +9769,7 @@ function exvBuild(root, L){
       const ao = new T3.Mesh(new T3.PlaneGeometry(W2 + 0.3, dd + 0.34), new T3.MeshBasicMaterial({ transparent: true, opacity: 0.34, depthWrite: false })); ao.rotation.x = -Math.PI / 2; ao.position.set(0, 0.002, zb + dd / 2); ao.visible = false; ao.raycast = () => {}; g.add(ao);
       Object.assign(it, { W: W2, ao, aoMk: () => softShadow(W2, dd + 0.04, 0.15) }); }
     else { /* 厚みと壁からの浮きは作品の大きさで（小さい作品は薄く・近く、大きい作品は厚く・浮く → 影の出方が変わる） */
-      const sF = Math.sqrt(w * h), dep = Math.min(0.03, Math.max(0.01, 0.008 + 0.012 * sF)), off = 0.002; /* どの大きさも壁にくっつける（10/6 本人） */
+      const sF = Math.sqrt(w * h), dep = Math.min(0.0325, Math.max(0.013, 0.010 + 0.013 * sF)), off = 0.002; /* どの大きさも壁にくっつける（10/6 本人） */
       const pn = new T3.Mesh(new T3.BoxGeometry(w, h, dep), [side, side, side, side, artM(base), side]); pn.position.z = off + dep / 2; pn.castShadow = true; g.add(pn);
       const m = 0.03 + 0.06 * sF, bl = 0.008 + 0.025 * sF, ao = new T3.Mesh(new T3.PlaneGeometry(w + 2 * m, h + 2 * m), new T3.MeshBasicMaterial({ transparent: true, opacity: Math.min(0.32, 0.18 + 0.1 * sF), depthWrite: false })); ao.position.set(0, -0.004 - 0.008 * sF, 0.0012); ao.visible = false; ao.raycast = () => {}; g.add(ao);
       g.position.y = CY; Object.assign(it, { ao, aoMk: () => softShadow(w, h, m, bl) }); }
@@ -9847,7 +9849,8 @@ function exvBuild(root, L){
     const f = n => { if (id !== tid) return; const t = Math.min(1, (n - t0) / ms), e = sm(t), ez = back ? sm(t / 0.65) : sm((t - 0.35) / 0.65);
       st.x = s0.x + (T.x - s0.x) * e; st.y = s0.y + (T.y - s0.y) * e; st.z = s0.z + (T.z - s0.z) * ez; draw(); if (t < 1) requestAnimationFrame(f); };
     requestAnimationFrame(f); };
-  const setCnt = () => { if (!yd) showU(ci - 1); };
+  const xPrev = root.querySelector('.xprev'), xNext = root.querySelector('.xnext');
+  const setCnt = () => { if (!yd) showU(ci - 1); xPrev.disabled = ci <= 0; xNext.disabled = ci >= stops.length - 1; };
   const AUTO = 10000; let autoT = 0;
   const autoNext = () => { clearTimeout(autoT); autoT = setTimeout(() => { if (!EXV || document.hidden || zoomed || yd || P.size) return autoNext(); if (ci < stops.length - 1) go(ci + 1); }, AUTO); };
   const go = i => { autoNext(); zoomed = false; ci = Math.max(0, Math.min(stops.length - 1, i)); around(ci); setCnt(); const s = stops[ci]; walk({ x: s.x, y: s.y, z: Math.min(zmax(), Math.max(zmin(), s.z)) }); };
@@ -9904,11 +9907,12 @@ function exvBuild(root, L){
     const m = n => { if (id !== tid) return; const dt = n - last; last = n; v *= Math.pow(0.95, dt / 16); let u = U + v * dt; if (u < -1 || u > uHi()) { u = Math.min(uHi(), Math.max(-1, u)); v = 0; } showU(u); camU(u); if (Math.abs(v) > 0.0008) requestAnimationFrame(m); else snap(); };
     if (RM || Math.abs(v) < 0.0008) snap(); else requestAnimationFrame(m); };
 
+  xPrev.onclick = () => go(ci - 1); xNext.onclick = () => go(ci + 1);
   const key = e => { autoNext(); if (e.key === 'ArrowRight') { e.preventDefault(); go(ci + 1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); go(ci - 1); } };
   const rs = () => layout(); addEventListener('resize', rs); addEventListener('keydown', key);
   const wait = root.querySelector('.xwait'); if (wait) wait.remove();
   layout(); around(0); setCnt(); autoNext();
-  hintT.textContent = '作品やキャプションをタップすると近づきます（もう一度タップでもどる）。壁をタップすると次の作品へ（左端は前へ）。下の年に指を当てて左右に動かすと早送り。下の左右をタップすると前後の作品へ。しばらくさわらないと、次の作品へ進みます。';
+  hintT.textContent = '作品やキャプションをタップすると近づきます（もう一度タップでもどる）。壁をタップすると次の作品へ（左端は前へ）。下の年に指を当てて左右に動かすと早送り。下の〈 〉で前後の作品へ。しばらくさわらないと、次の作品へ進みます。';
   hint.style.opacity = 1; setTimeout(() => { hint.style.opacity = 0; }, 6500);
   const close0 = EXV.close;
   EXV.close = () => { tid++; clearTimeout(autoT); clearTimeout(settle); clearTimeout(wt); if (rq) cancelAnimationFrame(rq); removeEventListener('resize', rs); removeEventListener('keydown', key);
