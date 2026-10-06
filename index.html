@@ -2341,7 +2341,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '12a45ec574', APP_URL = location.origin + location.pathname;
+const BUILD = '0c0ffb0e4c', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -9746,7 +9746,7 @@ function exvWorks(noF){ const L = [], keep = !noF && EXVF.f !== 'all' ? exvSet(E
   (S.works || []).forEach(w => { const no = w['作品番号'], p = (photoBy[no] || [])[0], id = p && p['ファイルID'];
     if (!id || (keep && !keep.has(String(no))) || /廃棄|統合済み/.test(String(w['所在'] || '') + ' ' + String(w['状態'] || ''))) return;
     const d = dimMain(w), h0 = +d['高さcm'] || 0, wd0 = +d['幅cm'] || 0, sn = exvSetN(w), pl = (photoBy[no] || []).filter(x => x['ファイルID'] && x['種類'] !== '記録写真');
-    const set = sn > 1 && pl.length >= sn && h0 > 0 && wd0 > 0 ? { n: sn, ids: pl.slice(0, sn).map(x => x['ファイルID']), pw: wd0, ph: h0, dir: wd0 >= h0 ? 'v' : 'h', gap: 12 } : null; /* 何面かで1組（台帳のサイズは1面ぶん）：横長の面は縦に、縦長の面は横に並べる。写真は面ごとに1枚（はじめの n 枚）。すき間 12cm（10/7 本人「間隔を倍に」） */
+    const set = sn > 1 && pl.length >= sn && h0 > 0 && wd0 > 0 ? { n: sn, ids: pl.slice(0, sn).map(x => x['ファイルID']), pw: wd0, ph: h0, dir: wd0 >= h0 ? 'v' : 'h', gap: 24 } : null; /* 何面かで1組（台帳のサイズは1面ぶん）：横長の面は縦に、縦長の面は横に並べる。写真は面ごとに1枚（はじめの n 枚）。すき間 24cm（10/7 本人：6 → 12 → 24cm） */
     const h = set && set.dir === 'v' ? sn * h0 + (sn - 1) * set.gap : h0, wd = set && set.dir === 'h' ? sn * wd0 + (sn - 1) * set.gap : wd0;
     L.push({ no, w, id, set, y: yearOf(w['制作年']), s: String(w['シリーズ'] || '').trim(), h, wd, est: !(h > 0 && wd > 0), frame: szKind(w) === 'frame', b: isScreenW(w) || isKannon(w), k: isKannon(w), cp: copyOf(p) }); }); /* 転載した写真（©）も出す（10/6 本人）。キャプションに © */
   const gy = {}; L.forEach(d => { if (d.s) gy[d.s] = Math.min(gy[d.s] == null ? 99999 : gy[d.s], d.y); }); /* シリーズは、いちばん古い作品の年のところにまとめる */
