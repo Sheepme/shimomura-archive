@@ -2387,7 +2387,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '9118f7c72f', APP_URL = location.origin + location.pathname;
+const BUILD = 'f43fa96e87', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -10386,8 +10386,8 @@ function exvBuild(root, L, start){
   let rq = 0, dead = 0; const redraw = () => { if (rq || dead) return; rq = requestAnimationFrame(() => { rq = 0; draw(); }); };
   const capLines = it => { if (it.d.grp) it = { d: it.d.grp.reg[0].pd }; const w = it.d.w, sz = it.d.tri ? '各 ' + (+it.d.h).toFixed(1) + ' × ' + (+it.d.wd).toFixed(1) + ' cm（3点・背中合わせ）' : it.d.set ? '各 ' + (+it.d.set.ph).toFixed(1) + ' × ' + (+it.d.set.pw).toFixed(1) + ' cm（' + it.d.set.n + '面）' : it.d.est ? '約 ' + it.d.h + ' × ' + it.d.wd + ' cm（推定）' : (+it.d.h).toFixed(1) + ' × ' + (+it.d.wd).toFixed(1) + ' cm' + (it.d.frame ? '（額込み）' : '');
     return [[it.d.tri ? it.d.tri.nos.join('・') : String(it.d.no), 10.5, 400, '#8a8379', 6, 1], [String(w['作品名'] || '').trim() || '無題', 17, 500, '#2a2724', 6, 1.5], [exvYearTxt(w), 11.5, 400, '#46413b', 2.5, 0.4], [String(w['画材'] || '').trim(), 11.5, 400, '#46413b', 2.5, 0.4], [sz, 11.5, 400, '#46413b', 2.5, 0.4], [exvOwner(w), 11.5, 400, '#46413b', it.d.cp ? 4 : 0, 0.4]].concat(it.d.cp ? [['画像 © ' + String(it.d.cp.mu || '').replace(/^[@＠]/, ''), 9.5, 400, '#8a8379', 0, 0.4]] : []); };
-  const paint = (it, im) => { const iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height; if (!iw || !it.req) return; it.pt = 1; it.fail = 0;
-    { const dk = !RM && (LFt < 1 || LF < 0.98); it.fd = dk ? 1 : 0; it.rv.value = dk ? 0 : 1; } /* 部屋を暗くしているあいだに届いた写真は、明かりがつくまで見せない */
+  const paint = (it, im) => { const iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height; if (!iw || !it.req) return; const was = it.pt; it.pt = 1; it.fail = 0;
+    if (!was) { const dk = !RM && (LFt < 1 || LF < 0.98); it.fd = dk ? 1 : 0; it.rv.value = dk ? 0 : 1; } /* 部屋を暗くしているあいだに初めて届いた写真は、明かりがつくまで見せない。もう出ていた写真（細かい画像への描き直し）は、そのまま明かりだけ（17:20 本人） */
     const tr = it.tr || it.wm / it.hm, ir = iw / ih; let sx = 0, sy = 0, sw = iw, sh = ih;
     if (Math.abs(ir / tr - 1) > 0.06) { if (ir > tr) { sw = ih * tr; sx = (iw - sw) / 2; } else { sh = iw / tr; sy = (ih - sh) / 2; } } /* 形が台帳と合わないときは、まん中を切り出す */
     const k = Math.min(1, (it.mx || 1024) / Math.max(sw, sh)), cw = Math.max(2, Math.round(sw * k)), ch = Math.max(2, Math.round(sh * k)), c = it.cv, x = c.getContext('2d');
