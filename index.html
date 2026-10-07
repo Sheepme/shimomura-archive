@@ -2387,7 +2387,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'fc56fa05b4', APP_URL = location.origin + location.pathname;
+const BUILD = '4f3b0c2f69', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -10079,7 +10079,8 @@ function exvCss(){ if (document.getElementById('exvcss')) return; const st = doc
 #exv .yrs.xon .yd{transition:opacity .12s ease}
 /* 下の位置：全体の中のどこかを、細い線と○で（左が最初・右が最後。通ったところは少し濃く）。さわっている間は「12 / 340」（10/7 開発 v11 本人） */
 #exv .ytr,#exv .yfl{position:absolute;left:calc(50% - 64px);top:50%;height:1px;margin-top:-.5px;background:#2b2825;pointer-events:none}#exv .ytr{width:128px;opacity:.16}#exv .yfl{width:0;opacity:.5}#exv .yrs.xon .ytr{opacity:.26}#exv .yrs.xon .yfl{opacity:.7}
-#exv .yc{background:#f3f1ed}#exv .ycn{position:absolute;left:50%;top:calc(50% + 10px);transform:translateX(-50%);font:400 10.5px/1 "Helvetica Neue","Avenir Next","Hiragino Sans",Helvetica,Arial,sans-serif;letter-spacing:.06em;font-variant-numeric:tabular-nums;color:#5d564e;white-space:nowrap;opacity:0;transition:opacity .4s ease;pointer-events:none}#exv .yrs.xon .ycn{opacity:.85;transition:opacity .12s ease}
+#exv .yc{background:#f3f1ed}#exv .ycn{position:absolute;left:50%;top:calc(50% + 10px);transform:translateX(-50%);font:400 10.5px/1 "Helvetica Neue","Avenir Next","Hiragino Sans",Helvetica,Arial,sans-serif;letter-spacing:.06em;font-variant-numeric:tabular-nums;color:#5d564e;white-space:nowrap;opacity:0;transition:opacity .4s ease;pointer-events:none}#exv .ycn{display:none!important}#exv .xyr .xyn{display:block;white-space:nowrap;font-size:clamp(13px,.9vw + 9px,18px);font-weight:300;letter-spacing:.14em;margin-top:1.1em;line-height:1;opacity:.92;font-variant-numeric:tabular-nums lining-nums}#exv .xyr .xyt:empty + .xyn{margin-top:0}
+/* ずらす距離で速さが変わるつまみ：さわっている間だけ、線の上に ‹ › と速さ（10/7 開発 v11） */#exv .yjg{position:absolute;left:50%;top:calc(50% - 26px);transform:translateX(-50%);display:flex;align-items:center;gap:8px;white-space:nowrap;font:400 11px/1 "Helvetica Neue","Hiragino Sans",Helvetica,Arial,sans-serif;letter-spacing:.06em;color:#3a3530;opacity:0;transition:opacity .25s ease;pointer-events:none}#exv .yrs.xjog .yjg{opacity:.9;transition:opacity .1s ease}#exv .yjg i{font-style:normal;font-size:17px;letter-spacing:-1px;min-width:12px;text-align:center}#exv .yjg i.h{opacity:.45}#exv .yjg span{color:#5d564e}#exv .yrs.xjog .yc{transform-origin:center;box-shadow:0 0 0 3px rgba(43,40,37,.12)}
 body.exvopen{overflow:hidden}
 @media (prefers-reduced-motion: reduce){#exv .xhint,#exv .yd,#exv .xyr,#exv .ynum,#exv .yloc{transition:none!important}}`;
   document.head.appendChild(st); }
@@ -10170,7 +10171,7 @@ function exvFresh(fid){ const p = (S.photos || []).find(x => x['ファイルID']
 async function exvOpen(start, noPush){
   if (!exvIsAdm() || EXV) return;
   exvCss(); const root = document.createElement('div'); root.id = 'exv'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-label', '展示ビュー');
-  root.innerHTML = '<div class="xst"></div><div class="xwait">展示室を準備しています…</div><button type="button" class="xsh" aria-label="メニュー（表示する作品・共有）" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="1.35" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.35" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.35" fill="currentColor" stroke="none"/></svg></button><button type="button" class="xcl" aria-label="展示ビューを出る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5H6.5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1H14"/><path d="M10.5 12h9M16.5 8.5 20 12l-3.5 3.5"/></svg></button><div class="xhint" style="opacity:0"><span></span></div><button type="button" class="xnav xprev" aria-label="前の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M12 2 2 13l10 11"/></svg></button><button type="button" class="xpp" aria-label="自動再生を一時停止"></button><button type="button" class="xnav xnext" aria-label="次の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M2 2l10 11L2 24"/></svg></button><div class="ynum"></div><div class="yloc"></div><div class="xyr" aria-hidden="true"></div><div class="yrs" aria-label="作品の位置（右へ動かすと先へ。大きく速く動かすほど速く進む）"><div class="ydots"><i class="ytr"></i><i class="yfl"></i><i class="yc"></i><b class="ycn"></b></div></div>';
+  root.innerHTML = '<div class="xst"></div><div class="xwait">展示室を準備しています…</div><button type="button" class="xsh" aria-label="メニュー（表示する作品・共有）" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="1.35" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.35" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.35" fill="currentColor" stroke="none"/></svg></button><button type="button" class="xcl" aria-label="展示ビューを出る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5H6.5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1H14"/><path d="M10.5 12h9M16.5 8.5 20 12l-3.5 3.5"/></svg></button><div class="xhint" style="opacity:0"><span></span></div><button type="button" class="xnav xprev" aria-label="前の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M12 2 2 13l10 11"/></svg></button><button type="button" class="xpp" aria-label="自動再生を一時停止"></button><button type="button" class="xnav xnext" aria-label="次の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M2 2l10 11L2 24"/></svg></button><div class="ynum"></div><div class="yloc"></div><div class="xyr" aria-hidden="true"></div><div class="yrs" aria-label="作品の位置（さわって右へずらすと先へ、左へずらすと前へ。ずらすほど速く、はなすと止まる）"><div class="ydots"><i class="ytr"></i><i class="yfl"></i><i class="yc"></i><b class="ycn"></b></div><div class="yjg" aria-hidden="true"></div></div>';
   document.body.appendChild(root); document.body.classList.add('exvopen');
   try { const fs = root.requestFullscreen || root.webkitRequestFullscreen; if (fs) { const q = fs.call(root); if (q && q.catch) q.catch(() => {}); } } catch(e){} /* 押した直後でないと全画面にできない */
   try { const tm = document.querySelector('meta[name="theme-color"]'); if (tm) tm.content = '#ebe8e3'; } catch(e){}
@@ -10626,6 +10627,7 @@ function exvBuild(root, L, start){
   const yG = () => 14;
   xPP.innerHTML = STOP; xPP.onclick = () => { poke(); if (playing) setPlay(false); else { setPlay(true); go(ci < stops.length - 1 ? ci + 1 : 1); } }; /* ▶︎ を押すとすぐ次へ。最後なら最初の作品から */
   const yrEl = root.querySelector('.xyr'); let yrT = 0, lastY = null;
+  yrEl.innerHTML = '<span class="xyt"></span><span class="xyn"></span>'; const yrTx = yrEl.querySelector('.xyt'), yrNo = yrEl.querySelector('.xyn'); /* 年の下に小さく作品番号（動かしている間、送るたびに変わる。10/7 開発 v11 本人） */
   const yrOf = k => exvYearBig(L[k].w['制作年']);
   let mv = false, pendT = null, pendL = '';
   const lightTo = v => { LFt = v; if (RM) { LF = v; return redraw(); } if (LFa) return; let t0 = performance.now(), l0 = LF;
@@ -10633,7 +10635,7 @@ function exvBuild(root, L, start){
       if (performance.now() - wkT > 60) draw(); if (t < 1) LFa = requestAnimationFrame(f); else LFa = 0; }; f.t = LFt; LFa = requestAnimationFrame(f); };
   const yrHide = () => { yrEl.classList.remove('xin'); lightTo(1); };
   const yrShow = t => { if (yrEl.dataset.t !== t) { yrEl.dataset.t = t; const ml = t.includes('\n'); yrEl.classList.toggle('xml', ml);
-      if (ml) yrEl.innerHTML = t.split('\n').map(x => '<span class="l' + (x === '-' ? ' h' : '') + '">' + esc(x) + '</span>').join(''); else yrEl.textContent = t; } yrEl.classList.add('xin'); lightTo(0); }; /* 出ている間に年が変わったら、数字だけそのまま入れかえ */
+      if (ml) yrTx.innerHTML = t.split('\n').map(x => '<span class="l' + (x === '-' ? ' h' : '') + '">' + esc(x) + '</span>').join(''); else yrTx.textContent = t; } yrEl.classList.add('xin'); lightTo(0); }; /* 出ている間に年が変わったら、数字だけそのまま入れかえ */
   const yrPos = () => { yrEl.style.top = W < H ? 'calc(50% - 20px)' : ''; }; /* 縦長の画面だけ少し上げる。絵によって高さを変えない（10/6 本人） */
   const yrOff = ms => { clearTimeout(yrT); yrT = setTimeout(yrHide, ms); };
   let yrD = 0, yrLate = 0;
@@ -10645,7 +10647,7 @@ function exvBuild(root, L, start){
   const showU = u => { U = u; const j = Math.max(-1, Math.min(uHi(), Math.round(u))), act = yd || yA, t = yTxt(j), tl = yLocTx(j); if (mv && !yd) { if (yNum.textContent !== t || pendT != null) { pendT = t; pendL = tl; } } else if (yNum.textContent !== t || yLoc.textContent !== tl) { yNum.textContent = t; yLoc.textContent = tl; fitNum(); } flashY(j); yEl.classList.toggle('xon', act);
     const f = Math.max(0, Math.min(1, (u + 1) / Math.max(1, uHi() + 1))); /* 全体の中の位置（0＝はじめ・1＝最後） */
     yC.style.transform = 'translateX(' + ((f - 0.5) * YTW).toFixed(1) + 'px)'; yFl.style.width = (f * YTW).toFixed(1) + 'px';
-    const cn = (j + 1) + ' / ' + (uHi() + 1); if (yCn.textContent !== cn) yCn.textContent = j < 0 ? '' : cn; };
+    const no = j < 0 ? '' : 'No.' + (L[j].tri ? L[j].tri.nos.join('・') : L[j].no); if (yrNo.textContent !== no) yrNo.textContent = no; }; /* 年の下の作品番号 */
   const pathAt = u => { const f = Math.max(-1, Math.min(uHi(), u)) + 1, k = Math.max(0, Math.min(stops.length - 2, Math.floor(f))), t = f - k, A = stops[k], B = stops[k + 1] || A;
     return { x: A.x + (B.x - A.x) * t, y: A.y + (B.y - A.y) * t, z: A.z + (B.z - A.z) * t }; };
   const camU = (u, o, w) => { const p = pathAt(u); if (TRI.length) triSet(u); w = o ? w || 0 : 0; st.x = p.x + o_(o, "x", w); st.y = p.y + o_(o, "y", w); st.z = p.z + o_(o, "z", w); ci = Math.max(0, Math.min(stops.length - 1, nearK(u) + 1)); cl(); draw(); aroundLater(); }; /* 動かしている間も、いちばん近い作品を「いまの作品」に（写真もそこから先に読む） */
@@ -10657,18 +10659,24 @@ function exvBuild(root, L, start){
   const yOff = () => { clearTimeout(yHide); yHide = setTimeout(() => { if (!yd) { yA = false; showU(U); } }, 800); };
   let yWake = false, ym = 0;
   let yO = null, yU0 = 0, yOv = false;
-  yEl.onpointerdown = e => { yWake = root.classList.contains('xidle'); poke(); yO = null; yOv = !!(ovI && ovI === ci); if (mv) tIn(); clearTimeout(yrT); lastY = null; yd = true; try { yEl.setPointerCapture(e.pointerId); } catch(_){} tid++; zoomed = false; yx = e.clientX; yv = 0; ymv = 0; yS = 0; yt = performance.now(); yA = true; clearTimeout(yHide); showU(U); yEl.style.cursor = 'grabbing'; };
-  /* 下の線：右へ動かすと先へ（線の○と同じ向き）。変速：ゆっくりなら1点ずつ（15pxで1点）、大きく速く動かすほど速く進む（最大10倍）（10/7 開発 v11 本人） */
-  let yS = 0; const yGain = s => 1 + 9 * Math.pow(Math.max(0, Math.min(1, (s - 0.3) / 1.7)), 1.6);
-  yEl.onpointermove = e => { if (!yd) return; const dx = e.clientX - yx, n = performance.now(), dt = Math.max(1, n - yt); yx = e.clientX; ymv += Math.abs(dx); yS = 0.6 * yS + 0.4 * Math.abs(dx) / dt; const du = dx / SP * yGain(yS); yv = 0.7 * yv + 0.3 * du / dt; yt = n;
-    if (yOv && !yO) { const p0 = pathAt(U); yO = { x: st.x - p0.x, y: st.y - p0.y, z: st.z - p0.z }; yU0 = U; ovI = 0; }
-    const u = Math.min(uHi(), Math.max(-1, U + du)); showU(u); camU(u, yO, yO ? Math.max(0, 1 - Math.abs(u - yU0) * 2) : 0); }; /* 全体から動かしたときは、全体の位置から少しずつ並びの道すじへ */
-  yEl.onpointerup = yEl.onpointercancel = e => { if (!yd) return; yd = false; yEl.style.cursor = 'grab';
+  /* 下の線は「ずらした距離で速さが変わる」つまみ（10/7 開発 v11 本人「スライドの距離でスピードが変わる。指を離すと止まる。タッチした時にその動作がわかるUIに」）：
+     さわったところが止まる位置。右へずらすと先へ、左へずらすと前へ。ずらすほど速い（1秒に約1点〜40点）。はなすと近い作品で止まる。さわっている間は ‹ › の数で速さを見せる */
+  let yx0 = 0, yJ = 0, yJT = 0, yJF = 0; const yJg = root.querySelector('.yjg');
+  const jogV = d => { const a = Math.abs(d) - 8; return a <= 0 ? 0 : Math.sign(d) * Math.min(40, 1.2 * Math.pow(a / 20, 1.7)); }; /* 1秒あたりの作品の数 */
+  const jogUI = () => { if (!yJg) return; const a = Math.abs(yJ), n = a <= 0 ? 0 : a < 2 ? 1 : a < 6 ? 2 : a < 16 ? 3 : 4;
+    yJg.innerHTML = n ? (yJ < 0 ? '<i>' + '‹'.repeat(n) + '</i><span></span>' : '<span></span><i>' + '›'.repeat(n) + '</i>') : '<i class="h">‹</i><span>ずらすと進む・はなすと止まる</span><i class="h">›</i>'; yJg.dataset.n = n; };
+  const jogYr = () => { const j = Math.max(-1, Math.min(uHi(), Math.round(U))); if (j < 0) return; clearTimeout(yrT); yrPos(j); yrShow(yrOf(j) || ''); lastY = yrOf(j); }; /* さわっている間は年と番号を出したまま */
+  const jogF = n => { if (!yd) { yJF = 0; return; } const dt = Math.min(150, Math.max(0, n - (yJT || n))); yJT = n;
+    if (yJ) { if (yOv && !yO) { const p0 = pathAt(U); yO = { x: st.x - p0.x, y: st.y - p0.y, z: st.z - p0.z }; yU0 = U; ovI = 0; }
+      const u = Math.min(uHi(), Math.max(-1, U + yJ * dt / 1000)); if (u !== U) { showU(u); camU(u, yO, yO ? Math.max(0, 1 - Math.abs(u - yU0) * 2) : 0); jogYr(); } }
+    yJF = requestAnimationFrame(jogF); };
+  yEl.onpointerdown = e => { yWake = root.classList.contains('xidle'); poke(); yO = null; yOv = !!(ovI && ovI === ci); if (mv) tIn(); clearTimeout(yrT); lastY = null; yd = true; try { yEl.setPointerCapture(e.pointerId); } catch(_){} tid++; zoomed = false; yx = yx0 = e.clientX; yv = 0; ymv = 0; yJ = 0; yJT = 0; yt = performance.now(); yA = true; clearTimeout(yHide); showU(U); yEl.style.cursor = 'grabbing';
+    yEl.classList.add('xjog'); jogUI(); jogYr(); cancelAnimationFrame(yJF); yJF = requestAnimationFrame(jogF); };
+  yEl.onpointermove = e => { if (!yd) return; ymv += Math.abs(e.clientX - yx); yx = e.clientX; const v = jogV(e.clientX - yx0); if (v !== yJ) { yJ = v; jogUI(); } };
+  yEl.onpointerup = yEl.onpointercancel = e => { if (!yd) return; yd = false; yEl.style.cursor = 'grab'; yEl.classList.remove('xjog'); cancelAnimationFrame(yJF); yJF = 0; const v = yJ; yJ = 0;
     if (ymv < 6) { if (yWake) { yOff(); yrOff(500); return; } const b = yEl.getBoundingClientRect(), x = e.clientX - (b.left + b.width / 2), G = yG();
       if (Math.abs(x) > G) step(Math.sign(x)); else yrOff(500); yOff(); return; } /* 下の左右をタップ：前・次の作品へ */
-    /* はなした速さで流れて、近い作品でやわらかく止まる（流れる距離は 速さ×0.31秒）。前は「流れる」と「近い作品へ寄せる」が2つの動きだったのを、1つのなめらかな動きに（10/7 本人「慣性を。気持ち良く」）。
-       描く時刻が指をはなした時刻より前でも、時間はマイナスにならない（glide は t を 0 以上に。10/7「高速に送ると元に戻る」の対策のまま） */
-    const v = performance.now() - yt > 90 || Math.abs(yv) < 0.0003 ? 0 : yv; glide(nearK(U + Math.max(-60, Math.min(60, v * 312))), v); }; /* 慣性で流れるのは60点まで */
+    glide(nearK(v > 0 ? Math.ceil(U - 0.15) : v < 0 ? Math.floor(U + 0.15) : Math.round(U)), v / 1000); }; /* はなしたら、進んでいた向きのいちばん近い作品で、やわらかく止まる（先へ流れない） */
   /* スクロールで作品送り：下の帯をさっと送ったときと同じ動き（カメラは作品と作品の止まる位置のあいだをまっすぐ移り、最後はゆっくり止まる。年もぱらぱら出る）（10/7 本人「下のバーをスワイプした時と同じモーションに」）。
      動いている途中でまたスクロールしたら、その先の作品へ続けて */
   let uT = null, uV = 0;
