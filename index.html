@@ -2372,7 +2372,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '4e3e9fccd2', APP_URL = location.origin + location.pathname;
+const BUILD = '906cb51500', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -9805,7 +9805,10 @@ function grpPrevHTML(sl, o){ o = o || {}; const W = sl.reduce((a, x) => a + x.wd
 /* 新しく組を作るとき：名前の A・B・C、①②、(1)(2) から、となりのパーツを集めて並べてみる（とちゅうの抜けは空き） */
 function grpGuess(no){ const w = grpW(no), m = w && grpSuf(w['作品名']); if (!m) return null;
   const idx = x => { x = String(x).normalize('NFKC').trim().replace(/^その/, '').replace(/[()（）]/g, ''); if (/^[A-Za-z]$/.test(x)) return x.toUpperCase().charCodeAt(0) - 64; const k = '一二三四五六七八九十'.indexOf(x); if (k >= 0) return k + 1; return +x || 0; };
-  const L = []; (S.works || []).forEach(x => { const xn = String(x['作品番号']), m2 = grpSuf(x['作品名']); if (!m2 || m2.base !== m.base) return; if (xn !== String(no) && grpOf(xn)) return; const i = idx(m2.s); if (i > 0 && i <= 30 && !L[i - 1]) L[i - 1] = xn; });
+  const kd = x => /^[A-Za-zＡ-Ｚａ-ｚ]$/.test(x) ? 'a' : /^[①-⑳]$/.test(x) ? 'c' : 'n', k0 = kd(m.s); /* 印の種類（A・B…／①②…／数字）が同じものだけ */
+  const C = {}; (S.works || []).forEach(x => { const xn = String(x['作品番号']), m2 = grpSuf(x['作品名']); if (!m2 || m2.base !== m.base || kd(m2.s) !== k0) return; if (xn !== String(no) && grpOf(xn)) return; const i = idx(m2.s); if (i > 0 && i <= 30) (C[i] = C[i] || []).push(xn); });
+  const n0 = parseInt(no, 10) || 0, near = a => a.includes(String(no)) ? String(no) : a.slice().sort((p, q) => Math.abs((parseInt(p, 10) || 0) - n0) - Math.abs((parseInt(q, 10) || 0) - n0))[0]; /* 同じ名前が2つあるときは、押した作品に番号の近いほう */
+  const L = []; Object.keys(C).forEach(i => { L[i - 1] = near(C[i]); });
   if (L.filter(Boolean).length < 2) return null; return { name: m.base, list: Array.from({ length: L.length }, (_, i) => L[i] || '') }; }
 let GE = null, GU = null; /* GE：組の編集中、GU：さっきの変更（作品ページの「もどす」用。3分） */
 const grpUndoBtn = (no, cls) => GU && GU.from === String(no) && Date.now() - GU.t < 180000 ? `<button type="button" class="${cls}" data-gpundo="${esc(no)}">↩ さっきの組の変更をもどす</button>` : '';
