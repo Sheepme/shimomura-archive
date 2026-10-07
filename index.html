@@ -1039,6 +1039,12 @@ body.dropping::after{content:'ここに画像をドロップ';position:fixed;ins
 .mmw{background:#fffbe0!important}
 :root[data-theme="dark"] .mmck .bx{background:#fff}
 .mmw span.t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mmre{margin:0 0 10px;padding:8px 10px;background:rgba(255,255,255,.55);border-radius:8px}.mmre b{display:block;font-size:13px;font-weight:600;opacity:.75;margin-bottom:2px}.mmre p{margin:0;font-size:17px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+.mmrp h3{margin:0 0 10px}.mmq{background:var(--wash);border-radius:12px;padding:10px 12px;margin:0 0 14px}.mmq small{display:block;color:var(--sub);font-size:13px}.mmq p{margin:4px 0 0;font-size:17px;line-height:1.6;white-space:pre-wrap}
+.mmrl{display:block;font-size:17px;font-weight:600;margin:0 0 6px}.mmrl small{font-weight:400;color:var(--sub);font-size:14px;margin-left:8px}
+#mmMsg{width:100%;box-sizing:border-box;font-size:19px;line-height:1.6;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--paper);color:var(--ink);resize:vertical}#mmMsg:focus{outline:none;border-color:#2e7dd7}
+.mmqk{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}.mmqk button{font-size:16px;padding:9px 14px;border:1px solid var(--line);border-radius:999px;background:var(--paper)}
+.mmbt{display:flex;flex-direction:column;gap:10px;margin-top:14px}.mmbt .mmgo{font-size:18px;font-weight:700;padding:16px;border:0;border-radius:14px;background:#2e9e68;color:#fff}.mmbt .mmno{font-size:16px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--paper)}
 .mmft{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px dashed rgba(0,0,0,.18);padding-top:10px}
 .mmck{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:600;cursor:pointer;margin:0}
 .mmck input{position:absolute;opacity:0;width:1px;height:1px}
@@ -2379,7 +2385,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '45c91fa095', APP_URL = location.origin + location.pathname;
+const BUILD = '47703dd4ec', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -9402,7 +9408,8 @@ function memoCard(m){
   const nos = String(m['作品番号']||'').split(',').filter(Boolean), done = !!m['確認済み'], ok = isChecker();
   const ws = nos.map(no => { const w = workOf(no); return `<button type="button" class="mmw" data-mmw="${esc(no)}"><span class="mmth">${(photoBy[no]||[]).length ? thumbHTML(no, 200) : esc(nol(no))}</span><span class="t">${esc(nol(no))}　${esc(w ? (w['作品名']||'無題') : '（見つかりません）')}</span></button>`; }).join('');
   const rs = memoRel(m).map(relOf).filter(Boolean).map(r => `<button type="button" class="mmw" data-${r.k}="${esc(r.id)}"><span class="mmth mmic">${r.ic}</span><span class="t">${esc(r.label)}</span></button>`).join('');
-  return `<div class="mmnote ${done?'done':''}"><p class="mmtxt">${escU(m['内容'])}</p>${ws || rs ? `<div class="mmws">${ws}${rs}</div>` : ''}
+  const re = String(m['返事'] || '').trim();
+  return `<div class="mmnote ${done?'done':''}"><p class="mmtxt">${escU(m['内容'])}</p>${re ? `<div class="mmre"><b>${esc(m['確認者'] || S.memoChecker || '直美')}さんの返事</b><p>${escU(re)}</p></div>` : ''}${ws || rs ? `<div class="mmws">${ws}${rs}</div>` : ''}
     <div class="mmft"><label class="mmck ${ok?'':'dis'}" ${ok?'':`title="${esc(S.memoChecker||'直美')}さんだけが押せます"`}><input type="checkbox" data-mmck="${esc(m['メモID'])}" ${done?'checked':''} ${ok?'':'disabled'}><span class="bx">✓</span>確認しました</label>
     <span class="mmmeta">${done ? esc(m['確認者']||'') + ' ' + esc(String(m['確認日時']||'').slice(0,10)) + ' 確認' : esc(m['作成者']||'') + ' ' + esc(String(m['作成日時']||'').slice(0,10))}</span>
     <button type="button" class="mmedit" data-mmedit="${esc(m['メモID'])}">✎ 直す</button></div></div>`;
@@ -9475,11 +9482,33 @@ document.addEventListener('change', e => {
   const c = e.target.closest('[data-mmck]'); if (!c) return;
   if (!isChecker()) { c.checked = !c.checked; return alert((S.memoChecker||'直美') + 'さんだけが押せます'); }
   const m = (S.memos||[]).find(x => x['メモID']===c.dataset.mmck); if (!m) return;
+  if (c.checked) { c.checked = false; return memoReply(m); } /* 返事を書いてから確認済みに（10/7 本人） */
   const on = c.checked, now = new Date(), pad = n => ('0'+n).slice(-2);
   Object.assign(m, { '確認済み': on ? '確認済み' : '', '確認日時': on ? now.getFullYear()+'/'+pad(now.getMonth()+1)+'/'+pad(now.getDate()) : '', '確認者': on ? S.user.name : '' });
   setTimeout(() => { if (S.view==='home') render(); }, 350); toast(on ? '確認済みにしました' : '確認済みを取り消しました');
   call('checkMemo', m['メモID'], on).catch(err => { alert('保存できませんでした。\n' + (err.message||err)); refreshData().catch(() => {}); });
 });
+
+/* 「確認しました」を押したとき：返事のメッセージを残せる（10/7 本人「確認ボタンを押すとメッセージを残せる。入力は分かりやすく」）。
+   書かなくても確認済みにできる。よく使う返事はボタンで入る。キーボードのマイクで話しても入れられる */
+const MMQK = ['合っています', 'ちがいます', 'わかりません', 'あとで話します'];
+function memoReply(m){ const id = m['メモID'], cur = String(m['返事'] || '');
+  openSheet(`<div class="mmrp"><h3>「確認しました」にします</h3>
+    <div class="mmq"><small>聞かれていること</small><p>${escU(m['内容'])}</p></div>
+    <label class="mmrl" for="mmMsg">返事のメッセージ<small>書かなくても大丈夫です</small></label>
+    <textarea id="mmMsg" rows="4" placeholder="ここに書いてください">${esc(cur)}</textarea>
+    <div class="mmqk">${MMQK.map(t => `<button type="button" data-mmq="${esc(t)}">${esc(t)}</button>`).join('')}</div>
+    <p class="hint">キーボードのマイクを押すと、話して入れられます。</p>
+    <div class="mmbt"><button type="button" class="mmgo" data-mmsend="${esc(id)}"></button><button type="button" class="mmno" data-close>やめる</button></div></div>`);
+  const ta = $('#mmMsg'), bt = document.querySelector('[data-mmsend]'), lab = () => { bt.textContent = ta.value.trim() ? '確認しました（返事を送る）' : '確認しました（返事なし）'; };
+  ta.oninput = lab; lab(); }
+document.addEventListener('click', e => { const t = e.target; if (!t || !t.closest) return;
+  const q = t.closest('[data-mmq]'); if (q) { const ta = $('#mmMsg'); if (!ta) return; const v = ta.value.trim(); ta.value = v ? v.replace(/[。．.]?$/, '。') + q.dataset.mmq : q.dataset.mmq; ta.dispatchEvent(new Event('input')); return; }
+  const sd = t.closest('[data-mmsend]'); if (!sd) return; const m = (S.memos||[]).find(x => x['メモID'] === sd.dataset.mmsend); if (!m) return closeSheet();
+  const msg = (($('#mmMsg') || {}).value || '').trim(), now = new Date(), pad = n => ('0'+n).slice(-2), prev = Object.assign({}, m);
+  Object.assign(m, { '確認済み': '確認済み', '確認日時': now.getFullYear()+'/'+pad(now.getMonth()+1)+'/'+pad(now.getDate()), '確認者': S.user.name, '返事': msg });
+  closeSheet(); setTimeout(() => { if (S.view==='home') render(); }, 350); toast(msg ? '確認済みにして、返事を残しました' : '確認済みにしました');
+  call('checkMemo', m['メモID'], true, msg).catch(err => { Object.assign(m, prev); alert('保存できませんでした。\n' + (err.message||err)); refreshData().catch(() => {}); }); });
 
 /* ---------- 写真をまとめて取り込む（一覧の写真を最初に全部スマホへ保存して、表示を速くする） ---------- */
 async function thKeys(){ const db = await THDB(); if (!db) return null; return new Promise(ok => { try { const q = db.transaction('th').objectStore('th').getAllKeys(); q.onsuccess = () => ok(new Set(q.result || [])); q.onerror = () => ok(null); } catch(e){ ok(null); } }); }
