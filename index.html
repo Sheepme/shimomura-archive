@@ -757,7 +757,7 @@ html[data-theme=dark] .wm{filter:none}
 #ptr.ready{color:var(--ink);font-weight:600}
 #ptr .ptr-ic{display:inline-block;font-size:18px;line-height:1}
 .prm{display:inline-block;width:.95em;height:.95em;margin-right:.3em;vertical-align:-.1em;background:currentColor;-webkit-mask:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAyMzguNzkgMjM2Ljg3Jz48cGF0aCBmaWxsLXJ1bGU9J2V2ZW5vZGQnIGQ9J00yMzguNzksODIuOTZsLS4wNCwxMy4yNmMtMi4wOSwyOC40Ni0xOC4xLDU0LjA4LTQxLjEyLDY4LjUxLTI2LjUzLDE2LjYzLTU4LjMyLDE4LjQ1LTg2LjM5LDUuMmwtNTEuMjQsNjYuOTUtLjAyLTE4Ni4xOEwwLDBsMTU1LjA5LjQxYzkuMTYuMDIsMTguODQsMy4wNCwyNi43Nyw2LjEsMzIuNjEsMTIuNTYsNTQuMTIsNDIuMjgsNTYuOTMsNzYuNDVaTTE4MC40OCwxMjAuNTJjMC0xNy4yMy0xNC0zMS4yLTMxLjI2LTMxLjJzLTMxLjI2LDEzLjk3LTMxLjI2LDMxLjIsMTQsMzEuMiwzMS4yNiwzMS4yLDMxLjI2LTEzLjk3LDMxLjI2LTMxLjJaJy8+PC9zdmc+) center/contain no-repeat;mask:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAyMzguNzkgMjM2Ljg3Jz48cGF0aCBmaWxsLXJ1bGU9J2V2ZW5vZGQnIGQ9J00yMzguNzksODIuOTZsLS4wNCwxMy4yNmMtMi4wOSwyOC40Ni0xOC4xLDU0LjA4LTQxLjEyLDY4LjUxLTI2LjUzLDE2LjYzLTU4LjMyLDE4LjQ1LTg2LjM5LDUuMmwtNTEuMjQsNjYuOTUtLjAyLTE4Ni4xOEwwLDBsMTU1LjA5LjQxYzkuMTYuMDIsMTguODQsMy4wNCwyNi43Nyw2LjEsMzIuNjEsMTIuNTYsNTQuMTIsNDIuMjgsNTYuOTMsNzYuNDVaTTE4MC40OCwxMjAuNTJjMC0xNy4yMy0xNC0zMS4yLTMxLjI2LTMxLjJzLTMxLjI2LDEzLjk3LTMxLjI2LDMxLjIsMTQsMzEuMiwzMS4yNiwzMS4yLDMxLjI2LTEzLjk3LDMxLjI2LTMxLjJaJy8+PC9zdmc+) center/contain no-repeat;flex:none}
-body:not(.canedit) .edonly{display:none!important}body:not(.isadm) .admonly{display:none!important}
+body:not(.canedit) .edonly{display:none!important}body.guest #dwNav [data-v="home"],body.guest [data-v="upd"],body.guest [data-v="inbox"],body.guest [data-v="help"],body.guest [data-v="doc"],body.guest [data-v="ai"],body.guest #fmAsk,body.guest #btnAsk,body.guest #askbar,body.guest #aip,body.guest .ivbtn,body.guest .hg-inbox,body.guest .gstno{display:none!important} /* ゲスト（10/7 開発 v11） */body:not(.isadm) .admonly{display:none!important}
 .docs .csub{margin-bottom:0}
 .dsteps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0 16px}
 .dstep{border:1px solid var(--line);background:var(--paper);padding:10px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}
@@ -2387,7 +2387,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '268740498a', APP_URL = location.origin + location.pathname;
+const BUILD = 'e59bcfe542', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2656,6 +2656,7 @@ function setData(d){ shTake(d); if (S.upd) S.upd.t = 0; try { if (d && d.docs &&
   Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, museums:d.museums||[], exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], finds:d.finds||[], lits:d.lits||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], faces:d.faces||[], memoChecker:d.memoChecker||'直美', marks:d.marks||[], pimg:d.pimg||S.pimg||[], hist:Array.isArray(d.hist) ? d.hist : (S.hist || null), autoc:Array.isArray(d.autoc) ? d.autoc : (S.autoc || []), groups:Array.isArray(d.groups) ? d.groups : (S.groups || []), slays:Array.isArray(d.slays) ? d.slays : (S.slays || []), user:d.user, ai:d.ai, publicView:d.publicView, gcid:d.gcid || ''}); if (S.token && !d.user) setToken(''); index(); try { pimgIndex(); } catch(e){} renderUser(); try { faceInit(); } catch(e){} try { fpInit(); } catch(e){}  if (d.user) setTimeout(prefetchThumbs, 0); }
 const canRole = () => !!(S.user && ['編集','管理'].includes(S.user.role));
 const canEdit = () => canRole();
+const isGuest = () => !!(S.user && S.user.role === 'ゲスト'); /* ゲスト：見るだけ。ホームは展示ビュー（閉じると作品アルバム）。届いたもの・確認メモ・使い方・更新記録・AI・Google 連携は出さない（10/7 開発 v11） */
 try { S.edit = localStorage.getItem('smr_edit') === '1'; } catch(e){ S.edit = false; }
 function toggleMode(){
   if (!S.user) return openLogin('編集するにはログインしてください');
@@ -2672,7 +2673,7 @@ function renderUser(){
   $('#userbox').innerHTML = ''; // 上のバーの名前ボタンは使わない（名前のメニューはサイドメニューの下から開く）
   setTimeout(pinDrawer, 0);
   const f = $('#dwFoot'); if (f) f.innerHTML = S.user ? `<button type="button" class="dwme" id="btnMe2"><span class="avatar sm">${esc(String(S.user.name||'？').trim().charAt(0))}</span><span><b>${esc(S.user.name||'')}</b><small>${esc(S.user.role||'')}</small></span></button><button type="button" class="dwtheme" id="dwTheme" aria-label="明るい表示・暗い表示を切り替える">${themeIcon()}</button>` : '';
-  document.body.classList.remove('editing'); document.body.classList.toggle('canedit', on); document.body.classList.toggle('isadm', !!(S.user && S.user.role === '管理')); /* 展示ビュー（テスト）は管理者だけ */
+  document.body.classList.remove('editing'); document.body.classList.toggle('canedit', on); document.body.classList.toggle('isadm', !!(S.user && S.user.role === '管理')); document.body.classList.toggle('guest', isGuest()); /* 展示ビュー（テスト）は管理者だけ */
 }
 function addByContext(){
   if (!canEdit()) return;
@@ -2923,6 +2924,7 @@ function render0(){ setTimeout(() => { try { tedBar(); } catch(e){} }, 0);
   setTimeout(() => { try { stkTop(); } catch(e){} }, 0);
   const main = $('#main');
   document.body.classList.toggle('loggedout', !S.user && !S.publicView);
+  if (isGuest() && ['home','help','upd','doc','ai','inbox'].includes(S.view)) { const h = S.view === 'home'; S.view = S.wmode = (S.wmode === 'list' ? 'list' : 'album'); if (h) setTimeout(() => { if (isGuest() && !EXV && !exvDeep.pend && $('#page').classList.contains('hidden')) exvOpen(); }, 0); } /* ゲスト：ホームは展示ビュー（閉じると作品アルバム）。連絡・使い方・書類・AI のページは出さない（10/7 開発 v11） */
   if (!S.user && !S.publicView) { $('#finder').classList.add('hidden'); $('#chronobar').classList.add('hidden'); $('#top').classList.add('hidden'); $('#askbar').classList.add('hidden'); if (S.view==='ai') S.view='album'; navOn(); return showLoginWall(); }
   $('#chronobar').classList.toggle('hidden', !['chrono','ex','pb','ot'].includes(S.view));
   setTimeout(stkTop, 50);
@@ -4148,7 +4150,7 @@ function applyStart(){ if (applyStart.done || !S.user) return; applyStart.done =
 function themeIcon(){ return document.documentElement.getAttribute('data-theme')==='dark'
   ? '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/></svg>'
   : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>'; }
-function goHome(){ hidePop(); closeAllPages(); S.view = 'home'; render(); window.scrollTo(0, 0); }
+function goHome(){ hidePop(); closeAllPages(); if (isGuest()) { if (!EXV) exvOpen(); return; } S.view = 'home'; render(); window.scrollTo(0, 0); }
 function goTodo(k){
   closeAllPages();
   if (k==='doc') { S.view = 'doc'; render(); window.scrollTo(0, 0); return; }
@@ -5412,7 +5414,7 @@ function ivTargets(){
   const basic = w => (hasName(w) ? 0 : 1) + (hasLoc(w) ? 0 : 1), miss = w => basic(w) * 10 + ['制作年','画材'].filter(k => !w[k]).length + (!(w['幅cm']||w['高さcm']) ? 1 : 0);
   return S.works.filter(w => miss(w) > 0 && !['廃棄','統合済み'].includes(w['所在区分'])).sort((a, b) => ((photoBy[b['作品番号']]||[]).length ? 1 : 0) - ((photoBy[a['作品番号']]||[]).length ? 1 : 0) || miss(b) - miss(a) || String(a['作品番号']).localeCompare(String(b['作品番号']))).map(w => w['作品番号']);
 }
-function startInterview(nos){
+function startInterview(nos){ if (isGuest()) return;
   if (!S.ai) return alert('AIが使えないため、インタビューはできません');
   const list = nos || ivTargets(); if (!list.length) return toast('聞くことのある作品はありません');
   closeSheet(); closeAllPages(); ttsUnlock();
@@ -8532,7 +8534,7 @@ function openMe(anc){ /* 名前ボタンの上に出る小さな吹き出しメ�
   const it = (id, t) => `<button type="button" data-me="${id}">${t}</button>`;
   const el = document.createElement('div'); el.id = 'mepop'; el.setAttribute('role', 'menu');
   el.innerHTML = `<div class="mehd"><b>${esc(S.user.name||'')}</b><small>権限：${esc(S.user.role)}</small>${S.dataAt ? `<small>情報：${new Date(S.dataAt).getHours()}:${String(new Date(S.dataAt).getMinutes()).padStart(2, '0')} に読み込み</small>` : ''}</div>
-    ${it('upd','最新版に更新')}${it('mic','マイクのテスト')}${canEdit() ? it('face','顔写真を追加') : ''}${it('log','更新記録')}${canEdit() && S.ai ? it('rot','写真の向きをAIでそろえる') : ''}${canEdit() ? it('arc','削除したもの（アーカイブ）') : ''}${fpAdmin() ? it('fp','写真を速く読む') : fpGd() ? it('fp','Google ドライブとつなぐ（写真を速く）') : ''}
+    ${it('upd','最新版に更新')}${isGuest() ? '' : it('mic','マイクのテスト')}${canEdit() ? it('face','顔写真を追加') : ''}${isGuest() ? '' : it('log','更新記録')}${canEdit() && S.ai ? it('rot','写真の向きをAIでそろえる') : ''}${canEdit() ? it('arc','削除したもの（アーカイブ）') : ''}${fpAdmin() ? it('fp','写真を速く読む') : fpGd() ? it('fp','Google ドライブとつなぐ（写真を速く）') : ''}
     <div class="mesep"></div>${it('out','ログアウト')}<small class="menote">共用のパソコンでは、使い終わったらログアウトしてください</small><i class="metail"></i>`;
   document.body.appendChild(el);
   const r = anc ? anc.getBoundingClientRect() : { left: 12, right: 252, top: innerHeight - 12, bottom: innerHeight - 12, width: 240 };
@@ -9768,7 +9770,7 @@ addEventListener('scroll', () => { if ($('#wthd')) requestAnimationFrame(wtTop);
 
 /* ---------- AIチャット（画面の上に吹き出しで開く） ---------- */
 const newConv = () => new Date().toISOString().replace(/\D/g, '').slice(0, 14) + '-' + Math.random().toString(36).slice(2, 6);
-function openAI(){
+function openAI(){ if (isGuest()) return;
   if (!S.user) return openLogin('質問するにはログインしてください');
   const p = $('#aip'); if (!p.contains($('#askbar'))) p.appendChild($('#askbar'));
   $('#askbar').classList.remove('hidden'); p.classList.remove('hidden'); S.aiOpen = true; navOn(); document.body.classList.add('aiopen'); aiColSync();
@@ -10002,6 +10004,12 @@ function exvWorks(noF){ const L = [], keep = !noF && EXVF.f !== 'all' ? exvSet(E
     if (!/三面/.test(s0 + ' ' + a.map(d => d.w['作品名'] || '').join(' '))) continue;
     const T = { nos: a.map(d => d.no) }; a.forEach((d, j) => { d.tri = T; d.tj = j; d.s = ''; d.slay = null; }); a[0].set = { n: 3, ids: a.map(d => d.id), pw: a[0].wd, ph: a[0].h, dir: 'h', gap: 0 }; i += 2; }
   L.forEach(d => { if (d.s && SL[d.s] && !d.tri) d.slay = SL[d.s]; });
+  /* 格子が2段以上のシリーズは、1点ずつ見る順を縦に：左上→左下→右上→右下（10/7 本人。スワイプ・スクロール・下の帯も同じ順）。置く場所は並べ方の順（d.gq）のまま */
+  for (let i = 0; i < L.length; ) { const s0 = L[i].s; let j = i + 1; while (s0 && j < L.length && L[j].s === s0) j++;
+    const c = L[i].slay, M = L.slice(i, j);
+    if (s0 && c && c.cols > 0 && M.length >= 2 && !M.some(d => d.b || d.grp || d.tri)) { const C = Math.min(c.cols, M.length); M.forEach((d, q) => { d.gq = q; });
+      if (M.length > C) { M.sort((a, b) => a.gq % C - b.gq % C || a.gq - b.gq); L.splice(i, M.length, ...M); } }
+    i = j; }
   return L; }
 /* サイズのない作品：縦横の比は写真の形（端末に保存した小さい写真から）、大きさは同じ種類（屏風かどうか）の作品のふつうの大きさ（面積の中央値） */
 async function exvEstimate(L){
@@ -10066,7 +10074,7 @@ function shHomeHTML(){ const N = shNew(); if (!N.length) return '';
   return `<button type="button" class="hg-inbox" data-shinbox><span class="ic">${inbIc()}</span><span><b>届いたものがあります（${N.length}）</b><small>${esc(who.slice(0, 2).join('さん・'))}さんから《${esc(shName(f['対象']))}》${N.length > 1 ? ' ほか' : ''}</small></span><em>見る ›</em></button>`; }
 function shBadge(){ const b = $('#dwInboxN'); if (b) b.textContent = shNew().length || ''; const h = $('#hgInbox'); if (h) h.innerHTML = shHomeHTML(); }
 /* アプリにもどったとき・3分ごと（画面が出ているとき）に、届いたものだけ読み直す（台帳全部は読まない） */
-function shPoll(force){ if (!S.user || SH.poll || (!force && Date.now() - SH.t < 45000)) return; SH.t = Date.now(); SH.poll = 1;
+function shPoll(force){ if (!S.user || isGuest() || SH.poll || (!force && Date.now() - SH.t < 45000)) return; SH.t = Date.now(); SH.poll = 1;
   call('getShares').then(r => { if (Array.isArray(r)) { S.shares = r; shBadge(); } }).catch(() => {}).finally(() => { SH.poll = 0; }); }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') shPoll(); });
 setInterval(() => { if (document.visibilityState === 'visible') shPoll(); }, 180000);
@@ -10143,7 +10151,7 @@ function exvToWork(no, i){ if (EXV) { const c = EXV.close; try { c(); } catch(e)
   OWC = true; try { openWork(no); } finally { OWC = false; } S.stack = [{ t: 'exv', i }]; try { scrHead(); abSync(); } catch(e){} }
 /* 共有のリンク（?exv=作品番号）で開いたとき：ログインしてデータがそろったら、その作品から展示ビュー（applyStart と restoreNav から呼ぶ） */
 function exvDeep(){ if (exvDeep.done) return; let q = null; try { q = new URLSearchParams(location.search).get('exv'); } catch(e){} if (q == null) return; exvDeep.done = 1;
-  try { history.replaceState(history.state, '', location.pathname + location.hash); } catch(e){} setTimeout(() => exvOpen(q), 600); }
+  try { history.replaceState(history.state, '', location.pathname + location.hash); } catch(e){} exvDeep.pend = 1; setTimeout(() => { exvDeep.pend = 0; exvOpen(q); }, 600); }
 function exvClose(fromHist){ if (!EXV) return; const c = EXV.close; try { c(); } catch(e){} if (!fromHist) hback(); }
 
 function exvBuild(root, L, start){
@@ -10455,10 +10463,10 @@ function exvBuild(root, L, start){
       if (!g) { const f = frame(it), Lx = place(f, vR, eR, 1.0); put(f, Lx, ii + 1); vR = Lx + f.w / 2 + f.vw; eR = Lx + f.w + f.ro; continue; }
       if (g.lay && g.lay.cols > 0 && !g.m.some(j => items[j].d.b || items[j].gh || items[j].d.grp || items[j].xc)) { /* シリーズの並べ方（10/7 本人）：列数・すき間で格子に。キャプションは1点ずつ作品の右下。最初に全体を見せてから1点ずつ */
         const M = g.m.map(j => items[j]), C = Math.min(g.lay.cols, M.length), Rn = Math.ceil(M.length / C), G = g.lay.gap / 100, GV = (g.lay.vgap == null ? g.lay.gap : g.lay.vgap) / 100, capH = CAPG + PHm, cw = Array(C).fill(0), rh = Array(Rn).fill(0);
-        M.forEach((it, q) => { cw[q % C] = Math.max(cw[q % C], it.W || it.w, PWm); rh[Math.floor(q / C)] = Math.max(rh[Math.floor(q / C)], it.h); });
+        M.forEach((it, q) => { q = it.d.gq != null ? it.d.gq : q; cw[q % C] = Math.max(cw[q % C], it.W || it.w, PWm); rh[Math.floor(q / C)] = Math.max(rh[Math.floor(q / C)], it.h); }); /* q：格子の場所（見る順は縦。exvWorks の d.gq） */
         const GW = cw.reduce((a, b) => a + b, 0) + (C - 1) * G, GH = rh.reduce((a, b) => a + b, 0) + Rn * capH + (Rn - 1) * GV, top = Math.max(CY + GH / 2, GH + 0.25);
         const kov = Math.min(kz(28), Math.max((GW + 0.4) / (0.9 * W), (GH + 0.4) / (0.8 * H))), vov = kov * W / 2, L0 = Math.max(eR + 1.0, vR + 0.25, eR + 0.25 + vov - GW / 2); let lastR = L0 + GW / 2 + vov;
-        M.forEach((it, q) => { const c = q % C, r = Math.floor(q / C), w = it.W || it.w, h = it.h, x = L0 + cw.slice(0, c).reduce((a, b) => a + b, 0) + c * G + cw[c] / 2, y = top - rh.slice(0, r).reduce((a, b) => a + b, 0) - r * (capH + GV) - rh[r] / 2;
+        M.forEach((it, q) => { q = it.d.gq != null ? it.d.gq : q; const c = q % C, r = Math.floor(q / C), w = it.W || it.w, h = it.h, x = L0 + cw.slice(0, c).reduce((a, b) => a + b, 0) + c * G + cw[c] / 2, y = top - rh.slice(0, r).reduce((a, b) => a + b, 0) - r * (capH + GV) - rh[r] / 2;
           const k = Math.min(kmax, Math.max(w / (FW * 1.15 * W), (h + capH) / (FH * 1.15 * H), kz(0.25)));
           it.g.position.x = x; it.g.position.y = y; it.capM.position.set(x + w / 2 - PWm / 2, y - h / 2 - CAPG - PHm / 2, 0.003);
           if (it.cpM) { const th = Math.min(0.06, Math.max(0.008, 16 * k)), tw = th * it.cpA, C2 = it.cpH, pd = th * 0.55; it.cpM.scale.set(tw, th, 1); it.cpM.position.set(C2.x + pd + tw / 2 - th * 0.06, C2.y + pd * 0.8 + th / 2, C2.z + 0.0015); }
