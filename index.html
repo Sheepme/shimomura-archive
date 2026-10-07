@@ -2387,7 +2387,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '46e38dfc18', APP_URL = location.origin + location.pathname;
+const BUILD = 'de8e788f20', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -10080,7 +10080,7 @@ function exvCss(){ if (document.getElementById('exvcss')) return; const st = doc
 /* 下の位置：全体の中のどこかを、細い線と○で（左が最初・右が最後。通ったところは少し濃く）。さわっている間は「12 / 340」（10/7 開発 v11 本人） */
 #exv .ytr,#exv .yfl{position:absolute;left:calc(50% - 64px);top:50%;height:1px;margin-top:-.5px;background:#2b2825;pointer-events:none}#exv .ytr{width:128px;opacity:.16}#exv .yfl{width:0;opacity:.5}#exv .yrs.xon .ytr{opacity:.26}#exv .yrs.xon .yfl{opacity:.7}
 #exv .yc{background:#f3f1ed}#exv .ycn{position:absolute;left:50%;top:calc(50% + 10px);transform:translateX(-50%);font:400 10.5px/1 "Helvetica Neue","Avenir Next","Hiragino Sans",Helvetica,Arial,sans-serif;letter-spacing:.06em;font-variant-numeric:tabular-nums;color:#5d564e;white-space:nowrap;opacity:0;transition:opacity .4s ease;pointer-events:none}#exv .ycn{display:none!important}#exv .xyr .xyn{display:block;white-space:nowrap;font-size:clamp(13px,.9vw + 9px,18px);font-weight:300;letter-spacing:.14em;margin-top:1.1em;line-height:1;opacity:.92;font-variant-numeric:tabular-nums lining-nums}#exv .xyr .xyt:empty + .xyn{margin-top:0}
-/* ずらす距離で速さが変わるつまみ：さわっている間だけ、線の上に ‹ › と速さ（10/7 開発 v11） */#exv .yjg{position:absolute;left:50%;top:calc(50% - 26px);transform:translateX(-50%);display:flex;align-items:center;gap:8px;white-space:nowrap;font:400 11px/1 "Helvetica Neue","Hiragino Sans",Helvetica,Arial,sans-serif;letter-spacing:.06em;color:#3a3530;opacity:0;transition:opacity .25s ease;pointer-events:none}#exv .yrs.xjog .yjg{opacity:.9;transition:opacity .1s ease}#exv .yjg i{font-style:normal;font-size:17px;letter-spacing:-1px;min-width:12px;text-align:center}#exv .yjg i.h{opacity:.45}#exv .yjg span{color:#5d564e}#exv .yrs.xjog .yc{transform-origin:center;box-shadow:0 0 0 3px rgba(43,40,37,.12)}
+/* ずらす距離で速さが変わるつまみ：さわっている間だけ、線の上に ‹ › と速さ（10/7 開発 v11） */#exv .yjg{position:absolute;left:50%;top:calc(50% - 26px);transform:translateX(-50%);display:flex;align-items:center;gap:8px;white-space:nowrap;font:400 11px/1 "Helvetica Neue","Hiragino Sans",Helvetica,Arial,sans-serif;letter-spacing:.06em;color:#3a3530;opacity:0;transition:opacity .25s ease;pointer-events:none}#exv .yrs.xjog .yjg{opacity:.9;transition:opacity .1s ease}#exv .yjg i{font-style:normal;font-size:17px;letter-spacing:-1px;min-width:12px;text-align:center}#exv .yjg i.h{opacity:.45}#exv .yjg span{color:#5d564e}#exv .yc{transition:width .18s ease,height .18s ease,margin .18s ease,border-width .18s ease}#exv .yrs.xjog .yc{width:30px;height:30px;margin:-15px 0 0 -15px;border-width:1.6px;box-shadow:0 0 0 6px rgba(43,40,37,.08)} /* さわると○が再生ボタンくらいに大きく（16:19 本人） */#exv .yjg{top:calc(50% - 78px);font-size:15px;gap:14px} #exv .yjg i{font-size:30px;min-width:22px;letter-spacing:-2px} /* 速さの ‹ › と説明は、指に隠れないよう大きく・上に（16:19 本人） */
 body.exvopen{overflow:hidden}
 @media (prefers-reduced-motion: reduce){#exv .xhint,#exv .yd,#exv .xyr,#exv .ynum,#exv .yloc{transition:none!important}}`;
   document.head.appendChild(st); }
