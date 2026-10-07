@@ -2387,7 +2387,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '4ffd35654c', APP_URL = location.origin + location.pathname;
+const BUILD = 'dddb7b2ff5', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -10080,7 +10080,7 @@ function exvCss(){ if (document.getElementById('exvcss')) return; const st = doc
 /* 下の位置：全体の中のどこかを、細い線と○で（左が最初・右が最後。通ったところは少し濃く）。さわっている間は「12 / 340」（10/7 開発 v11 本人） */
 #exv .ytr,#exv .yfl{position:absolute;left:calc(50% - 64px);top:50%;height:1px;margin-top:-.5px;background:#2b2825;pointer-events:none}#exv .ytr{width:128px;opacity:.16}#exv .yfl{width:0;opacity:.5}#exv .yrs.xon .ytr{opacity:.26}#exv .yrs.xon .yfl{opacity:.7}
 #exv .yc{background:#f3f1ed}#exv .ycn{position:absolute;left:50%;top:calc(50% + 10px);transform:translateX(-50%);font:400 10.5px/1 "Helvetica Neue","Avenir Next","Hiragino Sans",Helvetica,Arial,sans-serif;letter-spacing:.06em;font-variant-numeric:tabular-nums;color:#5d564e;white-space:nowrap;opacity:0;transition:opacity .4s ease;pointer-events:none}#exv .ycn{display:none!important}#exv .xyr .xyn{display:block;white-space:nowrap;font-size:clamp(13px,.9vw + 9px,18px);font-weight:300;letter-spacing:.14em;margin-top:1.1em;line-height:1;opacity:.92;font-variant-numeric:tabular-nums lining-nums}#exv .xyr .xyt:empty + .xyn{margin-top:0}
-/* ずらす距離で速さが変わるつまみ：さわっている間だけ、線の上に ‹ › と速さ（10/7 開発 v11） */#exv .yjg{position:absolute;left:50%;top:calc(50% - 26px);transform:translateX(-50%);display:flex;align-items:center;gap:8px;white-space:nowrap;font:400 11px/1 "Helvetica Neue","Hiragino Sans",Helvetica,Arial,sans-serif;letter-spacing:.06em;color:#3a3530;opacity:0;transition:opacity .25s ease;pointer-events:none}#exv .yrs.xjog .yjg{opacity:.9;transition:opacity .1s ease}#exv .yjg i{font-style:normal;font-size:17px;letter-spacing:-1px;min-width:12px;text-align:center}#exv .yjg i.h{opacity:.45}#exv .yjg span{color:#5d564e}#exv .yc{transition:width .18s ease,height .18s ease,margin .18s ease,border-width .18s ease}#exv .yrs.xjog .yc{width:30px;height:30px;margin:-15px 0 0 -15px;border-width:1.6px}#exv .yrs{mix-blend-mode:normal}#exv .ytr,#exv .yfl,#exv .yjg{mix-blend-mode:multiply}#exv .yc{opacity:1!important;background:#f7f5f1;mix-blend-mode:normal} /* ○のまわりの輪をやめ、○の中は線や壁が透けないように塗る（16:32 本人） */ /* さわると○が再生ボタンくらいに大きく（16:19 本人） */#exv .yjg{top:calc(50% - 78px);font-size:15px;gap:14px} #exv .yjg i{font-size:30px;min-width:22px;letter-spacing:-2px} /* 速さの ‹ › と説明は、指に隠れないよう大きく・上に（16:19 本人） */
+/* ずらす距離で速さが変わるつまみ：さわっている間だけ、線の上に ‹ › と速さ（10/7 開発 v11） */#exv .yjg{position:absolute;left:50%;top:calc(50% - 26px);transform:translateX(-50%);display:flex;align-items:center;gap:8px;white-space:nowrap;font:400 11px/1 "Helvetica Neue","Hiragino Sans",Helvetica,Arial,sans-serif;letter-spacing:.06em;color:#3a3530;opacity:0;transition:opacity .25s ease;pointer-events:none}#exv .yrs.xjog .yjg{opacity:.9;transition:opacity .1s ease}#exv .yjg i{font-style:normal;font-size:17px;letter-spacing:-1px;min-width:12px;text-align:center}#exv .yjg i.h{opacity:.45}#exv .yjg span{color:#5d564e}#exv .yc{transition:width .18s ease,height .18s ease,margin .18s ease,border-width .18s ease}#exv .yrs.xjog .yc{width:30px;height:30px;margin:-15px 0 0 -15px;border-width:1.6px}#exv .yrs{mix-blend-mode:normal}#exv .ytr,#exv .yfl,#exv .yjg{mix-blend-mode:multiply}#exv .yc{opacity:1!important;background:transparent!important;mix-blend-mode:multiply;width:18px;height:18px;margin:-9px 0 0 -9px} /* ○はふだんも倍の大きさ・中は塗らない。○に重なる線は描かない（16:41 本人） */ /* さわると○が再生ボタンくらいに大きく（16:19 本人） */#exv .yjg{top:calc(50% - 78px);font-size:15px;gap:14px} #exv .yjg i{font-size:30px;min-width:22px;letter-spacing:-2px} /* 速さの ‹ › と説明は、指に隠れないよう大きく・上に（16:19 本人） */
 body.exvopen{overflow:hidden}
 @media (prefers-reduced-motion: reduce){#exv .xhint,#exv .yd,#exv .xyr,#exv .ynum,#exv .yloc{transition:none!important}}`;
   document.head.appendChild(st); }
@@ -10621,7 +10621,7 @@ function exvBuild(root, L, start){
 
   /* 下の年：海外のギャラリーのようなゴシック体で、今の年だけ。指を当てると両側に作品の数だけ●（3つ目からうすく、5つ目で消える）。左右に動かすと早送り、●をタップするとその作品へ */
   const SP = 15, yEl = root.querySelector('.yrs'), yNum = root.querySelector('.ynum'), yLoc = root.querySelector('.yloc'), yDots = root.querySelector('.ydots'), DOTS = [];
-  const yC = yDots.querySelector('.yc'), yFl = yDots.querySelector('.yfl'), yCn = yDots.querySelector('.ycn'), YTW = 128; /* 位置の線の長さ（px） */
+  const yC = yDots.querySelector('.yc'), yFl = yDots.querySelector('.yfl'), yTr = yDots.querySelector('.ytr'), yCn = yDots.querySelector('.ycn'), YTW = 128; /* 位置の線の長さ（px） */
   let U = -1, yd = false, yA = false, yx = 0, yv = 0, yt = 0, ymv = 0, yHide = 0; const uHi = () => items.length - 1;
   const yTxt = k => k < 0 ? '' : (String(L[k].w['作品名'] || '').trim() || '無題');
   const yLocTx = k => k < 0 ? '' : exvLocOf(L[k]); /* 作品名の下の、いまの場所（10/7 本人） */
@@ -10647,7 +10647,8 @@ function exvBuild(root, L, start){
   const fitNum = () => { yNum.style.fontSize = ''; let fs = parseFloat(getComputedStyle(yNum).fontSize) || 20; const mw = W - 158; while (yNum.scrollWidth > mw && fs > 14) { fs--; yNum.style.fontSize = fs + 'px'; } };
   const showU = u => { U = u; const j = Math.max(-1, Math.min(uHi(), Math.round(u))), act = yd || yA, t = yTxt(j), tl = yLocTx(j); if (mv && !yd) { if (yNum.textContent !== t || pendT != null) { pendT = t; pendL = tl; } } else if (yNum.textContent !== t || yLoc.textContent !== tl) { yNum.textContent = t; yLoc.textContent = tl; fitNum(); } flashY(j); yEl.classList.toggle('xon', act);
     const f = Math.max(0, Math.min(1, (u + 1) / Math.max(1, uHi() + 1))); /* 全体の中の位置（0＝はじめ・1＝最後） */
-    yC.style.transform = 'translateX(' + ((f - 0.5) * YTW).toFixed(1) + 'px)'; yFl.style.width = (f * YTW).toFixed(1) + 'px';
+    yC.style.transform = 'translateX(' + ((f - 0.5) * YTW).toFixed(1) + 'px)'; { const R = (yEl.classList.contains('xjog') ? 15 : 9) - 0.6, cx = f * YTW, tl = Math.min(YTW, cx + R); /* ○の中だけ線を描かない（左は通ったところ・右はこれから。16:43 本人「消すのは円の中だけ」） */
+      yFl.style.width = Math.max(0, cx - R).toFixed(1) + 'px'; yTr.style.left = 'calc(50% - 64px + ' + tl.toFixed(1) + 'px)'; yTr.style.width = Math.max(0, YTW - tl).toFixed(1) + 'px'; }
     const no = j < 0 ? '' : (j + 1) + '／' + (uHi() + 1); if (yrNo.textContent !== no) yrNo.textContent = no; }; /* 年の下に「何点目／全部で何点」（作品番号は分かりにくいので。10/7 本人） */
   const pathAt = u => { const f = Math.max(-1, Math.min(uHi(), u)) + 1, k = Math.max(0, Math.min(stops.length - 2, Math.floor(f))), t = f - k, A = stops[k], B = stops[k + 1] || A;
     return { x: A.x + (B.x - A.x) * t, y: A.y + (B.y - A.y) * t, z: A.z + (B.z - A.z) * t }; };
@@ -10672,9 +10673,9 @@ function exvBuild(root, L, start){
       const u = Math.min(uHi(), Math.max(-1, U + yJ * dt / 1000)); if (u !== U) { showU(u); camU(u, yO, yO ? Math.max(0, 1 - Math.abs(u - yU0) * 2) : 0); jogYr(); } }
     yJF = requestAnimationFrame(jogF); };
   yEl.onpointerdown = e => { yWake = root.classList.contains('xidle'); poke(); yO = null; yOv = !!(ovI && ovI === ci); if (mv) tIn(); clearTimeout(yrT); lastY = null; yd = true; try { yEl.setPointerCapture(e.pointerId); } catch(_){} tid++; zoomed = false; yx = yx0 = e.clientX; yv = 0; ymv = 0; yJ = 0; yJT = 0; yt = performance.now(); yA = true; clearTimeout(yHide); showU(U); yEl.style.cursor = 'grabbing';
-    yEl.classList.add('xjog'); jogUI(); jogYr(); cancelAnimationFrame(yJF); yJF = requestAnimationFrame(jogF); };
+    yEl.classList.add('xjog'); showU(U); jogUI(); jogYr(); cancelAnimationFrame(yJF); yJF = requestAnimationFrame(jogF); };
   yEl.onpointermove = e => { if (!yd) return; ymv += Math.abs(e.clientX - yx); yx = e.clientX; const v = jogV(e.clientX - yx0); if (v !== yJ) { yJ = v; jogUI(); } };
-  yEl.onpointerup = yEl.onpointercancel = e => { if (!yd) return; yd = false; yEl.style.cursor = 'grab'; yEl.classList.remove('xjog'); cancelAnimationFrame(yJF); yJF = 0; const v = yJ; yJ = 0;
+  yEl.onpointerup = yEl.onpointercancel = e => { if (!yd) return; yd = false; yEl.style.cursor = 'grab'; yEl.classList.remove('xjog'); showU(U); cancelAnimationFrame(yJF); yJF = 0; const v = yJ; yJ = 0;
     if (ymv < 6) { if (yWake) { yOff(); yrOff(500); return; } const b = yEl.getBoundingClientRect(), x = e.clientX - (b.left + b.width / 2), G = yG();
       if (Math.abs(x) > G) step(Math.sign(x)); else yrOff(500); yOff(); return; } /* 下の左右をタップ：前・次の作品へ */
     glide(nearK(v > 0 ? Math.ceil(U - 0.15) : v < 0 ? Math.floor(U + 0.15) : Math.round(U)), v / 1000); }; /* はなしたら、進んでいた向きのいちばん近い作品で、やわらかく止まる（先へ流れない） */
