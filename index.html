@@ -2387,7 +2387,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'daf675ac4d', APP_URL = location.origin + location.pathname;
+const BUILD = '46e38dfc18', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -10660,10 +10660,10 @@ function exvBuild(root, L, start){
   let yWake = false, ym = 0;
   let yO = null, yU0 = 0, yOv = false;
   /* 下の線は「ずらした距離で速さが変わる」つまみ（10/7 開発 v11 本人「スライドの距離でスピードが変わる。指を離すと止まる。タッチした時にその動作がわかるUIに」）：
-     さわったところが止まる位置。右へずらすと先へ、左へずらすと前へ。ずらすほど速い（1秒に約1点〜40点）。はなすと近い作品で止まる。さわっている間は ‹ › の数で速さを見せる */
+     さわったところが止まる位置。右へずらすと先へ、左へずらすと前へ。ずらすほど速い（1秒に約1点〜200点）。はなすと近い作品で止まる。さわっている間は ‹ › の数で速さを見せる */
   let yx0 = 0, yJ = 0, yJT = 0, yJF = 0; const yJg = root.querySelector('.yjg');
-  const jogV = d => { const a = Math.abs(d) - 8; return a <= 0 ? 0 : Math.sign(d) * Math.min(40, 1.2 * Math.pow(a / 20, 1.7)); }; /* 1秒あたりの作品の数 */
-  const jogUI = () => { if (!yJg) return; const a = Math.abs(yJ), n = a <= 0 ? 0 : a < 2 ? 1 : a < 6 ? 2 : a < 16 ? 3 : 4;
+  const jogV = d => { const a = Math.abs(d) - 8; return a <= 0 ? 0 : Math.sign(d) * Math.min(200, 1.2 * Math.pow(a / 20, 2.2)); }; /* 1秒あたりの作品の数（近くはゆっくり、遠くまでずらすと1秒に200点まで。16:16 本人「最高速度をもっと早く」） */
+  const jogUI = () => { if (!yJg) return; const a = Math.abs(yJ), n = a <= 0 ? 0 : a < 2 ? 1 : a < 6 ? 2 : a < 16 ? 3 : a < 60 ? 4 : 5;
     yJg.innerHTML = n ? (yJ < 0 ? '<i>' + '‹'.repeat(n) + '</i><span></span>' : '<span></span><i>' + '›'.repeat(n) + '</i>') : '<i class="h">‹</i><span>ずらすと進む・はなすと止まる</span><i class="h">›</i>'; yJg.dataset.n = n; };
   const jogYr = () => { const j = Math.max(-1, Math.min(uHi(), Math.round(U))); if (j < 0) return; clearTimeout(yrT); yrPos(j); yrShow(yrOf(j) || ''); lastY = yrOf(j); }; /* さわっている間は年と番号を出したまま */
   const jogF = n => { if (!yd) { yJF = 0; return; } const dt = Math.min(150, Math.max(0, n - (yJT || n))); yJT = n;
