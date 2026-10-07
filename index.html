@@ -2272,6 +2272,7 @@ body.qcopen #bigwait{visibility:visible!important}body.bbig #toast.tmsg:not(.hid
 .shs-go:disabled{opacity:.35}
 .shs-link{width:100%;margin-top:10px;padding:12px;border-radius:12px;border:1px solid var(--line);background:none;font-size:16px;color:var(--sub)}
 .shs-none{font-size:16px;color:var(--sub);margin:0 0 14px}
+.dym{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;margin:0 0 28px;color:var(--sub);font-size:15px}.dym button{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:8px 14px;font-size:17px;color:var(--ink)}.dym small{margin-left:6px;color:var(--sub);font-size:12px}
 .gpsec{margin:4px 0 8px}.gpv{display:flex;align-items:center;width:min(100%,calc(46vh * var(--gar)));margin:8px auto 6px}
 .gpp{position:relative;flex:0 0 auto;background:#e8e3d9;overflow:hidden;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.2)}.gpp img{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none}
 .gpp span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:10px;line-height:1.3;color:#6f685f;padding:2px}
@@ -2372,7 +2373,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '906cb51500', APP_URL = location.origin + location.pathname;
+const BUILD = 'ccb0aae5bb', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2749,6 +2750,14 @@ const yearOf = s => { const m = String(s||'').match(/(\d{4})/); return m ? +m[1]
 const dateKey = s => { const m = String(s||'').match(/(\d{4})(?:年|[\/\-.])?\s*(?:(\d{1,2})月?)?\s*(?:(\d{1,2})日?)?/); return m ? (+m[1])*10000 + (+(m[2]||0))*100 + (+(m[3]||0)) : 99999999; };
 
 /* ---------- 一覧 ---------- */
+/* 見つからないときの「もしかして」（10/7 本人「郡翔で検索しても出てこない」＝群翔）：作品名の中で、探した言葉と1文字だけちがう所。ちがう1文字は同じ種類（漢字なら漢字）のときだけ。多い順に4つまで */
+function didYouMean(q0){ const q = String(q0 || '').normalize('NFKC').trim(); if (q.length < 2 || q.length > 12 || /^[\d\s.-]+$/.test(q)) return []; const n = q.length, C = {};
+  const ty = c => /[\u3400-\u9fff\uf900-\ufaff々]/.test(c) ? 'k' : /[\u3041-\u309f]/.test(c) ? 'h' : /[\u30a0-\u30ff]/.test(c) ? 't' : /[A-Za-z0-9]/.test(c) ? 'a' : '';
+  (S.works || []).concat(S.others || []).forEach(w => { const t = String(w['作品名'] || '').normalize('NFKC'), seen = {};
+    for (let i = 0; i + n <= t.length; i++) { const x = t.substr(i, n); if (seen[x]) continue; let d = 0, at = -1; for (let k = 0; k < n && d < 2; k++) if (x[k] !== q[k]) { d++; at = k; }
+      if (d === 1 && ty(x[at]) && ty(x[at]) === ty(q[at])) { seen[x] = 1; C[x] = (C[x] || 0) + 1; } } });
+  return Object.keys(C).sort((a, b) => C[b] - C[a]).slice(0, 4).map(x => [x, C[x]]); }
+document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-dym]'); if (!b) return; const q = $('#q'); if (q) q.value = b.dataset.dym; S.q = b.dataset.dym; S.limit = 60; render(); });
 function filtered(){
   const q = S.q.normalize('NFKC').trim().toLowerCase().replace(/^no\.?\s*/,''); /* 全角・半角の数字や英字は同じものとして探す */
   let a = S.works.filter(w => {
@@ -2948,7 +2957,7 @@ function render0(){ setTimeout(() => { try { tedBar(); } catch(e){} }, 0);
   }
   if (S.view === 'list' && list.length) html = `<div class="prrow">${canEdit() ? `<button type="button" class="prbtn ${S.tedit ? 'on' : ''}" data-tedit="1">${S.tedit ? '✓ 編集を終える' : '✎ まとめて編集'}</button>` : ''}<button type="button" class="prbtn" data-print="1">🖨 印刷する（A4）</button></div>${S.tedit ? '<p class="hint tedh">直したいマスを押すと書き換えられます。下の「保存する」でまとめて保存。<span class="tedx">Enter：下へ　Tab：右へ　Esc：取り消し。スプレッドシートからの貼り付けもできます。</span></p>' : ''}` + html;
   if (list.length > S.limit && !(S.view==='list' && S.wideL)) html += `<button class="more" id="more">もっと見る（残り${list.length-S.limit}件）</button>`;
-  if (!list.length) html = '<p style="text-align:center;color:var(--sub);padding:40px 0">見つかりませんでした</p>';
+  if (!list.length) { const sg = S.q ? didYouMean(S.q) : []; html = '<p style="text-align:center;color:var(--sub);padding:40px 0' + (sg.length ? ' 12px' : '') + '">見つかりませんでした</p>' + (sg.length ? '<div class="dym"><span>もしかして：</span>' + sg.map(([x, n]) => `<button type="button" data-dym="${esc(x)}">${esc(x)}<small>${n}点</small></button>`).join('') + '</div>' : ''); }
   if (canEdit() && (list.length <= S.limit || (S.view==='list' && S.wideL))) html += '<button class="addrow" data-addk="w" style="margin-top:28px"><span class="plus">＋</span><span>新しい作品を登録する</span></button>';
   main.innerHTML = html;
   hydrate(main);
