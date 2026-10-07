@@ -2250,7 +2250,21 @@ button.ulrow{cursor:pointer}
 /* 微調整の矢印を十字に並べる（パソコン 10/6、スマホも 10/7 本人） */
 #crop .cr-pad{display:grid;grid-template-columns:repeat(3,46px);grid-template-rows:repeat(3,40px);gap:4px;grid-template-areas:". u ." "l . r" ". d ."}
 #crop .cr-pad [data-crd="-1,0"]{grid-area:l}#crop .cr-pad [data-crd="0,-1"]{grid-area:u}#crop .cr-pad [data-crd="0,1"]{grid-area:d}#crop .cr-pad [data-crd="1,0"]{grid-area:r}
-@media not all and (min-width:900px) and (min-aspect-ratio:5/4){ #crop .cr-pad{grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,32px);gap:3px} #crop .cr-pad button{height:32px;min-width:44px} #crop .cr-nudge{justify-content:space-between} }
+/* スマホ：下の操作を整理して写真を広く（10/7 本人「次の丸と十字をよく使う・プレビューを広く」）。
+   角の画面は「次の丸」と十字だけ（明るさ・ふくらみ・サイズ・縦横の調整は仕上がりの画面へ）。案内は2行まで・写真の左右の余白を小さく */
+@media not all and (min-width:900px) and (min-aspect-ratio:5/4){
+  #crop .cr-hint{font-size:12.5px;line-height:1.45;padding:0 14px;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  #crop .cr-stage{margin:0 14px 4px}
+  #crop .cr-bot{gap:8px;padding-top:8px}
+  #crop.cred .cr-sl2,#crop.cred .cr-sz,#crop.cred .cr-str{display:none!important}
+  #crop .cr-nudge{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto 1fr;grid-template-areas:"sel pad" "next pad";gap:4px 14px;align-items:stretch}
+  #crop .cr-nudge.hidden{display:none}
+  #crop .cr-nsel{grid-area:sel;font-size:12.5px;color:rgba(250,249,245,.7);align-self:end}
+  #crop .cr-nnext{grid-area:next;height:auto;min-height:64px;border-radius:16px;font-size:18px;font-weight:700;background:#3d3d38}
+  #crop .cr-nnext::after{content:' ›';font-weight:400}
+  #crop .cr-pad{grid-area:pad;grid-template-columns:repeat(3,54px);grid-template-rows:repeat(3,38px);gap:4px}
+  #crop .cr-pad button{height:38px;min-width:54px;border-radius:12px}
+}
 /* 本（画集・資料）の写真：屏風の形・色（カラーチップ）・縦横の比率・サイズ・AI で探す は使わない（10/7 本人） */
 #crop.crbook .cr-rn,#crop.crbook .cr-rc,#crop.crbook .cr-rr,#crop.crbook .cr-sz,#crop.crbook [data-crcht],#crop.crbook [data-crai],#crop.crbook .cr-chs{display:none!important}
 /* 「最新版にしています」「最新の情報を読み込んでいます」は、補正の保存と同じ見た目：画面全体をぼかして、まん中に大きいくるくると今していること（10/6 本人） */
@@ -2393,7 +2407,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '652b96bb09', APP_URL = location.origin + location.pathname;
+const BUILD = '3ce3a6112e', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -7033,7 +7047,7 @@ function crUI(){ const el = $('#crop'); if (!el || !CR) return;
   el.querySelector('.cr-save').disabled = !CR.img || !!CR.saving; el.querySelector('.cr-stage').classList.toggle('busy', CR.ai);
   const ed = CR.mode === 'edit';
   if (!crChtOn()) { if (CR.sel && CR.sel.a === 'cht') CR.sel = { a: 'top', i: 0 }; if (CR.pin && CR.pin.a === 'cht') { CR.pin = null; crLoupeOff(); } }
-  el.querySelector('.cr-nudge').classList.toggle('hidden', !ed); crNudgeLab();
+  el.querySelector('.cr-nudge').classList.toggle('hidden', !ed); el.classList.toggle('cred', ed); crNudgeLab();
   const wb = el.querySelector('.cr-wpb'); wb.classList.toggle('on', !!CR.wp && !CR.wpick); wb.classList.toggle('pick', !!CR.wpick); wb.setAttribute('aria-pressed', CR.wp ? 'true' : 'false'); wb.classList.toggle('hidden', ed && !CR.wpick); el.classList.toggle('crpick', !!CR.wpick); /* 「白」は仕上がりの画面だけ（角の画面は ☀ の場所。スマホの幅に収めるため） */
   const chs = !!(CR.col && CR.cht && CR.T), wss = !!CR.wp, r2 = el.querySelector('.cr-sl2c'); el.querySelector('.cr-chs').classList.toggle('hidden', !chs); el.querySelector('.cr-wss').classList.toggle('hidden', !wss);
   r2.classList.toggle('hidden', !chs && !wss); r2.classList.toggle('one', chs !== wss); if (ed || !CR.wp) el.querySelector('.cr-wpm').classList.add('hidden');
