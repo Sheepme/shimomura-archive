@@ -2387,7 +2387,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'f43fa96e87', APP_URL = location.origin + location.pathname;
+const BUILD = 'd6cd48dbac', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -10431,15 +10431,15 @@ function exvBuild(root, L, start){
     PQ.set(it.d.id, it); clearTimeout(PQT); PQT = setTimeout(pull, 40); };
   const cool = it => { if (!it.req) return; it.req = 0; if (it.gh) { it.pt = 0; it.hi = 0; return; } it.im = null; it.lo = 0; it.pt = 0; PQ.delete(it.d.id); const c = it.cv, x = c.getContext('2d'); c.width = c.height = 16; x.fillStyle = EXWC; x.fillRect(0, 0, 16, 16); it.tx.forEach(t => { t.needsUpdate = true; });
     [[it.capM, it.capF], [it.ao, it.ao.material]].forEach(([o, m]) => { if (m.map) { m.map.dispose(); m.map = null; m.needsUpdate = true; } o.visible = false; }); if (it.cpM) it.cpM.visible = false; (it.xc || []).forEach(c => { if (c.F.map) { c.F.map.dispose(); c.F.map = null; c.F.needsUpdate = true; } c.m.visible = false; }); };
-  /* 読み込み中の表示（10/6 本人）：白い紙のまん中に細い線の丸いローダー、下に小さな灰色の文字「画像を更新しています」。画面の上で同じくらいの大きさになるよう、
+  /* 読み込み中の表示（10/6 本人。10/7 に・・・・へ）：紙のまん中に小さな点のローダー。画面の上で同じくらいの大きさになるよう、
      止まったときの「1画面ピクセルあたりのメートル」（it.kpx）から描く大きさを決める。届かなければ「画像を読み込めませんでした」 */
   const ldDraw = (it, t) => { if (!it.req || it.pt) return; const kp = it.kpx || 0.002, pw = it.wm / kp, ph = it.tr ? pw / it.tr : it.hm / kp, q = Math.min(2, 1024 / Math.max(pw, ph, 1));
     const cw = Math.max(16, Math.round(pw * q)), ch = Math.max(16, Math.round(ph * q)), c = it.cv; if (c.width !== cw || c.height !== ch) { c.width = cw; c.height = ch; }
     const x = c.getContext('2d'), m = Math.min(cw, ch), R = Math.min(10 * q, 0.16 * m), fs = Math.min(10.5 * q, 0.075 * cw, 0.09 * ch), gap = Math.min(9 * q, 0.06 * m), cx = cw / 2;
     x.fillStyle = EXWC; x.fillRect(0, 0, cw, ch);
-    if (!it.fail) { const cy = ch / 2 - (gap + fs) / 2; x.lineWidth = Math.max(1, 1.3 * q); x.lineCap = 'round'; x.strokeStyle = 'rgba(70,64,57,.16)'; x.beginPath(); x.arc(cx, cy, R, 0, Math.PI * 2); x.stroke();
-      const a = (t || 0) / 1000 * Math.PI * 2; x.strokeStyle = 'rgba(70,64,57,.58)'; x.beginPath(); x.arc(cx, cy, R, a, a + Math.PI * 0.55); x.stroke(); x.textBaseline = 'top'; x.textAlign = 'center';
-      x.font = '400 ' + fs + 'px "Helvetica Neue","Hiragino Sans","Noto Sans JP",sans-serif'; x.fillStyle = 'rgba(102,95,87,.9)'; x.fillText('画像を更新しています', cx, cy + R + gap); }
+    if (!it.fail) { /* 読み込み中：まん中に小さな点を4つ（・・・・）。濃い点が左から右へ順に動く（17:26 本人「ミニマルな雰囲気に」） */
+      const r = Math.max(1, Math.min(2.1 * q, 0.012 * m)), sp = r * 4.6, x0 = cx - sp * 1.5, cy = ch / 2, k = Math.floor((t || 0) / 230) % 4;
+      for (let i = 0; i < 4; i++) { x.fillStyle = i === k ? 'rgba(70,64,57,.55)' : 'rgba(70,64,57,.16)'; x.beginPath(); x.arc(x0 + i * sp, cy, r, 0, Math.PI * 2); x.fill(); } }
     else { x.textBaseline = 'middle'; x.textAlign = 'center'; x.font = '400 ' + fs + 'px "Helvetica Neue","Hiragino Sans","Noto Sans JP",sans-serif'; x.fillStyle = 'rgba(102,95,87,.9)'; x.fillText('画像を読み込めませんでした', cx, ch / 2); }
     it.tx.forEach(tt => { tt.needsUpdate = true; }); };
   const FRU = new T3.Frustum(), PMX = new T3.Matrix4(); let LDT = 0;
