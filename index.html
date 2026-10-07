@@ -2291,6 +2291,7 @@ body.qcopen #bigwait{visibility:visible!important}body.bbig #toast.tmsg:not(.hid
 .gped .gpsb,.sled .gpsb{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.gped .gpsb button,.sled .gpsb button{padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:var(--bg);font-size:14px}.gped .gpsb button:disabled,.sled .gpsb button:disabled{opacity:.4}
 .gpres{max-height:34vh;overflow:auto}.gpres button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:6px;border:0;border-bottom:1px solid var(--line);background:transparent;font-size:15px}.gpres img,.gpres .nph{width:44px;height:44px;object-fit:cover;flex:0 0 44px;background:#e8e3d9}.gpres small{display:block;color:var(--sub);font-size:12px}
 .shfam{display:inline-flex;align-items:center;gap:6px;margin:12px 0 2px;padding:8px 14px;border:1px solid var(--line);border-radius:999px;background:var(--paper);font-size:15px;color:var(--ink)}
+.shfam+.shfam{margin-left:8px}
 .shfam svg,.hg-inbox svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
 .hg-inbox{display:flex;align-items:center;gap:14px;width:100%;margin:0 0 18px;padding:16px 18px;border-radius:18px;border:2px solid #f0b429;border-bottom-width:5px;background:#fff7e0;color:#4a3500;text-align:left}
 .hg-inbox .ic{flex:none;width:44px;height:44px;border-radius:50%;background:#f0b429;color:#fff;display:flex;align-items:center;justify-content:center}
@@ -2378,7 +2379,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'c60fb9d24e', APP_URL = location.origin + location.pathname;
+const BUILD = '45c91fa095', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5921,7 +5922,7 @@ function openWork(no, keepScroll, restoreSc){
       <h2 class="title">${w['作品名']?esc(w['作品名']):`<span class="untitled" style="font-size:24px">${ot ? '名前なし' : '無題'}</span>`}</h2>
       ${w['作品名メモ']?`<div class="subtitle">${esc(w['作品名メモ'])}</div>`:''}
       <div class="tombstone">${esc([w['制作年']||'制作年不明', w['画材'], szShort(w, ' cm')].filter(Boolean).join('　|　'))}</div>
-      ${canEdit() ? `<button type="button" class="shfam" data-share="${esc(no)}">${SHIC}家族に送る</button>` : ''}
+      ${!ot && exvWorks(true).some(d => exvHas(d, no)) ? `<button type="button" class="shfam" data-exvw="${esc(no)}">${EXVIC}展示ビュー</button>` : ''}${canEdit() ? `<button type="button" class="shfam" data-share="${esc(no)}">${SHIC}家族に送る</button>` : ''}
       <div class="loc"><span class="lk">いまの場所</span><span style="display:flex;align-items:center"><b>${esc(w['所在']||w['所在区分']||'不明')}</b>${canEdit()?`<button class="pen" data-act="move" aria-label="場所を変える"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.6"/></svg></button>`:''}</span></div>
       ${canEdit() ? `<label class="locok ${w['場所確認日']?'on':''}"><input type="checkbox" id="locOk" ${w['場所確認日']?'checked':''}><span>${w['場所確認日'] ? 'この場所にあることを確認済み<small>' + esc(String(w['場所確認日']).split(' ')[0]) + '　' + esc(w['場所確認者']||'') + '</small>' : 'この場所にあることを確認した'}</span></label>` : (w['場所確認日'] ? `<p class="locokv">場所の確認：${esc(String(w['場所確認日']).split(' ')[0])}（${esc(w['場所確認者']||'')}）</p>` : '')}
       ${w['要確認']?`<div class="flagbox">要確認 — ${escU(w['要確認メモ']||'（メモなし）')}${canEdit()?flagActs(w):''}</div>`:''}
@@ -10007,6 +10008,7 @@ function exvBg(c){ try { document.documentElement.style.backgroundColor = c; doc
    送る：展示ビューの共有ボタン・作品ページの「家族に送る」（編集・管理の人）→ 相手と、ひとこと → Google 側のシート「届いたもの」へ。
    受け取る：ホームのいちばん上の帯・メニューの「届いたもの」→ 押すと、その作品から展示ビュー（作品ページなら作品ページ）。見たら「見た」 ========== */
 const SH = { t: 0, busy: false };
+const EXVIC = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5.5" y="5" width="13" height="10.5" rx="1"/><path d="M3 19.5h18"/></svg>'; /* 展示ビュー（メニューと同じ形） */
 const SHIC = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 3.5 10.2 13.8"/><path d="M21 3.5 14.4 20.5l-4.2-6.7-6.7-4.2z"/></svg>';
 function inbIc(){ return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 13.5 6 5.5h12l2.5 8v5h-17z"/><path d="M3.5 13.5h5l1.2 2.2h4.6l1.2-2.2h5"/></svg>'; } /* メニューは先に作られるので関数にする */
 const shMe = () => String((S.user || {}).name || '');
@@ -10063,6 +10065,7 @@ function shGo(kind, no){ closeSheet(); if (kind === 'exv' && exvWorks().some(d =
   else { let k = 0; const go = () => { if (HIST.skip > 0 && k++ < 30) return setTimeout(go, 50); openWork(no); }; go(); } } /* 閉じた画面の「戻る」が済んでから開く（履歴がずれないように） */
 document.addEventListener('click', e => { const t = e.target;
   const a = t.closest('[data-share]'); if (a) { shOpen('work', a.dataset.share); return; }
+  const xv = t.closest('[data-exvw]'); if (xv) { exvOpen(String(xv.dataset.exvw)); return; } /* 作品ページの「展示ビュー」：その作品から（10/7 本人） */
   if (t.closest('[data-shinbox]')) { shInbox(); return; }
   const o = t.closest('[data-shopen]'); if (o) { const x = (S.shares || []).find(r => r['送付ID'] === o.dataset.shopen); if (!x) return;
     if (!x['見た日時']) { x['見た日時'] = '（いま）'; shBadge(); call('readShare', [x['送付ID']]).catch(() => {}); }
