@@ -1682,6 +1682,8 @@ body .chips .cn{margin-left:3px;opacity:.55;font-size:12px;font-weight:500}
 #finder #count{display:none!important}
 @media(min-width:900px){ body[data-pv=list] #finder .meta{display:none!important} } /* 作品リストは表の見出しで並べ替えるので、並び順の欄は出さない */ /* 件数はタブの名前の後ろに出す */
 #finder .meta{justify-content:flex-end}
+#finder .meta{position:sticky;top:calc(var(--rowtop,0px) + var(--fmh,44px));z-index:31;background:var(--bg);transition:transform .25s ease,opacity .2s ease}
+body.tucked:not(.pgopen):not(.searching):not(.dwopen) #finder .meta{transform:translateY(-110%);opacity:0;pointer-events:none} /* 並び替え・拡大縮小も、ヘッダーと同じく下にスクロールで隠し、上にスクロールで出す（10/7 本人） */
 #finder .meta .mright,.otmeta .mright{margin-left:auto!important;justify-content:flex-end!important}
 .otmeta .mright{display:flex;align-items:center;gap:8px}
 /* 作品リスト（PCの表）：項目名の行は左右いっぱい、いちばん下のタブのすぐ下に固定 */
@@ -2372,7 +2374,7 @@ body.exvopen #toast:not(.hidden){z-index:9600!important} /* 展示ビューの�
 <script>
 /* ---------- 状態 ---------- */
 const S = { works:[], events:[], photos:[], places:[], exhibits:[], pubs:[], stack:[], pcur:null, cf:'all', cmain:false, me:'', ai:false,
-  view:'home', wmode:'album', xnl:false, pnl:false, xt:'すべて', xq:'', xmain:false, pt:'すべて', pq:'', filter:'all', q:'', sort:'rand', limit:60, chat:[], cur:null };
+  view:'home', wmode:'album', xnl:false, pnl:false, xt:'すべて', xq:'', xmain:false, pt:'すべて', pq:'', filter:'all', q:'', sort:'rand', sortBy:{ album:'rand', list:'no' }, limit:60, chat:[], cur:null };
 const FILTERS = [['all','すべて'],['自宅','自宅'],['美術館','美術館'],['個人蔵','個人蔵'],['委託中','思文閣'],['flag','要確認'],['nophoto','写真なし'],['noname','作品名なし'],['noloc','保管場所不明'],['unconf','場所未確認'],['tmp','仮の写真'],['lack','情報が足りない'],['廃棄','廃棄']];
 const SUBF = { '美術館': {all:'すべての館', none:'（館名なし）'} }; // 所在区分ごとのサブカテゴリ
 const LOC_KINDS = ['自宅','美術館','個人蔵','委託中','貸出中','その他','廃棄','不明'];
@@ -2385,7 +2387,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '47703dd4ec', APP_URL = location.origin + location.pathname;
+const BUILD = '404c584bce', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2915,6 +2917,7 @@ function vBack(){ const s = VH.pop(); vbSync(); if (!s) return false; VST.restor
 addEventListener('scroll', () => { if (VST.cur && !VST.restoring && $('#page').classList.contains('hidden') && !SCR.length) VST.cur.y = window.scrollY; }, { passive: true });
 function render(){ const r = render0.apply(this, arguments); try { vTrack(); } catch(e){} return r; }
 function render0(){ setTimeout(() => { try { tedBar(); } catch(e){} }, 0);
+  if (S.view === 'album' || S.view === 'list') { S.sortBy = S.sortBy || { album: 'rand', list: 'no' }; S.sort = S.sortBy[S.view] || S.sort; const so = document.getElementById('sort'); if (so && so.value !== S.sort) so.value = S.sort; } /* 並び順はアルバムとリストで別々（リストは番号順から。10/7 本人） */
   document.body.classList.toggle('vhome', S.view === 'home'); document.body.dataset.pv = S.view; // （data-view は写真を開くボタンの印なので使わない）
   { const dq = document.getElementById('dwq'); if (dq && document.activeElement !== dq && typeof SQ !== 'undefined') { const s = SQ[S.view]; dq.value = s ? (S[s[0]] || '') : ''; { const dx = document.getElementById('dwqClose'); if (dx) dx.classList.toggle('hidden', !dq.value); } dq.placeholder = ({ex:'展覧会を探す', pb:'画集・資料を探す', ot:'その他の作品を探す'})[S.view] || '作品を探す'; } }
   setTimeout(() => { try { stkTop(); } catch(e){} }, 0);
@@ -8821,7 +8824,7 @@ function setCols(d){
 })();
 let rzT; addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(() => { if (S.view==='list' && S.tblM !== tblMobile() && $('#page').classList.contains('hidden')) render(); const N = masN(); if (['album','ot'].includes(S.view) && S.masN && N!==S.masN && $('#page').classList.contains('hidden')) render(); }, 200); });
 let qt; $('#q').addEventListener('input', e => { clearTimeout(qt); qt=setTimeout(()=>{ S.q=e.target.value; S.limit=60; render(); }, 250); });
-$('#sort').addEventListener('change', e => { S.sort=e.target.value; render(); });
+$('#sort').addEventListener('change', e => { S.sort=e.target.value; if (S.view === 'album' || S.view === 'list') (S.sortBy = S.sortBy || {})[S.view] = S.sort; render(); });
 $('#colPlus').addEventListener('click', () => setCols(-1)); $('#colMinus').addEventListener('click', () => setCols(1));
 $('#askq').addEventListener('input', e => { e.target.style.height='auto'; e.target.style.height=Math.min(e.target.scrollHeight,140)+'px'; });
 $('#askq').addEventListener('keydown', e => { if (e.key==='Enter' && !e.shiftKey && !e.isComposing && matchMedia('(pointer:fine)').matches){ e.preventDefault(); ask($('#askq').value); } });
@@ -9757,7 +9760,8 @@ function hdStick(){ const hd = document.getElementById('top'), ab = hd && hd.que
   if (!document.getElementById('safeCover')) { const sc = document.createElement('div'); sc.id = 'safeCover'; document.body.appendChild(sc); }
   document.documentElement.style.setProperty('--rowtop', top + 'px'); document.documentElement.style.setProperty('--rowh', (last ? last.offsetHeight : 0) + 'px');
   return last ? top + last.offsetHeight : top; }
-function stkTop(){ let hb = 0; try { hb = hdStick() || 0; } catch(e){} const ab = document.querySelector('#top .appbar'); const b = hb ? hb + 6 : (ab ? Math.max(0, ab.getBoundingClientRect().bottom + 6) : 0); document.documentElement.style.setProperty('--stk', b + 'px'); document.documentElement.style.setProperty('--stkx', '0px');  markStuck(); }
+function stkTop(){ try { const rows = [...document.querySelectorAll('#finder > .chips')].filter(e => e.offsetParent && !e.classList.contains('hidden')); document.documentElement.style.setProperty('--fmh', rows.reduce((a, e) => a + e.offsetHeight, 0) + 'px'); } catch(e){} /* 並び替えの段は、カテゴリの段のすぐ下に止める */
+  let hb = 0; try { hb = hdStick() || 0; } catch(e){} const ab = document.querySelector('#top .appbar'); const b = hb ? hb + 6 : (ab ? Math.max(0, ab.getBoundingClientRect().bottom + 6) : 0); document.documentElement.style.setProperty('--stk', b + 'px'); document.documentElement.style.setProperty('--stkx', '0px');  markStuck(); }
 window.addEventListener('resize', () => stkTop());
 function wtTop(){ const h = $('#wthd'); if (!h) return; const ab = document.querySelector('#top .appbar'); h.style.top = (ab ? Math.max(0, ab.getBoundingClientRect().bottom + 6) : 0) + 'px'; h.style.paddingTop = '0px'; }
 addEventListener('scroll', () => { if ($('#wthd')) requestAnimationFrame(wtTop); }, {passive:true});
@@ -10022,6 +10026,8 @@ function exvCss(){ if (document.getElementById('exvcss')) return; const st = doc
 #exv .xpp svg{width:20px;height:26px;stroke:currentColor;stroke-width:1.2;fill:none;stroke-linejoin:round;stroke-linecap:round}#exv .xpp:focus-visible{outline:1.5px solid #3a3530;outline-offset:-4px;border-radius:8px}#exv .xsh{right:56px}#exv.xmo .xsh{opacity:1;pointer-events:auto}#exv .xmb{position:absolute;inset:0;z-index:7}#exv .xmn{position:absolute;z-index:8;top:calc(env(safe-area-inset-top,0px) + 58px);right:12px;width:min(340px,calc(100vw - 24px));max-height:calc(100% - env(safe-area-inset-top,0px) - 80px);overflow:auto;-webkit-overflow-scrolling:touch;background:rgba(251,250,247,.97);color:#2a2724;border-radius:14px;box-shadow:0 10px 34px rgba(40,34,26,.22),0 1px 3px rgba(40,34,26,.12);padding:14px 14px 16px;font-family:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;animation:xmIn .18s ease}@keyframes xmIn{from{opacity:0;transform:translateY(-6px)}}#exv .xmh{margin:2px 2px 8px;font-size:12px;letter-spacing:.08em;color:#8a8379}#exv .xmh small{display:block;margin-top:2px;font-size:13px;letter-spacing:0;color:#46413b}#exv .xmc{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}#exv .xmc button{border:1px solid #ddd6cb;background:#fff;color:#33302c;border-radius:999px;padding:6px 11px;font:inherit;font-size:14px;line-height:1.3;cursor:pointer}#exv .xmc button i{font-style:normal;margin-left:5px;font-size:11.5px;color:#8a8379}#exv .xmc button.on{background:#33302c;border-color:#33302c;color:#fff}#exv .xmc button.on i{color:#d8d2c8}#exv .xms{padding:10px 0 2px;border-top:1px dashed #e2dbd0}#exv .xmi{display:block;width:100%;text-align:left;border:0;border-top:1px solid #ebe5dc;background:none;color:#2a2724;font:inherit;font-size:15.5px;padding:11px 4px;cursor:pointer}#exv .xmh+.xmi{border-top:0}#exv .xmq{position:relative;margin:0 0 12px}#exv .xmq svg{position:absolute;left:11px;top:50%;width:17px;height:17px;margin-top:-8.5px;fill:none;stroke:#8a8379;stroke-width:1.6;stroke-linecap:round;pointer-events:none}#exv .xmq input{display:block;width:100%;box-sizing:border-box;border:1px solid #ddd6cb;background:#fff;border-radius:10px;padding:9px 36px 9px 35px;font:inherit;font-size:16px;line-height:1.3;color:#2a2724;-webkit-appearance:none;appearance:none;outline:none}#exv .xmq input:focus{border-color:#8a8379}#exv .xmq input::placeholder{color:#a39b90;font-size:14px}#exv .xmq input::-webkit-search-cancel-button{display:none}#exv .xmqx{position:absolute;right:4px;top:50%;margin-top:-17px;width:34px;height:34px;border:0;background:none;color:#8a8379;font-size:15px;cursor:pointer}#exv .xmqx[hidden]{display:none}#exv .xmn.xq .xmz{display:none}#exv .xmr{margin:-4px 0 2px}#exv .xmr[hidden]{display:none}#exv .xmrr{display:flex;align-items:center;gap:11px;width:100%;text-align:left;border:0;border-top:1px solid #ebe5dc;background:none;padding:8px 2px;font:inherit;color:#2a2724;cursor:pointer}#exv .xmrr:first-child{border-top:0}#exv .xmrr:hover{background:#f3efe8}#exv .xmrt,#exv img.xmrt{flex:none;display:block;width:46px;height:46px;min-height:0;object-fit:cover;border-radius:3px;background:#ece7df}#exv .xmrs{flex:1;min-width:0}#exv .xmrs b,#exv .xmrs small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#exv .xmrs b{font-weight:500;font-size:15px;line-height:1.35}#exv .xmrs small{font-size:12px;color:#8a8379;margin-top:2px;line-height:1.35}#exv .xmrn{margin:8px 2px 2px;font-size:12.5px;color:#8a8379}body.exvopen #toast{z-index:9600!important}#exv .xprev{left:clamp(22px,5vw,72px)}#exv .xnext{right:clamp(22px,5vw,72px)}#exv .xnav svg{width:14px;height:26px;stroke:currentColor;stroke-width:1.2;fill:none;stroke-linecap:round;stroke-linejoin:round}#exv .xnav[disabled]{opacity:0;pointer-events:none}#exv .xnav:focus-visible{outline:1.5px solid #3a3530;outline-offset:-4px;border-radius:8px}
 #exv .ydots{position:absolute;inset:0;pointer-events:none}
 #exv .ynum{transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1)}#exv .ynum.xmv{opacity:0;transform:translateY(4px);transition:opacity .32s ease-in,transform .32s ease-in}
+#exv .yloc{position:absolute;left:19px;top:calc(env(safe-area-inset-top,0px) + 52px);font-size:clamp(12.5px,.5vw + 11px,15px);line-height:1.3;color:#6f685f;max-width:calc(100% - 140px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;mix-blend-mode:multiply;z-index:4;pointer-events:none;letter-spacing:.04em;font-weight:400;transition:opacity .9s cubic-bezier(.22,.61,.36,1),transform .9s cubic-bezier(.22,.61,.36,1)}
+#exv .yloc.xmv{opacity:0;transform:translateY(4px);transition:opacity .32s ease-in,transform .32s ease-in}
 #exv .xyr{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:block;white-space:pre;text-align:center;padding:0 0 0 .015em;letter-spacing:.015em;font-kerning:normal;font-feature-settings:'kern' 1,'pnum' 1,'lnum' 1;font-variant-numeric:proportional-nums lining-nums;font-family:"Helvetica Neue","Avenir Next","Hiragino Sans","Noto Sans JP",Helvetica,Arial,sans-serif;font-size:clamp(56px,11vw,132px);line-height:1;font-weight:200;color:#fff;text-shadow:0 0 36px rgba(0,0,0,.2);opacity:0;transition:opacity .55s ease;pointer-events:none;z-index:4}
 #exv .xyr.xin{opacity:.95;transition:opacity .6s ease}#exv .xyr.xml{font-size:clamp(46px,9vw,108px);line-height:.86}#exv .xyr.xml .l{display:block}#exv .xyr.xml .h{line-height:.5;transform:translateY(-.03em)}
 
@@ -10029,7 +10035,7 @@ function exvCss(){ if (document.getElementById('exvcss')) return; const st = doc
 #exv .yd{position:absolute;left:50%;top:50%;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;border-radius:50%;background:#2b2825;opacity:0;transition:opacity .3s ease}
 #exv .yrs.xon .yd{transition:opacity .12s ease}
 body.exvopen{overflow:hidden}
-@media (prefers-reduced-motion: reduce){#exv .xhint,#exv .yd,#exv .xyr,#exv .ynum{transition:none!important}}`;
+@media (prefers-reduced-motion: reduce){#exv .xhint,#exv .yd,#exv .xyr,#exv .ynum,#exv .yloc{transition:none!important}}`;
   document.head.appendChild(st); }
 /* 時計のところの帯（iPhone のホーム画面アプリ）は、ページの地の色で塗られるので、壁の色に合わせる */
 function exvBg(c){ try { document.documentElement.style.backgroundColor = c; document.body.style.backgroundColor = c; } catch(e){} }
@@ -10101,6 +10107,11 @@ document.addEventListener('click', e => { const t = e.target;
     shGo(x['種類'], x['対象']); return; }
   const g = t.closest('[data-shgo]'); if (g) { const [k, n] = g.dataset.shgo.split('|'); shGo(k, n); } });
 /* 展示ビューの並びの元（作品・写真・サイズ・年・名前など）。開いている間に最新の台帳が届いて、これが変わったら作り直す（10/6 本人） */
+/* いまの場所（展示ビューの作品名の下）：何点かあるときは、いちばん多い場所（不明でないもの）に「など」 */
+function exvLocTxt(ws){ const a = ws.map(w => String((w && (w['所在'] || w['所在区分'])) || '').trim() || '不明'), u = [...new Set(a)]; if (!u.length) return '';
+  if (u.length === 1) return /^(不明|わからない)$/.test(u[0]) ? '場所不明' : u[0];
+  const C = {}; a.forEach(x => { if (!/^(不明|わからない)$/.test(x)) C[x] = (C[x] || 0) + 1; }); const k = Object.keys(C).sort((p, q) => C[q] - C[p])[0]; return k ? k + 'など' : '場所不明'; }
+const exvLocOf = d => exvLocTxt(d.grp ? d.grp.reg.map(x => x.w) : d.tri ? d.tri.nos.map(grpW).filter(Boolean) : [d.w]);
 const exvHas = (d, no) => String(d.no) === String(no) || !!(d.nos && d.nos.includes(String(no))); /* 組はどのパーツの番号でも */
 const exvSig = L => L.map(d => [d.no, d.id, d.set ? d.set.ids.join(',') : '', d.grp ? d.grp.name + '#' + d.grp.slots.map(x => [x.no, x.id, x.h, x.wd].join(':')).join(',') : '', d.slay ? d.slay.cols + '/' + d.slay.gap + '/' + d.slay.list.join(',') : '', d.h, d.wd, d.y, d.s, d.b ? 1 : 0, d.k ? 1 : 0, d.frame ? 1 : 0, d.w['作品名'], d.w['制作年'], d.w['画材'], d.w['仕立て'], d.w['所在'], d.cp ? d.cp.mu : ''].join('|')).join('\n');
 function exvSync(){ if (!EXV || !EXV.sig || !EXV.curNo || EXV.syncT) return; let L; try { L = exvWorks(); } catch(e){ return; } if (!L.length || exvSig(L) === EXV.sig) return;
@@ -10113,7 +10124,7 @@ function exvFresh(fid){ const p = (S.photos || []).find(x => x['ファイルID']
 async function exvOpen(start, noPush){
   if (!exvIsAdm() || EXV) return;
   exvCss(); const root = document.createElement('div'); root.id = 'exv'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-label', '展示ビュー');
-  root.innerHTML = '<div class="xst"></div><div class="xwait">展示室を準備しています…</div><button type="button" class="xsh" aria-label="メニュー（表示する作品・共有）" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="1.35" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.35" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.35" fill="currentColor" stroke="none"/></svg></button><button type="button" class="xcl" aria-label="展示ビューを出る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5H6.5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1H14"/><path d="M10.5 12h9M16.5 8.5 20 12l-3.5 3.5"/></svg></button><div class="xhint" style="opacity:0"><span></span></div><button type="button" class="xnav xprev" aria-label="前の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M12 2 2 13l10 11"/></svg></button><button type="button" class="xpp" aria-label="自動再生を一時停止"></button><button type="button" class="xnav xnext" aria-label="次の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M2 2l10 11L2 24"/></svg></button><div class="ynum"></div><div class="xyr" aria-hidden="true"></div><div class="yrs" aria-label="作品の位置（指を当てて左右に動かすと早送り）"><div class="ydots"><i class="yc"></i></div></div>';
+  root.innerHTML = '<div class="xst"></div><div class="xwait">展示室を準備しています…</div><button type="button" class="xsh" aria-label="メニュー（表示する作品・共有）" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="1.35" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.35" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.35" fill="currentColor" stroke="none"/></svg></button><button type="button" class="xcl" aria-label="展示ビューを出る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5H6.5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1H14"/><path d="M10.5 12h9M16.5 8.5 20 12l-3.5 3.5"/></svg></button><div class="xhint" style="opacity:0"><span></span></div><button type="button" class="xnav xprev" aria-label="前の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M12 2 2 13l10 11"/></svg></button><button type="button" class="xpp" aria-label="自動再生を一時停止"></button><button type="button" class="xnav xnext" aria-label="次の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M2 2l10 11L2 24"/></svg></button><div class="ynum"></div><div class="yloc"></div><div class="xyr" aria-hidden="true"></div><div class="yrs" aria-label="作品の位置（指を当てて左右に動かすと早送り）"><div class="ydots"><i class="yc"></i></div></div>';
   document.body.appendChild(root); document.body.classList.add('exvopen');
   try { const fs = root.requestFullscreen || root.webkitRequestFullscreen; if (fs) { const q = fs.call(root); if (q && q.catch) q.catch(() => {}); } } catch(e){} /* 押した直後でないと全画面にできない */
   try { const tm = document.querySelector('meta[name="theme-color"]'); if (tm) tm.content = '#ebe8e3'; } catch(e){}
@@ -10490,7 +10501,7 @@ function exvBuild(root, L, start){
     if (TRI.length) triTo(ci - 1, TRI.some(t => pv - 1 >= t.i0 && pv - 1 <= t.i0 + 2 && ci - 1 >= t.i0 && ci - 1 <= t.i0 + 2) ? 1000 : 0); /* 三面の中の進む・戻るは、その場で回す */ if (ci !== pv) tOut(); if (pv === 0 && ci > 0) yrLate = 1200; setCnt();
     const s = stops[ci], T = { x: s.x, y: s.y, z: Math.min(zmax(), Math.max(zmin(), s.z)) }, g = items[ci - 1] && items[ci - 1].grp;
     if (g && pv !== ci && !(items[pv - 1] && items[pv - 1].grp === g)) { /* シリーズに入るとき：まず全体を見せてから、1点ずつ */
-      g.m.forEach(j => warm(items[j])); pendT = g.name + '　' + g.n + '点'; if (!mv) tIn();
+      g.m.forEach(j => warm(items[j])); pendT = g.name + '　' + g.n + '点'; pendL = exvLocTxt(g.m.map(j => items[j].d.w)); if (!mv) tIn();
       const id = walk(g.ov, () => { tIn(); holdT = setTimeout(() => { if (tid !== id) return; tOut(); setCnt(); walk(T, () => { tIn(); autoNext(); }); }, 1800); }, v); }
     else walk(T, tIn, v); };
   const zoomBy = k => { st.z *= k; cl(); zoomed = st.z < stops[ci].z * 0.9; draw(); };
@@ -10555,15 +10566,16 @@ function exvBuild(root, L, start){
     el.addEventListener('gesturechange', e => { e.preventDefault(); if (!gz || !e.scale) return; poke(); tid++; if (mv) tIn(); zoomBy(gz / e.scale / st.z); }); el.addEventListener('gestureend', e => { e.preventDefault(); gz = 0; }); }
 
   /* 下の年：海外のギャラリーのようなゴシック体で、今の年だけ。指を当てると両側に作品の数だけ●（3つ目からうすく、5つ目で消える）。左右に動かすと早送り、●をタップするとその作品へ */
-  const SP = 15, yEl = root.querySelector('.yrs'), yNum = root.querySelector('.ynum'), yDots = root.querySelector('.ydots'), DOTS = [];
+  const SP = 15, yEl = root.querySelector('.yrs'), yNum = root.querySelector('.ynum'), yLoc = root.querySelector('.yloc'), yDots = root.querySelector('.ydots'), DOTS = [];
   for (let i = 0; i < 12; i++) { const d = document.createElement('i'); d.className = 'yd'; yDots.appendChild(d); DOTS.push(d); }
   let U = -1, yd = false, yA = false, yx = 0, yv = 0, yt = 0, ymv = 0, yHide = 0; const uHi = () => items.length - 1;
   const yTxt = k => k < 0 ? '' : (String(L[k].w['作品名'] || '').trim() || '無題');
+  const yLocTx = k => k < 0 ? '' : exvLocOf(L[k]); /* 作品名の下の、いまの場所（10/7 本人） */
   const yG = () => 14;
   xPP.innerHTML = STOP; xPP.onclick = () => { poke(); if (playing) setPlay(false); else { setPlay(true); go(ci < stops.length - 1 ? ci + 1 : 1); } }; /* ▶︎ を押すとすぐ次へ。最後なら最初の作品から */
   const yrEl = root.querySelector('.xyr'); let yrT = 0, lastY = null;
   const yrOf = k => exvYearBig(L[k].w['制作年']);
-  let mv = false, pendT = null;
+  let mv = false, pendT = null, pendL = '';
   const lightTo = v => { LFt = v; if (RM) { LF = v; return redraw(); } if (LFa) return; let t0 = performance.now(), l0 = LF;
     const f = n => { if (!EXV) { LFa = 0; return; } if (LFt !== f.t) { f.t = LFt; t0 = n; l0 = LF; } const ms = LFt < l0 ? 650 : 1100, t = Math.min(1, (n - t0) / ms), e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; LF = l0 + (LFt - l0) * e;
       if (performance.now() - wkT > 60) draw(); if (t < 1) LFa = requestAnimationFrame(f); else LFa = 0; }; f.t = LFt; LFa = requestAnimationFrame(f); };
@@ -10575,10 +10587,10 @@ function exvBuild(root, L, start){
   let yrD = 0, yrLate = 0;
   const flashY = k => { const y = k < 0 ? '' : yrOf(k); if (y === lastY) return; lastY = y; clearTimeout(yrD); if (!y) return; const d = yrLate; yrLate = 0;
     const sh = () => { yrPos(k); yrShow(y); clearTimeout(yrT); if (!mv && !yd) yrOff(1300); }; if (d) yrD = setTimeout(() => { if (lastY === y) sh(); }, d); else sh(); };
-  const tOut = () => { mv = true; yNum.classList.add('xmv'); }; /* 動き出したら作品名を消す */
-  const tIn = () => { mv = false; if (pendT != null) { yNum.textContent = pendT; pendT = null; fitNum(); } yNum.classList.remove('xmv'); if (yrEl.classList.contains('xin')) yrOff(300); }; /* 真ん中に来たら出す */
+  const tOut = () => { mv = true; yNum.classList.add('xmv'); yLoc.classList.add('xmv'); }; /* 動き出したら作品名を消す */
+  const tIn = () => { mv = false; if (pendT != null) { yNum.textContent = pendT; yLoc.textContent = pendL; pendT = null; fitNum(); } yNum.classList.remove('xmv'); yLoc.classList.remove('xmv'); if (yrEl.classList.contains('xin')) yrOff(300); }; /* 真ん中に来たら出す */
   const fitNum = () => { yNum.style.fontSize = ''; let fs = parseFloat(getComputedStyle(yNum).fontSize) || 20; const mw = W - 158; while (yNum.scrollWidth > mw && fs > 14) { fs--; yNum.style.fontSize = fs + 'px'; } };
-  const showU = u => { U = u; const j = Math.max(-1, Math.min(uHi(), Math.round(u))), act = yd || yA, t = yTxt(j); if (mv && !yd) { if (yNum.textContent !== t || pendT != null) pendT = t; } else if (yNum.textContent !== t) { yNum.textContent = t; fitNum(); } flashY(j); yEl.classList.toggle('xon', act);
+  const showU = u => { U = u; const j = Math.max(-1, Math.min(uHi(), Math.round(u))), act = yd || yA, t = yTxt(j), tl = yLocTx(j); if (mv && !yd) { if (yNum.textContent !== t || pendT != null) { pendT = t; pendL = tl; } } else if (yNum.textContent !== t || yLoc.textContent !== tl) { yNum.textContent = t; yLoc.textContent = tl; fitNum(); } flashY(j); yEl.classList.toggle('xon', act);
     const G = 6; let n = 0; /* ○が今の作品、両側に●（ふだんはうすく、指を当てると濃く） */
     for (let k = Math.ceil(u - 5.5); k <= Math.floor(u + 5.5) && n < DOTS.length; k++) { if (k < 0 || k > uHi()) continue; const d = k - u, a = Math.abs(d); if (a < 0.5) continue;
       const e = DOTS[n++], x = Math.sign(d) * (G + (a - 0.5) * SP), o = Math.max(0, Math.min(0.9, 0.9 * (1 - (a - 2.2) / 2.8))) * (act ? 1 : 0.45);
