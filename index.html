@@ -1686,6 +1686,9 @@ body .chips .cn{margin-left:3px;opacity:.55;font-size:12px;font-weight:500}
 #finder .meta{position:sticky;top:calc(var(--rowtop,0px) + var(--fmh,44px));z-index:31;background:var(--bg);transition:transform .25s ease,opacity .2s ease}
 body.tucked:not(.pgopen):not(.searching):not(.dwopen) #finder .meta{transform:translateY(-110%);opacity:0;pointer-events:none} /* 並び替え・拡大縮小も、ヘッダーと同じく下にスクロールで隠し、上にスクロールで出す（10/7 本人） */
 #finder .meta .mright,.otmeta .mright{margin-left:auto!important;justify-content:flex-end!important}
+/* 並べ替えの段：白い帯をやめ、ボタンだけを半透明＋背景ぼかしで浮かせる。空いたところは下の作品を押せる（10/7 本人） */
+#finder .meta{background:transparent!important;pointer-events:none;padding-top:6px!important}#finder .meta>*{pointer-events:auto}
+#finder .meta #sort,#finder .meta .zoomb{background-color:rgba(240,238,230,.62)!important;background-color:color-mix(in srgb,var(--wash) 62%,transparent)!important;-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);box-shadow:0 1px 8px rgba(0,0,0,.08)}
 .otmeta .mright{display:flex;align-items:center;gap:8px}
 /* 作品リスト（PCの表）：項目名の行は左右いっぱい、いちばん下のタブのすぐ下に固定 */
 #wthd{top:calc(var(--rowtop,0px) + var(--rowh,0px))!important;transition:top .25s ease!important}
@@ -2390,7 +2393,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'b3d484e2f2', APP_URL = location.origin + location.pathname;
+const BUILD = 'adb09552e9', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -9829,7 +9832,8 @@ function hdStick(){ const hd = document.getElementById('top'), ab = hd && hd.que
   if (!document.getElementById('safeCover')) { const sc = document.createElement('div'); sc.id = 'safeCover'; document.body.appendChild(sc); }
   document.documentElement.style.setProperty('--rowtop', top + 'px'); document.documentElement.style.setProperty('--rowh', (last ? last.offsetHeight : 0) + 'px');
   return last ? top + last.offsetHeight : top; }
-function stkTop(){ try { const rows = [...document.querySelectorAll('#finder > .chips')].filter(e => e.offsetParent && !e.classList.contains('hidden')); document.documentElement.style.setProperty('--fmh', rows.reduce((a, e) => a + e.offsetHeight, 0) + 'px'); } catch(e){} /* 並び替えの段は、カテゴリの段のすぐ下に止める */
+function stkTop(){ try { const rows = [...document.querySelectorAll('#finder > .chips')].filter(e => e.offsetParent && !e.classList.contains('hidden')); document.documentElement.style.setProperty('--fmh', Math.max(0, rows.reduce((a, e) => a + e.getBoundingClientRect().height, 0) - .5) + 'px'); /* 少しだけ重ねて、カテゴリと並べ替えの段のあいだにすき間を出さない（10/7 本人） */
+    if (!stkTop.ro && window.ResizeObserver) { stkTop.ro = new ResizeObserver(() => { clearTimeout(stkTop.t); stkTop.t = setTimeout(stkTop, 60); }); document.querySelectorAll('#finder > .chips, #top .appbar').forEach(e => stkTop.ro.observe(e)); } } catch(e){} /* 文字の読み込みなどでカテゴリの段の高さが変わったら測り直す */ /* 並び替えの段は、カテゴリの段のすぐ下に止める */
   let hb = 0; try { hb = hdStick() || 0; } catch(e){} const ab = document.querySelector('#top .appbar'); const b = hb ? hb + 6 : (ab ? Math.max(0, ab.getBoundingClientRect().bottom + 6) : 0); document.documentElement.style.setProperty('--stk', b + 'px'); document.documentElement.style.setProperty('--stkx', '0px');  markStuck(); }
 window.addEventListener('resize', () => stkTop());
 function wtTop(){ const h = $('#wthd'); if (!h) return; const ab = document.querySelector('#top .appbar'); h.style.top = (ab ? Math.max(0, ab.getBoundingClientRect().bottom + 6) : 0) + 'px'; h.style.paddingTop = '0px'; }
