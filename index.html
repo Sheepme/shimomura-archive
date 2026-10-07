@@ -2387,7 +2387,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'dddb7b2ff5', APP_URL = location.origin + location.pathname;
+const BUILD = 'db78abf160', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -10285,7 +10285,7 @@ function exvBuild(root, L, start){
   const capS = new T3.MeshStandardMaterial({ color: '#e7e3dc', roughness: 0.9 }), side = new T3.MeshStandardMaterial({ color: '#cfc7bb', roughness: 0.85 }), edge = new T3.MeshStandardMaterial({ color: '#2a2421', roughness: 0.55, dithering: true });
 
   /* 作品 */
-  const EXWC = '#fbfaf8'; /* 写真がまだの作品（キャンバス）は壁と同じ色に（10/7 開発 v11 本人） */
+  const EXWC = '#d8d7d5'; /* 写真がまだの作品（キャンバス）：色は壁と同じ（ほぼ無彩色）、濃さは前の #dcd6cd と同じくらい（10/7 開発 v11 本人 16:20・16:46） */
   const items = L.map((d, i) => { const w = d.wd / 100, h = d.h / 100, g = new T3.Group(), [cv, x0] = cvs(16, 16); x0.fillStyle = EXWC; x0.fillRect(0, 0, 16, 16);
     const base = mkTex(cv), it = { d, w, h, g, cv, tx: [base], req: 0, wm: w, hm: h };
     const artM = t => new T3.MeshStandardMaterial({ map: t, bumpMap: abm, bumpScale: 0.0015, roughness: 0.96, dithering: true });
