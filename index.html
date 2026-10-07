@@ -2272,6 +2272,18 @@ body.qcopen #bigwait{visibility:visible!important}body.bbig #toast.tmsg:not(.hid
 .shs-go:disabled{opacity:.35}
 .shs-link{width:100%;margin-top:10px;padding:12px;border-radius:12px;border:1px solid var(--line);background:none;font-size:16px;color:var(--sub)}
 .shs-none{font-size:16px;color:var(--sub);margin:0 0 14px}
+.gpsec{margin:4px 0 8px}.gpv{display:flex;align-items:center;width:min(100%,calc(46vh * var(--gar)));margin:8px auto 6px}
+.gpp{position:relative;flex:0 0 auto;background:#e8e3d9;overflow:hidden;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.2)}.gpp img{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.gpp span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:10px;line-height:1.3;color:#6f685f;padding:2px}
+.gpp.miss{background:repeating-linear-gradient(135deg,#efebe4 0 6px,#e5e0d6 6px 12px);box-shadow:inset 0 0 0 1px rgba(0,0,0,.22)}
+.gpp i{position:absolute;left:3px;top:2px;font:600 9px/1 var(--sans);font-style:normal;color:#fff;text-shadow:0 0 2px rgba(0,0,0,.8)}
+.gpp.cur{outline:2px solid var(--accent);outline-offset:-2px;z-index:1}.gpv:not(.ed) .gpp[data-gpw]{cursor:pointer}
+.gpv.ed .gpp{touch-action:none;cursor:grab;-webkit-user-select:none;user-select:none}.gpv.ed .gpp.sel{outline:3px solid #2e7dd7;outline-offset:-3px;z-index:1}.gpv.ed .gpp.drag{opacity:.55}
+.gpbt{display:flex;flex-wrap:wrap;gap:8px}.gped .gpnm{display:block;margin:8px 0}.gped .gpnm span{display:block;font-size:14px;color:var(--sub)}.gped .gpnm input{width:100%;box-sizing:border-box;font-size:17px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--paper)}
+.gped .gpn{display:flex;align-items:center;gap:12px;margin:10px 0}.gped .gpn button{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--paper);font-size:20px;line-height:1}.gped .gpn b{min-width:28px;text-align:center;font-size:19px}
+.gped .gpslot{margin:8px 0;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}.gped .gpslot input{width:100%;box-sizing:border-box;font-size:16px;padding:8px 10px;margin:8px 0 4px;border:1px solid var(--line);border-radius:10px}
+.gped .gpsb{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.gped .gpsb button{padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:var(--bg);font-size:14px}.gped .gpsb button:disabled{opacity:.4}
+.gpres{max-height:34vh;overflow:auto}.gpres button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:6px;border:0;border-bottom:1px solid var(--line);background:transparent;font-size:15px}.gpres img,.gpres .nph{width:44px;height:44px;object-fit:cover;flex:0 0 44px;background:#e8e3d9}.gpres small{display:block;color:var(--sub);font-size:12px}
 .shfam{display:inline-flex;align-items:center;gap:6px;margin:12px 0 2px;padding:8px 14px;border:1px solid var(--line);border-radius:999px;background:var(--paper);font-size:15px;color:var(--ink)}
 .shfam svg,.hg-inbox svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
 .hg-inbox{display:flex;align-items:center;gap:14px;width:100%;margin:0 0 18px;padding:16px 18px;border-radius:18px;border:2px solid #f0b429;border-bottom-width:5px;background:#fff7e0;color:#4a3500;text-align:left}
@@ -2360,7 +2372,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'ab0fe627fc', APP_URL = location.origin + location.pathname;
+const BUILD = '4e3e9fccd2', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2626,7 +2638,7 @@ function docCacheSync(docs){ let V = {}; try { V = JSON.parse(localStorage.getIt
   if (del.length) thDel(del); try { localStorage.setItem('smr_dver', JSON.stringify(N)); } catch(e){} }
 function setData(d){ shTake(d); if (S.upd) S.upd.t = 0; try { if (d && d.docs && d.docs.length) docCacheSync(d.docs); } catch(e){}
   const allW = d.works || []; d = Object.assign({}, d, {works: allW.filter(w => !OTRE.test(w['作品番号'])), others: allW.filter(w => OTRE.test(w['作品番号']))});
-  Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, museums:d.museums||[], exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], finds:d.finds||[], lits:d.lits||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], faces:d.faces||[], memoChecker:d.memoChecker||'直美', marks:d.marks||[], pimg:d.pimg||S.pimg||[], hist:Array.isArray(d.hist) ? d.hist : (S.hist || null), autoc:Array.isArray(d.autoc) ? d.autoc : (S.autoc || []), user:d.user, ai:d.ai, publicView:d.publicView, gcid:d.gcid || ''}); if (S.token && !d.user) setToken(''); index(); try { pimgIndex(); } catch(e){} renderUser(); try { faceInit(); } catch(e){} try { fpInit(); } catch(e){}  if (d.user) setTimeout(prefetchThumbs, 0); }
+  Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, museums:d.museums||[], exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], finds:d.finds||[], lits:d.lits||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], faces:d.faces||[], memoChecker:d.memoChecker||'直美', marks:d.marks||[], pimg:d.pimg||S.pimg||[], hist:Array.isArray(d.hist) ? d.hist : (S.hist || null), autoc:Array.isArray(d.autoc) ? d.autoc : (S.autoc || []), groups:Array.isArray(d.groups) ? d.groups : (S.groups || []), user:d.user, ai:d.ai, publicView:d.publicView, gcid:d.gcid || ''}); if (S.token && !d.user) setToken(''); index(); try { pimgIndex(); } catch(e){} renderUser(); try { faceInit(); } catch(e){} try { fpInit(); } catch(e){}  if (d.user) setTimeout(prefetchThumbs, 0); }
 const canRole = () => !!(S.user && ['編集','管理'].includes(S.user.role));
 const canEdit = () => canRole();
 try { S.edit = localStorage.getItem('smr_edit') === '1'; } catch(e){ S.edit = false; }
@@ -5908,6 +5920,7 @@ function openWork(no, keepScroll, restoreSc){
         ${dd('状態', w['状態メモ'], 'w9')}${dd('メモ', w['補足'], 'w10')}
         ${dd('所蔵者・連絡先', w['所蔵者・連絡先'], 'w11')}${dd('管理メモ', w['管理メモ'], 'w12')}
       </dl>
+      ${!ot ? grpSecHTML(no) : ''}
       ${ot && !epi.length ? '' : `<h3 class="sec">エピソード・記憶</h3>`}
       ${ot && !epi.length ? '' : epi.length ? `<div class="epis">${epi.map(e => `<blockquote class="epi">${escU(e['内容'])}<cite>${esc(String(e['根拠・出典']||'').replace(/^聞き取り（(.*)）$/, '$1さんの話') || '')}${e['登録日時'] ? '　' + esc(String(e['登録日時']).slice(0,10)) : ''}${canEdit()?` <button class="pen pen-s" data-evedit="${esc(e['出来事ID'])}" aria-label="このお話を直す"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.6"/></svg></button>`:''}</cite></blockquote>`).join('')}</div>` : '<p style="color:var(--sub)">まだありません</p>'}
       ${ot ? '' : `<button class="act ivbtn" data-ivwork="${esc(no)}">🎙 この作品についてインタビュー</button>`}
@@ -5931,6 +5944,7 @@ function openWork(no, keepScroll, restoreSc){
         <button class="act" data-act="doc">書類を撮る</button>
         <button class="act" data-act="flag">${w['要確認']?'要確認を外す':'要確認にする'}</button>
         <button class="act" data-linkw="${esc(no)}">＋ 展覧会・画集にひも付け</button>
+        ${!ot && !grpOf(no) ? `<button class="act" data-grpnew="${esc(no)}">＋ パーツを組にする（大きな作品の一部）</button>${grpUndoBtn(no, 'act')}` : ''}
         ${ot ? `<button class="act" data-tomain="${esc(no)}">→ 本作（本画の一覧）に移す</button>` : `<button class="act" data-toot="${esc(no)}">→ その他の作品（やけもの・版画など）に移す</button>`}
         ${delBtn('w', no, 'この作品')}
       </div>` : ''}
@@ -9770,13 +9784,102 @@ const exvFolds = w => exvFolds1(w) * (exvPairW(w) ? 2 : 1), exvScreen = w => exv
 let EXVF = { f: 'all', mus: '' }; /* 展示ビューで表示する作品（メニューで選ぶ。アプリを開いている間は覚えておく） */
 /* 作品アルバムのカテゴリ（すべて・自宅・美術館…）に入る作品番号 */
 function exvSet(k, mus, q){ const b = [S.filter, S.mus, S.q]; S.filter = k; S.mus = mus || ''; S.q = q || ''; let a = []; try { a = filtered(); } catch(e){} finally { [S.filter, S.mus, S.q] = b; } return new Set(a.map(w => String(w['作品番号']))); }
+/* ---------- 組（パーツ）（10/7 開発 v10 本人「複数パーツを並べた作品の1パーツが1作品として台帳に入っていることがある（12個くらいまで）。くっつけて1作品に。足りないパーツも補って完成形を。全何パーツか決めて、順番はプレビューで入れかえ。キャプションはパーツの数だけ並べる」）
+   Google 側のシート「組」：組ID・作品名（全体）・並び（作品番号を左から「,」区切り。空き＝台帳にないパーツ）・並べ方・メモ。作品の表は変えない。シリーズとは別（シリーズは今のまま別々に並べる） ---------- */
+const grpL = g => String((g && g['並び']) || '').split(',').map(x => x.trim());
+const grpOf = no => (S.groups || []).find(g => grpL(g).includes(String(no)));
+const grpW = no => no ? (S.works || []).find(w => String(w['作品番号']) === String(no)) || null : null;
+/* 名前の終わりの「 A」「①」「(1)」「 1」「その2」：パーツの印。英字1文字は、前が英字・数字のときは印とみない */
+const grpSuf = nm => { nm = String(nm || '').trim(); const m = nm.match(/(?:[\s　]+([0-9０-９]{1,2})|[\s　]*([A-Za-zＡ-Ｚａ-ｚ]|[①-⑳]|[(（][0-9０-９]{1,2}[)）]|その[0-9０-９一二三四五六七八九十]+))$/); if (!m) return null;
+  const b = nm.slice(0, m.index).trim(); if (!b || (m[2] && /^[A-Za-zＡ-Ｚａ-ｚ]$/.test(m[2]) && /[A-Za-z0-9Ａ-Ｚａ-ｚ０-９]$/.test(nm.slice(0, m.index)))) return null; return { base: b, s: m[1] || m[2] }; };
+const grpBase = nm => (grpSuf(nm) || { base: String(nm || '').trim() }).base;
+const grpName = g => String((g && g['作品名']) || '').trim() || grpBase((grpW(grpL(g).find(Boolean)) || {})['作品名']) || '組';
+/* パーツの並び（作品番号の配列）→ 1つずつ：写真（記録写真でないもの）・サイズ（なければ、ほかのパーツのふつうの大きさ。est） */
+function grpSlots(list){ const sl = list.map(no => { no = String(no || '').trim(); const w = grpW(no), p = w ? (photoBy[no] || []).find(x => x['ファイルID'] && x['種類'] !== '記録写真') : null, dm = w ? dimMain(w) : {};
+    return { no, w, id: p ? p['ファイルID'] : '', cp: p ? copyOf(p) : null, h: +dm['高さcm'] || 0, wd: +dm['幅cm'] || 0 }; });
+  const md = a => { a = a.filter(v => v > 0).sort((x, y) => x - y); return a.length ? a[a.length >> 1] : 0; }, mh = md(sl.map(x => x.h)) || 100, mw = md(sl.map(x => x.wd)) || 70;
+  sl.forEach(x => { x.est = !(x.h > 0 && x.wd > 0); if (!(x.h > 0)) x.h = mh; if (!(x.wd > 0)) x.wd = mw; }); return sl; }
+/* 完成形の小さなプレビュー（すき間なしで横に。高さのちがうパーツは上下のまん中をそろえる） */
+function grpPrevHTML(sl, o){ o = o || {}; const W = sl.reduce((a, x) => a + x.wd, 0) || 1, Hm = Math.max(1, ...sl.map(x => x.h));
+  return `<div class="gpv${o.edit ? ' ed' : ''}" style="--gar:${(W / Hm).toFixed(4)}">${sl.map((x, j) => `<div class="gpp${x.no ? '' : ' miss'}${o.cur && o.cur === x.no ? ' cur' : ''}${o.sel === j ? ' sel' : ''}" data-gj="${j}"${!o.edit && x.no ? ` data-gpw="${esc(x.no)}"` : ''} style="width:${(x.wd / W * 100).toFixed(3)}%;aspect-ratio:${(x.wd / x.h).toFixed(4)}">${x.id ? thImg0(x.id, 400) : `<span>${x.no ? 'No.' + esc(x.no) + '<br>写真なし' : '台帳に<br>ない'}</span>`}<i>${j + 1}</i></div>`).join('')}</div>`; }
+/* 新しく組を作るとき：名前の A・B・C、①②、(1)(2) から、となりのパーツを集めて並べてみる（とちゅうの抜けは空き） */
+function grpGuess(no){ const w = grpW(no), m = w && grpSuf(w['作品名']); if (!m) return null;
+  const idx = x => { x = String(x).normalize('NFKC').trim().replace(/^その/, '').replace(/[()（）]/g, ''); if (/^[A-Za-z]$/.test(x)) return x.toUpperCase().charCodeAt(0) - 64; const k = '一二三四五六七八九十'.indexOf(x); if (k >= 0) return k + 1; return +x || 0; };
+  const L = []; (S.works || []).forEach(x => { const xn = String(x['作品番号']), m2 = grpSuf(x['作品名']); if (!m2 || m2.base !== m.base) return; if (xn !== String(no) && grpOf(xn)) return; const i = idx(m2.s); if (i > 0 && i <= 30 && !L[i - 1]) L[i - 1] = xn; });
+  if (L.filter(Boolean).length < 2) return null; return { name: m.base, list: Array.from({ length: L.length }, (_, i) => L[i] || '') }; }
+let GE = null, GU = null; /* GE：組の編集中、GU：さっきの変更（作品ページの「もどす」用。3分） */
+const grpUndoBtn = (no, cls) => GU && GU.from === String(no) && Date.now() - GU.t < 180000 ? `<button type="button" class="${cls}" data-gpundo="${esc(no)}">↩ さっきの組の変更をもどす</button>` : '';
+/* 作品ページの欄（組に入っている作品だけ） */
+function grpSecHTML(no){ const g = grpOf(no); if (!g) return ''; const sl = grpSlots(grpL(g)), reg = sl.filter(x => x.w).length;
+  return `<h3 class="sec">組（パーツ）</h3><div class="gpsec">${grpPrevHTML(sl, { cur: String(no) })}<p class="hint">${esc(grpName(g))}：全${sl.length}パーツ（台帳にあるもの ${reg}点${sl.length > reg ? '・台帳にないもの ' + (sl.length - reg) + '点' : ''}）。パーツを押すと、その作品のページへ。展示ビューでは、くっつけて1つの作品にします。</p>
+    ${canEdit() ? `<div class="gpbt"><button type="button" class="shfam" data-grped="${esc(g['組ID'])}" data-gpfrom="${esc(no)}">組を編集</button>${grpUndoBtn(no, 'shfam')}</div>` : ''}</div>`; }
+function grpRefresh(no){ if (S.pcur && S.pcur.t === 'w' && String(S.pcur.id) === String(no)) openWork(no, true); }
+function grpEdit(id, from){ const g = id ? (S.groups || []).find(x => x['組ID'] === id) : null, gs = g ? null : grpGuess(from);
+  GE = { id: g ? g['組ID'] : '', from: String(from || ''), name: g ? String(g['作品名'] || '') : gs ? gs.name : grpBase((grpW(from) || {})['作品名']), list: g ? grpL(g) : gs ? gs.list : [String(from), ''], sel: -1, prev: g ? Object.assign({}, g) : null, guess: !!gs };
+  openSheet('<div id="gped" class="gped"></div>'); grpDraw(); }
+function grpDraw(){ const el = $('#gped'); if (!el || !GE) return; const sl = grpSlots(GE.list), n = GE.list.length, j = GE.sel, x = sl[j], mv = `<button type="button" data-gpmv="-1" ${j > 0 ? '' : 'disabled'}>← 左へ</button><button type="button" data-gpmv="1" ${j < n - 1 ? '' : 'disabled'}>右へ →</button>`;
+  el.innerHTML = `<h3>${GE.id ? '組（パーツ）を編集' : 'パーツを組にする'}</h3>
+    ${GE.guess ? '<p class="hint">名前の A・B・C や ①② から、パーツを並べてみました。ちがうところは直してください。</p>' : '<p class="hint">大きな作品のパーツが、別々の作品として台帳に入っているときに使います。</p>'}
+    <label class="gpnm"><span>全体の作品名</span><input id="gpName" value="${esc(GE.name)}" placeholder="作品名"></label>
+    <div class="gpn"><span>全パーツ数</span><button type="button" data-gpn="-1" aria-label="減らす">−</button><b>${n}</b><button type="button" data-gpn="1" aria-label="増やす">＋</button></div>
+    <div class="gpwrap">${grpPrevHTML(sl, { edit: 1, sel: j })}</div>
+    <p class="hint">パーツを左右に動かすと、順番を入れかえられます。押すと、そのパーツを選べます。</p>
+    ${j >= 0 && j < n ? (x.no ? `<div class="gpslot"><b>${j + 1}番目：No.${esc(x.no)} ${esc((x.w && x.w['作品名']) || '')}</b><div class="gpsb">${mv}<button type="button" data-gpout>外す（空きにする）</button></div></div>`
+      : `<div class="gpslot"><b>${j + 1}番目：台帳にないパーツ（空き）</b><input id="gpQ" placeholder="入れる作品を、番号か名前で探す" autocomplete="off"><div id="gpRes" class="gpres"></div><div class="gpsb">${mv}</div></div>`) : ''}
+    <div class="btns"><button type="button" class="primary" data-gpsave>保存</button><button type="button" data-close>やめる</button>${GE.id ? '<button type="button" class="danger" data-gpdel>組を解く</button>' : ''}</div>`;
+  hydrate(el); const q = $('#gpQ'); if (q) q.oninput = () => grpFind(q.value); const ni = $('#gpName'); if (ni) ni.oninput = () => { GE.name = ni.value; }; }
+function grpDrawPrev(){ const w = document.querySelector('#gped .gpwrap'); if (!w || !GE) return; w.innerHTML = grpPrevHTML(grpSlots(GE.list), { edit: 1, sel: GE.sel }); hydrate(w); }
+function grpFind(q){ const out = $('#gpRes'); if (!out || !GE) return; q = String(q || '').normalize('NFKC').trim().toLowerCase(); if (!q) { out.innerHTML = ''; return; } const qn = q.replace(/^no\.?\s*/, '');
+  const inL = new Set(GE.list.filter(Boolean)), L = (S.works || []).filter(w => { const no = String(w['作品番号']), g = grpOf(no); if (inL.has(no) || (g && g['組ID'] !== GE.id)) return false; return no.toLowerCase().includes(qn) || String(w['作品名'] || '').normalize('NFKC').toLowerCase().includes(q); }).slice(0, 12);
+  out.innerHTML = L.length ? L.map(w => { const no = String(w['作品番号']), p = (photoBy[no] || [])[0]; return `<button type="button" data-gpput="${esc(no)}">${p ? thImg0(p['ファイルID'], 400) : '<span class="nph"></span>'}<span><b>No.${esc(no)}</b> ${esc(w['作品名'] || '無題')}<small>${esc([w['制作年'], szShort(w, ' cm')].filter(Boolean).join('・'))}</small></span></button>`; }).join('') : '<p class="hint">見つかりません（ほかの組に入っている作品は出ません）</p>'; hydrate(out); }
+async function grpSave(del){ if (!GE) return; const name = String((($('#gpName') || {}).value) || GE.name || '').trim(), list = GE.list.slice();
+  if (!del && !list.some(Boolean)) return alert('台帳の作品を1つ以上入れてください');
+  if (del && !confirm('この組を解きますか？（パーツの作品は、そのまま台帳に残ります）')) return;
+  busy(true, del ? '組を解いています…' : '組を保存しています…');
+  try { const r = await call('saveGroup', del ? { id: GE.id } : { id: GE.id, name, list, how: GE.prev ? GE.prev['並べ方'] || '' : '', memo: GE.prev ? GE.prev['メモ'] || '' : '' }, del ? 1 : 0);
+    if (!r || !Array.isArray(r.groups)) throw new Error('Google 側の更新（デプロイ）がまだかもしれません');
+    S.groups = r.groups; GU = { id: del ? GE.id : r.id, prev: GE.prev, from: GE.from, t: Date.now() }; const from = GE.from; GE = null; closeSheet(); toast(del ? '組を解きました' : '組を保存しました'); grpRefresh(from); try { exvSync(); } catch(e){} }
+  catch(e){ alert('保存できませんでした（' + (e && e.message || e) + '）'); }
+  finally { busy(false); } }
+async function grpUndo(no){ const u = GU; if (!u) return; busy(true, 'もどしています…');
+  try { const pv = u.prev, r = pv ? await call('saveGroup', { id: pv['組ID'], name: pv['作品名'], list: grpL(pv), how: pv['並べ方'] || '', memo: pv['メモ'] || '' }, 0) : await call('saveGroup', { id: u.id }, 1);
+    if (!r || !Array.isArray(r.groups)) throw new Error('もどせませんでした'); S.groups = r.groups; GU = null; toast('もとにもどしました'); grpRefresh(no); try { exvSync(); } catch(e){} }
+  catch(e){ alert('もどせませんでした（' + (e && e.message || e) + '）'); } finally { busy(false); } }
+/* 編集の画面のプレビュー：パーツを左右に動かして入れかえ（指でもマウスでも）。動かさずにはなすと、そのパーツを選ぶ */
+document.addEventListener('pointerdown', e => { const pp = e.target.closest && e.target.closest('#gped .gpv .gpp'); if (!pp || !GE) return; e.preventDefault();
+  const j0 = +pp.dataset.gj, x0 = e.clientX, y0 = e.clientY; let j = j0, moved = false;
+  const mv = ev => { if (!moved && Math.hypot(ev.clientX - x0, ev.clientY - y0) < 8) return; moved = true; const ps = [...document.querySelectorAll('#gped .gpv .gpp')];
+    let t = 0; ps.forEach((el, q) => { if (q === j) return; const r = el.getBoundingClientRect(); if (r.left + r.width / 2 < ev.clientX) t++; }); /* 自分のほかに、指より左にあるパーツの数＝入る位置 */
+    if (t !== j) { const v = GE.list.splice(j, 1)[0]; GE.list.splice(t, 0, v); j = t; GE.sel = t; grpDrawPrev(); } const el = document.querySelector('#gped .gpv .gpp[data-gj="' + j + '"]'); if (el) el.classList.add('drag'); };
+  const up = () => { document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up); document.removeEventListener('pointercancel', up); if (!moved) GE.sel = GE.sel === j0 ? -1 : j0; grpDraw(); };
+  document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up); document.addEventListener('pointercancel', up); });
+document.addEventListener('click', e => { const t = e.target; if (!t || !t.closest) return;
+  const nw = t.closest('[data-grpnew]'); if (nw) { grpEdit('', nw.dataset.grpnew); return; }
+  const ed = t.closest('[data-grped]'); if (ed) { grpEdit(ed.dataset.grped, ed.dataset.gpfrom); return; }
+  const ud = t.closest('[data-gpundo]'); if (ud) { grpUndo(ud.dataset.gpundo); return; }
+  const gw = t.closest('[data-gpw]'); if (gw && !t.closest('#gped')) { const no = gw.dataset.gpw; if (!(S.pcur && S.pcur.t === 'w' && String(S.pcur.id) === no)) openWork(no); return; }
+  if (!GE || !t.closest('#gped')) return;
+  const nb = t.closest('[data-gpn]'); if (nb) { if (+nb.dataset.gpn > 0) { if (GE.list.length >= 30) return toast('30パーツまでです'); GE.list.push(''); }
+    else { if (GE.list.length <= 2) return toast('2パーツより少なくはできません'); const last = GE.list[GE.list.length - 1]; if (last) return toast('いちばん右（No.' + last + '）を外してから減らしてください'); GE.list.pop(); if (GE.sel >= GE.list.length) GE.sel = -1; } grpDraw(); return; }
+  const mb = t.closest('[data-gpmv]'); if (mb) { const j = GE.sel, k = j + +mb.dataset.gpmv; if (j < 0 || k < 0 || k >= GE.list.length) return; const v = GE.list[j]; GE.list[j] = GE.list[k]; GE.list[k] = v; GE.sel = k; grpDraw(); return; }
+  if (t.closest('[data-gpout]')) { if (GE.sel >= 0) { GE.list[GE.sel] = ''; grpDraw(); } return; }
+  const pt = t.closest('[data-gpput]'); if (pt) { if (GE.sel >= 0) { GE.list[GE.sel] = pt.dataset.gpput; grpDraw(); } return; }
+  if (t.closest('[data-gpsave]')) { grpSave(false); return; }
+  if (t.closest('[data-gpdel]')) { grpSave(true); return; } });
 function exvWorks(noF){ const L = [], keep = !noF && EXVF.f !== 'all' ? exvSet(EXVF.f, EXVF.mus) : null;
+  const GIN = new Set(); (S.groups || []).forEach(g => grpL(g).forEach(x => { if (x) GIN.add(x); })); /* 組のパーツは、下で1つの作品にまとめる */
   (S.works || []).forEach(w => { const no = w['作品番号'], p = (photoBy[no] || [])[0], id = p && p['ファイルID'];
-    if (!id || (keep && !keep.has(String(no))) || /廃棄|統合済み/.test(String(w['所在'] || '') + ' ' + String(w['状態'] || ''))) return;
+    if (GIN.has(String(no)) || !id || (keep && !keep.has(String(no))) || /廃棄|統合済み/.test(String(w['所在'] || '') + ' ' + String(w['状態'] || ''))) return;
     const d = dimMain(w), h0 = +d['高さcm'] || 0, wd0 = +d['幅cm'] || 0, sn = exvSetN(w), pl = (photoBy[no] || []).filter(x => x['ファイルID'] && x['種類'] !== '記録写真');
     const set = sn > 1 && pl.length >= sn && h0 > 0 && wd0 > 0 ? { n: sn, ids: pl.slice(0, sn).map(x => x['ファイルID']), pw: wd0, ph: h0, dir: wd0 >= h0 ? 'v' : 'h', gap: 24 } : null; /* 何面かで1組（台帳のサイズは1面ぶん）：横長の面は縦に、縦長の面は横に並べる。写真は面ごとに1枚（はじめの n 枚）。すき間 24cm（10/7 本人：6 → 12 → 24cm） */
     const h = set && set.dir === 'v' ? sn * h0 + (sn - 1) * set.gap : h0, wd = set && set.dir === 'h' ? sn * wd0 + (sn - 1) * set.gap : wd0;
     L.push({ no, w, id, set, y: yearOf(w['制作年']), s: String(w['シリーズ'] || '').trim(), h, wd, est: !(h > 0 && wd > 0), frame: szKind(w) === 'frame', b: isScreenW(w) || isKannon(w), k: isKannon(w), cp: copyOf(p) }); }); /* 転載した写真（©）も出す（10/6 本人）。キャプションに © */
+  /* 組（パーツ）：すき間なしで横にくっつけた1つの作品。台帳にない・写真のないパーツも、となりと同じくらいの大きさで入れて完成形に（10/7 本人） */
+  (S.groups || []).forEach(g => { const sl = grpSlots(grpL(g)), reg = sl.filter(x => x.w); if (!reg.length || sl.length < 2) return; if (keep && !reg.some(x => keep.has(String(x.no)))) return;
+    let X = 0; const xs = sl.map(x => { const v = X; X += x.wd; return v; }), H = Math.max(...sl.map(x => x.h)), w0 = reg[0].w, p0 = sl.find(x => x.id);
+    reg.forEach(x => { x.pd = { no: x.no, w: x.w, h: x.h, wd: x.wd, est: x.est, frame: szKind(x.w) === 'frame', cp: x.cp }; });
+    L.push({ no: reg[0].no, nos: reg.map(x => String(x.no)), w: Object.assign({}, w0, { '作品名': grpName(g) }), id: p0 ? p0.id : '', grp: { gid: g['組ID'], name: grpName(g), slots: sl, reg, x: xs, W: X, H }, set: null,
+      y: Math.min(...reg.map(x => yearOf(x.w['制作年']))), s: String(w0['シリーズ'] || '').trim(), h: H, wd: X, est: false, frame: false, b: false, k: false, cp: null }); });
   const gy = {}; L.forEach(d => { if (d.s) gy[d.s] = Math.min(gy[d.s] == null ? 99999 : gy[d.s], d.y); }); /* シリーズは、いちばん古い作品の年のところにまとめる */
   L.sort((a, b) => (a.s ? gy[a.s] : a.y) - (b.s ? gy[b.s] : b.y) || (a.s || '\uffff' + a.no).localeCompare(b.s || '\uffff' + b.no, 'ja', { numeric: true }) || a.y - b.y || String(a.no).localeCompare(String(b.no), 'ja', { numeric: true }));
   /* 三面（10/7 本人「三面不動は三枚の屏風が背中合わせ。上から見ると120°ずつ開いた形。進む・戻るで回転。展示ビューでは完成形を見せたい」）：
@@ -9879,7 +9982,7 @@ function shInbox(){ if (!S.user) return; shPoll(true);
     <small>${esc(x['宛先'])}さんへ・${esc(shWhen(x['日時']))}・${x['見た日時'] ? '<span class="seen">見た ✓</span>' : 'まだ見ていない'}</small>${x['ひとこと'] ? `<p>${esc(x['ひとこと'])}</p>` : ''}</span></button>`;
   openSheet(`<h3>届いたもの</h3>${I.length ? `<div class="sh-list">${I.map(it).join('')}</div>` : '<p class="hint">まだ届いたものはありません。</p>'}
     ${O.length ? `<h3 style="margin-top:8px">送ったもの</h3><div class="sh-list">${O.map(ot).join('')}</div>` : ''}<div class="btns"><button type="button" data-close>閉じる</button></div>`); hydrate($('#sheetbox')); }
-function shGo(kind, no){ closeSheet(); if (kind === 'exv' && exvWorks().some(d => String(d.no) === String(no))) { exvOpen(String(no), true); hpushLater('exv'); }
+function shGo(kind, no){ closeSheet(); if (kind === 'exv' && exvWorks().some(d => exvHas(d, no))) { exvOpen(String(no), true); hpushLater('exv'); }
   else { let k = 0; const go = () => { if (HIST.skip > 0 && k++ < 30) return setTimeout(go, 50); openWork(no); }; go(); } } /* 閉じた画面の「戻る」が済んでから開く（履歴がずれないように） */
 document.addEventListener('click', e => { const t = e.target;
   const a = t.closest('[data-share]'); if (a) { shOpen('work', a.dataset.share); return; }
@@ -9889,10 +9992,11 @@ document.addEventListener('click', e => { const t = e.target;
     shGo(x['種類'], x['対象']); return; }
   const g = t.closest('[data-shgo]'); if (g) { const [k, n] = g.dataset.shgo.split('|'); shGo(k, n); } });
 /* 展示ビューの並びの元（作品・写真・サイズ・年・名前など）。開いている間に最新の台帳が届いて、これが変わったら作り直す（10/6 本人） */
-const exvSig = L => L.map(d => [d.no, d.id, d.set ? d.set.ids.join(',') : '', d.h, d.wd, d.y, d.s, d.b ? 1 : 0, d.k ? 1 : 0, d.frame ? 1 : 0, d.w['作品名'], d.w['制作年'], d.w['画材'], d.w['仕立て'], d.w['所在'], d.cp ? d.cp.mu : ''].join('|')).join('\n');
+const exvHas = (d, no) => String(d.no) === String(no) || !!(d.nos && d.nos.includes(String(no))); /* 組はどのパーツの番号でも */
+const exvSig = L => L.map(d => [d.no, d.id, d.set ? d.set.ids.join(',') : '', d.grp ? d.grp.name + '#' + d.grp.slots.map(x => [x.no, x.id, x.h, x.wd].join(':')).join(',') : '', d.h, d.wd, d.y, d.s, d.b ? 1 : 0, d.k ? 1 : 0, d.frame ? 1 : 0, d.w['作品名'], d.w['制作年'], d.w['画材'], d.w['仕立て'], d.w['所在'], d.cp ? d.cp.mu : ''].join('|')).join('\n');
 function exvSync(){ if (!EXV || !EXV.sig || !EXV.curNo || EXV.syncT) return; let L; try { L = exvWorks(); } catch(e){ return; } if (!L.length || exvSig(L) === EXV.sig) return;
   const go = () => { if (!EXV || !EXV.curNo) return; EXV.syncT = 0; if (EXV.busy()) { EXV.syncT = setTimeout(go, 1500); return; } /* 動いている・さわっている間は待つ */
-    const no = EXV.curNo(), c = EXV.close, st = no != null && L.some(d => String(d.no) === String(no)) ? String(no) : 0; try { c(); } catch(e){} exvOpen(st, true); }; /* 履歴は増やさない */
+    const no = EXV.curNo(), c = EXV.close, st = no != null && L.some(d => exvHas(d, no)) ? String(no) : 0; try { c(); } catch(e){} exvOpen(st, true); }; /* 履歴は増やさない */
   EXV.syncT = setTimeout(go, 400); }
 /* 登録して20分以内の写真か（切り抜き・補正したばかりの写真は、Google 側の縮小写真がまだできていないことがある） */
 function exvFresh(fid){ const p = (S.photos || []).find(x => x['ファイルID'] === fid), m = p && /^(\d{4})\/(\d{1,2})\/(\d{1,2})\s+(\d{1,2}):(\d{2})/.exec(String(p['登録日時'] || ''));
@@ -9908,7 +10012,7 @@ async function exvOpen(start, noPush){
   EXV = { root, close: () => { try { de.style.backgroundColor = bgp[0]; document.body.style.backgroundColor = bgp[1]; } catch(e){} try { if ((document.fullscreenElement || document.webkitFullscreenElement) === root) (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch(e){} { const t = document.getElementById('toast'); if (t && root.contains(t)) document.body.appendChild(t); } root.remove(); document.body.classList.remove('exvopen'); EXV = null; try { syncThemeColor(); } catch(e){} } };
   root.querySelector('.xcl').onclick = () => exvClose(false);
   if (!noPush) hpush('exv');
-  try { await exvLib(); let L = exvWorks(); if (typeof start === 'string' && EXVF.f !== 'all' && !L.some(d => String(d.no) === start)) { EXVF = { f: 'all', mus: '' }; L = exvWorks(); } if (!L.length) throw new Error('写真のある作品がありません'); if (EXV && EXV.root === root) EXV.sig = exvSig(L); await exvEstimate(L); if (!EXV || EXV.root !== root) return; exvBuild(root, L, typeof start === 'string' ? Math.max(0, L.findIndex(d => String(d.no) === start) + 1) : (+start || 0)); }
+  try { await exvLib(); let L = exvWorks(); if (typeof start === 'string' && EXVF.f !== 'all' && !L.some(d => exvHas(d, start))) { EXVF = { f: 'all', mus: '' }; L = exvWorks(); } if (!L.length) throw new Error('写真のある作品がありません'); if (EXV && EXV.root === root) EXV.sig = exvSig(L); await exvEstimate(L); if (!EXV || EXV.root !== root) return; exvBuild(root, L, typeof start === 'string' ? Math.max(0, L.findIndex(d => exvHas(d, start)) + 1) : (+start || 0)); }
   catch(e){ const wt = root.querySelector('.xwait'); if (wt) wt.textContent = (e && e.message) || '展示ビューを開けませんでした'; }
 }
 /* 作品ページへ：展示ビューを閉じ（履歴の「展示ビュー」はそのまま作品ページの分に）、作品ページを開く。作品ページを閉じると、同じ作品から展示ビューにもどる（closeWork の 'exv'） */
@@ -10017,7 +10121,13 @@ function exvBuild(root, L, start){
   const items = L.map((d, i) => { const w = d.wd / 100, h = d.h / 100, g = new T3.Group(), [cv, x0] = cvs(16, 16); x0.fillStyle = '#dcd6cd'; x0.fillRect(0, 0, 16, 16);
     const base = mkTex(cv), it = { d, w, h, g, cv, tx: [base], req: 0, wm: w, hm: h };
     const artM = t => new T3.MeshStandardMaterial({ map: t, bumpMap: abm, bumpScale: 0.0015, roughness: 0.96, dithering: true });
-    if (d.tri && d.tj) { it.gh = 1; } /* 三面の2・3点目：形は1点目にある（ここは止まる位置とキャプションの番号だけ） */
+    if (d.grp) { /* 組（パーツ）：パーツをすき間なしで横にくっつける。写真は全部を1枚の絵にまとめて（grpCompose）、パーツごとに貼り分ける。台帳にない・写真のないパーツは、紙に番号 */
+      const G = d.grp, sF = Math.sqrt(w * h), dep = Math.min(0.05, Math.max(0.022, 0.018 + 0.02 * sF)), off = -0.003, cb = 0.012 + dep * 0.4;
+      G.slots.forEach((sl, j) => { const pw = sl.wd / 100, ph = sl.h / 100, t = j ? base.clone() : base; if (j) { t.needsUpdate = true; it.tx.push(t); } t.repeat.set(sl.wd / G.W, sl.h / G.H); t.offset.set(G.x[j] / G.W, (G.H - sl.h) / (2 * G.H));
+        const pn = new T3.Mesh(new T3.BoxGeometry(pw, ph, dep), [side, side, side, side, artM(t), side]); pn.position.set(-w / 2 + (G.x[j] + sl.wd / 2) / 100, 0, off + dep / 2); pn.castShadow = true; g.add(pn, cStrip(pw + 0.004, cb, 0.46, pn.position.x, -ph / 2 - cb / 2 + 0.001, 0)); });
+      const m = 0.03 + 0.06 * sF, bl = 0.008 + 0.025 * sF, ao = new T3.Mesh(new T3.PlaneGeometry(w + 2 * m, h + 2 * m), new T3.MeshBasicMaterial({ transparent: true, opacity: Math.min(0.32, 0.18 + 0.1 * sF), depthWrite: false })); ao.position.set(0, -0.004 - 0.008 * sF, 0.0012); ao.visible = false; ao.raycast = () => {}; g.add(ao);
+      g.position.y = CY; Object.assign(it, { ao, aoMk: () => softShadow(w, h, m, bl, G.slots.map((sl, j) => [G.x[j] / 100, (G.H - sl.h) / 200, sl.wd / 100, sl.h / 100])), tr: G.W / G.H, mx: 4096 }); }
+    else if (d.tri && d.tj) { it.gh = 1; } /* 三面の2・3点目：形は1点目にある（ここは止まる位置とキャプションの番号だけ） */
     else if (d.tri) { /* 三面：屏風3つ（どれも二曲）の背中を合わせて、上から見て120°ずつのY字に立てる。面 f（0〜2）が前を向くとき、左の板は腕 α+60°・右の板は腕 α−60°（α＝90°−120°×f）。
          1本の腕の表と裏は、となりの2つの屏風の板（背中合わせ）。写真は3点を横に並べた1枚（setPaint）を、面ごとに左半分・右半分に分けて貼る。進む・戻るで rot が回る（triSet・triTo） */
       const pw = d.wd / 200, FWb = 0.022, FDt = 0.046, dp = 0.036, R = pw + FWb, zc = R + 0.3, y0 = h / 2 + FWb + 0.004, rot = new T3.Group(); rot.position.z = zc; g.add(rot);
@@ -10072,6 +10182,7 @@ function exvBuild(root, L, start){
       xc.font = '400 ' + FS + 'px ' + FONT; xc.textBaseline = 'middle'; xc.fillStyle = '#a59e94'; xc.fillText(t, 4, cc.height / 2 + 1);
       const cpM = new T3.Mesh(new T3.PlaneGeometry(1, 1), new T3.MeshStandardMaterial({ map: mkTex(cc), transparent: true, roughness: 0.95, depthWrite: false })); cpM.visible = false; cpM.raycast = () => {}; it.cpH.o.add(cpM); Object.assign(it, { cpM, cpA: cc.width / cc.height }); }
     const capF = new T3.MeshStandardMaterial({ color: '#f6f4f0', roughness: 0.92, dithering: true }), capM = new T3.Mesh(new T3.BoxGeometry(PWm, PHm, 0.004), [capS, capS, capS, capS, capF, capS]); capM.castShadow = true; capM.visible = false; sc.add(capM); Object.assign(it, { capM, capF });
+    if (d.grp) it.xc = d.grp.reg.slice(1).map(sl => { const F = new T3.MeshStandardMaterial({ color: '#f6f4f0', roughness: 0.92, dithering: true }), M = new T3.Mesh(new T3.BoxGeometry(PWm, PHm, 0.004), [capS, capS, capS, capS, F, capS]); M.castShadow = true; M.visible = false; sc.add(M); return { m: M, F, sl }; }); /* 組：台帳に入っているパーツの数だけキャプション */
     return it; });
   const title = new T3.Mesh(new T3.PlaneGeometry(1, 1), new T3.MeshStandardMaterial({ map: wallText([['下村良之介', 64, 300, '#2f2c28', 0, 18]], TTW, TTH), transparent: true, roughness: 0.95, depthWrite: false }));
   sc.add(title);
@@ -10088,12 +10199,12 @@ function exvBuild(root, L, start){
 
   /* 近くの作品だけ写真・キャプション・影を読み込み、遠くなったら手放す（スマホのメモリのため） */
   let rq = 0, dead = 0; const redraw = () => { if (rq || dead) return; rq = requestAnimationFrame(() => { rq = 0; draw(); }); };
-  const capLines = it => { const w = it.d.w, sz = it.d.tri ? '各 ' + (+it.d.h).toFixed(1) + ' × ' + (+it.d.wd).toFixed(1) + ' cm（3点・背中合わせ）' : it.d.set ? '各 ' + (+it.d.set.ph).toFixed(1) + ' × ' + (+it.d.set.pw).toFixed(1) + ' cm（' + it.d.set.n + '面）' : it.d.est ? '約 ' + it.d.h + ' × ' + it.d.wd + ' cm（推定）' : (+it.d.h).toFixed(1) + ' × ' + (+it.d.wd).toFixed(1) + ' cm' + (it.d.frame ? '（額込み）' : '');
+  const capLines = it => { if (it.d.grp) it = { d: it.d.grp.reg[0].pd }; const w = it.d.w, sz = it.d.tri ? '各 ' + (+it.d.h).toFixed(1) + ' × ' + (+it.d.wd).toFixed(1) + ' cm（3点・背中合わせ）' : it.d.set ? '各 ' + (+it.d.set.ph).toFixed(1) + ' × ' + (+it.d.set.pw).toFixed(1) + ' cm（' + it.d.set.n + '面）' : it.d.est ? '約 ' + it.d.h + ' × ' + it.d.wd + ' cm（推定）' : (+it.d.h).toFixed(1) + ' × ' + (+it.d.wd).toFixed(1) + ' cm' + (it.d.frame ? '（額込み）' : '');
     return [[it.d.tri ? it.d.tri.nos.join('・') : String(it.d.no), 10.5, 400, '#8a8379', 6, 1], [String(w['作品名'] || '').trim() || '無題', 17, 500, '#2a2724', 6, 1.5], [exvYearTxt(w), 11.5, 400, '#46413b', 2.5, 0.4], [String(w['画材'] || '').trim(), 11.5, 400, '#46413b', 2.5, 0.4], [sz, 11.5, 400, '#46413b', 2.5, 0.4], [exvOwner(w), 11.5, 400, '#46413b', it.d.cp ? 4 : 0, 0.4]].concat(it.d.cp ? [['画像 © ' + String(it.d.cp.mu || '').replace(/^[@＠]/, ''), 9.5, 400, '#8a8379', 0, 0.4]] : []); };
   const paint = (it, im) => { const iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height; if (!iw || !it.req) return; it.pt = 1; it.fail = 0;
     const tr = it.tr || it.wm / it.hm, ir = iw / ih; let sx = 0, sy = 0, sw = iw, sh = ih;
     if (Math.abs(ir / tr - 1) > 0.06) { if (ir > tr) { sw = ih * tr; sx = (iw - sw) / 2; } else { sh = iw / tr; sy = (ih - sh) / 2; } } /* 形が台帳と合わないときは、まん中を切り出す */
-    const k = Math.min(1, 1024 / Math.max(sw, sh)), cw = Math.max(2, Math.round(sw * k)), ch = Math.max(2, Math.round(sh * k)), c = it.cv, x = c.getContext('2d');
+    const k = Math.min(1, (it.mx || 1024) / Math.max(sw, sh)), cw = Math.max(2, Math.round(sw * k)), ch = Math.max(2, Math.round(sh * k)), c = it.cv, x = c.getContext('2d');
     c.width = cw; c.height = ch; x.drawImage(im, sx, sy, sw, sh, 0, 0, cw, ch);
     try { const id = x.getImageData(0, 0, cw, ch), q = id.data; for (let i = 0; i < q.length; i += 4) { const r0 = q[i], g0 = q[i + 1], b0 = q[i + 2], l = 0.299 * r0 + 0.587 * g0 + 0.114 * b0; q[i] = (l + (r0 - l) * 1.14 - 128) * 1.05 + 128; q[i + 1] = (l + (g0 - l) * 1.14 - 128) * 1.05 + 128; q[i + 2] = (l + (b0 - l) * 1.14 - 128) * 1.05 + 128; } x.putImageData(id, 0, 0); } /* 発色を少しよく（10/6 本人） */ catch(e){ c.width = c.height = 16; x.fillStyle = '#dcd6cd'; x.fillRect(0, 0, 16, 16); it.tx.forEach(t => { t.needsUpdate = true; }); return redraw(); }
     matte(x, cw, ch); it.tx.forEach(t => { t.needsUpdate = true; }); redraw(); };
@@ -10104,15 +10215,36 @@ function exvBuild(root, L, start){
       Promise.all(rest.map(id => loadImg(got[id]).catch(() => null))).then(ims => { if (it.im !== tok || !it.req || ims.some(x => !x)) return; const all = [im0].concat(ims), n = S0.n, vt = S0.dir === 'v';
         const L0 = 1600, pr = S0.ph / S0.pw, cw = vt ? L0 : Math.round(L0 / pr), ch = vt ? Math.round(L0 * pr) : L0, c = document.createElement('canvas'); c.width = vt ? cw : cw * n; c.height = vt ? ch * n : ch; const x = c.getContext('2d');
         all.forEach((im, j) => x.drawImage(im, vt ? 0 : j * cw, vt ? j * ch : 0, cw, ch)); paint(it, c); c.width = c.height = 1; }); }); };
+  /* 組：パーツの写真を1枚の絵にまとめる（パーツの大きさの比のまま。高さのちがうものは上下のまん中）。写真のないパーツは紙に番号、台帳にないものは「台帳にない」 */
+  const grpCompose = async (it, M) => { const G = it.d.grp, s = Math.min(4096 / G.W, 1400 / G.H), cw = Math.max(2, Math.round(G.W * s)), ch = Math.max(2, Math.round(G.H * s)), c = document.createElement('canvas'); c.width = cw; c.height = ch; const x = c.getContext('2d');
+    const ims = {}; await Promise.all(Object.keys(M).map(id => loadImg(M[id]).then(im => { ims[id] = im; }).catch(() => {})));
+    x.fillStyle = '#dcd6cd'; x.fillRect(0, 0, cw, ch);
+    G.slots.forEach((sl, j) => { const rx = G.x[j] * s, rw = sl.wd * s, rh = sl.h * s, ry = (G.H - sl.h) / 2 * s, im = sl.id && ims[sl.id];
+      if (im) { const iw = im.naturalWidth, ih = im.naturalHeight, rr = rw / rh; let sx = 0, sy = 0, sw = iw, sh = ih; if (iw / ih > rr) { sw = ih * rr; sx = (iw - sw) / 2; } else { sh = iw / rr; sy = (ih - sh) / 2; } x.drawImage(im, sx, sy, sw, sh, rx, ry, rw, rh); }
+      else { x.fillStyle = sl.no ? '#e3ddd2' : '#ebe7df'; x.fillRect(rx, ry, rw, rh); const fs = Math.max(9, Math.min(rw * 0.11, rh * 0.045)); x.fillStyle = 'rgba(102,95,87,.72)'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.font = '400 ' + fs + 'px "Hiragino Sans","Noto Sans JP",sans-serif';
+        x.fillText(sl.no ? 'No.' + sl.no : 'パーツ ' + (j + 1), rx + rw / 2, ry + rh / 2 - fs * 0.75); x.fillText(sl.no ? (sl.id ? '読み込み中' : '写真なし') : '台帳にない', rx + rw / 2, ry + rh / 2 + fs * 0.75); }
+      if (j) { x.fillStyle = 'rgba(40,34,28,.16)'; x.fillRect(Math.round(rx), ry, 1, rh); } }); /* パーツの境目をうすく */
+    if (it.req) paint(it, c); c.width = c.height = 1; };
+  const grpLoad = async (it, tok) => { const G = it.d.grp, ids = [...new Set(G.slots.map(x => x.id).filter(Boolean))], ok = () => !dead && it.im === tok && it.req;
+    const pick = () => { const m = {}; ids.forEach(id => { const v = TH['800_' + id] || TH['400_' + id]; if (v && /^data:/.test(v)) m[id] = v; }); return m; };
+    try { const sv = await thGet([].concat(...ids.map(id => ['800_' + id, '400_' + id]))); Object.keys(sv || {}).forEach(k => { if (sv[k] && !TH[k]) TH[k] = sv[k]; }); } catch(e){}
+    if (!ok()) return; await grpCompose(it, pick()); if (!ok()) return; it.lo = 1;
+    for (let tr = 0; tr < 4; tr++) { const need = ids.filter(id => !/^data:/.test(TH['800_' + id] || '')); if (!need.length) break;
+      for (let q = 0; q < need.length; q += 6) { const part = need.slice(q, q + 6); let m = {}; try { m = await Promise.race([call('getThumbs', part, 800, null, 1), new Promise(r => setTimeout(() => r({}), 40000))]) || {}; } catch(e){}
+        const put = {}; part.forEach(id => { const v = m[id]; if (v && /^data:/.test(v)) { TH['800_' + id] = v; put['800_' + id] = v; } }); try { thPut(put); } catch(e){} if (!ok()) return; }
+      await grpCompose(it, pick()); if (!ok()) return; if (ids.every(id => /^data:/.test(TH['800_' + id] || ''))) break; await new Promise(r => setTimeout(r, 3000 * (tr + 1))); if (!ok()) return; }
+    it.hi = 1; };
   const paintX = (it, im, lv) => it.d.set ? setPaint(it, im, lv) : paint(it, im); /* 何面かの組は、全部の面がそろってから */
   const warm = it => { if (it.req) return; it.req = 1; if (it.gh) { it.pt = 1; it.hi = 1; return; } /* 三面の2・3点目 */
     if (!it.capF.map) { it.capF.map = wallText(capLines(it), CAPW, CAPH, CPAD, '#f6f4f0', true, '作品ページへ'); it.capF.color.set('#ffffff'); it.capF.needsUpdate = true; } it.capM.visible = true; if (it.cpM) it.cpM.visible = true;
+    (it.xc || []).forEach(c => { if (!c.F.map) { c.F.map = wallText(capLines({ d: c.sl.pd }), CAPW, CAPH, CPAD, '#f6f4f0', true, '作品ページへ'); c.F.color.set('#ffffff'); c.F.needsUpdate = true; } c.m.visible = true; });
     if (!it.ao.material.map) { it.ao.material.map = it.aoMk(); it.ao.material.needsUpdate = true; } it.ao.visible = true;
+    if (it.d.grp) { const tok = {}; it.im = tok; it.hi = 0; it.pt = 0; it.lo = 0; it.tries = 0; it.fail = 0; ldDraw(it, performance.now()); ldOn(); grpLoad(it, tok); return; } /* 組は、パーツの写真をまとめて */
     const tok = {}; it.im = tok; const lo = TH['400_' + it.d.id]; if (lo && /^data:/.test(lo)) { const i0 = new Image(); i0.onload = () => { if (it.im === tok && !it.hi) paintX(it, i0, 400); }; i0.src = lo; }
     it.hi = 0; it.pt = 0; it.tries = 0; it.fail = 0; it.fresh = exvFresh(it.d.id); ldDraw(it, performance.now()); ldOn(); /* 届くまでは白い紙のまん中にローダー */
     PQ.set(it.d.id, it); clearTimeout(PQT); PQT = setTimeout(pull, 40); };
   const cool = it => { if (!it.req) return; it.req = 0; if (it.gh) { it.pt = 0; it.hi = 0; return; } it.im = null; it.lo = 0; it.pt = 0; PQ.delete(it.d.id); const c = it.cv, x = c.getContext('2d'); c.width = c.height = 16; x.fillStyle = '#dcd6cd'; x.fillRect(0, 0, 16, 16); it.tx.forEach(t => { t.needsUpdate = true; });
-    [[it.capM, it.capF], [it.ao, it.ao.material]].forEach(([o, m]) => { if (m.map) { m.map.dispose(); m.map = null; m.needsUpdate = true; } o.visible = false; }); if (it.cpM) it.cpM.visible = false; };
+    [[it.capM, it.capF], [it.ao, it.ao.material]].forEach(([o, m]) => { if (m.map) { m.map.dispose(); m.map = null; m.needsUpdate = true; } o.visible = false; }); if (it.cpM) it.cpM.visible = false; (it.xc || []).forEach(c => { if (c.F.map) { c.F.map.dispose(); c.F.map = null; c.F.needsUpdate = true; } c.m.visible = false; }); };
   /* 読み込み中の表示（10/6 本人）：白い紙のまん中に細い線の丸いローダー、下に小さな灰色の文字「画像を更新しています」。画面の上で同じくらいの大きさになるよう、
      止まったときの「1画面ピクセルあたりのメートル」（it.kpx）から描く大きさを決める。届かなければ「画像を読み込めませんでした」 */
   const ldDraw = (it, t) => { if (!it.req || it.pt) return; const kp = it.kpx || 0.002, pw = it.wm / kp, ph = it.tr ? pw / it.tr : it.hm / kp, q = Math.min(2, 1024 / Math.max(pw, ph, 1));
@@ -10176,19 +10308,22 @@ function exvBuild(root, L, start){
     const FW = port ? 0.72 : 0.64, FH = port ? 0.46 : 0.62;
     /* 1点ぶんの見せ方：画面に占める割合（シリーズの中は少し大きく＝間をつめて掛ける）・キャプションの置き方・見る高さ */
     const frame = (it, tight) => { const h = it.h, w = it.W || it.w, cy = it.d.b ? h / 2 : CY, fw = FW * (tight ? 1.15 : 1), fh = FH * (tight ? 1.15 : 1);
-      const cxo = it.d.b ? CAPX + 0.25 : CAPX; /* 床に立てる作品は手前にあるので、キャプションを少し右に離す（かくれないように） */
-      const k0 = Math.max(w / (fw * W), h / (fh * H), kz(0.25)), belowOk = !it.d.b && CY - h / 2 - CAPG - PHm >= 0.55, rightFits = kk => (w / 2 + cxo + PWm + 0.03) / kk <= W / 2 - 12;
+      const cxo = it.d.b ? CAPX + 0.25 : CAPX, nc = 1 + (it.xc ? it.xc.length : 0), cR = Math.min(nc, 4), cW = Math.ceil(nc / cR) * PWm + (Math.ceil(nc / cR) - 1) * 0.03, cpr = Math.max(1, Math.floor((Math.max(w, PWm) + 0.03) / (PWm + 0.03))), cH = Math.ceil(nc / cpr) * PHm + (Math.ceil(nc / cpr) - 1) * 0.025; /* キャプションのかたまり（組はパーツの数だけ。横は4段ずつの列、下は作品の幅で折り返す） */ /* 床に立てる作品は手前にあるので、キャプションを少し右に離す（かくれないように） */
+      const k0 = Math.max(w / (fw * W), h / (fh * H), kz(0.25)), belowOk = !it.d.b && CY - h / 2 - CAPG - cH >= 0.55, rightFits = kk => (w / 2 + cxo + cW + 0.03) / kk <= W / 2 - 12;
       /* キャプションを横に置く場合と、下（作品の右下）に置く場合の大きさをくらべる。スマホの縦はいつも下。横長の画面は、横に置いても作品がひどく小さくならなければ横（10/6 本人「スマホ表示になってる」） */
-      const kS = Math.max(rightFits(k0) ? k0 : (w / 2 + cxo + PWm + 0.03) / (W / 2 - 12), k0, (h / 2) / (H / 2 - 90)), fcB = cy - (CAPG + PHm) * 0.3;
-      const kB = belowOk ? Math.max(k0, Math.max(w, 2 * PWm - w) / (0.92 * W), (cy + h / 2 - fcB) / (H / 2 - 70), (fcB - (cy - h / 2 - CAPG - PHm)) / (H / 2 - 110)) : Infinity;
+      const kS = Math.max(rightFits(k0) ? k0 : (w / 2 + cxo + cW + 0.03) / (W / 2 - 12), k0, (h / 2) / (H / 2 - 90)), fcB = cy - (CAPG + cH) * 0.3;
+      const kB = belowOk ? Math.max(k0, Math.max(w, 2 * PWm - w) / (0.92 * W), (cy + h / 2 - fcB) / (H / 2 - 70), (fcB - (cy - h / 2 - CAPG - cH)) / (H / 2 - 110)) : Infinity;
       const below = belowOk && (port || kS > kB * 1.3); let k = below ? kB : kS; const fc = below ? fcB : cy;
-      k = Math.min(kmax, k); if (it.d.b) k += (it.zc != null ? it.zc + 0.12 : EXZB) * 2 * TN / H; /* 三面は部屋のまん中寄りに立てる（回しても壁に当たらない）ので、その分も */ /* 手前に出した分だけカメラを下げる（k は壁の面での大きさ） */ return { it, h, w, cy, k, fc, below, vw: k * W / 2, lo: below ? Math.max(0, PWm - w) : 0, ro: below ? 0 : cxo + PWm }; };
+      k = Math.min(it.d.grp ? kz(28) : kmax, k); /* 組（とても横長のことがある）は、キャプションまで入るように遠くまで下がれる */ if (it.d.b) k += (it.zc != null ? it.zc + 0.12 : EXZB) * 2 * TN / H; /* 三面は部屋のまん中寄りに立てる（回しても壁に当たらない）ので、その分も */ /* 手前に出した分だけカメラを下げる（k は壁の面での大きさ） */ return { it, h, w, cy, k, fc, below, vw: k * W / 2, lo: below ? Math.max(0, PWm - w) : 0, ro: below ? 0 : cxo + cW }; };
     /* となりが見えないように置く：vR＝前の作品で止まったときに見える右の端、eR＝前の作品（キャプションまで）の右の端 */
     const place = (f, vR, eR, gap) => Math.max(eR + gap + f.lo, vR + 0.25 + f.lo, eR + 0.25 + f.vw - f.w / 2);
     const put = (f, Lx, seed) => { const it = f.it, Rx = Lx + f.w; it.g.position.x = Lx + f.w / 2;
       if (it.cpM) { const th = Math.min(0.06, Math.max(0.008, 16 * f.k)), tw = th * it.cpA; it.cpM.scale.set(tw, th, 1); /* 文字の高さは画面の上で約11px */
         const C = it.cpH, pd = th * 0.55; it.cpM.position.set(C.x + pd + tw / 2 - th * 0.06, C.y + pd * 0.8 + th / 2, C.z + 0.0015); } /* 絵の左下のすみから少し内側 */ it.kpx = f.k; it.box = null; it.cyW = f.cy; it.yOff = (f.cy - f.fc) / f.k; if (it.req && !it.pt) ldDraw(it, performance.now()); addSpec(Lx + f.w / 2, f.cy, f.w, f.h, seed);
       if (f.below) it.capM.position.set(Rx - PWm / 2, CY - f.h / 2 - CAPG - PHm / 2, 0.003); else it.capM.position.set(Rx + (it.d.b ? CAPX + 0.25 : CAPX) + PWm / 2, Math.max(CAPMIN, it.d.b ? 0 : CY - f.h / 2) + PHm / 2, 0.003);
+      if (it.xc) { const cs = [it.capM].concat(it.xc.map(c => c.m)), nc = cs.length; /* 組：キャプションをパーツの順に（横に置くときは4段ずつの列、下に置くときは作品の幅で折り返す） */
+        if (f.below) { const cpr = Math.max(1, Math.floor((Math.max(f.w, PWm) + 0.03) / (PWm + 0.03))); cs.forEach((m, q) => m.position.set(Lx + PWm / 2 + (q % cpr) * (PWm + 0.03), CY - f.h / 2 - CAPG - PHm / 2 - Math.floor(q / cpr) * (PHm + 0.025), 0.003)); }
+        else { const R = Math.min(nc, 4), y0 = Math.max(CAPMIN, CY - f.h / 2) + PHm / 2; cs.forEach((m, q) => m.position.set(Rx + CAPX + PWm / 2 + Math.floor(q / R) * (PWm + 0.03), y0 + (R - 1 - q % R) * (PHm + 0.025), 0.003)); } }
       stops.push({ x: Lx + f.w / 2, y: f.fc, z: f.k * H / (2 * TN) }); };
     let vR = TWm / 2 + kt * W / 2, eR = TWm;
     for (let ii = 0; ii < items.length; ii++) { const it = items[ii], g = it.grp;
@@ -10238,12 +10373,13 @@ function exvBuild(root, L, start){
 
   /* タップ：作品・キャプションは近づく（もう一度でもどる）、壁は次の作品へ（左端は前へ） */
   const ray = new T3.Raycaster(), v2 = new T3.Vector2(), wp = new T3.Plane(new T3.Vector3(0, 0, 1), 0), hit = new T3.Vector3();
+  const capL = () => { const a = []; items.forEach(it => { a.push({ it, m: it.capM, no: it.d.grp ? it.d.grp.reg[0].no : null }); (it.xc || []).forEach(c => a.push({ it, m: c.m, no: c.sl.no })); }); return a; }; /* キャプションの一覧（組はパーツごと） */
   const tapZoom = e => { const b = el.getBoundingClientRect(); v2.set((e.clientX - b.left) / b.width * 2 - 1, -(e.clientY - b.top) / b.height * 2 + 1); ray.setFromCamera(v2, cam); const onWall = !!ray.ray.intersectPlane(wp, hit);
-    if (onWall && PWm / (2 * st.z * TN / H) >= 110) { const lk = items.find(it => it.capM.visible && Math.abs(hit.x - it.capM.position.x) < PWm / 2 && hit.y > it.capM.position.y - PHm / 2 && hit.y < it.capM.position.y - PHm / 2 + PHm * 0.3);
-      if (lk) { const cur = items[ci - 1], lk2 = lk.d.tri && cur && cur.d.tri === lk.d.tri ? cur : lk; exvToWork(lk2.d.no, items.indexOf(lk2) + 1); return; } } /* 三面は、いま前を向いている面の作品へ */ /* キャプションの下の「作品ページへ」 */
+    if (onWall && PWm / (2 * st.z * TN / H) >= 110) { const lc = capL().find(c => c.m.visible && Math.abs(hit.x - c.m.position.x) < PWm / 2 && hit.y > c.m.position.y - PHm / 2 && hit.y < c.m.position.y - PHm / 2 + PHm * 0.3), lk = lc && lc.it;
+      if (lk) { const cur = items[ci - 1], lk2 = lk.d.tri && cur && cur.d.tri === lk.d.tri ? cur : lk; exvToWork(lc.no || lk2.d.no, items.indexOf(lk2) + 1); return; } } /* 組は、そのキャプションのパーツの作品へ */ /* 三面は、いま前を向いている面の作品へ */ /* キャプションの下の「作品ページへ」 */
     if (zoomed) { go(nearIdx()); return; } if (!onWall) return;
-    const mg = Math.max(0.06, 26 * 2 * st.z * TN / H), c = items.find(it => it.capM.visible && Math.abs(hit.x - it.capM.position.x) < PWm / 2 + mg && Math.abs(hit.y - it.capM.position.y) < PHm / 2 + mg);
-    if (c) { zoomed = true; tw({ x: c.capM.position.x, y: c.capM.position.y, z: Math.max(zmin(), (PWm / (0.8 * W)) * H / (2 * TN)) }, 850); return; }
+    const mg = Math.max(0.06, 26 * 2 * st.z * TN / H), c = capL().find(q => q.m.visible && Math.abs(hit.x - q.m.position.x) < PWm / 2 + mg && Math.abs(hit.y - q.m.position.y) < PHm / 2 + mg);
+    if (c) { zoomed = true; tw({ x: c.m.position.x, y: c.m.position.y, z: Math.max(zmin(), (PWm / (0.8 * W)) * H / (2 * TN)) }, 850); return; }
     const near = items.slice(Math.max(0, ci - 3), ci + 3).map(it => it.g), ph = ray.intersectObjects(near, true)[0];
     if (ph) { zoomed = true; tw({ x: ph.point.x, y: ph.point.y, z: Math.max(zmin(), st.z / 2.6) }, 850); return; }
     go((e.clientX - b.left) / b.width < 0.3 ? ci - 1 : ci + 1); };
@@ -10367,8 +10503,8 @@ function exvBuild(root, L, start){
   /* メニュー（10/6 本人）：表示する作品（作品アルバムのカテゴリと同じ。美術館は館も選べる）と、この作品の共有 */
   const xmClose = () => { const m = root.querySelector('.xmn'), b = root.querySelector('.xmb'); if (m) m.remove(); if (b) b.remove(); root.classList.remove('xmo'); root.querySelector('.xsh').setAttribute('aria-expanded', 'false'); poke(); };
   const xmApply = (f, mus) => { const no = EXV.curNo(); EXVF = { f, mus: mus || '' }; const L2 = exvWorks(); if (!L2.length) return;
-    const st = no != null && L2.some(d => String(d.no) === String(no)) ? String(no) : 0, c = EXV.close; try { c(); } catch(e){} exvOpen(st, true); }; /* いまの作品が入っていれば、その作品から。なければ入口から */
-  const xmGo = no => { const i = items.findIndex(it => String(it.d.no) === String(no)); if (i >= 0) { poke(); return go(i + 1); } EXVF = { f: 'all', mus: '' }; const c = EXV.close; try { c(); } catch(e){} exvOpen(String(no), true); };
+    const st = no != null && L2.some(d => exvHas(d, no)) ? String(no) : 0, c = EXV.close; try { c(); } catch(e){} exvOpen(st, true); }; /* いまの作品が入っていれば、その作品から。なければ入口から */
+  const xmGo = no => { const i = items.findIndex(it => exvHas(it.d, no)); if (i >= 0) { poke(); return go(i + 1); } EXVF = { f: 'all', mus: '' }; const c = EXV.close; try { c(); } catch(e){} exvOpen(String(no), true); };
   const xmOpen = () => { if (root.querySelector('.xmn')) return xmClose(); const it = items[ci - 1], all = exvWorks(true), cnt = k => { const set = exvSet(k, ''); return all.filter(d => set.has(String(d.no))).length; };
     const cats = FILTERS.filter(([k]) => !['nophoto', '廃棄'].includes(k)).map(([k, l]) => [k, l, k === 'all' ? all.length : cnt(k)]).filter(x => x[2] > 0);
     let sub = ''; if (SUBF[EXVF.f]) { const SF = SUBF[EXVF.f], cm = {}; all.forEach(d => { if (d.w['所在区分'] === EXVF.f) { const m = d.w['所在'] || SF.none; cm[m] = (cm[m] || 0) + 1; } });
@@ -10383,7 +10519,7 @@ function exvBuild(root, L, start){
     const find = () => { const q = qi.value.trim(); qx.hidden = !q; m.classList.toggle('xq', !!q); if (!q) { rl.hidden = true; rl.innerHTML = ''; return; }
       const set = exvSet('all', '', q), qn = q.normalize('NFKC').replace(/^no\.?\s*/i, ''), L = all.filter(d => set.has(String(d.no))).sort((a, b) => (String(b.no) === qn) - (String(a.no) === qn) || (a.y || 9999) - (b.y || 9999) || (+a.no || 0) - (+b.no || 0)), N = 40;
       rl.hidden = false; rl.innerHTML = L.length ? L.slice(0, N).map(d => { const w = d.w, sub = ['No.' + d.no, exvYearTxt(w), String(w['画材'] || '').trim()].filter(Boolean).join('・');
-        return `<button type="button" class="xmrr" data-xmg="${esc(String(d.no))}">${HIDPH(d.id) ? '<span class="xmrt"></span>' : thImg0(d.id, 400, 'xmrt')}<span class="xmrs"><b>${esc(String(w['作品名'] || '').trim() || '無題')}</b><small>${esc(sub)}</small></span></button>`; }).join('') + (L.length > N ? `<p class="xmrn">ほか ${L.length - N} 点（ことばを足すと、しぼれます）</p>` : '')
+        return `<button type="button" class="xmrr" data-xmg="${esc(String(d.no))}">${!d.id || HIDPH(d.id) ? '<span class="xmrt"></span>' : thImg0(d.id, 400, 'xmrt')}<span class="xmrs"><b>${esc(String(w['作品名'] || '').trim() || '無題')}</b><small>${esc(sub)}</small></span></button>`; }).join('') + (L.length > N ? `<p class="xmrn">ほか ${L.length - N} 点（ことばを足すと、しぼれます）</p>` : '')
         : '<p class="xmrn">見つかりません（写真のある作品から探します）</p>'; hydrate(rl); m.scrollTop = 0; };
     qi.addEventListener('input', () => { clearTimeout(qT); qT = setTimeout(find, 150); });
     qi.addEventListener('keydown', e => { e.stopPropagation(); /* 文字の入力中は、←→で作品を送らない・Esc で展示ビューを閉じない */
@@ -10411,7 +10547,7 @@ function exvBuild(root, L, start){
   EXV.close = () => { tid++; dead = 1; items.forEach(it => { it.req = 0; }); PQ.clear(); clearTimeout(PQT); clearInterval(LDT); clearTimeout(EXV.syncT); /* 閉じたあとに届いた写真で、捨てた描画を動かさない */ clearTimeout(autoT); clearTimeout(settle); clearTimeout(wt); if (rq) cancelAnimationFrame(rq); removeEventListener('resize', rs); removeEventListener('keydown', key);
     sc.traverse(o => { if (o.geometry) o.geometry.dispose(); const ms = o.material ? [].concat(o.material) : []; ms.forEach(m => { if (m.map) m.map.dispose(); if (m.bumpMap) m.bumpMap.dispose(); m.dispose(); }); });
     items.forEach(it => it.tx.forEach(t => t.dispose())); r.dispose(); if (r.forceContextLoss) r.forceContextLoss(); close0(); };
-  EXV.go = go; EXV.yrc = () => { const it = items[ci - 1]; if (!it) return null; const v = new T3.Vector3(it.g.position.x, it.cyW, 0).project(cam), b = yrEl.getBoundingClientRect(), rb = root.getBoundingClientRect(); return { art: Math.round((1 - v.y) / 2 * H), yr: Math.round(b.top + b.height / 2 - rb.top), H }; }; EXV.lds = () => items.map(it => [it.d.no, it.pt ? 1 : 0, it.fail ? 1 : 0, it.tries || 0, it.cv.width, it.cv.height]); EXV.cur = () => ci; EXV.tri = () => TRI.map(t => [t.i0, +t.f.toFixed(3)]); EXV.n = items.length; EXV.start = ci; EXV.loaded = () => items.map(it => it.hi ? 1 : it.lo ? 0.5 : 0); EXV.light = () => [LFt, +LF.toFixed(2)]; EXV.at = () => { const S = stops[ci]; return !!S && Math.abs(st.x - S.x) < 1e-3 && Math.abs(st.y - S.y) < 1e-3; };
+  EXV.go = go; EXV.yrc = () => { const it = items[ci - 1]; if (!it) return null; const v = new T3.Vector3(it.g.position.x, it.cyW, 0).project(cam), b = yrEl.getBoundingClientRect(), rb = root.getBoundingClientRect(); return { art: Math.round((1 - v.y) / 2 * H), yr: Math.round(b.top + b.height / 2 - rb.top), H }; }; EXV.lds = () => items.map(it => [it.d.no, it.pt ? 1 : 0, it.fail ? 1 : 0, it.tries || 0, it.cv.width, it.cv.height]); EXV.cur = () => ci; EXV.caps = () => { const it = items[ci - 1]; return it ? [it.capM].concat((it.xc || []).map(c => c.m)).map(m => [+m.position.x.toFixed(3), +m.position.y.toFixed(3), m.visible ? 1 : 0]) : []; }; EXV.tri = () => TRI.map(t => [t.i0, +t.f.toFixed(3)]); EXV.n = items.length; EXV.start = ci; EXV.loaded = () => items.map(it => it.hi ? 1 : it.lo ? 0.5 : 0); EXV.light = () => [LFt, +LF.toFixed(2)]; EXV.at = () => { const S = stops[ci]; return !!S && Math.abs(st.x - S.x) < 1e-3 && Math.abs(st.y - S.y) < 1e-3; };
   EXV.edges = () => items.map(it => { const w = it.W || it.w, y = it.d.b ? it.h / 2 : CY, b = el.getBoundingClientRect(), f = xx => { const v = new T3.Vector3(xx, y, 0).project(cam); return Math.round(b.left + (v.x + 1) / 2 * b.width); }; return [f(it.g.position.x - w / 2), f(it.capM.position.x + PWm / 2)]; }); /* 確かめ用 */
   EXV.capRect = () => { const it = items[ci - 1], b = el.getBoundingClientRect(), v = new T3.Vector3(it.capM.position.x - PWm * 0.3, it.capM.position.y - PHm / 2 + PHm * 0.12, 0.006).project(cam); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }; /* 確かめ用：「作品ページへ」のあたり */ EXV.stop = () => ({ y: +st.y.toFixed(3), cy: stops[ci] && stops[ci].y, x: +st.x.toFixed(3), sx: stops[ci] && +stops[ci].x.toFixed(3), z: +st.z.toFixed(3), sz: stops[ci] && +stops[ci].z.toFixed(3), zoomed, ci });
   EXV.capAt = () => { const it = items[ci - 1]; if (!it) return null; const v = it.capM.position.clone().project(cam), b = el.getBoundingClientRect(); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }; /* 確かめ用 */
