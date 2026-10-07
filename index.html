@@ -2205,7 +2205,7 @@ button.ulrow{cursor:pointer}
 .cr-links button:disabled{opacity:.4}
 /* 角の画面：切りかえ以外は「設定」で開く（ふだんは閉じて、写真を大きく）。微調整の矢印（10/6 本人） */
 #crop:not(.crmore) .cr-more{display:none}
-#crop .cr-sz{gap:6px;align-items:center}#crop .cr-sz input{width:4.6em;min-width:0;padding:5px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);color:inherit;font:inherit;font-size:16px;text-align:right}#crop .cr-sz i{font-style:normal;opacity:.7;font-size:13px}#crop .cr-szn{flex:1;min-width:0;font-size:11.5px;opacity:.7;text-align:right}#crop .cr-rs{cursor:pointer;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+#crop .cr-sz{gap:6px;align-items:center}#crop .cr-sz input{width:4.6em;min-width:0;padding:5px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);color:inherit;font:inherit;font-size:16px;text-align:right}#crop .cr-sz i{font-style:normal;opacity:.7;font-size:13px}#crop .cr-sz b{font-weight:700;font-size:13px;opacity:.85;margin-right:-3px}#crop .cr-szn{flex:1;min-width:0;font-size:11.5px;opacity:.7;text-align:right}#crop .cr-rs{cursor:pointer;-webkit-user-select:none;user-select:none;touch-action:manipulation}
 .cr-str output{min-width:4.6em;font-size:12.5px;text-align:right}
 .cr-sl2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 14px}.cr-half{gap:6px;font-size:13px}.cr-half>span{min-width:0}.cr-half output{min-width:2.4em;font-size:12.5px}
 @media(max-width:340px){.cr-sl2{grid-template-columns:1fr}}
@@ -2422,7 +2422,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'afc32b4701', APP_URL = location.origin + location.pathname;
+const BUILD = '7d46e76077', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3252,7 +3252,7 @@ function fdbOpen(){ const L = (S.finds || []).filter(f => fdOpen(f) && fdReg(f))
   el.classList.remove('hidden'); qcLock(true); fdbDraw(); hpushLater('f'); }
 function fdbEnd(fromHist){ const was = !!FDB, el = $('#fdb'); if (el) { el.classList.add('hidden'); el.innerHTML = ''; } qcLock(false); FDB = null; if (was && !fromHist) hback(); renderHome(); }
 function fdbDraw(){ const el = $('#fdb'); if (!el || !FDB) return; const n = FDB.L.length - FDB.off.size, y = el.scrollTop;
-  const sz = w => [w['制作年'], w['高さcm'] && w['幅cm'] ? w['高さcm'] + '×' + w['幅cm'] : ''].filter(Boolean).join('・');
+  const sz = w => [w['制作年'], w['高さcm'] && w['幅cm'] ? 'H' + w['高さcm'] + '×W' + w['幅cm'] : ''].filter(Boolean).join('・');
   el.innerHTML = `<div class="qc-w fdb-w"><div class="qc-top"><button type="button" class="qc-x" data-fdb="end" aria-label="閉じる">${QCSVG.x}</button><b class="fdb-h">まとめて確認（管理者）</b></div>
     ${qcTask('find', '美術館')}
     <p class="qc-hint">台帳でもう同じ美術館になっていて、題・年・サイズもほぼ同じ作品です。承認すると、美術館の記録（根拠のリンク）を出来事に足します。台帳の場所の書き方は変えません。ちがうものはチェックを外してください（承認せずに、この一覧に残ります）。</p>
@@ -3290,7 +3290,7 @@ function fdCmpHTML(f, w, cur, place, mus){
   const R = [
     ['作品名', w['作品名'], f['作品名'], !w['作品名'] || !f['作品名'] ? '' : ts >= .95 ? 'ok' : ts >= .55 ? 'near' : 'ng'],
     ['制作年', yy(w['制作年']), yy(f['制作年']), !y1 || !y2 ? '' : y1 === y2 ? 'ok' : Math.abs(y1 - y2) <= 1 ? 'near' : 'ng'],
-    ['サイズ', h > 0 && wd > 0 ? w['高さcm'] + '×' + w['幅cm'] + ' cm' : '', f['サイズ'] ? f['サイズ'] + (/\d$/.test(f['サイズ']) ? ' cm' : '') : '', ze == null ? '' : ze <= .005 ? 'ok' : ze <= .04 ? 'same' : ze <= .1 ? 'near' : 'ng'],
+    ['サイズ', h > 0 && wd > 0 ? 'H ' + w['高さcm'] + ' × W ' + w['幅cm'] + ' cm' : '', f['サイズ'] ? f['サイズ'] + (/\d$/.test(f['サイズ']) ? ' cm' : '') : '', ze == null ? '' : ze <= .005 ? 'ok' : ze <= .04 ? 'same' : ze <= .1 ? 'near' : 'ng'],
     ['画材', w['画材'], f['技法・素材'], !m1 || !m2 ? '' : m1 === m2 ? 'ok' : mset(m1, m2) >= .99 ? 'same' : mset(m1, m2) >= .6 ? 'near' : ''],
     ['場所', cur, mus ? place : '', !mus || !cur ? '' : (pa && pa === pb) || (typeof musSame === 'function' && musSame(cur, place)) ? 'ok' : 'ng']];
   const LB = { ok: '同じ', same: 'ほぼ同じ', near: '近い', ng: 'ちがう' };
@@ -3584,7 +3584,7 @@ function fdSameTitle(f, skip){ const T = fdTitles(f['作品名']), out = [];
   (S.works || []).concat(S.others || []).forEach(w => { if (['廃棄', '統合済み'].includes(w['所在区分']) || (skip || []).includes(String(w['作品番号']))) return; let ts = 0;
     fdWorkTitles(w).forEach(x => { const n = fdN(x); T.forEach(([t, k]) => { ts = Math.max(ts, fdSim(t, n) * k); }); }); if (ts >= .8) out.push({ no: String(w['作品番号']), w, ts }); });
   return out.sort((a, b) => b.ts - a.ts).slice(0, 6); }
-const fdWLine = w => [w['制作年'], w['高さcm'] && w['幅cm'] ? w['高さcm'] + '×' + w['幅cm'] : '', w['所在'] || (w['所在区分'] && w['所在区分'] !== '不明' ? w['所在区分'] : '場所不明')].filter(Boolean).join('・');
+const fdWLine = w => [w['制作年'], w['高さcm'] && w['幅cm'] ? 'H' + w['高さcm'] + '×W' + w['幅cm'] : '', w['所在'] || (w['所在区分'] && w['所在区分'] !== '不明' ? w['所在区分'] : '場所不明')].filter(Boolean).join('・');
 function fdSameHTML(L){ return L.length ? `<div class="fd-same"><p class="qc-sl">台帳にある、同じ名前の作品（${L.length}点）</p>${L.map(x => `<div class="fd-sr"><span class="fdb-th">${(photoBy[x.no] || []).length ? thumbHTML(x.no, 200) : ''}</span>
     <span class="fdb-tx"><b>${esc(nol(x.no))}　${esc(x.w['作品名'] || '作品名なし')}</b><small>${esc(fdWLine(x.w))}</small></span><button type="button" class="fd-sb" data-qa="fd:pick:${esc(x.no)}">これと同じ</button></div>`).join('')}</div>` : ''; }
 /* 登録済みの作品から選ぶ：同じ館 → 名前の近さ → 年の近さ の順に全部ならべ、言葉でしぼる */
@@ -3631,11 +3631,11 @@ const DFR = { doc: '書類にした', ledger: '台帳のまま', alias: '別名�
 function dfCmpHTML(d, no, curI){
   const w = workOf(no) || {}, G = dfGroup(d, no), F = dfFill(d, no), E = dfEntry(d, no) || {}, did = d['書類ID'];
   const yr = v => { const y = fdY(v); return y ? y + '年' : String(v || ''); };
-  const led = k => k === 'サイズ' ? (w['高さcm'] && w['幅cm'] ? w['高さcm'] + '×' + w['幅cm'] + ' cm' : '') : k === '場所' ? (w['所在'] || (w['所在区分'] && w['所在区分'] !== '不明' ? w['所在区分'] : '')) : k === '制作年' ? yr(w['制作年']) : String(w[k] || '');
+  const led = k => k === 'サイズ' ? (w['高さcm'] && w['幅cm'] ? 'H ' + w['高さcm'] + ' × W ' + w['幅cm'] + ' cm' : '') : k === '場所' ? (w['所在'] || (w['所在区分'] && w['所在区分'] !== '不明' ? w['所在区分'] : '')) : k === '制作年' ? yr(w['制作年']) : String(w[k] || '');
   const D = [['作品名', ['作品名']], ['制作年', ['制作年']], ['サイズ', ['高さcm', '幅cm']], ['画材', ['画材']], ['場所', ['所在']]];
   const R = D.map(([k, fs]) => { const gx = G.filter(o => fs.includes(o.x.f) || (k === '場所' && o.x.loc)), fx = F.filter(x => fs.includes(x.f));
     const dv = f => { const g = gx.find(o => o.x.f === f); if (g) return g.x.doc; const z = fx.find(x => x.f === f); if (z) return z.v; return k === '場所' ? '' : (E[f] || ''); };
-    let b = k === 'サイズ' ? (dv('高さcm') && dv('幅cm') ? dv('高さcm') + '×' + dv('幅cm') + ' cm' : '') : k === '場所' ? (gx[0] ? gx[0].x.doc : '') : k === '制作年' ? yr(dv('制作年')) : String(dv(fs[0]) || '');
+    let b = k === 'サイズ' ? (dv('高さcm') && dv('幅cm') ? 'H ' + dv('高さcm') + ' × W ' + dv('幅cm') + ' cm' : '') : k === '場所' ? (gx[0] ? gx[0].x.doc : '') : k === '制作年' ? yr(dv('制作年')) : String(dv(fs[0]) || '');
     let m = '', lb = '';
     if (gx.length) { const done = gx.filter(o => o.x.r || QDD.has(did + '|' + o.i));
       if (gx.some(o => o.i === curI)) { m = 'cur'; lb = 'いま決める'; } else if (done.length === gx.length) { m = 'done'; lb = DFR[(done[0].x.r || '')] || '決めた'; } else { m = 'ng'; lb = 'ちがう'; } }
@@ -3660,8 +3660,8 @@ function dfwCands(d, no){ const I = dfwInfo(d, no), T = I.t ? fdTitles(I.t) : []
     return { no: String(w['作品番号']), s: sc, sz }; }).filter(x => x.s >= .55).sort((a, b) => b.s - a.s).slice(0, 4); }
 function qcDrawDiffWrong(el, c, d){
   const w = workOf(c.no) || {}, I = dfwInfo(d, c.no), C = dfwCands(d, c.no), sel = QC.dfwSel || '';
-  const info = [I.t ? '《' + I.t + '》' : '', fdY(I.y) ? fdY(I.y) + '年' : '', I.h && I.w ? I.h + '×' + I.w + ' cm' : ''].filter(Boolean).join('　');
-  const card = n => { const x = workOf(n) || {}, f = C.find(o => o.no === n); return `<button type="button" class="qc-wc${sel === n ? ' sel' : ''}" data-qa="dfw:sel" data-n="${esc(n)}"><span class="qc-wct">${(photoBy[n] || []).length ? thumbHTML(n, 200) : '<i>写真なし</i>'}</span><span class="qc-wcx"><b>${esc(nol(n))}　${esc(x['作品名'] || '作品名なし')}</b><small>${esc([x['制作年'], x['高さcm'] && x['幅cm'] ? x['高さcm'] + '×' + x['幅cm'] + ' cm' : '', x['所在'] || x['所在区分'] || ''].filter(Boolean).join('・'))}</small>${f && f.sz === 1 ? '<em>サイズが合う</em>' : ''}</span></button>`; };
+  const info = [I.t ? '《' + I.t + '》' : '', fdY(I.y) ? fdY(I.y) + '年' : '', I.h && I.w ? 'H ' + I.h + ' × W ' + I.w + ' cm' : ''].filter(Boolean).join('　');
+  const card = n => { const x = workOf(n) || {}, f = C.find(o => o.no === n); return `<button type="button" class="qc-wc${sel === n ? ' sel' : ''}" data-qa="dfw:sel" data-n="${esc(n)}"><span class="qc-wct">${(photoBy[n] || []).length ? thumbHTML(n, 200) : '<i>写真なし</i>'}</span><span class="qc-wcx"><b>${esc(nol(n))}　${esc(x['作品名'] || '作品名なし')}</b><small>${esc([x['制作年'], x['高さcm'] && x['幅cm'] ? 'H ' + x['高さcm'] + ' × W ' + x['幅cm'] + ' cm' : '', x['所在'] || x['所在区分'] || ''].filter(Boolean).join('・'))}</small>${f && f.sz === 1 ? '<em>サイズが合う</em>' : ''}</span></button>`; };
   const list = C.map(o => o.no); if (sel && sel !== '__none' && list.indexOf(sel) < 0) list.unshift(sel);
   QC.q = 'この書類は、どの作品のこと？'; QC.sp = 'この書類、どの作品のことやろ？';
   el.innerHTML = `<div class="qc-w qc-dw inp">${qcTop()}${qcTask('diff', '作品')}${QC.test ? qcTestNote() : ''}
@@ -3690,10 +3690,10 @@ const DF_SAMEOK = k => k === '作品名' || k === '画材' || k === '場所'; /*
 function dfRows(d, no){
   const w = workOf(no) || {}, G = dfGroup(d, no), F = dfFill(d, no), E = dfEntry(d, no) || {}, did = d['書類ID'];
   const yr = v => { const y = fdY(v); return y ? y + '年' : String(v || ''); };
-  const led = k => k === 'サイズ' ? (w['高さcm'] && w['幅cm'] ? w['高さcm'] + '×' + w['幅cm'] + ' cm' : '') : k === '場所' ? (w['所在'] || (w['所在区分'] && w['所在区分'] !== '不明' ? w['所在区分'] : '')) : k === '制作年' ? yr(w['制作年']) : String(w[k] || '');
+  const led = k => k === 'サイズ' ? (w['高さcm'] && w['幅cm'] ? 'H ' + w['高さcm'] + ' × W ' + w['幅cm'] + ' cm' : '') : k === '場所' ? (w['所在'] || (w['所在区分'] && w['所在区分'] !== '不明' ? w['所在区分'] : '')) : k === '制作年' ? yr(w['制作年']) : String(w[k] || '');
   return DF_ROWS.map(([k, fs]) => { const gx = G.filter(o => fs.includes(o.x.f) || (k === '場所' && o.x.loc)), fx = F.filter(x => fs.includes(x.f)), open = gx.filter(o => !o.x.r && !QDD.has(did + '|' + o.i));
     const dv = f => { const g = gx.find(o => o.x.f === f); if (g) return g.x.doc; const z = fx.find(x => x.f === f); if (z) return z.v; return k === '場所' ? '' : (E[f] || ''); };
-    const b = k === 'サイズ' ? (dv('高さcm') && dv('幅cm') ? dv('高さcm') + '×' + dv('幅cm') + ' cm' : dv('高さcm') ? '高さ ' + dv('高さcm') + ' cm' : dv('幅cm') ? '幅 ' + dv('幅cm') + ' cm' : '') : k === '場所' ? (gx[0] ? gx[0].x.doc : '') : k === '制作年' ? yr(dv('制作年')) : String(dv(fs[0]) || '');
+    const b = k === 'サイズ' ? (dv('高さcm') && dv('幅cm') ? 'H ' + dv('高さcm') + ' × W ' + dv('幅cm') + ' cm' : dv('高さcm') ? 'H ' + dv('高さcm') + ' cm' : dv('幅cm') ? 'W ' + dv('幅cm') + ' cm' : '') : k === '場所' ? (gx[0] ? gx[0].x.doc : '') : k === '制作年' ? yr(dv('制作年')) : String(dv(fs[0]) || '');
     let m = '', lb = '';
     if (gx.length) { if (open.length) { m = 'ng'; lb = 'ちがう'; } else { m = 'done'; lb = DFR[gx[0].x.r || ''] || '決めた'; } }
     else if (fx.length) { m = 'ok'; lb = '書類から入れた'; }
@@ -5231,10 +5231,10 @@ const qzUnknown = (no, item) => { const r = qzLast(no, item); return !!r && r['�
 const sizeOf = w => (w['幅cm']||w['高さcm']) ? `高さ${w['高さcm']||'?'}センチ、幅${w['幅cm']||'?'}センチ${w['奥行きcm'] ? '、奥行き' + w['奥行きcm'] + 'センチ' : ''}` : '';
 /* 版画かどうか（エディションの欄を出す） */
 const isPrint = w => !!w && (w['種別']==='版画' || !!w['エディション'] || /版画|エッチング|リトグラフ|木版|銅版|シルクスクリーン/.test(String(w['画材']||'')));
-/* サイズの表示（立体物は奥行きも）：long＝「幅 × 高さ × 奥行き cm」、短い形＝「幅 × 高さ × 奥行き」 */
-const dimTxt = (w, long, unit) => (w['幅cm']||w['高さcm']||w['奥行きcm']) ? (long ? `高さ ${w['高さcm']||'?'} × 幅 ${w['幅cm']||'?'}${w['奥行きcm'] ? ' × 奥行き ' + w['奥行きcm'] : ''} cm` : `${w['高さcm']||'?'} × ${w['幅cm']||'?'}${w['奥行きcm'] ? ' × ' + w['奥行きcm'] : ''}${unit || ''}`) : ''; /* 標準の「縦×横」（高さ × 幅） */
+/* サイズの表示（立体物は奥行きも）：「H 高さ × W 幅 × D 奥行き」。縦横をすぐ忘れるので数字の前に H・W（10/8 本人）。long は cm つき */
+const dimTxt = (w, long, unit) => (w['幅cm']||w['高さcm']||w['奥行きcm']) ? `H ${w['高さcm']||'?'} × W ${w['幅cm']||'?'}${w['奥行きcm'] ? ' × D ' + w['奥行きcm'] : ''}${long ? ' cm' : unit || ''}` : ''; /* 標準の「縦×横」（高さ × 幅） */
 /* 作品ページのサイズの行：作品のみと分かっていれば（作品のみ）、額のサイズがあれば「額 高さ × 幅」も */
-const frameTxt = w => (w['額の高さcm'] || w['額の幅cm']) ? `額 高さ ${w['額の高さcm'] || '?'} × 幅 ${w['額の幅cm'] || '?'} cm` : '';
+const frameTxt = w => (w['額の高さcm'] || w['額の幅cm']) ? `額 H ${w['額の高さcm'] || '?'} × W ${w['額の幅cm'] || '?'} cm` : '';
 /* サイズのメインとサブ（10/6 本人）：美術館・カタログの決まりに合わせて、絵だけ（画面・本紙。屏風は本体）をメイン、額込みはサブ。
    片方しかなければ、ある方をメインにして「額あり（額込みのサイズ）／額なし（絵だけのサイズ）」を添える */
 const isScreenW = w => /屏風|屛風|びょうぶ|[二三四六八2-8]曲|一隻|一双/.test((String(w['作品名'] || '') + String(w['種別'] || '') + String(w['画材'] || '') + String(w['仕立て'] || '')).normalize('NFKC'));
@@ -5506,7 +5506,7 @@ function ivReset(){ Object.assign(IV, { hist: [], pend: [], eps: [], qa: [], mod
 function ivConfirm(){ IV.mode = 'confirm'; IV.last = ''; ivDraw(); const w = workOf(IV.list[IV.wi]) || {};
   ivSpeak('この作品のこと、聞かせてもろてもよろしい？' + (hasName(w) ? '「' + w['作品名'] + '」え。' : ''), '', () => { if (IV && IV.mode==='confirm' && !IV.text) ivAutoListen(); }); }
 function endInterview(fromHist){ const was = !!IV && !!$('#quiz') && !$('#quiz').classList.contains('hidden'); stopMic(); sayStop(); const el = $('#quiz'); if (el) el.classList.add('hidden'); document.body.style.overflow = ''; IV = null; if (was && !fromHist) hback(); }
-function ivCur(no, f){ const w = workOf(no) || {}; if (f==='サイズ') return (w['幅cm']||w['高さcm']) ? `幅${w['幅cm']||'?'} × 高さ${w['高さcm']||'?'} cm` : '';
+function ivCur(no, f){ const w = workOf(no) || {}; if (f==='サイズ') return (w['幅cm']||w['高さcm']) ? `H ${w['高さcm']||'?'} × W ${w['幅cm']||'?'} cm` : '';
   if (f==='場所') return w['所在区分']==='不明' ? '' : (w['所在'] || w['所在区分'] || ''); return w[f] || ''; }
 function ivPendFor(f){ const m = { 'サイズ': ['幅cm','高さcm'], '場所': ['所在区分','所在'] }[f] || [f]; return IV.pend.filter(p => m.includes(p.f) && p.on); }
 /* 話す：サーバーで作った音声があればそれを流す。なければ Gemini の声 → iPhone の声 */
@@ -5521,7 +5521,7 @@ function ivWorkCard(no){
   const w = workOf(no) || {}, ph = (photoBy[no]||[])[0];
   const rows = IVF.map(([f, label]) => { const cur = ivCur(no, f), pd = ivPendFor(f);
     const pv = k => (pd.find(p => p.f===k) || {}).v;
-    const nv = !pd.length ? '' : f==='場所' ? (pv('所在') || pv('所在区分')) : f==='サイズ' ? `幅${pv('幅cm') || w['幅cm'] || '?'} × 高さ${pv('高さcm') || w['高さcm'] || '?'} cm` : pd.map(p => p.v).join(' ');
+    const nv = !pd.length ? '' : f==='場所' ? (pv('所在') || pv('所在区分')) : f==='サイズ' ? `H ${pv('高さcm') || w['高さcm'] || '?'} × W ${pv('幅cm') || w['幅cm'] || '?'} cm` : pd.map(p => p.v).join(' ');
     return `<div class="ivrow ${nv ? 'new' : cur ? '' : 'empty'}"><span class="ivk">${label}</span><span class="ivv">${nv ? `<b>${esc(nv)}</b>${cur ? `<s>${esc(cur)}</s>` : ''}` : cur ? esc(cur) : '？'}</span>
       ${nv ? `<button type="button" class="ivx" data-ivoff="${esc(f)}" aria-label="取り消す">✕</button>` : ''}</div>`; }).join('');
   const eps = IV.eps.filter(x => x.on).map(x => `<div class="ivep"><span>📝 ${esc(x.t)}</span><button type="button" class="ivx" data-ivepoff="${IV.eps.indexOf(x)}" aria-label="取り消す">✕</button></div>`).join('');
@@ -6948,7 +6948,7 @@ async function openCrop(p){
       <label class="cr-row cr-half"><span>ふくらみ</span><input type="range" min="-15" max="15" step="0.5" value="${CR.v}" id="crK"><output id="crKv">${CR.v > 0 ? '+' : ''}${CR.v}</output></label>
       </div>
       <label class="cr-row cr-str hidden"><span>縦横の調整</span><input type="range" min="-40" max="40" step="1" value="${CR.st}" id="crST" aria-label="縦横の調整（左で縦長に、右で横長に）"><output id="crSTv">${crStTxt(CR.st)}</output></label>
-      <div class="cr-row cr-sz"><span>サイズ</span><input id="crSzH" inputmode="decimal" enterkeyhint="next" placeholder="高さ" value="${CR.led ? esc(String(CR.led.h)) : ''}" aria-label="作品の高さ（cm）"><i>×</i><input id="crSzW" inputmode="decimal" enterkeyhint="done" placeholder="幅" value="${CR.led ? esc(String(CR.led.w)) : ''}" aria-label="作品の幅（cm）"><i>cm</i><small class="cr-szn"></small></div>
+      <div class="cr-row cr-sz"><span>サイズ</span><b>H</b><input id="crSzH" inputmode="decimal" enterkeyhint="next" placeholder="高さ" value="${CR.led ? esc(String(CR.led.h)) : ''}" aria-label="作品の高さ（cm）"><i>×</i><b>W</b><input id="crSzW" inputmode="decimal" enterkeyhint="done" placeholder="幅" value="${CR.led ? esc(String(CR.led.w)) : ''}" aria-label="作品の幅（cm）"><i>cm</i><small class="cr-szn"></small></div>
       <div class="cr-sl2 cr-sl2c hidden">
       <label class="cr-row cr-half cr-chs hidden"><span>チップの強さ</span><input type="range" min="0" max="100" step="5" value="${CR.cs}" id="crCS"><output id="crCSv">${CR.cs}%</output></label>
       <label class="cr-row cr-half cr-wss hidden"><span>白の強さ</span><input type="range" min="0" max="100" step="5" value="${CR.ws}" id="crWS"><output id="crWSv">${CR.ws}%</output></label>
@@ -7284,7 +7284,7 @@ function crNote(){ const n = $('#crop .cr-note'); if (!n || !CR || !CR.img) retu
   const a = crAutoNow(), fmt = r => r >= 1 ? '縦1：横' + r.toFixed(2) : '縦' + (1 / r).toFixed(2) + '：横1';
   let t = '写真から見た形 ' + fmt(a), warn = false;
   if (CR.led) { const rl = CR.led.w / CR.led.h, use = Math.abs(Math.log(rl / a)) <= Math.abs(Math.log(1 / rl / a)) ? rl : 1 / rl;
-    t += '　台帳 ' + CR.led.h + '×' + CR.led.w + 'cm（' + fmt(use) + '）'; warn = Math.abs(Math.log(use / a)) > Math.log(1.15); }
+    t += '　台帳 H' + CR.led.h + '×W' + CR.led.w + 'cm（' + fmt(use) + '）'; warn = Math.abs(Math.log(use / a)) > Math.log(1.15); }
   else if (!CR.book) t += '　（台帳にサイズがないので、写真から計算します）';
   if (CR.ratio !== 'led' && CR.st) t += '　縦横の調整で ' + fmt(crRatio());
   if (CR.kan) t += '　扉：まん中：扉 ＝ 1：2：1 で並べます（展示ビューと同じ）'; else if (CR.n > 1) t += '　扇の幅はみな同じとして並べます';
@@ -7325,11 +7325,11 @@ function crRatioAsk(){ const c0 = CR; if (!c0 || !c0.led || !c0.img || $('#crop 
   const w = workOf(c0.no) || {}, swapFit = Math.abs(Math.log(1 / lr / a)) <= Math.log(1.15), fmt = r => r >= 1 ? '縦1：横' + r.toFixed(2) : '縦' + (1 / r).toFixed(2) + '：横1';
   const box = document.createElement('div'); box.className = 'cr-ask';
   box.innerHTML = `<b>台帳のサイズと、写真の絵の形が合いません</b>
-    <p>写真の絵の形：${fmt(a)}<br>台帳：高さ ${esc(w['高さcm'])} × 幅 ${esc(w['幅cm'])} cm（${fmt(lr)}）</p>
-    ${swapFit ? `<button type="button" data-cra="swap" class="pri">台帳の高さと幅を入れかえる<small>高さ ${esc(w['幅cm'])} × 幅 ${esc(w['高さcm'])} cm にします</small></button>` : ''}
+    <p>写真の絵の形：${fmt(a)}<br>台帳：H ${esc(w['高さcm'])} × W ${esc(w['幅cm'])} cm（${fmt(lr)}）</p>
+    ${swapFit ? `<button type="button" data-cra="swap" class="pri">台帳の高さと幅を入れかえる<small>H ${esc(w['幅cm'])} × W ${esc(w['高さcm'])} cm にします</small></button>` : ''}
     <button type="button" data-cra="frame">台帳のサイズは額を含む<small>額のサイズに移し、作品のサイズは空にします</small></button>
     <button type="button" data-cra="new">正しいサイズ（作品のみ）を入れる</button>
-    <div class="cr-asknew hidden"><input inputmode="decimal" id="craH" placeholder="高さ（縦）"><span>×</span><input inputmode="decimal" id="craW" placeholder="幅（横）"><span>cm</span><button type="button" data-cra="newok">保存</button></div>
+    <div class="cr-asknew hidden"><span>H</span><input inputmode="decimal" id="craH" placeholder="高さ（縦）"><span>×</span><span>W</span><input inputmode="decimal" id="craW" placeholder="幅（横）"><span>cm</span><button type="button" data-cra="newok">保存</button></div>
     <button type="button" data-cra="flag">要確認にする<small>台帳はこのままで写真を保存し、作品に「要確認」の印をつけます</small></button>
     <button type="button" data-cra="keep">台帳はこのままで保存</button>
     <button type="button" data-cra="back" class="sub">もどる（角を直す）</button>`;
@@ -7347,7 +7347,7 @@ function crRatioAsk(){ const c0 = CR; if (!c0 || !c0.led || !c0.img || $('#crop 
   return true; }
 async function cropSave(){ const c0 = CR; if (!c0 || c0.saving || !c0.img) return; if (!c0.ratioOk && !c0.szDone && c0.led && c0.n === 1) { c0.szDone = true; const w = workOf(c0.no) || {};
     if (szKind(w) === 'unk') try { const j = szJudge(c0.img, [c0.top[0], c0.top[1], c0.bot[1], c0.bot[0]], crK(), c0.led);
-      if (j.res === 'frame') { c0.ledPatch = szPatch('frame', w); c0.led = null; c0.ratio = 'auto'; c0.ratioOk = true; toast('台帳のサイズは額込みと判定し、額のサイズに移します（絵だけは約 ' + j.est.h + '×' + j.est.w + ' cm）'); }
+      if (j.res === 'frame') { c0.ledPatch = szPatch('frame', w); c0.led = null; c0.ratio = 'auto'; c0.ratioOk = true; toast('台帳のサイズは額込みと判定し、額のサイズに移します（絵だけは約 H' + j.est.h + '×W' + j.est.w + ' cm）'); }
       else if (j.res === 'art' && !c0.ledPatch) c0.ledPatch = szPatch('art', w); } catch(e){} } /* 台帳のサイズが額込みか、写真から判定（10/6 本人） */
   if (!c0.ratioOk && crRatioAsk()) return; c0.saving = true; c0.aiSkip = true;
   const sb = $('#crop .cr-save'), hint = $('#crop .cr-hint'), h0 = hint ? hint.textContent : '';
@@ -7497,9 +7497,9 @@ async function szAct(a, v){ const x = szState().L.find(q => q.no === v), w = x &
   try { await szSend([{ no: x.no, patch }]); r.st = 'done'; r.act = a === 'szundo' ? '' : a === 'szframe' ? 'frame' : 'art'; if (a === 'szundo') r.why = '元にもどしました'; szSave(); toast(a === 'szundo' ? '元にもどしました' : '台帳を直しました'); }
   catch(e){ alert('直せませんでした。\n' + (e.message || e)); } finally { busy(false); acDraw(); } }
 function szDraw(el){ const y = el.scrollTop, { L, n } = szState(), tab = SZ.tab, list = L.filter(x => tab === 'auto' ? x.st === 'auto' || x.st === 'done' : x.st === tab);
-  const th = x => `<span class="ac-th">${x.ph ? thImg(x.ph.c['ファイルID'], 200) : ''}</span>`, cm = (h, w) => `高さ ${esc(h)} × 幅 ${esc(w)} cm`;
+  const th = x => `<span class="ac-th">${x.ph ? thImg(x.ph.c['ファイルID'], 200) : ''}</span>`, cm = (h, w) => `H ${esc(h)} × W ${esc(w)} cm`;
   const item = x => { const r = x.r || {}, wt = esc(nol(x.no) + '　' + (x.w['作品名'] || '作品名なし')), led = r.old ? cm(r.old.h, r.old.w) : cm(x.w['高さcm'], x.w['幅cm']);
-    const v = r.act === 'frame' ? '額込みのサイズ → 額のサイズに移しました' + (r.est ? '（絵だけは約 ' + r.est.h + '×' + r.est.w + ' cm）' : '') : r.act === 'art' ? '絵だけのサイズ →「額なし（作品のみ）」にしました' + (r.bcm ? '（額の縁 約 ' + r.bcm + ' cm）' : '') : (r.why || '');
+    const v = r.act === 'frame' ? '額込みのサイズ → 額のサイズに移しました' + (r.est ? '（絵だけは約 H' + r.est.h + '×W' + r.est.w + ' cm）' : '') : r.act === 'art' ? '絵だけのサイズ →「額なし（作品のみ）」にしました' + (r.bcm ? '（額の縁 約 ' + r.bcm + ' cm）' : '') : (r.why || '');
     const bt = x.st === 'todo' ? '' : x.st === 'unsure' ? `<button type="button" data-ac="szframe:${esc(x.no)}">額込みのサイズ</button><button type="button" data-ac="szart:${esc(x.no)}">絵だけのサイズ</button><button type="button" data-ac="szskip:${esc(x.no)}">わからない</button>`
       : r.act ? `<button type="button" data-ac="szundo:${esc(x.no)}">元にもどす</button>` : '';
     return `<div class="ac-i"><div class="ac-ph">${th(x)}</div><div class="ac-tx"><b>${wt}</b><small>台帳 ${led}</small>${v ? `<small class="ac-why">${esc(v)}</small>` : ''}${r.ra ? `<small>写真：絵だけ 縦1：横${r.ra}${r.rF ? '／額込み 縦1：横' + r.rF : '（額の縁なし）'}</small>` : ''}<div class="ac-bt">${bt}${x.ph ? `<button type="button" data-ac="szopen:${esc(x.no)}">写真を見る</button>` : ''}</div></div></div>`; };
@@ -7939,9 +7939,9 @@ function inlineEdit(btn, no, f){
   let body;
   if (f === 'w7') body = `<select class="iein" data-k="種別">${['', ...KINDS, ...(w['種別'] && !KINDS.includes(w['種別']) ? [w['種別']] : [])].map(k => `<option value="${esc(k)}" ${(w['種別']||'')===k?'selected':''}>${k ? esc(k) : '（未入力）'}</option>`).join('')}</select>`;
   else if (f === 'w6') body = matPick('iemat', w['画材']) + '<div class="mpg"><small>仕立て</small>' + formPick('ieform', w['仕立て']) + '</div>';
-  else if (f === 'w3') body = `<div class="iesz"><input class="iein" data-k="高さcm" inputmode="decimal" value="${esc(w['高さcm']||'')}" placeholder="高さ（縦）"><span>×</span><input class="iein" data-k="幅cm" inputmode="decimal" value="${esc(w['幅cm']||'')}" placeholder="幅（横）"><span>cm</span></div><button type="button" class="ieswap" aria-label="縦と横を入れ替える">⇅ 縦と横を入れ替える</button>
+  else if (f === 'w3') body = `<div class="iesz"><span>H</span><input class="iein" data-k="高さcm" inputmode="decimal" value="${esc(w['高さcm']||'')}" placeholder="高さ（縦）"><span>×</span><span>W</span><input class="iein" data-k="幅cm" inputmode="decimal" value="${esc(w['幅cm']||'')}" placeholder="幅（横）"><span>cm</span></div><button type="button" class="ieswap" aria-label="縦と横を入れ替える">⇅ 縦と横を入れ替える</button>
     <label class="iechk"><input type="checkbox" class="iein" data-k="サイズの確認" ${w['サイズの確認'] === '作品のみ' ? 'checked' : ''}>このサイズは作品のみ（額を含まない）</label>
-    <small class="iesub">額のサイズ（分かれば）</small><div class="iesz"><input class="iein" data-k="額の高さcm" inputmode="decimal" value="${esc(w['額の高さcm']||'')}" placeholder="額の高さ"><span>×</span><input class="iein" data-k="額の幅cm" inputmode="decimal" value="${esc(w['額の幅cm']||'')}" placeholder="額の幅"><span>cm</span></div>`;
+    <small class="iesub">額のサイズ（分かれば）</small><div class="iesz"><span>H</span><input class="iein" data-k="額の高さcm" inputmode="decimal" value="${esc(w['額の高さcm']||'')}" placeholder="額の高さ"><span>×</span><span>W</span><input class="iein" data-k="額の幅cm" inputmode="decimal" value="${esc(w['額の幅cm']||'')}" placeholder="額の幅"><span>cm</span></div>`;
   else if (IE_AREA[f]) body = `<textarea class="iein" data-k="${spec[0][0]}" rows="3">${esc(w[spec[0][0]]||'')}</textarea>`;
   else body = `<input class="iein" data-k="${spec[0][0]}" value="${esc(w[spec[0][0]]||'')}" placeholder="${esc(spec[0][1]||'')}" enterkeyhint="done">`;
   dd.innerHTML = body + `<div class="ieb"><button type="button" class="ieno" data-ie="no">やめる</button><button type="button" class="ieok" data-ie="ok">保存</button></div>`;
@@ -8505,8 +8505,8 @@ function ulRowHTML(x, g){
     return `<button type="button" class="ulrow" ${pb ? 'data-ulpb' : 'data-ulno'}="${esc(x.no)}"><span class="ulth">${thImg(p['ファイルID'], 200)}</span><div class="ulb"><div class="ulh"><b>${esc(ulNameTxt(x.no))}</b></div>
       <div class="ulv">${esc(p['種類'] || '写真')}${p['メイン'] ? '・メイン画像' : ''}${cp ? '・転載' : ''}${/^【仮】/.test(memo) ? '・仮の写真' : ''}</div><small>${esc([time, sub].filter(Boolean).join('　'))}</small></div></button>`; }
   if (x.swapAll) return `<details class="ulrow ulbat"><summary><span class="ult">${esc(time)}</span><div class="ulb"><div class="ulh"><b>サイズの縦横を入れかえ</b><span class="ulf">サイズの縦横</span></div><div class="ulv">${x.swapAll.length.toLocaleString()}件（押すと作品の一覧）</div>${sub ? `<small>${esc(sub)}</small>` : ''}</div></summary>
-    <div class="ulbl">${x.swapAll.map(y => `<div class="ulbr">${ulName(y.no, '')}<span>${esc(y.swap[0])}×${esc(y.swap[1])} → ${esc(y.swap[2])}×${esc(y.swap[3])}</span></div>`).join('')}</div></details>`;
-  if (x.swap) return `<div class="ulrow"><span class="ult">${esc(time)}</span><div class="ulb"><div class="ulh">${g === 'no' ? '作品' : ulName(x.no, '作品')}<span class="ulf">サイズの縦横</span></div><div class="ulv">縦×横 <s>${esc(x.swap[0])}×${esc(x.swap[1])}</s> → ${esc(x.swap[2])}×${esc(x.swap[3])}</div>${sub ? `<small>${esc(sub)}</small>` : ''}</div></div>`;
+    <div class="ulbl">${x.swapAll.map(y => `<div class="ulbr">${ulName(y.no, '')}<span>H${esc(y.swap[0])}×W${esc(y.swap[1])} → H${esc(y.swap[2])}×W${esc(y.swap[3])}</span></div>`).join('')}</div></details>`;
+  if (x.swap) return `<div class="ulrow"><span class="ult">${esc(time)}</span><div class="ulb"><div class="ulh">${g === 'no' ? '作品' : ulName(x.no, '作品')}<span class="ulf">サイズの縦横</span></div><div class="ulv"><s>H${esc(x.swap[0])}×W${esc(x.swap[1])}</s> → H${esc(x.swap[2])}×W${esc(x.swap[3])}</div>${sub ? `<small>${esc(sub)}</small>` : ''}</div></div>`;
   const r = x.r, bf = r['変更前'], af = r['変更後'];
   const val = x.priv ? '<i>（この項目の中身は、編集の人だけが見られます）</i>' : (bf !== '' && bf != null ? `<s>${esc(ulCut(bf, 300))}</s> → ` : '') + (af !== '' && af != null ? esc(ulCut(af, 600)) : '<i>（空にした）</i>');
   return `<div class="ulrow"><span class="ult">${esc(time)}</span><div class="ulb"><div class="ulh">${g === 'no' ? esc(r['対象'] || '') : ulName(x.no, r['対象'])}<span class="ulf">${esc(x.item || r['対象'] || '')}</span></div>
@@ -9211,8 +9211,8 @@ function pdfCard(i){ const el = $('#pc' + i); if (!el || !PDFQ) return; const x 
       <div class="field"><label>どんな資料か</label><textarea data-k="掲載内容" rows="2">${esc(a['掲載内容']||'')}</textarea></div>
       <div class="field"><label>展覧会</label><select data-k="exId">${exOpts}</select></div>
       ${(r.d.pbs||[]).length ? `<div class="field"><label>関係する画集・本（チェックしたものにつなぐ）</label>${r.d.pbs.map(b => `<label class="pdfck"><input type="checkbox" data-pbid="${esc(b.id)}" ${b.s >= 0.8 ? 'checked' : ''}> ${esc(b['タイトル'])}${b['発行年月'] ? '（' + esc(fmtDate(b['発行年月'])) + '）' : ''}</label>`).join('')}</div>` : ''}
-      <div class="field"><label>下村良之介の作品</label>${(r.d.works||[]).length ? '<p class="hint">いちばん近い作品に自動でチェックしました。登録すると、書類に「要確認（紐付け作品を確認）」が付きます。</p>' + r.d.works.map((w, wi) => `<div class="pdfw"><b>${esc(w['作品名'])}</b>${[w['制作年'], w['高さcm'] || w['幅cm'] ? (w['高さcm']||'?') + '×' + (w['幅cm']||'?') + 'cm' : '', w['画材'], w['メモ']].filter(Boolean).length ? `<small>${esc([w['制作年'], w['高さcm'] || w['幅cm'] ? (w['高さcm']||'?') + '×' + (w['幅cm']||'?') + 'cm' : '', w['画材'], w['メモ']].filter(Boolean).join('　'))}</small>` : ''}
-        ${w.multi ? `<p class="hint susw" style="margin:4px 0">⚠ 番号が複数書かれています（${esc(w.multi)}）。どれが作品番号か確かめて、選んでください</p>` : ''}${!w.multi && w.pair ? '<p class="hint susw" style="margin:4px 0">⚠ 2点以上（一双・A/B など）です。つなぐ作品をすべて選んでください</p>' : !w.multi && w.ambig ? '<p class="hint susw" style="margin:4px 0">⚠ 似た候補が複数あります。サイズ・年・いまの場所を見て選んでください</p>' : ''}${w.cands.length ? w.cands.map((c, j) => { const cm = candMis(w, c); return `<label class="pdfck"><input type="checkbox" data-no="${esc(c.no)}" data-wi="${wi}" ${j===candPick(w) ? 'checked' : ''}> No.${esc(c.no)} ${esc(c['作品名'])}${c.byNo ? ' <small class="nobadge">番号一致</small>' : ''}${cm.sc >= 2 ? ` <small class="susw">⚠ ${esc(cm.why.join('・'))}</small>` : ''}${c['制作年'] ? '（' + esc(c['制作年']) + '）' : ''}${(() => { const x = workOf(c.no) || {}, z = x['高さcm'] && x['幅cm'] ? x['高さcm'] + '×' + x['幅cm'] : ''; return z || c['所在'] ? ` <small class="muted">${esc([z, c['所在'] || x['所在'] || ''].filter(Boolean).join('・'))}</small>` : ''; })()}${c.sz === 1 ? ' <small class="nobadge">サイズ一致</small>' : ''}</label>`; }).join('') : '<small class="muted">台帳に同じ名前の作品が見つかりません（あとで作品ページからひも付けできます）</small>'}</div>`).join('') : '<p class="hint">下村良之介の作品は見つかりませんでした</p>'}</div>
+      <div class="field"><label>下村良之介の作品</label>${(r.d.works||[]).length ? '<p class="hint">いちばん近い作品に自動でチェックしました。登録すると、書類に「要確認（紐付け作品を確認）」が付きます。</p>' + r.d.works.map((w, wi) => `<div class="pdfw"><b>${esc(w['作品名'])}</b>${[w['制作年'], w['高さcm'] || w['幅cm'] ? 'H' + (w['高さcm']||'?') + '×W' + (w['幅cm']||'?') + 'cm' : '', w['画材'], w['メモ']].filter(Boolean).length ? `<small>${esc([w['制作年'], w['高さcm'] || w['幅cm'] ? 'H' + (w['高さcm']||'?') + '×W' + (w['幅cm']||'?') + 'cm' : '', w['画材'], w['メモ']].filter(Boolean).join('　'))}</small>` : ''}
+        ${w.multi ? `<p class="hint susw" style="margin:4px 0">⚠ 番号が複数書かれています（${esc(w.multi)}）。どれが作品番号か確かめて、選んでください</p>` : ''}${!w.multi && w.pair ? '<p class="hint susw" style="margin:4px 0">⚠ 2点以上（一双・A/B など）です。つなぐ作品をすべて選んでください</p>' : !w.multi && w.ambig ? '<p class="hint susw" style="margin:4px 0">⚠ 似た候補が複数あります。サイズ・年・いまの場所を見て選んでください</p>' : ''}${w.cands.length ? w.cands.map((c, j) => { const cm = candMis(w, c); return `<label class="pdfck"><input type="checkbox" data-no="${esc(c.no)}" data-wi="${wi}" ${j===candPick(w) ? 'checked' : ''}> No.${esc(c.no)} ${esc(c['作品名'])}${c.byNo ? ' <small class="nobadge">番号一致</small>' : ''}${cm.sc >= 2 ? ` <small class="susw">⚠ ${esc(cm.why.join('・'))}</small>` : ''}${c['制作年'] ? '（' + esc(c['制作年']) + '）' : ''}${(() => { const x = workOf(c.no) || {}, z = x['高さcm'] && x['幅cm'] ? 'H' + x['高さcm'] + '×W' + x['幅cm'] : ''; return z || c['所在'] ? ` <small class="muted">${esc([z, c['所在'] || x['所在'] || ''].filter(Boolean).join('・'))}</small>` : ''; })()}${c.sz === 1 ? ' <small class="nobadge">サイズ一致</small>' : ''}</label>`; }).join('') : '<small class="muted">台帳に同じ名前の作品が見つかりません（あとで作品ページからひも付けできます）</small>'}</div>`).join('') : '<p class="hint">下村良之介の作品は見つかりませんでした</p>'}</div>
       <div class="btns"><button type="button" data-pq="skip|${i}">あとで</button><button type="button" data-pq="again|${i}">読み直す</button><button type="button" class="primary" data-pq="reg|${i}">登録する</button></div>`;
   pdfSnap(); }
 async function pdfRead(i, again){ const x = PDFQ.list[i]; PDFQ.res[x.id] = {loading: 1}; pdfCard(i);
@@ -10448,7 +10448,7 @@ function exvBuild(root, L, start){
 
   /* 近くの作品だけ写真・キャプション・影を読み込み、遠くなったら手放す（スマホのメモリのため） */
   let rq = 0, dead = 0; const redraw = () => { if (rq || dead) return; rq = requestAnimationFrame(() => { rq = 0; draw(); }); };
-  const capLines = it => { if (it.d.grp) it = { d: it.d.grp.reg[0].pd }; const w = it.d.w, sz = it.d.tri ? '各 ' + (+it.d.h).toFixed(1) + ' × ' + (+it.d.wd).toFixed(1) + ' cm（3点・背中合わせ）' : it.d.set ? '各 ' + (+it.d.set.ph).toFixed(1) + ' × ' + (+it.d.set.pw).toFixed(1) + ' cm（' + it.d.set.n + '面）' : it.d.est ? '約 ' + it.d.h + ' × ' + it.d.wd + ' cm（推定）' : (+it.d.h).toFixed(1) + ' × ' + (+it.d.wd).toFixed(1) + ' cm' + (it.d.frame ? '（額込み）' : '');
+  const capLines = it => { if (it.d.grp) it = { d: it.d.grp.reg[0].pd }; const w = it.d.w, sz = it.d.tri ? '各 H ' + (+it.d.h).toFixed(1) + ' × W ' + (+it.d.wd).toFixed(1) + ' cm（3点・背中合わせ）' : it.d.set ? '各 H ' + (+it.d.set.ph).toFixed(1) + ' × W ' + (+it.d.set.pw).toFixed(1) + ' cm（' + it.d.set.n + '面）' : it.d.est ? '約 H ' + it.d.h + ' × W ' + it.d.wd + ' cm（推定）' : 'H ' + (+it.d.h).toFixed(1) + ' × W ' + (+it.d.wd).toFixed(1) + ' cm' + (it.d.frame ? '（額込み）' : '');
     return [[it.d.tri ? it.d.tri.nos.join('・') : String(it.d.no), 10.5, 400, '#8a8379', 6, 1], [String(w['作品名'] || '').trim() || '無題', 17, 500, '#2a2724', 6, 1.5], [exvYearTxt(w), 11.5, 400, '#46413b', 2.5, 0.4], [String(w['画材'] || '').trim(), 11.5, 400, '#46413b', 2.5, 0.4], [sz, 11.5, 400, '#46413b', 2.5, 0.4], [exvOwner(w), 11.5, 400, '#46413b', it.d.cp ? 4 : 0, 0.4]].concat(it.d.cp ? [['画像 © ' + String(it.d.cp.mu || '').replace(/^[@＠]/, ''), 9.5, 400, '#8a8379', 0, 0.4]] : []); };
   const paint = (it, im) => { const iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height; if (!iw || !it.req) return; const was = it.pt; it.pt = 1; it.fail = 0;
     if (!was) { const dk = !RM && (LFt < 1 || LF < 0.98); it.fd = dk ? 1 : 0; it.rv.value = dk ? 0 : 1; } /* 部屋を暗くしているあいだに初めて届いた写真は、明かりがつくまで見せない。もう出ていた写真（細かい画像への描き直し）は、そのまま明かりだけ（17:20 本人） */
