@@ -2247,27 +2247,33 @@ button.ulrow{cursor:pointer}
 /* 拡大・縮小のボタン（角の画面の右上。10/6 本人） */
 .cr-zg{position:absolute;right:8px;top:8px;z-index:4;display:flex;align-items:center;gap:6px}.cr-zg.hidden{display:none}.cr-zg .cr-z1{position:static}
 .cr-zb{width:38px;height:38px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font:inherit;font-size:21px;font-weight:700;line-height:1;padding:0;cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none}.cr-zb:disabled{opacity:.35;cursor:default}
-/* 微調整の矢印を十字に並べる（パソコン 10/6、スマホも 10/7 本人） */
-#crop .cr-pad{display:grid;grid-template-columns:repeat(3,46px);grid-template-rows:repeat(3,40px);gap:4px;grid-template-areas:". u ." "l . r" ". d ."}
-#crop .cr-pad [data-crd="-1,0"]{grid-area:l}#crop .cr-pad [data-crd="0,-1"]{grid-area:u}#crop .cr-pad [data-crd="0,1"]{grid-area:d}#crop .cr-pad [data-crd="1,0"]{grid-area:r}
-/* スマホ：下の操作を整理して写真を広く（10/7 本人「次の丸と十字をよく使う・プレビューを広く」）。
-   角の画面は「次の丸」と十字だけ（明るさ・ふくらみ・サイズ・縦横の調整は仕上がりの画面へ）。案内は2行まで・写真の左右の余白を小さく */
+/* 微調整の矢印：ホームベース形の4つで十字の形（ゲーム機の十字キーのように、とがった先をまん中に向ける。10/7 本人） */
+#crop .cr-pad{--c:46px;--g:2px;position:relative;display:block;flex:none;width:calc(var(--c) * 3);height:calc(var(--c) * 3)}
+#crop .cr-pad button{position:absolute;min-width:0;height:auto;padding:0;border:0;border-radius:0;background:#3d3d38;color:#faf9f5;font-size:19px;display:flex;align-items:center;justify-content:center}
+#crop .cr-pad button:active{background:#5a5a53}
+#crop .cr-pad [data-crd="0,-1"]{left:var(--c);top:0;width:var(--c);height:calc(var(--c) * 1.5);padding-bottom:calc(var(--c) / 2);border-radius:10px 10px 0 0;clip-path:polygon(0 0,100% 0,100% 66.67%,50% 100%,0 66.67%);transform:translateY(calc(-1 * var(--g)))}
+#crop .cr-pad [data-crd="0,1"]{left:var(--c);top:calc(var(--c) * 1.5);width:var(--c);height:calc(var(--c) * 1.5);padding-top:calc(var(--c) / 2);border-radius:0 0 10px 10px;clip-path:polygon(0 33.33%,50% 0,100% 33.33%,100% 100%,0 100%);transform:translateY(var(--g))}
+#crop .cr-pad [data-crd="-1,0"]{left:0;top:var(--c);width:calc(var(--c) * 1.5);height:var(--c);padding-right:calc(var(--c) / 2);border-radius:10px 0 0 10px;clip-path:polygon(0 0,66.67% 0,100% 50%,66.67% 100%,0 100%);transform:translateX(calc(-1 * var(--g)))}
+#crop .cr-pad [data-crd="1,0"]{left:calc(var(--c) * 1.5);top:var(--c);width:calc(var(--c) * 1.5);height:var(--c);padding-left:calc(var(--c) / 2);border-radius:0 10px 10px 0;clip-path:polygon(33.33% 0,100% 0,100% 100%,33.33% 100%,0 50%);transform:translateX(var(--g))}
+/* スマホ：下の操作を整理して写真を広く（10/7 本人「次の丸と十字をよく使う・プレビューを広く」「十字は右・次へがメイン・前へはサブ」）。
+   角の画面は丸の切りかえと十字だけ（明るさ・ふくらみ・サイズ・縦横の調整は仕上がりの画面へ）。案内は2行まで・写真の左右の余白を小さく */
 @media not all and (min-width:900px) and (min-aspect-ratio:5/4){
   #crop .cr-hint{font-size:12.5px;line-height:1.45;padding:0 14px;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   #crop .cr-stage{margin:0 14px 4px}
   #crop .cr-bot{gap:8px;padding-top:8px}
   #crop.cred .cr-sl2,#crop.cred .cr-sz,#crop.cred .cr-str{display:none!important}
-  #crop .cr-nudge{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);grid-template-areas:"prev pad next";gap:0 10px;align-items:center}
+  #crop .cr-nudge{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto auto;grid-template-areas:"sel pad" "next pad" "prev pad";gap:6px 18px;align-content:center;align-items:center}
   #crop .cr-nudge.hidden{display:none}
-  #crop .cr-nsel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:58px;text-align:center;font-size:11px;line-height:1.2;white-space:normal;color:rgba(250,249,245,.7);pointer-events:none} /* いま動かす丸の名前は十字のまん中に */
-  #crop .cr-nnext{grid-area:next;height:46px;border-radius:23px;font-size:15px;font-weight:700;padding:0 8px;justify-self:stretch}
+  #crop .cr-nsel{grid-area:sel;font-size:12.5px;color:rgba(250,249,245,.7);align-self:end}
+  #crop .cr-nnext{grid-area:next;height:54px;border-radius:14px;border:0;background:#1CB0F6;color:#fff;font-size:17px;font-weight:800}
+  #crop .cr-nnext:active{background:#1491cc}
   #crop .cr-nnext::after{content:' ›';font-weight:400}
-  #crop .cr-nprev{grid-area:prev}
+  #crop .cr-nprev{grid-area:prev;height:38px;border-radius:12px;border:1px solid rgba(255,255,255,.22);background:transparent;color:rgba(250,249,245,.85);font-size:14px;font-weight:600}
+  #crop .cr-nprev:active{background:#3a3a38}
   #crop .cr-nprev::after{content:none}#crop .cr-nprev::before{content:'‹ ';font-weight:400}
-  #crop .cr-pad{grid-area:pad;grid-template-columns:repeat(3,58px);grid-template-rows:repeat(3,42px);gap:4px}
-  #crop .cr-pad button{height:42px;min-width:58px;border-radius:12px;font-size:20px}
+  #crop .cr-pad{grid-area:pad;--c:48px;--g:2px;justify-self:end}
 }
-/* パソコン：「前の丸」は「次の丸」の前に小さく */
+/* パソコン：「前の丸」は出さない（今までどおり） */
 #crop .cr-nprev{display:none}
 @media not all and (min-width:900px) and (min-aspect-ratio:5/4){ #crop .cr-nprev{display:block} }
 /* 本（画集・資料）の写真：屏風の形・色（カラーチップ）・縦横の比率・サイズ・AI で探す は使わない（10/7 本人） */
@@ -2412,7 +2418,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '47c0c2f3c7', APP_URL = location.origin + location.pathname;
+const BUILD = '36dd35411b', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
