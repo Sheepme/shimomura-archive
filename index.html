@@ -2257,14 +2257,19 @@ button.ulrow{cursor:pointer}
   #crop .cr-stage{margin:0 14px 4px}
   #crop .cr-bot{gap:8px;padding-top:8px}
   #crop.cred .cr-sl2,#crop.cred .cr-sz,#crop.cred .cr-str{display:none!important}
-  #crop .cr-nudge{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto 1fr;grid-template-areas:"sel pad" "next pad";gap:4px 14px;align-items:stretch}
+  #crop .cr-nudge{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);grid-template-areas:"prev pad next";gap:0 10px;align-items:center}
   #crop .cr-nudge.hidden{display:none}
-  #crop .cr-nsel{grid-area:sel;font-size:12.5px;color:rgba(250,249,245,.7);align-self:end}
-  #crop .cr-nnext{grid-area:next;height:auto;min-height:64px;border-radius:16px;font-size:18px;font-weight:700;background:#3d3d38}
+  #crop .cr-nsel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:58px;text-align:center;font-size:11px;line-height:1.2;white-space:normal;color:rgba(250,249,245,.7);pointer-events:none} /* いま動かす丸の名前は十字のまん中に */
+  #crop .cr-nnext{grid-area:next;height:46px;border-radius:23px;font-size:15px;font-weight:700;padding:0 8px;justify-self:stretch}
   #crop .cr-nnext::after{content:' ›';font-weight:400}
-  #crop .cr-pad{grid-area:pad;grid-template-columns:repeat(3,54px);grid-template-rows:repeat(3,38px);gap:4px}
-  #crop .cr-pad button{height:38px;min-width:54px;border-radius:12px}
+  #crop .cr-nprev{grid-area:prev}
+  #crop .cr-nprev::after{content:none}#crop .cr-nprev::before{content:'‹ ';font-weight:400}
+  #crop .cr-pad{grid-area:pad;grid-template-columns:repeat(3,58px);grid-template-rows:repeat(3,42px);gap:4px}
+  #crop .cr-pad button{height:42px;min-width:58px;border-radius:12px;font-size:20px}
 }
+/* パソコン：「前の丸」は「次の丸」の前に小さく */
+#crop .cr-nprev{display:none}
+@media not all and (min-width:900px) and (min-aspect-ratio:5/4){ #crop .cr-nprev{display:block} }
 /* 本（画集・資料）の写真：屏風の形・色（カラーチップ）・縦横の比率・サイズ・AI で探す は使わない（10/7 本人） */
 #crop.crbook .cr-rn,#crop.crbook .cr-rc,#crop.crbook .cr-rr,#crop.crbook .cr-sz,#crop.crbook [data-crcht],#crop.crbook [data-crai],#crop.crbook .cr-chs{display:none!important}
 /* 「最新版にしています」「最新の情報を読み込んでいます」は、補正の保存と同じ見た目：画面全体をぼかして、まん中に大きいくるくると今していること（10/6 本人） */
@@ -2407,7 +2412,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '3ce3a6112e', APP_URL = location.origin + location.pathname;
+const BUILD = '47c0c2f3c7', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6920,7 +6925,7 @@ async function openCrop(p){
     <div class="cr-stage"><canvas class="cr-img"></canvas><canvas class="cr-pv hidden"></canvas><div class="cr-grid hidden"></div><svg class="cr-svg" xmlns="http://www.w3.org/2000/svg"></svg><div class="cr-loupe hidden"><canvas></canvas></div><div class="cr-wpm hidden"></div><div class="cr-zg"><button type="button" class="cr-z1 hidden">全体を見る</button><button type="button" class="cr-zb" data-crz="-1" aria-label="縮小">－</button><button type="button" class="cr-zb" data-crz="1" aria-label="拡大">＋</button></div><div class="cr-ld"><span class="ldspin"></span>写真を読み込んでいます…</div></div>
     <div class="cr-bot">
       <div class="cr-segrow"><div class="cr-seg"><button type="button" data-crm="edit" class="on">角を合わせる</button><button type="button" data-crm="pv">仕上がりを見る</button></div><button type="button" class="cr-visb" aria-pressed="false" aria-label="見やすく（画面だけ明るく）" title="見やすく（画面だけ明るく。保存する写真は変わりません）">☀</button><button type="button" class="cr-wpb" aria-pressed="false" aria-label="白いところを指定して色かぶりを取る" title="白いところを指定して、色かぶりを取る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.6 4.4a2.2 2.2 0 0 0-3.1 0l-2.6 2.6-1-1-1.4 1.4 5.1 5.1 1.4-1.4-1-1 2.6-2.6a2.2 2.2 0 0 0 0-3.1z"/><path d="M12.6 8.8L5.2 16.2 4.5 19.5l3.3-.7 7.4-7.4"/></svg>白</button><button type="button" class="cr-morebtn" aria-expanded="false">設定<i aria-hidden="true">▾</i></button></div>
-      <div class="cr-nudge"><span class="cr-nsel"></span><div class="cr-pad"><button type="button" data-crd="-1,0" aria-label="左へ">←</button><button type="button" data-crd="0,-1" aria-label="上へ">↑</button><button type="button" data-crd="0,1" aria-label="下へ">↓</button><button type="button" data-crd="1,0" aria-label="右へ">→</button></div><button type="button" class="cr-nnext" data-crnext>次の丸</button></div>
+      <div class="cr-nudge"><span class="cr-nsel"></span><div class="cr-pad"><button type="button" data-crd="-1,0" aria-label="左へ">←</button><button type="button" data-crd="0,-1" aria-label="上へ">↑</button><button type="button" data-crd="0,1" aria-label="下へ">↓</button><button type="button" data-crd="1,0" aria-label="右へ">→</button></div><button type="button" class="cr-nnext cr-nprev" data-crprev aria-label="前の丸">前の丸</button><button type="button" class="cr-nnext" data-crnext>次の丸</button></div>
       <div class="cr-sl2">
       <label class="cr-row cr-half"><span>明るさ</span><input type="range" min="-40" max="40" step="1" value="${CR.bri}" id="crB"><output id="crBv">${CR.bri > 0 ? '+' : ''}${CR.bri}%</output></label>
       <label class="cr-row cr-half"><span>ふくらみ</span><input type="range" min="-15" max="15" step="0.5" value="${CR.v}" id="crK"><output id="crKv">${CR.v > 0 ? '+' : ''}${CR.v}</output></label>
@@ -6944,7 +6949,8 @@ async function openCrop(p){
   document.body.appendChild(el); hpush('c'); crUI();
   el.querySelector('.cr-visb').onclick = () => { CR.vis = !CR.vis; try { localStorage.setItem('smr_crvis', CR.vis ? '1' : '0'); } catch(e){} crUI(); crLayout(); crNudgeLoupe(); if (CR.vis) toast('見やすく表示しています（保存する写真は変わりません）'); };
   el.querySelector('.cr-morebtn').onclick = () => { const on = !el.classList.contains('crmore'); el.classList.toggle('crmore', on); try { localStorage.setItem('smr_crmore', on ? '1' : '0'); } catch(e){} crUI(); };
-  el.querySelector('[data-crnext]').onclick = () => { const P = crSelList(), k = P.findIndex(q => q.a === CR.sel.a && q.i === CR.sel.i); CR.sel = P[(k + 1) % P.length]; if (CR.pin) CR.pin = CR.sel; crFocusSel(); crDraw(); crNudgeLab(); crNudgeLoupe(); };
+  const crStep = d => { const P = crSelList(), k = P.findIndex(q => q.a === CR.sel.a && q.i === CR.sel.i); CR.sel = P[(k + d + P.length) % P.length]; if (CR.pin) CR.pin = CR.sel; crFocusSel(); crDraw(); crNudgeLab(); crNudgeLoupe(); };
+  el.querySelector('[data-crnext]').onclick = () => crStep(1); el.querySelector('[data-crprev]').onclick = () => crStep(-1); /* 前の丸（10/7 本人） */
   el.querySelectorAll('[data-crz]').forEach(b => b.onclick = () => crZoomStep(+b.dataset.crz));
   el.querySelectorAll('[data-crd]').forEach(b => { const [dx, dy] = b.dataset.crd.split(',').map(Number); let t1 = 0, t2 = 0;
     const stop = () => { clearTimeout(t1); clearInterval(t2); t1 = t2 = 0; };
