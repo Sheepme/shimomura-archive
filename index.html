@@ -2275,6 +2275,7 @@ button.ulrow{cursor:pointer}
 }
 /* パソコン：「前の丸」は出さない（今までどおり） */
 #crop .cr-nprev{display:none}
+.pagehead .no .oldno{display:inline-block;margin-left:10px;font-size:.82em;font-weight:500;color:var(--sub);letter-spacing:0} /* 旧番号（10/7） */
 @media not all and (min-width:900px) and (min-aspect-ratio:5/4){ #crop .cr-nprev{display:block} }
 /* 本（画集・資料）の写真：屏風の形・色（カラーチップ）・縦横の比率・サイズ・AI で探す は使わない（10/7 本人） */
 #crop.crbook .cr-rn,#crop.crbook .cr-rc,#crop.crbook .cr-rr,#crop.crbook .cr-sz,#crop.crbook [data-crcht],#crop.crbook [data-crai],#crop.crbook .cr-chs{display:none!important}
@@ -2418,7 +2419,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '0f6e4f1e3d', APP_URL = location.origin + location.pathname;
+const BUILD = 'f0d855b962', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2685,6 +2686,7 @@ function docCacheSync(docs){ let V = {}; try { V = JSON.parse(localStorage.getIt
   if (del.length) thDel(del); try { localStorage.setItem('smr_dver', JSON.stringify(N)); } catch(e){} }
 function setData(d){ shTake(d); if (S.upd) S.upd.t = 0; try { if (d && d.docs && d.docs.length) docCacheSync(d.docs); } catch(e){}
   const allW = d.works || []; d = Object.assign({}, d, {works: allW.filter(w => !OTRE.test(w['作品番号'])), others: allW.filter(w => OTRE.test(w['作品番号']))});
+  S.merged = Array.isArray(d.merged) ? d.merged : (S.merged || []);
   Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, museums:d.museums||[], exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], finds:d.finds||[], lits:d.lits||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], faces:d.faces||[], memoChecker:d.memoChecker||'直美', marks:d.marks||[], pimg:d.pimg||S.pimg||[], hist:Array.isArray(d.hist) ? d.hist : (S.hist || null), autoc:Array.isArray(d.autoc) ? d.autoc : (S.autoc || []), groups:Array.isArray(d.groups) ? d.groups : (S.groups || []), slays:Array.isArray(d.slays) ? d.slays : (S.slays || []), user:d.user, ai:d.ai, aiNoLim:!!d.aiNoLim, publicView:d.publicView, gcid:d.gcid || ''}); if (S.token && !d.user) setToken(''); index(); try { pimgIndex(); } catch(e){} renderUser(); try { faceInit(); } catch(e){} try { fpInit(); } catch(e){}  if (d.user) setTimeout(prefetchThumbs, 0); }
 const canRole = () => !!(S.user && ['編集','管理'].includes(S.user.role));
 const isGuest = () => !!(S.user && (S.user.role === 'ゲスト' || S.gmode)); /* ゲスト（ゲストの人と、名前のメニューの「モード選択」でゲストモードにした人）：見るだけ。ホームは展示ビュー（閉じると作品アルバム）。届いたもの・確認メモ・使い方・更新記録・書類・インタビュー・Google 連携は出さない。AI に質問はできる（10/7 開発 v11 本人） */
@@ -2781,12 +2783,17 @@ function closeConfirm(fromHist){ const open = !$('#confirm').classList.contains(
 
 /* ---------- 索引 ---------- */
 let otById = {}, photoBy = {}, eventBy = {}, exById = {}, pbById = {}, worksByEx = {}, worksByPb = {};
+/* 旧番号（統合した前の番号）：MRG＝前の番号 → いまの番号、OLDS＝いまの番号 → 前の番号の一覧。Google 側の getData の merged から（10/7 開発 v12 本人「元の番号を残す」） */
+let MRG = {}, OLDS = {};
+const mrgTo = no => { let n = String(no || ''), k = 0; if (!MRG[n]) return ''; while (MRG[n] && k++ < 10) n = MRG[n]; return workOf(n) ? n : ''; };
+const noSet = no => [String(no)].concat(OLDS[String(no)] || []); /* その作品の番号と旧番号（書類・メモのつながりを探すとき） */
 function index(){
   photoBy = {}; eventBy = {}; exById = {}; pbById = {}; worksByEx = {}; worksByPb = {};
   (S.exhibits||[]).forEach(x => exById[x['展覧会ID']] = x);
   (S.pubs||[]).forEach(x => pbById[x['資料ID']] = x);
   otById = {}; (S.others||[]).forEach(x => otById[x['作品番号']] = x);
   S.events.forEach(e => { if (e['展覧会ID']) (worksByEx[e['展覧会ID']] = worksByEx[e['展覧会ID']] || []).push(e['作品番号']); if (e['資料ID']) (worksByPb[e['資料ID']] = worksByPb[e['資料ID']] || []).push(e['作品番号']); });
+  MRG = {}; OLDS = {}; (S.merged || []).forEach(([o, n]) => { if (o && n) MRG[String(o)] = String(n); }); Object.keys(MRG).forEach(o => { const n = mrgTo(o); if (n) (OLDS[n] = OLDS[n] || []).push(o); });
   S.photos.forEach(p => (photoBy[p['作品番号']] = photoBy[p['作品番号']] || []).push(p));
   Object.values(photoBy).forEach(a => { const m = a.findIndex(p => p['メイン']); if (m > 0) a.unshift(a.splice(m, 1)[0]);
     const rest = a.splice(m >= 0 ? 1 : 0); a.push(...rest.filter(p => p['種類'] !== '記録写真'), ...rest.filter(p => p['種類'] === '記録写真')); }); /* 記録写真（補正の元の写真）は後ろに */
@@ -2826,7 +2833,7 @@ function filtered(){
     if (['自宅','美術館','個人蔵','委託中','廃棄'].includes(f) && w['所在区分']!==f) return false;
     if (SUBF[f] && S.mus && (w['所在']||SUBF[f].none)!==S.mus) return false;
     if (!q) return true;
-    const hay = [w['作品番号'],w['作品名'],w['作品名メモ'],w['制作年'],w['画材'],w['種別'],w['シリーズ'],w['所在'],w['所在区分']==='美術館' ? musNames(w['所在']) : '',w['補足'],w['状態メモ']]
+    const hay = [w['作品番号'],(OLDS[w['作品番号']] || []).join(' '),w['作品名'],w['作品名メモ'],w['制作年'],w['画材'],w['種別'],w['シリーズ'],w['所在'],w['所在区分']==='美術館' ? musNames(w['所在']) : '',w['補足'],w['状態メモ']]
       .concat((eventBy[w['作品番号']]||[]).map(e=>e['相手先・場所']+' '+e['内容']+' '+e['日付'])).join(' ').normalize('NFKC').toLowerCase();
     const mu = w['所在区分']==='美術館' ? musOf(w['所在']) : '', hay2 = hay.replace(/立/g, ''); /* 美術館は旧名・略称でも出す（京都市立美術館＝京都市美術館＝京都市京セラ美術館） */
     return q.split(/\s+/).every(t => hay.includes(t) || (t.length >= 2 && hay2.includes(t.replace(/立/g, ''))) || (!!mu && musOf(t) === mu));
@@ -4221,7 +4228,7 @@ function flagActs(w){
 }
 /** 作品ページ：この作品にひも付いた書類（読む前のものも出す） */
 function workDocsHTML(no){
-  const ds = (S.docs||[]).filter(d => String(d['作品番号']||'').split(',').includes(String(no)));
+  const ds = (S.docs||[]).filter(d => String(d['作品番号']||'').split(',').some(n => noSet(no).includes(n)));
   if (!ds.length) return '';
   const st = d => ({'まだ':'まだ読んでいない','確認待ち':'確認待ち','登録済み':'登録済み','登録しない':'登録しない'})[d['状態']] || d['状態'] || '';
   return `<h3 class="sec">この作品の書類（${ds.length}通）</h3><div class="dlist wdocs">${ds.map(d => { const ok = d['状態'] === '登録済み', pdf = ok && docPdfFid(d), k = esc(d['書類ID']) + '|' + esc(no);
@@ -4855,7 +4862,7 @@ function pdfPrefetch(fids){ try { if (navigator.connection && navigator.connecti
   setTimeout(next, 800); }
 const docPdfFid = d => { const r = docRes(d); return r.PDF ? docPages(d)[0] : ''; };
 function prefetchWorkPdfs(no){ try { const ids = new Set(); (S.events || []).forEach(e => { if (String(e['作品番号']) === String(no)) String(e['根拠・出典'] || '').replace(/D-\d+/g, m => ids.add(m)); });
-  (S.docs || []).forEach(d => { if (String(d['作品番号'] || '').split(',').map(x => x.trim()).includes(String(no))) ids.add(d['書類ID']); });
+  (S.docs || []).forEach(d => { if (String(d['作品番号'] || '').split(',').map(x => x.trim()).some(n => noSet(no).includes(n))) ids.add(d['書類ID']); });
   pdfPrefetch([...ids].map(id => docById(id)).filter(Boolean).map(docPdfFid)); } catch(e){} }
 function docView(fid){
   const el = document.createElement('div'); el.className = 'docview'; el._reopen = () => docView(fid);
@@ -5070,8 +5077,8 @@ const wLabel = no => { const w = workOf(no); return w ? (isOtNo(no) ? no : nol(n
 const noOf = v => { const t = String(v||'').normalize('NFKC'), o = t.match(/(?:^|[^A-Za-z])([YHZ])\s*-?\s*(\d{1,3})(?!\d)/i);
   if (o) { const id = o[1].toUpperCase() + ('00' + o[2]).slice(-3); if (otById[id]) return id; }
   const m = t.match(/(?:No\.?\s*)?(\d{1,4})(?:\s*[-‐‑−–ー]\s*(\d{1,3})(?!\d))?/i); if (!m) return ''; const n = m[1], p = ('000' + n).slice(-3);
-  if (m[2]) { const b = [n + '-' + m[2], p + '-' + m[2]].find(x => workOf(x)); if (b) return b; } /* 枝番のある作品（427-1 など）。10/7 本人「メモに 427-1 を入れたら見つからない」 */
-  return workOf(n) ? n : workOf(p) ? p : ''; };
+  if (m[2]) { const b = [n + '-' + m[2], p + '-' + m[2]].find(x => workOf(x)); if (b) return b; const o = mrgTo(n + '-' + m[2]) || mrgTo(p + '-' + m[2]); if (o) return o; } /* 枝番のある作品（427-1 など）。10/7 本人「メモに 427-1 を入れたら見つからない」 */
+  return workOf(n) ? n : workOf(p) ? p : (mrgTo(n) || mrgTo(p) || ''); }; /* 旧番号（統合した前の番号）なら、いまの番号へ */
 function sheetDocReview(id){ try { const d0 = docById(id); if (d0) pdfPrefetch([docPdfFid(d0)]); } catch(e){}
   const d = docById(id); if (!d) return;
   const r = docRes(d), pg = docPages(d), st = d['状態'];
@@ -5961,6 +5968,7 @@ document.addEventListener('input', e => { const el = e.target; if (!el.matches |
 });
 let OWC = false;
 function openWork(no, keepScroll, restoreSc){
+  if (!workOf(no) && mrgTo(no)) no = mrgTo(no); /* 旧番号で開いたら、いまの番号の作品へ */
   const w = workOf(no); if (!w) return;
   if (!OWC) { const cv = SCR.find(e => e.classList && e.classList.contains('cmpv')); if (cv && cv._did) return openWorkFromCmp(no, cv._did); } /* 見比べ画面から（検索などで）作品を開いた時も、右から重ねて開き、戻ると見比べに戻る */ if (S.user && canEdit()) prefetchWorkPdfs(no);
   const ot = isOtNo(no), NO = ot ? no : 'No. ' + no; // その他の作品（Y001など）は本作と同じページで、クイズ・インタビューなしで表示
@@ -5972,7 +5980,7 @@ function openWork(no, keepScroll, restoreSc){
   const qv = k => k==='サイズ' ? sizeOf(w) : (w[k]||'');
   const dd = (k, v, f) => `<dt>${k}</dt><dd class="${v?'':'empty'}">${v ? escU(v) + (QK[k] && qzDone(no, k, qv(k)) ? '<span class="qzck" title="クイズで確認済み">✓</span>' : '') : (QK[k] && qzUnknown(no, k) ? '<span class="nv qzu">不明</span>' : '<span class="nv">未入力</span>')}${canEdit() ? `<button class="pen" data-fill="${f||''}" aria-label="${k}を${v?'直す':'入力する'}">${PEN}</button>` : ''}</dd>`;
   const html = `
-    <div class="pagehead"><button class="back" id="back">← もどる</button><span class="no">${esc(NO)}</span></div>
+    <div class="pagehead"><button class="back" id="back">← もどる</button><span class="no">${esc(NO)}${(OLDS[no] || []).length ? `<small class="oldno">旧番号 ${esc(OLDS[no].join('・'))}</small>` : ''}</span></div>
     <div class="pagebody"><div class="media">
       ${ph.length ? `<div class="gallery ${ph.length>1?'many':''}">${ph.map((p,i)=>`<a href="#" data-view="${i}">${thImg(p['ファイルID'],1200)}${wm(p)}<span class="kind">${esc(p['種類'])}${/^【仮】/.test(p['メモ']||'') ? '・仮の写真' : ''}</span></a>`).join('')}</div>`
                   : `<div class="nophoto">まだ写真がありません${canEdit()?'<br><button class="act main" style="margin-top:12px" data-act="photo">写真を追加</button>':''}</div>`}
@@ -9506,7 +9514,7 @@ async function freshDone(f){ let lb = ''; try { lb = await call('appBuild'); } c
 /* ---------- 確認メモ（お母さんに確認してほしいこと：付箋） ---------- */
 const isChecker = () => !!(S.user && S.user.name === (S.memoChecker||'直美'));
 function memoCard(m){
-  const nos = String(m['作品番号']||'').split(',').filter(Boolean), done = !!m['確認済み'], ok = isChecker();
+  const nos = String(m['作品番号']||'').split(',').filter(Boolean).map(n => workOf(n) ? n : (mrgTo(n) || n)).filter((n, i, a) => a.indexOf(n) === i), done = !!m['確認済み'], ok = isChecker(); /* 旧番号はいまの番号で1つに */
   const ws = nos.map(no => { const w = workOf(no); return `<button type="button" class="mmw" data-mmw="${esc(no)}"><span class="mmth">${(photoBy[no]||[]).length ? thumbHTML(no, 200) : esc(nol(no))}</span><span class="t">${esc(nol(no))}　${esc(w ? (w['作品名']||'無題') : '（見つかりません）')}</span></button>`; }).join('');
   const rs = memoRel(m).map(relOf).filter(Boolean).map(r => `<button type="button" class="mmw" data-${r.k}="${esc(r.id)}"><span class="mmth mmic">${r.ic}</span><span class="t">${esc(r.label)}</span></button>`).join('');
   const re = String(m['返事'] || '').trim();
@@ -9532,7 +9540,7 @@ document.addEventListener('input', e => { const el = e.target; if (!el.matches |
   box.onclick = ev => { const b = ev.target.closest('[data-rid]'); if (!b) return; el.value = relOf(b.dataset.rid).label; el.dataset.rid = b.dataset.rid; box.innerHTML = ''; el.blur(); };
 });
 /* 展覧会・画集・作品のページに、つながっているメモを出す */
-function memosFor(id){ if (!canEdit()) return ''; const L = (S.memos||[]).filter(m => !m['確認済み'] && (memoRel(m).includes(String(id)) || String(m['作品番号']||'').split(',').includes(String(id))));
+function memosFor(id){ if (!canEdit()) return ''; const L = (S.memos||[]).filter(m => !m['確認済み'] && (memoRel(m).includes(String(id)) || String(m['作品番号']||'').split(',').some(n => noSet(id).includes(n))));
   return L.length ? `<h3 class="sec">お母さんへの確認メモ（${L.length}件）</h3><div class="mmlist">${L.map(memoCard).join('')}</div>` : ''; }
 function memoHTML(){
   if (!canEdit()) return '';
