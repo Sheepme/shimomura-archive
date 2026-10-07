@@ -2387,7 +2387,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '4f3b0c2f69', APP_URL = location.origin + location.pathname;
+const BUILD = 'daf675ac4d', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -10647,7 +10647,7 @@ function exvBuild(root, L, start){
   const showU = u => { U = u; const j = Math.max(-1, Math.min(uHi(), Math.round(u))), act = yd || yA, t = yTxt(j), tl = yLocTx(j); if (mv && !yd) { if (yNum.textContent !== t || pendT != null) { pendT = t; pendL = tl; } } else if (yNum.textContent !== t || yLoc.textContent !== tl) { yNum.textContent = t; yLoc.textContent = tl; fitNum(); } flashY(j); yEl.classList.toggle('xon', act);
     const f = Math.max(0, Math.min(1, (u + 1) / Math.max(1, uHi() + 1))); /* 全体の中の位置（0＝はじめ・1＝最後） */
     yC.style.transform = 'translateX(' + ((f - 0.5) * YTW).toFixed(1) + 'px)'; yFl.style.width = (f * YTW).toFixed(1) + 'px';
-    const no = j < 0 ? '' : 'No.' + (L[j].tri ? L[j].tri.nos.join('・') : L[j].no); if (yrNo.textContent !== no) yrNo.textContent = no; }; /* 年の下の作品番号 */
+    const no = j < 0 ? '' : (j + 1) + '／' + (uHi() + 1); if (yrNo.textContent !== no) yrNo.textContent = no; }; /* 年の下に「何点目／全部で何点」（作品番号は分かりにくいので。10/7 本人） */
   const pathAt = u => { const f = Math.max(-1, Math.min(uHi(), u)) + 1, k = Math.max(0, Math.min(stops.length - 2, Math.floor(f))), t = f - k, A = stops[k], B = stops[k + 1] || A;
     return { x: A.x + (B.x - A.x) * t, y: A.y + (B.y - A.y) * t, z: A.z + (B.z - A.z) * t }; };
   const camU = (u, o, w) => { const p = pathAt(u); if (TRI.length) triSet(u); w = o ? w || 0 : 0; st.x = p.x + o_(o, "x", w); st.y = p.y + o_(o, "y", w); st.z = p.z + o_(o, "z", w); ci = Math.max(0, Math.min(stops.length - 1, nearK(u) + 1)); cl(); draw(); aroundLater(); }; /* 動かしている間も、いちばん近い作品を「いまの作品」に（写真もそこから先に読む） */
