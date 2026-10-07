@@ -2393,7 +2393,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'adb09552e9', APP_URL = location.origin + location.pathname;
+const BUILD = '652b96bb09', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -7760,7 +7760,7 @@ const pick = (id, opts, v) => `<div class="pick" id="${id}" data-v="${esc(v||'')
 /* 画材（材質）は選択式：ボタンを複数押して組み合わせる。表記は「紙・紙粘土・顔料」の順にそろう */
 const MAT_OPTS = [['素材', ['紙','和紙','麻紙','新聞紙','紙粘土','キャンバス','麻布','布','板','木材','陶','砂','苆（藁）']], ['絵具・技法', ['顔料','岩絵具','水干絵具','泥絵具','墨','油彩','インク','鉛筆','色鉛筆','着色','コラージュ','エッチング','銅版画']]];
 const MAT_ALL = MAT_OPTS.flatMap(x => x[1]);
-const FORM_OPTS = ['なし','額','パネル','屏風（二曲一隻）','屏風（二曲一双）','屏風','観音開き','未装']; /* 観音開き（10/7 本人）：まん中の板と左右の扉（展示ビューでは扉を少し手前に開く） */
+const FORM_OPTS = ['なし','額','パネル','屏風（二曲一隻）','屏風（二曲一双）','屏風（四曲一隻）','屏風（六曲一隻）','屏風','観音開き','未装']; /* 観音開き（10/7 本人）：まん中の板と左右の扉（展示ビューでは扉を少し手前に開く） */
 const matSplit = v => String(v||'').split(/[・\/／、,，]/).map(s => s.trim()).filter(Boolean);
 const matJoin = arr => { const a = [...new Set(arr)]; return a.filter(x => MAT_ALL.includes(x)).sort((x, y) => MAT_ALL.indexOf(x) - MAT_ALL.indexOf(y)).concat(a.filter(x => !MAT_ALL.includes(x))).join('・'); };
 const matPick = (id, v) => { const cur = matSplit(v), ex = cur.filter(x => !MAT_ALL.includes(x));
@@ -9899,6 +9899,7 @@ const isKannon = w => /観音開/.test(['仕立て', '画材', '作品名', '種
 /* 屏風の折り：仕立て → 画材 → 種別 → 作品名の順に「六曲」「一折」などを探して合わせる。書いてなければ一折り（2枚）（10/6 本人） */
 const exvFolds1 = w => { const N = { '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8 }, num = c => N[c] || +String(c).replace(/[１-９]/, x => String.fromCharCode(x.charCodeAt(0) - 0xFEE0)) || 0;
   for (const k of ['仕立て', '画材', '種別', '作品名']) { const t = String(w[k] || ''); let m = t.match(/([一二三四五六七八1-8１-８])曲/); if (m && num(m[1])) return num(m[1]); m = t.match(/([一二三四五六七1-7１-７])折/); if (m && num(m[1])) return num(m[1]) + 1; }
+  try { const ci = crInfo((photoBy[w['作品番号']] || [])[0]); if (ci && !ci.kan && ci.n > 1) return exvPairW(w) && ci.n % 2 === 0 ? ci.n / 2 : ci.n; } catch(e){} /* 書いてなければ、写真の補正で選んだ「何曲」（10/7 本人「4曲なのに1か所しか折れていない」No.276） */
   return 2; };
 /* 一双（2つで1組）：屏風が2つ並ぶ。二曲一双なら 2×2＝4面（10/7 本人「仕立てを二曲一双にしたので4つ折りに」）。台帳の幅は2つ並べた全体の幅とみる */
 const exvPairW = w => /一双|一雙/.test(['仕立て', '画材', '種別', '作品名'].map(k => String(w[k] || '')).join(' ').normalize('NFKC'));
