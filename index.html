@@ -2387,7 +2387,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '96dcd6bc44', APP_URL = location.origin + location.pathname;
+const BUILD = '89184709df', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2923,7 +2923,13 @@ function vBack(){ const s = VH.pop(); vbSync(); if (!s) return false; VST.restor
   if (s.page && s.page.pcur) { const p = s.page.pcur, f = ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[p.t]; if (f) { S.stack = s.page.stack || []; f(p.id); } }
   return true; }
 addEventListener('scroll', () => { if (VST.cur && !VST.restoring && $('#page').classList.contains('hidden') && !SCR.length) VST.cur.y = window.scrollY; }, { passive: true });
-function render(){ const r = render0.apply(this, arguments); try { vTrack(); } catch(e){} return r; }
+function render(){ const r = render0.apply(this, arguments); try { vTrack(); } catch(e){} try { barHeal(); requestAnimationFrame(barHeal); } catch(e){} return r; }
+/* ページを切りかえたら、上のメニュー・下の検索ボタンが隠れたままにならないように（カード・展示ビューの閉じ残り、下へスクロールで隠した状態のまま上にいるとき）（10/7 開発 v11 本人「閲覧モードでヘッダーが消える」） */
+function barHeal(){ const b = document.body, h = document.getElementById('top');
+  if (b.classList.contains('qcopen') && !(typeof QC !== 'undefined' && QC) && !(typeof FDB !== 'undefined' && FDB) && !(typeof IV !== 'undefined' && IV) && !(typeof AC !== 'undefined' && AC && AC.open)) { try { qcLock(false); } catch(e){ b.classList.remove('qcopen'); } }
+  if (b.classList.contains('exvopen') && !(typeof EXV !== 'undefined' && EXV)) b.classList.remove('exvopen');
+  if ((window.scrollY || 0) < 80 && h && h.classList.contains('tuck')) { h.classList.remove('tuck'); b.classList.remove('tucked'); } }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') setTimeout(barHeal, 100); });
 function render0(){ setTimeout(() => { try { tedBar(); } catch(e){} }, 0);
   if (S.view === 'album' || S.view === 'list') { S.sortBy = S.sortBy || { album: 'rand', list: 'no' }; S.sort = S.sortBy[S.view] || S.sort; const so = document.getElementById('sort'); if (so && so.value !== S.sort) so.value = S.sort; } /* 並び順はアルバムとリストで別々（リストは番号順から。10/7 本人） */
   document.body.classList.toggle('vhome', S.view === 'home'); document.body.dataset.pv = S.view; // （data-view は写真を開くボタンの印なので使わない）
