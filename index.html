@@ -757,7 +757,7 @@ html[data-theme=dark] .wm{filter:none}
 #ptr.ready{color:var(--ink);font-weight:600}
 #ptr .ptr-ic{display:inline-block;font-size:18px;line-height:1}
 .prm{display:inline-block;width:.95em;height:.95em;margin-right:.3em;vertical-align:-.1em;background:currentColor;-webkit-mask:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAyMzguNzkgMjM2Ljg3Jz48cGF0aCBmaWxsLXJ1bGU9J2V2ZW5vZGQnIGQ9J00yMzguNzksODIuOTZsLS4wNCwxMy4yNmMtMi4wOSwyOC40Ni0xOC4xLDU0LjA4LTQxLjEyLDY4LjUxLTI2LjUzLDE2LjYzLTU4LjMyLDE4LjQ1LTg2LjM5LDUuMmwtNTEuMjQsNjYuOTUtLjAyLTE4Ni4xOEwwLDBsMTU1LjA5LjQxYzkuMTYuMDIsMTguODQsMy4wNCwyNi43Nyw2LjEsMzIuNjEsMTIuNTYsNTQuMTIsNDIuMjgsNTYuOTMsNzYuNDVaTTE4MC40OCwxMjAuNTJjMC0xNy4yMy0xNC0zMS4yLTMxLjI2LTMxLjJzLTMxLjI2LDEzLjk3LTMxLjI2LDMxLjIsMTQsMzEuMiwzMS4yNiwzMS4yLDMxLjI2LTEzLjk3LDMxLjI2LTMxLjJaJy8+PC9zdmc+) center/contain no-repeat;mask:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAyMzguNzkgMjM2Ljg3Jz48cGF0aCBmaWxsLXJ1bGU9J2V2ZW5vZGQnIGQ9J00yMzguNzksODIuOTZsLS4wNCwxMy4yNmMtMi4wOSwyOC40Ni0xOC4xLDU0LjA4LTQxLjEyLDY4LjUxLTI2LjUzLDE2LjYzLTU4LjMyLDE4LjQ1LTg2LjM5LDUuMmwtNTEuMjQsNjYuOTUtLjAyLTE4Ni4xOEwwLDBsMTU1LjA5LjQxYzkuMTYuMDIsMTguODQsMy4wNCwyNi43Nyw2LjEsMzIuNjEsMTIuNTYsNTQuMTIsNDIuMjgsNTYuOTMsNzYuNDVaTTE4MC40OCwxMjAuNTJjMC0xNy4yMy0xNC0zMS4yLTMxLjI2LTMxLjJzLTMxLjI2LDEzLjk3LTMxLjI2LDMxLjIsMTQsMzEuMiwzMS4yNiwzMS4yLDMxLjI2LTEzLjk3LDMxLjI2LTMxLjJaJy8+PC9zdmc+) center/contain no-repeat;flex:none}
-body:not(.canedit) .edonly{display:none!important}.mdpks{display:grid;gap:10px;margin:6px 0 12px}.mdpk{display:block;width:100%;text-align:left;padding:14px 16px;border-radius:14px;border:1.5px solid var(--line,#ddd);background:var(--card,#fff);color:inherit;font:inherit;cursor:pointer}.mdpk b{display:flex;align-items:center;gap:8px;font-size:17px}.mdpk b span{font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--accent,#2f6fde);color:#fff}.mdpk small{display:block;margin-top:4px;font-size:13.5px;line-height:1.6;opacity:.75}.mdpk.on{border-color:var(--accent,#2f6fde)}body.guest #dwNav [data-v="home"],body.guest [data-v="upd"],body.guest [data-v="inbox"],body.guest [data-v="help"],body.guest [data-v="doc"],body.guest .ivbtn,body.guest .phist,body.guest .hg-inbox,body.guest .gstno{display:none!important} /* ゲスト（10/7 開発 v11） */body:not(.isadm) .admonly{display:none!important}
+body:not(.canedit) .edonly{display:none!important}body:not(.candoc) .doconly{display:none!important}body.viewer [data-v="upd"],body.viewer [data-v="inbox"],body.viewer .hg-inbox,body.viewer [data-ulgo]{display:none!important}body:not(.canedit) .docs [data-dmode],body:not(.canedit) .docs [data-pdfscan],body:not(.canedit) .docs [data-docnew],body:not(.canedit) .docs [data-docread],body:not(.canedit) .docs [data-suslist],body:not(.canedit) .docs [data-pimgtool],body:not(.canedit) #sheetbox #dvTtl,body:not(.canedit) #sheetbox #dvChk,body:not(.canedit) #sheetbox #dvAgain,body:not(.canedit) #sheetbox .wfix,body:not(.canedit) #sheetbox .wfixhint{display:none!important} /* 閲覧（10/7 開発 v11） */.mdpks{display:grid;gap:10px;margin:6px 0 12px}.mdpk{display:block;width:100%;text-align:left;padding:14px 16px;border-radius:14px;border:1.5px solid var(--line,#ddd);background:var(--card,#fff);color:inherit;font:inherit;cursor:pointer}.mdpk b{display:flex;align-items:center;gap:8px;font-size:17px}.mdpk b span{font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--accent,#2f6fde);color:#fff}.mdpk small{display:block;margin-top:4px;font-size:13.5px;line-height:1.6;opacity:.75}.mdpk.on{border-color:var(--accent,#2f6fde)}body.guest #dwNav [data-v="home"],body.guest [data-v="upd"],body.guest [data-v="inbox"],body.guest [data-v="help"],body.guest [data-v="doc"],body.guest .ivbtn,body.guest .phist,body.guest .hg-inbox,body.guest .gstno{display:none!important} /* ゲスト（10/7 開発 v11） */body:not(.isadm) .admonly{display:none!important}
 .docs .csub{margin-bottom:0}
 .dsteps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0 16px}
 .dstep{border:1px solid var(--line);background:var(--paper);padding:10px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}
@@ -2387,7 +2387,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'bda8e5ada9', APP_URL = location.origin + location.pathname;
+const BUILD = '2e79208773', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2656,7 +2656,11 @@ function setData(d){ shTake(d); if (S.upd) S.upd.t = 0; try { if (d && d.docs &&
   Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, museums:d.museums||[], exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], finds:d.finds||[], lits:d.lits||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], faces:d.faces||[], memoChecker:d.memoChecker||'直美', marks:d.marks||[], pimg:d.pimg||S.pimg||[], hist:Array.isArray(d.hist) ? d.hist : (S.hist || null), autoc:Array.isArray(d.autoc) ? d.autoc : (S.autoc || []), groups:Array.isArray(d.groups) ? d.groups : (S.groups || []), slays:Array.isArray(d.slays) ? d.slays : (S.slays || []), user:d.user, ai:d.ai, aiNoLim:!!d.aiNoLim, publicView:d.publicView, gcid:d.gcid || ''}); if (S.token && !d.user) setToken(''); index(); try { pimgIndex(); } catch(e){} renderUser(); try { faceInit(); } catch(e){} try { fpInit(); } catch(e){}  if (d.user) setTimeout(prefetchThumbs, 0); }
 const canRole = () => !!(S.user && ['編集','管理'].includes(S.user.role));
 const isGuest = () => !!(S.user && (S.user.role === 'ゲスト' || S.gmode)); /* ゲスト（ゲストの人と、名前のメニューの「モード選択」でゲストモードにした人）：見るだけ。ホームは展示ビュー（閉じると作品アルバム）。届いたもの・確認メモ・使い方・更新記録・書類・インタビュー・Google 連携は出さない。AI に質問はできる（10/7 開発 v11 本人） */
-const canEdit = () => canRole() && !isGuest();
+const canEdit = () => canRole() && !isGuest() && S.vm !== 'view';
+const isViewer = () => !!(S.user && !isGuest() && (S.user.role === '閲覧' || S.vm === 'view')); /* 閲覧（閲覧の人と、閲覧モードにした人）：ホーム・書類（見るだけ）はある。更新記録・届いたもの・編集はない（10/7 開発 v11 本人） */
+const noLog = () => isGuest() || isViewer(); /* 更新記録・届いたものを出さない */
+const canDocs = () => !!(S.user && !isGuest() && ['閲覧','編集','管理'].includes(S.user.role)); /* 書類のページ（閲覧は見るだけ） */
+const fullMode = () => !isGuest() && S.vm !== 'view';
 try { S.edit = localStorage.getItem('smr_edit') === '1'; } catch(e){ S.edit = false; }
 function toggleMode(){
   if (!S.user) return openLogin('編集するにはログインしてください');
@@ -2670,12 +2674,13 @@ function toggleMode(){
 function setToken(t){ S.token = t; try { t ? localStorage.setItem('smr_token', t) : localStorage.removeItem('smr_token'); } catch(e){} }
 try { S.token = localStorage.getItem('smr_token') || ''; } catch(e){ S.token = ''; }
 function renderUser(){
-  try { S.gmode = !!(S.user && S.user.role !== 'ゲスト' && localStorage.getItem('smr_gmode') === String(S.user.name || '')); } catch(e){ S.gmode = false; } /* ゲストモード（この端末・この人だけ） */
+  try { const v = localStorage.getItem('smr_vmode') || '', i = v.lastIndexOf('|'); S.vm = S.user && S.user.role !== 'ゲスト' && i > 0 && v.slice(0, i) === String(S.user.name || '') ? v.slice(i + 1) : ''; } catch(e){ S.vm = ''; } /* モード（この端末・この人だけ）：''＝フル／'view'＝閲覧／'guest'＝ゲスト */
+  if (S.vm === 'view' && !canRole()) S.vm = ''; S.gmode = S.vm === 'guest';
   const on = canEdit();
   $('#userbox').innerHTML = ''; // 上のバーの名前ボタンは使わない（名前のメニューはサイドメニューの下から開く）
   setTimeout(pinDrawer, 0);
-  const f = $('#dwFoot'); if (f) f.innerHTML = S.user ? `<button type="button" class="dwme" id="btnMe2"><span class="avatar sm">${esc(String(S.user.name||'？').trim().charAt(0))}</span><span><b>${esc(S.user.name||'')}</b><small>${esc(S.user.role||'')}${S.gmode ? '・ゲストモード' : ''}</small></span></button><button type="button" class="dwtheme" id="dwTheme" aria-label="明るい表示・暗い表示を切り替える">${themeIcon()}</button>` : '';
-  document.body.classList.remove('editing'); document.body.classList.toggle('canedit', on); document.body.classList.toggle('isadm', !!(S.user && S.user.role === '管理' && !isGuest())); document.body.classList.toggle('guest', isGuest()); /* 展示ビュー（テスト）は管理者だけ */
+  const f = $('#dwFoot'); if (f) f.innerHTML = S.user ? `<button type="button" class="dwme" id="btnMe2"><span class="avatar sm">${esc(String(S.user.name||'？').trim().charAt(0))}</span><span><b>${esc(S.user.name||'')}</b><small>${esc(S.user.role||'')}${S.vm ? '・' + (S.vm === 'guest' ? 'ゲスト' : '閲覧') + 'モード' : ''}</small></span></button><button type="button" class="dwtheme" id="dwTheme" aria-label="明るい表示・暗い表示を切り替える">${themeIcon()}</button>` : '';
+  document.body.classList.remove('editing'); document.body.classList.toggle('canedit', on); document.body.classList.toggle('isadm', !!(S.user && S.user.role === '管理' && fullMode())); document.body.classList.toggle('guest', isGuest()); document.body.classList.toggle('viewer', isViewer()); document.body.classList.toggle('candoc', canDocs()); /* 展示ビュー（テスト）は管理者だけ */
 }
 function addByContext(){
   if (!canEdit()) return;
@@ -2926,6 +2931,7 @@ function render0(){ setTimeout(() => { try { tedBar(); } catch(e){} }, 0);
   setTimeout(() => { try { stkTop(); } catch(e){} }, 0);
   const main = $('#main');
   document.body.classList.toggle('loggedout', !S.user && !S.publicView);
+  if (isViewer() && ['upd','inbox'].includes(S.view)) S.view = 'home'; /* 閲覧：更新記録・届いたものはない */
   if (isGuest() && ['home','help','upd','doc','ai','inbox'].includes(S.view)) { const h = S.view === 'home'; S.view = S.wmode = (S.wmode === 'list' ? 'list' : 'album'); if (h) setTimeout(() => { if (isGuest() && !EXV && !exvDeep.pend && $('#page').classList.contains('hidden')) exvOpen(); }, 0); } /* ゲスト：ホームは展示ビュー（閉じると作品アルバム）。連絡・使い方・書類・AI のページは出さない（10/7 開発 v11） */
   if (!S.user && !S.publicView) { $('#finder').classList.add('hidden'); $('#chronobar').classList.add('hidden'); $('#top').classList.add('hidden'); $('#askbar').classList.add('hidden'); if (S.view==='ai') S.view='album'; navOn(); return showLoginWall(); }
   $('#chronobar').classList.toggle('hidden', !['chrono','ex','pb','ot'].includes(S.view));
@@ -2936,7 +2942,7 @@ function render0(){ setTimeout(() => { try { tedBar(); } catch(e){} }, 0);
   if (S.view==='home') return renderHome();
   if (S.view==='help') return renderHelp();
   if (S.view==='upd') return renderUpd();
-  if (S.view==='doc') return canEdit() ? renderDocs() : (S.view='home', renderHome());
+  if (S.view==='doc') return canDocs() ? renderDocs() : (S.view='home', renderHome());
   if (S.view==='chrono') return renderChrono();
   if (S.view==='ex') return renderExList();
   if (S.view==='pb') return renderPbList();
@@ -4135,11 +4141,11 @@ function renderHome(){
       const t = e.target.closest('[data-hgw]'); if (t) openWork(t.dataset.hgw); }); }
 }
 (function(){ const L = [['album','作品アルバム','works'],['list','作品リスト','list'],['ex','展覧会','ex'],['pb','画集','pb'],['ot','その他','ot'],['chrono','年表','chrono'],['doc','書類','doc']];
-  document.getElementById('fmInline').innerHTML = L.map(([v, t, k]) => `<button data-v="${v}"${v==='doc'?' class="edonly"':''}><span class="ic">${ico(k)}</span><span>${t}</span></button>`).join('');
-  document.getElementById('fmPop').innerHTML = L.map(([v, t, k]) => `<button data-v="${v}"${v==='doc'?' class="edonly"':''}><span class="pic">${ico(k)}</span><span>${v==='ot' ? 'その他の作品' : t}</span></button>`).join('');
+  document.getElementById('fmInline').innerHTML = L.map(([v, t, k]) => `<button data-v="${v}"${v==='doc'?' class="doconly"':''}><span class="ic">${ico(k)}</span><span>${t}</span></button>`).join('');
+  document.getElementById('fmPop').innerHTML = L.map(([v, t, k]) => `<button data-v="${v}"${v==='doc'?' class="doconly"':''}><span class="pic">${ico(k)}</span><span>${v==='ot' ? 'その他の作品' : t}</span></button>`).join('');
   const HOMEIC = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.2 12 4.5l8 6.7V20h-5.2v-5.6H9.2V20H4z"/></svg>';
   document.getElementById('dwNav').innerHTML = `<button type="button" data-v="home"><span class="pic">${HOMEIC}</span><span>ホーム</span></button>`
-    + L.map(([v, t, k]) => `<button type="button" data-v="${v}"${v==='doc'?' class="edonly"':''}><span class="pic">${ico(k)}</span><span>${v==='ot' ? 'その他の作品' : v==='pb' ? '画集・資料' : t}</span></button>`).join('')
+    + L.map(([v, t, k]) => `<button type="button" data-v="${v}"${v==='doc'?' class="doconly"':''}><span class="pic">${ico(k)}</span><span>${v==='ot' ? 'その他の作品' : v==='pb' ? '画集・資料' : t}</span></button>`).join('')
     + `<button type="button" data-v="upd"><span class="pic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v3.4h3.4"/><path d="M12 8v4.3l2.8 1.8"/></svg></span><span>更新記録</span></button>`
     + `<button type="button" data-v="exv"><span class="pic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5.5" y="5" width="13" height="10.5" rx="1"/><path d="M3 19.5h18"/></svg></span><span>展示ビュー</span></button>`
     + `<button type="button" data-v="inbox"><span class="pic">${inbIc()}</span><span>届いたもの</span><b class="dwbadge" id="dwInboxN"></b></button>`
@@ -4917,7 +4923,7 @@ function renderDocFiles(){
   const inp = $('#dfq'); inp.oninput = () => { S.dfq = inp.value; clearTimeout(inp._t); inp._t = setTimeout(() => { const pos = inp.selectionStart; renderDocFiles(); const n = $('#dfq'); n.focus(); try { n.setSelectionRange(pos, pos); } catch(e){} }, 250); };
 }
 function renderDocs(){ setTimeout(sameChk, 500);
-  if (S.dmode !== 'list') return renderDocFiles();
+  if (S.dmode !== 'list' || !canEdit()) return renderDocFiles(); /* 閲覧は資料ファイル（見るだけ）だけ */
   const nNew = docsOf('まだ').length, rev = docsOf('確認待ち'), done = (S.docs||[]).filter(d => ['登録済み','登録しない'].includes(d['状態']));
   const step = (n, t, c, on) => `<div class="dstep ${on?'on':''}"><b>${n}</b><span>${t}</span><small>${c}</small></div>`;
   const card = docCard;
@@ -5028,7 +5034,7 @@ function sheetDocReview(id){ try { const d0 = docById(id); if (d0) pdfPrefetch([
   const d = docById(id); if (!d) return;
   const r = docRes(d), pg = docPages(d), st = d['状態'];
   const imgs = `<div class="dpages rv">${pg.map((f, i) => `<span class="dpgi" data-dv="${esc(f)}">${docImg(f, 400)}<b>${i+1}</b></span>`).join('')}</div><p class="hint" style="margin-top:4px">写真を押すと大きく見られます</p>`;
-  if (st==='登録済み' || st==='登録しない') {
+  if (st==='登録済み' || st==='登録しない' || !canEdit()) { /* 閲覧：まだ登録していない書類も、見るだけの形で */
     const nos = String(d['作品番号']||'').split(',').filter(Boolean);
     const noteMode = !!d['全文あり'] && window.innerWidth < 1000; // ノートがあるスマホでは、原本の画像は押したときだけ読み込む
     S.sheetDoc = null; setTimeout(() => { S.sheetDoc = id; }, 0);
@@ -5038,15 +5044,15 @@ function sheetDocReview(id){ try { const d0 = docById(id); if (d0) pdfPrefetch([
       ${canEdit() && r.PDF && docPdfFid(d) && PIMG[docPdfFid(d)] ? `<button type="button" class="act pdfopen" data-pimgre="${esc(id)}">↻ ページの表示を作り直す（元のファイルと違うとき）</button>` : ''}
       <p class="hint">${esc([r['日付'], r['相手先'] && r.PDF ? r['相手先'] : '', r['要約']].filter(Boolean).join('　'))}</p>
       ${r['要確認'] ? `<div class="dchk"><b>⚠ 要確認</b>${esc(r['要確認'])}<button type="button" class="act" id="dvChk">確認した</button></div>` : ''}
-      ${(r['食い違い']||[]).length ? `<h3 class="sec" style="font-size:18px">台帳との食い違い</h3><p class="hint">押すと、書類と作品を並べて見比べる画面が開き、「どっちが正しい？」を決められます。</p>${r['食い違い'].map((x, i) => dfCard(d, x, i)).join('')}` : ''}
+      ${canEdit() && (r['食い違い']||[]).length ? `<h3 class="sec" style="font-size:18px">台帳との食い違い</h3><p class="hint">押すと、書類と作品を並べて見比べる画面が開き、「どっちが正しい？」を決められます。</p>${r['食い違い'].map((x, i) => dfCard(d, x, i)).join('')}` : ''}
       ${docEvHTML(d)}${docTocHTML(d)}
       ${(r['補完']||[]).length ? `<details class="dfill"><summary>この書類から自動で埋めた項目（${r['補完'].length}件）</summary>${r['補完'].map(x => `<p>${esc(x.name)}：${esc(x.f)}　→　${esc(x.v)}</p>`).join('')}</details>` : ''}
       ${d['メモ'] ? `<p class="hint dmemo">📝 ${esc(d['メモ'])}</p>` : ''}
       ${d['保管番号'] ? `<button type="button" class="act pdfopen" data-spine="${esc(d['保管番号'])}">📦 ${esc(d['保管番号'])} の背表紙を見る</button><button type="button" class="act pdfopen" data-dfgo="${esc(d['保管番号'])}">📁 このファイルを開く（同じフォルダの資料）</button>` : ''}
       ${r['展覧会ID'] && (S.exhibits||[]).some(e => e['展覧会ID']===r['展覧会ID']) ? `<p><button type="button" class="golink" data-ex="${esc(r['展覧会ID'])}">展覧会：${esc((S.exhibits.find(e => e['展覧会ID']===r['展覧会ID'])||{})['名称']||'')} ›</button></p>` : ''}
       ${String(r['資料ID']||'').split(',').filter(x => (S.pubs||[]).some(p => p['資料ID']===x)).map(x => `<p><button type="button" class="golink" data-pb="${esc(x)}">画集・本：${esc((S.pubs.find(p => p['資料ID']===x)||{})['タイトル']||x)} ›</button></p>`).join('')}
-      ${st==='登録済み' && r.PDF && !nos.length ? '<p class="hint">作品のひも付けはありません</p>' : st==='登録済み' ? `<h3 class="sec" style="font-size:18px">登録した作品</h3>${nos.length ? `<button type="button" class="act main cmpbtn" data-cmp="${esc(id)}|${esc(nos[0])}">📑 書類と作品を見比べる</button>` : ''}<div class="wl2">${nos.map(no => `<span class="wfixw"><button class="wchip" data-no="${esc(no)}">${esc(wLabel(no) || nol(no))}</button><button type="button" class="wfix" data-wfix="${esc(id)}|${esc(no)}">作品が違う？</button></span>`).join('')}</div><p class="hint">AIが別の作品と読み違えていたら「作品が違う？」から正しい作品に付け替えられます。</p>`
-        : '<p class="hint">この書類は「登録しない」にしました。</p><button class="act" id="dvAgain" style="width:100%">やっぱり登録する</button>'}
+      ${st==='登録済み' && r.PDF && !nos.length ? '<p class="hint">作品のひも付けはありません</p>' : st==='登録済み' ? `<h3 class="sec" style="font-size:18px">登録した作品</h3>${nos.length ? `<button type="button" class="act main cmpbtn" data-cmp="${esc(id)}|${esc(nos[0])}">📑 書類と作品を見比べる</button>` : ''}<div class="wl2">${nos.map(no => `<span class="wfixw"><button class="wchip" data-no="${esc(no)}">${esc(wLabel(no) || nol(no))}</button><button type="button" class="wfix" data-wfix="${esc(id)}|${esc(no)}">作品が違う？</button></span>`).join('')}</div><p class="hint wfixhint">AIが別の作品と読み違えていたら「作品が違う？」から正しい作品に付け替えられます。</p>`
+        : st==='登録しない' ? '<p class="hint">この書類は「登録しない」にしました。</p><button class="act" id="dvAgain" style="width:100%">やっぱり登録する</button>' : ''}
       `); /* 書類は見るページなので、下の「閉じる」バー（編集画面の形）は出さない。戻るは左上の「<」 */
     wireDocImgs(); hydrateDocs($('#sheetbox'));
     /* 展覧会・資料へのリンクは、全体のクリック処理で「書類から開く（戻ると書類へ）」にする */
@@ -5612,12 +5618,12 @@ function dashHTML(){
       <span class="dl">${esc(t)}</span><span class="dn">${p===100 ? '✓ ' : ''}${a.toLocaleString()}<small> / ${b.toLocaleString()}</small></span>
       <span class="db"><i style="width:${p}%"></i></span><span class="dp">${p}%</span></button>`; };
   /* 最近7日間に更新した箇所（変更記録から数える。読み込みは10分に1回まで） */
-  if (!S.upd || Date.now() - S.upd.t > 600000) setTimeout(loadUpd, 0);
+  if (!noLog() && (!S.upd || Date.now() - S.upd.t > 600000)) setTimeout(loadUpd, 0);
   return `<h2 class="hsec">進み具合</h2>
     <div class="dhero"><b>${Math.round(tot * 100)}<small>%</small></b><span>写真・場所・要確認・クイズの平均</span><span class="db big"><i style="width:${Math.round(tot*100)}%"></i></span></div>
     <div class="dshcard">${rows.map(bar).join('')}</div>
-    <h2 class="hsec">この7日間に更新した箇所</h2>
-    <div id="dUpd">${updWeekHTML()}</div><button type="button" class="ulgo" data-ulgo="1">更新記録をくわしく見る ›</button>${quizCountHTML()}`;
+    ${noLog() ? '' : `<h2 class="hsec">この7日間に更新した箇所</h2>
+    <div id="dUpd">${updWeekHTML()}</div><button type="button" class="ulgo" data-ulgo="1">更新記録をくわしく見る ›</button>`}${quizCountHTML()}`;
 }
 /* クイズ（今日の10作品・作品ページのクイズ・調べの記録）に答えた数。シート「クイズ」と「調べ」から数える */
 function quizCountHTML(){ const today = Utilities_ymd(new Date()), from = Utilities_ymd(new Date(Date.now() - 6 * 864e5));
@@ -5946,7 +5952,7 @@ function openWork(no, keepScroll, restoreSc){
         ${isPrint(w) ? dd('エディション', w['エディション'], 'w4e') : ''}
         ${dd('制作年', w['制作年'], 'w5')}${dd('画材', [w['画材'], w['仕立て']].filter(Boolean).join('／'), 'w6')}${dd(ot ? '種類' : '種別', w['種別'], 'w7')}${dd('シリーズ', w['シリーズ'], 'w8')}
         ${dd('状態', w['状態メモ'], 'w9')}${dd('メモ', w['補足'], 'w10')}
-        ${isGuest() ? '' : dd('所蔵者・連絡先', w['所蔵者・連絡先'], 'w11') + dd('管理メモ', w['管理メモ'], 'w12')}
+        ${isGuest() || isViewer() ? '' : dd('所蔵者・連絡先', w['所蔵者・連絡先'], 'w11') + dd('管理メモ', w['管理メモ'], 'w12')}
       </dl>
       ${!ot ? grpSecHTML(no) : ''}
       ${!ot && canEdit() && String(w['シリーズ'] || '').trim() && !/三面/.test(w['シリーズ']) ? `<div class="gpbt" style="margin:8px 0"><button type="button" class="shfam" data-slay="${esc(String(w['シリーズ']).trim())}" data-slfrom="${esc(no)}">シリーズ「${esc(String(w['シリーズ']).trim())}」の並べ方（展示ビュー）</button>${slayUndoBtn(no)}</div>` : ''}
@@ -6006,7 +6012,7 @@ function histFromS(id){
     .sort((a, b) => a.d < b.d ? 1 : a.d > b.d ? -1 : 0);
   return { g, t: Date.now(), local: 1 };
 }
-function histBlock(id, last, who){ if (isGuest()) return ''; /* ゲスト：更新履歴は出さない */
+function histBlock(id, last, who){ if (noLog()) return ''; /* 閲覧・ゲスト：更新履歴は出さない */
   if (Array.isArray(S.hist)) HISTC[id] = histFromS(id); else setTimeout(() => histLoad(id), 0);
   const d = String(last || '').slice(0, 10);
   return `<div class="phist" data-phist="${esc(id)}">${d ? `<p>最終更新：${esc(d)}（${esc(who || '不明')}）</p>` : ''}<div class="phb">${histLines(id)}</div></div>`;
@@ -8535,8 +8541,8 @@ function openMe(anc){ /* 名前ボタンの上に出る小さな吹き出しメ�
   anc = anc || document.getElementById('btnMe2');
   const it = (id, t) => `<button type="button" data-me="${id}">${t}</button>`;
   const el = document.createElement('div'); el.id = 'mepop'; el.setAttribute('role', 'menu');
-  el.innerHTML = `<div class="mehd"><b>${esc(S.user.name||'')}</b><small>権限：${esc(S.user.role)}${S.gmode ? '（いまはゲストモード）' : ''}</small>${S.dataAt ? `<small>情報：${new Date(S.dataAt).getHours()}:${String(new Date(S.dataAt).getMinutes()).padStart(2, '0')} に読み込み</small>` : ''}</div>
-    ${S.user.role !== 'ゲスト' ? it('mode', 'モード選択（いま：' + (S.gmode ? 'ゲスト' : 'フル') + 'モード）') : ''}${S.user.role === '管理' && !isGuest() && S.ai ? `<button type="button" data-me="ainl">${S.aiNoLim ? 'AI質問のリミッター解除中（もとにもどす）' : 'AI質問のリミッター解除'}<small style="display:block;font-size:11.5px;opacity:.65;margin-top:2px">※ クレジット消費が増えます</small></button>` : ''}${it('upd','最新版に更新')}${isGuest() ? '' : it('mic','マイクのテスト')}${canEdit() ? it('face','顔写真を追加') : ''}${isGuest() ? '' : it('log','更新記録')}${canEdit() && S.ai ? it('rot','写真の向きをAIでそろえる') : ''}${canEdit() ? it('arc','削除したもの（アーカイブ）') : ''}${fpAdmin() ? it('fp','写真を速く読む') : fpGd() ? it('fp','Google ドライブとつなぐ（写真を速く）') : ''}
+  el.innerHTML = `<div class="mehd"><b>${esc(S.user.name||'')}</b><small>権限：${esc(S.user.role)}${S.vm ? '（いまは' + (S.vm === 'guest' ? 'ゲスト' : '閲覧') + 'モード）' : ''}</small>${S.dataAt ? `<small>情報：${new Date(S.dataAt).getHours()}:${String(new Date(S.dataAt).getMinutes()).padStart(2, '0')} に読み込み</small>` : ''}</div>
+    ${S.user.role !== 'ゲスト' ? it('mode', 'モード選択（いま：' + (S.vm === 'guest' ? 'ゲスト' : S.vm === 'view' ? '閲覧' : 'フル') + 'モード）') : ''}${S.user.role === '管理' && fullMode() && S.ai ? `<button type="button" data-me="ainl">${S.aiNoLim ? 'AI質問のリミッター解除中（もとにもどす）' : 'AI質問のリミッター解除'}<small style="display:block;font-size:11.5px;opacity:.65;margin-top:2px">※ クレジット消費が増えます</small></button>` : ''}${it('upd','最新版に更新')}${isGuest() ? '' : it('mic','マイクのテスト')}${canEdit() ? it('face','顔写真を追加') : ''}${noLog() ? '' : it('log','更新記録')}${canEdit() && S.ai ? it('rot','写真の向きをAIでそろえる') : ''}${canEdit() ? it('arc','削除したもの（アーカイブ）') : ''}${!fullMode() ? '' : fpAdmin() ? it('fp','写真を速く読む') : fpGd() ? it('fp','Google ドライブとつなぐ（写真を速く）') : ''}
     <div class="mesep"></div>${it('out','ログアウト')}<small class="menote">共用のパソコンでは、使い終わったらログアウトしてください</small><i class="metail"></i>`;
   document.body.appendChild(el);
   const r = anc ? anc.getBoundingClientRect() : { left: 12, right: 252, top: innerHeight - 12, bottom: innerHeight - 12, width: 240 };
@@ -8560,15 +8566,15 @@ async function aiNoLimit(){ const on = !S.aiNoLim;
   busy(true, on ? 'リミッターを外しています…' : 'もとにもどしています…');
   try { const r = await call('setAiNoLimit', on); S.aiNoLim = !!(r && r.on); busy(false); toast(S.aiNoLim ? 'AI質問のリミッターを外しました' : 'AI質問のリミッターをもとにもどしました'); }
   catch(e){ busy(false); alert('切りかえられませんでした。' + (/この操作はできません/.test(String(e && e.message || e)) ? '\nGoogle 側の更新（デプロイ）がまだです。' : '\n' + (e && e.message || e))); } }
-/* モード選択（名前のメニュー。ゲストの人以外）：フルモード＝いつもの画面／ゲストモード＝ゲストの人と同じ見るだけの画面（AI に質問はできる）。この端末だけに覚える（10/7 開発 v11 本人） */
-function modePick(){ if (!S.user || S.user.role === 'ゲスト') return;
-  const op = (k, t, d) => `<button type="button" class="mdpk${(k === 'guest') === !!S.gmode ? ' on' : ''}" data-mdpk="${k}"><b>${t}${(k === 'guest') === !!S.gmode ? '<span>いまのモード</span>' : ''}</b><small>${d}</small></button>`;
-  openSheet(`<h3>モード選択</h3><div class="mdpks">${op('full', 'フルモード', 'いつもの画面。' + esc(S.user.role) + 'の権限でできることが全部使えます')}${op('guest', 'ゲストモード', '開くと展示ビュー。作品を見るだけ（編集・届いたもの・確認メモ・使い方・更新記録・書類は出ません）。AI に質問はできます')}</div>
-    <p class="hint">この端末だけの設定です。もどすときは、もう一度ここで「フルモード」を選んでください。</p><div class="actions one"><button type="button" class="act" data-close>閉じる</button></div>`);
-}
-document.addEventListener('click', e => { const b = e.target.closest('#sheetbox [data-mdpk]'); if (!b || !S.user) return; const g = b.dataset.mdpk === 'guest'; if (g === !!S.gmode) return closeSheet();
-    try { g ? localStorage.setItem('smr_gmode', String(S.user.name || '')) : localStorage.removeItem('smr_gmode'); } catch(e){}
-    closeSheet(); closeAllPages(); if (EXV) exvClose(); renderUser(); S.view = 'home'; render(); window.scrollTo(0, 0); toast(g ? 'ゲストモードにしました' : 'フルモードにしました'); });
+/* モード選択（名前のメニュー。ゲストの人以外）：フル＝いつもの画面／閲覧＝ホーム・書類（見るだけ）。更新記録・届いたもの・編集なし（編集・管理の人だけ選べる）／
+   ゲスト＝開くと展示ビュー、作品を見るだけ（AI に質問はできる）。この端末・この人だけに覚える（10/7 開発 v11 本人） */
+function modePick(){ if (!S.user || S.user.role === 'ゲスト') return; const cur = S.vm || 'full';
+  const op = (k, t, d) => `<button type="button" class="mdpk${k === cur ? ' on' : ''}" data-mdpk="${k}"><b>${t}${k === cur ? '<span>いまのモード</span>' : ''}</b><small>${d}</small></button>`;
+  openSheet(`<h3>モード選択</h3><div class="mdpks">${op('full', 'フルモード', 'いつもの画面。' + esc(S.user.role) + 'の権限でできることが全部使えます')}${canRole() ? op('view', '閲覧モード', 'ホームと書類（見るだけ）。編集・更新記録・届いたものは出ません') : ''}${op('guest', 'ゲストモード', '開くと展示ビュー。作品を見るだけ（ホーム・書類・更新記録・届いたもの・編集は出ません）。AI に質問はできます')}</div>
+    <p class="hint">この端末だけの設定です。もどすときは、もう一度ここで「フルモード」を選んでください。</p><div class="actions one"><button type="button" class="act" data-close>閉じる</button></div>`); }
+document.addEventListener('click', e => { const b = e.target.closest('#sheetbox [data-mdpk]'); if (!b || !S.user) return; const m = b.dataset.mdpk, nm = m === 'full' ? '' : m; if (nm === (S.vm || '')) return closeSheet();
+    try { nm ? localStorage.setItem('smr_vmode', String(S.user.name || '') + '|' + nm) : localStorage.removeItem('smr_vmode'); } catch(e){}
+    closeSheet(); closeAllPages(); if (EXV) exvClose(); renderUser(); S.view = 'home'; render(); window.scrollTo(0, 0); toast((nm === 'guest' ? 'ゲスト' : nm === 'view' ? '閲覧' : 'フル') + 'モードにしました'); });
 async function doLogout(){
     busy(true); try { await call('logout'); } catch(e){}
     setToken(''); try { const d = await call('getData'); setData(d); } catch(e){ S.user = null; S.works = []; S.events = []; S.photos = []; S.exhibits = []; S.pubs = []; S.chat = []; index(); renderUser(); }
@@ -10064,6 +10070,9 @@ function exvCss(){ if (document.getElementById('exvcss')) return; const st = doc
 #exv .yc{position:absolute;left:50%;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;border:1.2px solid #2b2825;box-sizing:border-box;opacity:.85}
 #exv .yd{position:absolute;left:50%;top:50%;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;border-radius:50%;background:#2b2825;opacity:0;transition:opacity .3s ease}
 #exv .yrs.xon .yd{transition:opacity .12s ease}
+/* 下の位置：全体の中のどこかを、細い線と○で（左が最初・右が最後。通ったところは少し濃く）。さわっている間は「12 / 340」（10/7 開発 v11 本人） */
+#exv .ytr,#exv .yfl{position:absolute;left:calc(50% - 64px);top:50%;height:1px;margin-top:-.5px;background:#2b2825;pointer-events:none}#exv .ytr{width:128px;opacity:.16}#exv .yfl{width:0;opacity:.5}#exv .yrs.xon .ytr{opacity:.26}#exv .yrs.xon .yfl{opacity:.7}
+#exv .yc{background:#f3f1ed}#exv .ycn{position:absolute;left:50%;top:calc(50% + 10px);transform:translateX(-50%);font:400 10.5px/1 "Helvetica Neue","Avenir Next","Hiragino Sans",Helvetica,Arial,sans-serif;letter-spacing:.06em;font-variant-numeric:tabular-nums;color:#5d564e;white-space:nowrap;opacity:0;transition:opacity .4s ease;pointer-events:none}#exv .yrs.xon .ycn{opacity:.85;transition:opacity .12s ease}
 body.exvopen{overflow:hidden}
 @media (prefers-reduced-motion: reduce){#exv .xhint,#exv .yd,#exv .xyr,#exv .ynum,#exv .yloc{transition:none!important}}`;
   document.head.appendChild(st); }
@@ -10093,7 +10102,7 @@ function shHomeHTML(){ const N = shNew(); if (!N.length) return '';
   return `<button type="button" class="hg-inbox" data-shinbox><span class="ic">${inbIc()}</span><span><b>届いたものがあります（${N.length}）</b><small>${esc(who.slice(0, 2).join('さん・'))}さんから《${esc(shName(f['対象']))}》${N.length > 1 ? ' ほか' : ''}</small></span><em>見る ›</em></button>`; }
 function shBadge(){ const b = $('#dwInboxN'); if (b) b.textContent = shNew().length || ''; const h = $('#hgInbox'); if (h) h.innerHTML = shHomeHTML(); }
 /* アプリにもどったとき・3分ごと（画面が出ているとき）に、届いたものだけ読み直す（台帳全部は読まない） */
-function shPoll(force){ if (!S.user || isGuest() || SH.poll || (!force && Date.now() - SH.t < 45000)) return; SH.t = Date.now(); SH.poll = 1;
+function shPoll(force){ if (!S.user || noLog() || SH.poll || (!force && Date.now() - SH.t < 45000)) return; SH.t = Date.now(); SH.poll = 1;
   call('getShares').then(r => { if (Array.isArray(r)) { S.shares = r; shBadge(); } }).catch(() => {}).finally(() => { SH.poll = 0; }); }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') shPoll(); });
 setInterval(() => { if (document.visibilityState === 'visible') shPoll(); }, 180000);
@@ -10118,7 +10127,7 @@ function shOpen(kind, no, link){ if (!S.user) return; if (!canEdit()) { if (link
         .finally(() => { SH.busy = false; }); } };
 }
 /* 届いたもの（と、自分が送ったもの） */
-function shInbox(){ if (!S.user) return; shPoll(true);
+function shInbox(){ if (!S.user || noLog()) return; shPoll(true);
   const I = shIn(), O = shOut().slice(0, 30);
   const it = x => `<button type="button" class="sh-it${x['見た日時'] ? '' : ' new'}" data-shopen="${esc(x['送付ID'])}">${shTh(x['対象'])}<span><b>《${esc(shName(x['対象']))}》${x['見た日時'] ? '' : '<i class="nw">新着</i>'}</b>
     <small>${esc(x['送った人'])}さんから・${esc(shWhen(x['日時']))}</small>${x['ひとこと'] ? `<p>${esc(x['ひとこと'])}</p>` : ''}<span class="tg">${shKind(x['種類'])}</span></span></button>`;
@@ -10154,7 +10163,7 @@ function exvFresh(fid){ const p = (S.photos || []).find(x => x['ファイルID']
 async function exvOpen(start, noPush){
   if (!exvIsAdm() || EXV) return;
   exvCss(); const root = document.createElement('div'); root.id = 'exv'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-label', '展示ビュー');
-  root.innerHTML = '<div class="xst"></div><div class="xwait">展示室を準備しています…</div><button type="button" class="xsh" aria-label="メニュー（表示する作品・共有）" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="1.35" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.35" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.35" fill="currentColor" stroke="none"/></svg></button><button type="button" class="xcl" aria-label="展示ビューを出る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5H6.5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1H14"/><path d="M10.5 12h9M16.5 8.5 20 12l-3.5 3.5"/></svg></button><div class="xhint" style="opacity:0"><span></span></div><button type="button" class="xnav xprev" aria-label="前の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M12 2 2 13l10 11"/></svg></button><button type="button" class="xpp" aria-label="自動再生を一時停止"></button><button type="button" class="xnav xnext" aria-label="次の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M2 2l10 11L2 24"/></svg></button><div class="ynum"></div><div class="yloc"></div><div class="xyr" aria-hidden="true"></div><div class="yrs" aria-label="作品の位置（指を当てて左右に動かすと早送り）"><div class="ydots"><i class="yc"></i></div></div>';
+  root.innerHTML = '<div class="xst"></div><div class="xwait">展示室を準備しています…</div><button type="button" class="xsh" aria-label="メニュー（表示する作品・共有）" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="1.35" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.35" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.35" fill="currentColor" stroke="none"/></svg></button><button type="button" class="xcl" aria-label="展示ビューを出る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5H6.5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1H14"/><path d="M10.5 12h9M16.5 8.5 20 12l-3.5 3.5"/></svg></button><div class="xhint" style="opacity:0"><span></span></div><button type="button" class="xnav xprev" aria-label="前の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M12 2 2 13l10 11"/></svg></button><button type="button" class="xpp" aria-label="自動再生を一時停止"></button><button type="button" class="xnav xnext" aria-label="次の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M2 2l10 11L2 24"/></svg></button><div class="ynum"></div><div class="yloc"></div><div class="xyr" aria-hidden="true"></div><div class="yrs" aria-label="作品の位置（指を当てて左右に動かすと早送り）"><div class="ydots"><i class="ytr"></i><i class="yfl"></i><i class="yc"></i><b class="ycn"></b></div></div>';
   document.body.appendChild(root); document.body.classList.add('exvopen');
   try { const fs = root.requestFullscreen || root.webkitRequestFullscreen; if (fs) { const q = fs.call(root); if (q && q.catch) q.catch(() => {}); } } catch(e){} /* 押した直後でないと全画面にできない */
   try { const tm = document.querySelector('meta[name="theme-color"]'); if (tm) tm.content = '#ebe8e3'; } catch(e){}
@@ -10344,6 +10353,7 @@ function exvBuild(root, L, start){
   const triRot = (t, f) => { t.f = f; t.it.rot.rotation.y = -f * 2 * Math.PI / 3; };
   const triSet = u => { cancelAnimationFrame(triT); triT = 0; TRI.forEach(t => triRot(t, Math.max(0, Math.min(2, u - t.i0)))); };
   const triIn = u => TRI.some(t => u >= t.i0 - 1e-6 && u <= t.i0 + 2 + 1e-6);
+  const gridIn = k => { const it = items[Math.round(k)]; return !!(it && it.grp && it.grp.grid); }; /* 格子に並べたシリーズの中か */
   const triTo = (u, ms) => { if (!TRI.length) return; if (!ms || RM) { triSet(u); return; } cancelAnimationFrame(triT); const f0 = TRI.map(t => t.f), tg = TRI.map(t => Math.max(0, Math.min(2, u - t.i0))), t0 = performance.now();
     const fr = n => { if (dead) return; const q = Math.max(0, Math.min(1, (n - t0) / ms)), e = q * q * (3 - 2 * q); TRI.forEach((t, j) => triRot(t, f0[j] + (tg[j] - f0[j]) * e)); draw(); triT = q < 1 ? requestAnimationFrame(fr) : 0; }; triT = requestAnimationFrame(fr); };
 
@@ -10436,7 +10446,7 @@ function exvBuild(root, L, start){
       if (Object.keys(keep).length) thPut(keep); }
     batch.forEach(([id, it]) => { const v = out[id]; if (!it.req) return; if (!v) return retry(it); const tok = it.im, im = new Image();
       im.onload = () => { if (it.im === tok && it.req) { it.hi = 1; it.tries = 0; paintX(it, im, 800); } }; im.onerror = () => { delete TH['800_' + id]; retry(it); }; im.src = v; }); };
-  const nearIdx = () => { let bi = Math.max(0, Math.min(stops.length - 1, ci)); stops.forEach((s, i) => { if (Math.abs(s.x - st.x) < Math.abs(stops[bi].x - st.x)) bi = i; }); return bi; };
+  const nearIdx = () => { const d = s => Math.hypot(s.x - st.x, s.y - st.y); let bi = Math.max(0, Math.min(stops.length - 1, ci)); stops.forEach((s, i) => { if (d(s) < d(stops[bi]) - 1e-9) bi = i; }); return bi; }; /* 格子は同じ列に上下2つあるので、縦の位置も見る */
   const around = k => { items.forEach((it, i) => { const d = i + 1 - k; if (d >= -3 && d <= 4) warm(it); else if (d < -8 || d > 9) cool(it); }); };
   let wt = 0; const aroundLater = () => { clearTimeout(wt); wt = setTimeout(() => around(nearIdx()), 160); };
 
@@ -10492,7 +10502,7 @@ function exvBuild(root, L, start){
           it.kpx = k; it.box = null; it.cyW = y; it.yOff = 0; if (it.req && !it.pt) ldDraw(it, performance.now());
           stops.push({ x, y: y - capH / 2, z: k * H / (2 * TN) }); lastR = Math.max(lastR, x + k * W / 2); });
         addSpec(L0 + GW / 2, top - GH / 2, GW, GH, g.m[0] + 1, Math.min(LK.length, Math.max(C, Math.ceil(GW / 1.5))), Math.min(LFL.length, Math.max(1, Math.ceil(GW / 3)))); /* 照明は格子の全体に（10/7 本人「照明がシリーズ全体についていない」） */
-        g.ov = { x: L0 + GW / 2, y: top - GH / 2, z: kov * H / (2 * TN) };
+        g.ov = { x: L0 + GW / 2, y: top - GH / 2, z: kov * H / (2 * TN) }; g.grid = 1;
         vR = lastR; eR = L0 + GW; ii = g.m[g.m.length - 1]; continue; }
       /* シリーズ：中は間をつめて置き（止まったときにとなりが見えない範囲で）、最初に全体を見せる位置も決める */
       const fs = g.m.map(j => frame(items[j], true)), rel = []; let r = -1e9, e = -1e9;
@@ -10524,16 +10534,17 @@ function exvBuild(root, L, start){
   const AUTO = 10000; let autoT = 0, playing = true, wake = false; const xPP = root.querySelector('.xpp');
   const PLAY = '<svg viewBox="0 0 20 26" aria-hidden="true"><path d="M4 2.5v21L18 13z"/></svg>', STOP = '<svg viewBox="0 0 20 26" aria-hidden="true"><path d="M6.5 2.5v21M13.5 2.5v21"/></svg>'; /* 一時停止は2本線 */
   const setPlay = v => { playing = v; xPP.innerHTML = v ? STOP : PLAY; xPP.setAttribute('aria-label', v ? '自動再生を一時停止' : '自動再生'); if (v) autoNext(); else clearTimeout(autoT); };
-  const autoNext = () => { clearTimeout(autoT); if (!playing || (EXV && EXV.na)) return; autoT = setTimeout(() => { if (!EXV || document.hidden || zoomed || yd || (ym && ym === tid) || P.size || root.classList.contains('xmo')) return autoNext(); if (ci < stops.length - 1) go(ci + 1); else setPlay(false); }, AUTO); };
+  const autoNext = () => { clearTimeout(autoT); if (!playing || (EXV && EXV.na)) return; autoT = setTimeout(() => { if (!EXV || document.hidden || zoomed || yd || (ym && ym === tid) || P.size || root.classList.contains('xmo')) return autoNext(); if (ci < stops.length - 1) step(1); else setPlay(false); }, AUTO); };
   let idleT = 0; const awake = () => { root.classList.remove('xidle'); clearTimeout(idleT); idleT = setTimeout(() => { if (yd || P.size || root.classList.contains('xmo')) awake(); else root.classList.add('xidle'); }, 3000); };
   const poke = () => { autoNext(); awake(); }; /* さわったら、消えていたボタンを出す（再生中なら、次へ進むのは10秒後から数えなおし） */
-  let holdT = 0;
-  const go = (i, v) => { autoNext(); zoomed = false; clearTimeout(holdT); const pv = ci; ci = Math.max(0, Math.min(stops.length - 1, i)); around(ci);
+  let holdT = 0, ovI = 0; /* ovI：シリーズの全体を見せているとき、その1点目の止まる位置（全体からの次へは1点目、前へは前の作品。10/7 本人） */
+  const step = d => ovI && ovI === ci ? go(d > 0 ? ci : ci - 1) : go(ci + d);
+  const go = (i, v) => { autoNext(); zoomed = false; clearTimeout(holdT); ovI = 0; const pv = ci; ci = Math.max(0, Math.min(stops.length - 1, i)); around(ci);
     if (TRI.length) triTo(ci - 1, TRI.some(t => pv - 1 >= t.i0 && pv - 1 <= t.i0 + 2 && ci - 1 >= t.i0 && ci - 1 <= t.i0 + 2) ? 1000 : 0); /* 三面の中の進む・戻るは、その場で回す */ if (ci !== pv) tOut(); if (pv === 0 && ci > 0) yrLate = 1200; setCnt();
     const s = stops[ci], T = { x: s.x, y: s.y, z: Math.min(zmax(), Math.max(zmin(), s.z)) }, g = items[ci - 1] && items[ci - 1].grp;
     if (g && pv !== ci && !(items[pv - 1] && items[pv - 1].grp === g)) { /* シリーズに入るとき：まず全体を見せてから、1点ずつ */
       g.m.forEach(j => warm(items[j])); pendT = g.name + '　' + g.n + '点'; pendL = exvLocTxt(g.m.map(j => items[j].d.w)); if (!mv) tIn();
-      const id = walk(g.ov, () => { tIn(); holdT = setTimeout(() => { if (tid !== id) return; tOut(); setCnt(); walk(T, () => { tIn(); autoNext(); }); }, 1800); }, v); }
+      ovI = ci; const id = walk(g.ov, () => { tIn(); holdT = setTimeout(() => { if (tid !== id) return; tOut(); setCnt(); walk(T, () => { ovI = 0; tIn(); autoNext(); }); }, (EXV && EXV.holdMs) || 1800); }, v); }
     else walk(T, tIn, v); };
   const zoomBy = k => { st.z *= k; cl(); zoomed = st.z < stops[ci].z * 0.9; draw(); };
 
@@ -10548,13 +10559,14 @@ function exvBuild(root, L, start){
     if (c) { zoomed = true; tw({ x: c.m.position.x, y: c.m.position.y, z: Math.max(zmin(), (PWm / (0.8 * W)) * H / (2 * TN)) }, 850); return; }
     const near = items.slice(Math.max(0, ci - 3), ci + 3).map(it => it.g), ph = ray.intersectObjects(near, true)[0];
     if (ph) { zoomed = true; tw({ x: ph.point.x, y: ph.point.y, z: Math.max(zmin(), st.z / 2.6) }, 850); return; }
-    go((e.clientX - b.left) / b.width < 0.3 ? ci - 1 : ci + 1); };
+    step((e.clientX - b.left) / b.width < 0.3 ? -1 : 1); };
 
   const P = new Map(); let moved = 0, drag = 0, vel = 0, lastT = 0, pinch = false, tD = null, tV = 0; /* tD：三面の前で指を動かしている（横に動かすと回る） */
-  el.addEventListener('pointerdown', e => { wake = root.classList.contains('xidle'); poke(); try { el.setPointerCapture(e.pointerId); } catch(_){} P.set(e.pointerId, [e.clientX, e.clientY]); tid++; if (mv) tIn(); moved = 0; drag = 0; vel = 0; pinch = P.size > 1; lastT = performance.now(); el.style.cursor = 'grabbing'; tV = 0; tD = !zoomed && !pinch && triIn(ci - 1) ? { k0: ci - 1 } : null; });
+  el.addEventListener('pointerdown', e => { wake = root.classList.contains('xidle'); poke(); try { el.setPointerCapture(e.pointerId); } catch(_){} P.set(e.pointerId, [e.clientX, e.clientY]); tid++; if (mv) tIn(); moved = 0; drag = 0; vel = 0; pinch = P.size > 1; lastT = performance.now(); el.style.cursor = 'grabbing'; tV = 0; tD = !zoomed && !pinch && (triIn(ci - 1) || (gridIn(ci - 1) && ovI !== ci)) ? { k0: ci - 1, u0: U } : null; /* 三面と、格子のシリーズ（縦の順）は、指の動きを作品の並びの道すじに */
+    if (tD) { const p0 = pathAt(U); tD.o = { x: st.x - p0.x, y: st.y - p0.y, z: st.z - p0.z }; } });
   el.addEventListener('pointermove', e => { const pr = P.get(e.pointerId); if (!pr) return; const dx = e.clientX - pr[0], dy = e.clientY - pr[1]; moved += Math.abs(dx) + Math.abs(dy);
     if (P.size > 1) { tD = null; const q = [...P].find(a => a[0] !== e.pointerId)[1], d0 = Math.hypot(pr[0] - q[0], pr[1] - q[1]), d1 = Math.hypot(e.clientX - q[0], e.clientY - q[1]); P.set(e.pointerId, [e.clientX, e.clientY]); pinch = true; moved += 99; if (d0 > 0 && d1 > 0) zoomBy(d0 / d1); return; }
-    if (tD) { const n = performance.now(), dt = Math.max(1, n - lastT), sp = Math.max(220, 0.55 * el.clientWidth), u = Math.max(-1, Math.min(uHi(), U - dx / sp)); tV = 0.7 * tV + 0.3 * (u - U) / dt; lastT = n; drag += dx; P.set(e.pointerId, [e.clientX, e.clientY]); showU(u); camU(u); return; }
+    if (tD) { const n = performance.now(), dt = Math.max(1, n - lastT), sp = Math.max(220, 0.55 * el.clientWidth), u = Math.max(-1, Math.min(uHi(), U - dx / sp)); tV = 0.7 * tV + 0.3 * (u - U) / dt; lastT = n; drag += dx; P.set(e.pointerId, [e.clientX, e.clientY]); showU(u); camU(u, tD.o, Math.max(0, 1 - Math.abs(u - tD.u0) * 3)); return; }
     const k = 2 * st.z * TN / el.clientHeight; st.x -= dx * k; drag += dx; if (zoomed) st.y += dy * k; const n = performance.now(), dt = Math.max(1, n - lastT); vel = 0.7 * vel + 0.3 * (-dx * k / dt); lastT = n;
     P.set(e.pointerId, [e.clientX, e.clientY]); cl(); draw(); });
   const up = e => { if (!P.has(e.pointerId)) return; P.delete(e.pointerId); el.style.cursor = 'grab'; if (P.size) return;
@@ -10563,6 +10575,7 @@ function exvBuild(root, L, start){
       glide(k0 + dir * (dir ? Math.max(1, Math.min(8, Math.round(Math.abs(U + tV * 200 - k0) - 0.25))) : 0), tV); return; } /* 三面：はなした速さのまま回って、次の面でやわらかく止まる（ふつうは1面ずつ。とても強くはらうと、その先へ） */
     const k = 2 * st.z * TN / el.clientHeight; if (performance.now() - lastT > 90) vel = 0; /* 止めてからはなしたら、勢いはなし */
     const vpx = vel / k, flick = Math.abs(vpx) > 0.3, dir = Math.abs(drag) > el.clientWidth * 0.12 ? -Math.sign(drag) : flick ? Math.sign(vel) : 0; /* 画面の12%以上動かすか、さっとはらうと次・前へ */
+    if (ovI && ovI === ci) { go(dir < 0 ? ci - 1 : ci); return; } /* シリーズの全体から：次へ（や少し動かしただけ）は1点目（左上）に寄る。前へは前の作品 */
     /* 慣性（10/7 本人「スワイプに慣性を。気持ち良く」）：はらった速さで先へ流れる。ふつうのスワイプは1点、強くはらうと2点・3点…（8点まで）。流れる距離は 速さ×0.35秒 */
     const u1 = uAtX(st.x), A = pathAt(Math.floor(u1)), B = pathAt(Math.floor(u1) + 1), vU = Math.abs(B.x - A.x) > 1e-4 ? vel / (B.x - A.x) : 0, k0 = ci - 1;
     const nn = dir && vU * dir > 0 ? Math.max(1, Math.min(8, Math.round(Math.abs(u1 + vU * 350 - k0)))) : 1;
@@ -10586,6 +10599,7 @@ function exvBuild(root, L, start){
        画面の高さの約半分で1点。端末の慣性がゆるんできたら、そこで近い作品へ寄せる（最後のゆっくりした流れは使わない。新しく指で動かしたら、そこから） */
     if (wLock) { if (gap < 160 && a <= Math.max(6, wL * 1.6)) { wL = a; return; } wLock = 0; }
     wL = a;
+    if (!wd && ovI && ovI === ci) { wLock = now; go(hz > 0 ? ci : ci - 1); return; } /* 全体から：1点目（左上）か前の作品へ。この1回のスクロールの残りは数えない */
     if (!wd) { wd = 1; if (mv) tIn(); clearTimeout(holdT); clearTimeout(yrT); lastY = null; zoomed = false; ym = ++tid; wS = 0; wV = 0; wPk = 0; wK = nearK(U); wU0 = U; const p0 = pathAt(U); wO = { x: st.x - p0.x, y: st.y - p0.y, z: st.z - p0.z }; yA = true; clearTimeout(yHide); }
     const SPW = Math.max(260, Math.min(600, el.clientHeight * 0.5)), dt = Math.max(8, Math.min(50, gap)), u = Math.max(-1, Math.min(uHi(), U + hz / SPW));
     wS += hz; wV = 0.6 * wV + 0.4 * (u - U) / dt; wPk = Math.max(wPk, Math.abs(wV)); showU(u); camU(u, wO, Math.max(0, 1 - Math.abs(u - wU0) * 3));
@@ -10598,7 +10612,7 @@ function exvBuild(root, L, start){
 
   /* 下の年：海外のギャラリーのようなゴシック体で、今の年だけ。指を当てると両側に作品の数だけ●（3つ目からうすく、5つ目で消える）。左右に動かすと早送り、●をタップするとその作品へ */
   const SP = 15, yEl = root.querySelector('.yrs'), yNum = root.querySelector('.ynum'), yLoc = root.querySelector('.yloc'), yDots = root.querySelector('.ydots'), DOTS = [];
-  for (let i = 0; i < 12; i++) { const d = document.createElement('i'); d.className = 'yd'; yDots.appendChild(d); DOTS.push(d); }
+  const yC = yDots.querySelector('.yc'), yFl = yDots.querySelector('.yfl'), yCn = yDots.querySelector('.ycn'), YTW = 128; /* 位置の線の長さ（px） */
   let U = -1, yd = false, yA = false, yx = 0, yv = 0, yt = 0, ymv = 0, yHide = 0; const uHi = () => items.length - 1;
   const yTxt = k => k < 0 ? '' : (String(L[k].w['作品名'] || '').trim() || '無題');
   const yLocTx = k => k < 0 ? '' : exvLocOf(L[k]); /* 作品名の下の、いまの場所（10/7 本人） */
@@ -10622,11 +10636,9 @@ function exvBuild(root, L, start){
   const tIn = () => { mv = false; if (pendT != null) { yNum.textContent = pendT; yLoc.textContent = pendL; pendT = null; fitNum(); } yNum.classList.remove('xmv'); yLoc.classList.remove('xmv'); if (yrEl.classList.contains('xin')) yrOff(300); }; /* 真ん中に来たら出す */
   const fitNum = () => { yNum.style.fontSize = ''; let fs = parseFloat(getComputedStyle(yNum).fontSize) || 20; const mw = W - 158; while (yNum.scrollWidth > mw && fs > 14) { fs--; yNum.style.fontSize = fs + 'px'; } };
   const showU = u => { U = u; const j = Math.max(-1, Math.min(uHi(), Math.round(u))), act = yd || yA, t = yTxt(j), tl = yLocTx(j); if (mv && !yd) { if (yNum.textContent !== t || pendT != null) { pendT = t; pendL = tl; } } else if (yNum.textContent !== t || yLoc.textContent !== tl) { yNum.textContent = t; yLoc.textContent = tl; fitNum(); } flashY(j); yEl.classList.toggle('xon', act);
-    const G = 6; let n = 0; /* ○が今の作品、両側に●（ふだんはうすく、指を当てると濃く） */
-    for (let k = Math.ceil(u - 5.5); k <= Math.floor(u + 5.5) && n < DOTS.length; k++) { if (k < 0 || k > uHi()) continue; const d = k - u, a = Math.abs(d); if (a < 0.5) continue;
-      const e = DOTS[n++], x = Math.sign(d) * (G + (a - 0.5) * SP), o = Math.max(0, Math.min(0.9, 0.9 * (1 - (a - 2.2) / 2.8))) * (act ? 1 : 0.45);
-      e.style.transform = 'translateX(' + x.toFixed(1) + 'px)'; e.style.opacity = o.toFixed(2); }
-    for (; n < DOTS.length; n++) DOTS[n].style.opacity = '0'; };
+    const f = Math.max(0, Math.min(1, (u + 1) / Math.max(1, uHi() + 1))); /* 全体の中の位置（0＝はじめ・1＝最後） */
+    yC.style.transform = 'translateX(' + ((f - 0.5) * YTW).toFixed(1) + 'px)'; yFl.style.width = (f * YTW).toFixed(1) + 'px';
+    const cn = (j + 1) + ' / ' + (uHi() + 1); if (yCn.textContent !== cn) yCn.textContent = j < 0 ? '' : cn; };
   const pathAt = u => { const f = Math.max(-1, Math.min(uHi(), u)) + 1, k = Math.max(0, Math.min(stops.length - 2, Math.floor(f))), t = f - k, A = stops[k], B = stops[k + 1] || A;
     return { x: A.x + (B.x - A.x) * t, y: A.y + (B.y - A.y) * t, z: A.z + (B.z - A.z) * t }; };
   const camU = (u, o, w) => { const p = pathAt(u); if (TRI.length) triSet(u); w = o ? w || 0 : 0; st.x = p.x + o_(o, "x", w); st.y = p.y + o_(o, "y", w); st.z = p.z + o_(o, "z", w); ci = Math.max(0, Math.min(stops.length - 1, nearK(u) + 1)); cl(); draw(); aroundLater(); }; /* 動かしている間も、いちばん近い作品を「いまの作品」に（写真もそこから先に読む） */
@@ -10637,12 +10649,14 @@ function exvBuild(root, L, start){
   function nearK(u){ return Math.max(-1, Math.min(uHi(), Math.round(u))); }
   const yOff = () => { clearTimeout(yHide); yHide = setTimeout(() => { if (!yd) { yA = false; showU(U); } }, 800); };
   let yWake = false, ym = 0;
-  yEl.onpointerdown = e => { yWake = root.classList.contains('xidle'); poke(); if (mv) tIn(); clearTimeout(yrT); lastY = null; yd = true; try { yEl.setPointerCapture(e.pointerId); } catch(_){} tid++; zoomed = false; yx = e.clientX; yv = 0; ymv = 0; yt = performance.now(); yA = true; clearTimeout(yHide); showU(U); yEl.style.cursor = 'grabbing'; };
+  let yO = null, yU0 = 0, yOv = false;
+  yEl.onpointerdown = e => { yWake = root.classList.contains('xidle'); poke(); yO = null; yOv = !!(ovI && ovI === ci); if (mv) tIn(); clearTimeout(yrT); lastY = null; yd = true; try { yEl.setPointerCapture(e.pointerId); } catch(_){} tid++; zoomed = false; yx = e.clientX; yv = 0; ymv = 0; yt = performance.now(); yA = true; clearTimeout(yHide); showU(U); yEl.style.cursor = 'grabbing'; };
   yEl.onpointermove = e => { if (!yd) return; const dx = e.clientX - yx, n = performance.now(); yx = e.clientX; ymv += Math.abs(dx); const du = -dx / SP; yv = 0.7 * yv + 0.3 * du / Math.max(1, n - yt); yt = n;
-    const u = Math.min(uHi(), Math.max(-1, U + du)); showU(u); camU(u); };
+    if (yOv && !yO) { const p0 = pathAt(U); yO = { x: st.x - p0.x, y: st.y - p0.y, z: st.z - p0.z }; yU0 = U; ovI = 0; }
+    const u = Math.min(uHi(), Math.max(-1, U + du)); showU(u); camU(u, yO, yO ? Math.max(0, 1 - Math.abs(u - yU0) * 2) : 0); }; /* 全体から動かしたときは、全体の位置から少しずつ並びの道すじへ */
   yEl.onpointerup = yEl.onpointercancel = e => { if (!yd) return; yd = false; yEl.style.cursor = 'grab';
     if (ymv < 6) { if (yWake) { yOff(); yrOff(500); return; } const b = yEl.getBoundingClientRect(), x = e.clientX - (b.left + b.width / 2), G = yG();
-      if (Math.abs(x) > G) go(ci + Math.sign(x)); else yrOff(500); yOff(); return; } /* 下の左右をタップ：前・次の作品へ */
+      if (Math.abs(x) > G) step(Math.sign(x)); else yrOff(500); yOff(); return; } /* 下の左右をタップ：前・次の作品へ */
     /* はなした速さで流れて、近い作品でやわらかく止まる（流れる距離は 速さ×0.31秒）。前は「流れる」と「近い作品へ寄せる」が2つの動きだったのを、1つのなめらかな動きに（10/7 本人「慣性を。気持ち良く」）。
        描く時刻が指をはなした時刻より前でも、時間はマイナスにならない（glide は t を 0 以上に。10/7「高速に送ると元に戻る」の対策のまま） */
     const v = performance.now() - yt > 90 || Math.abs(yv) < 0.0003 ? 0 : yv; glide(nearK(U + v * 312), v); };
@@ -10651,7 +10665,7 @@ function exvBuild(root, L, start){
   let uT = null, uV = 0;
   /* 慣性（10/7 本人「スワイプやスクロールに慣性を。気持ち良く動かしたい」）：作品の並びの上を、いまの速さ v0（1ミリ秒あたりの作品の数）のまま動き出して、作品 k でやわらかく止まる。
      エルミート曲線なので速さがとぎれない（同じ向きなら行きすぎない）。カメラが並びの道すじから外れていたら（スワイプの途中・拡大中）、そのずれは動きながら消す */
-  const glide = (k, v0) => { k = Math.max(-1, Math.min(uHi(), k)); if (mv) tIn(); clearTimeout(holdT); zoomed = false;
+  const glide = (k, v0) => { k = Math.max(-1, Math.min(uHi(), k)); if (mv) tIn(); clearTimeout(holdT); zoomed = false; ovI = 0;
     const id = ++tid, u0 = U, d = k - u0, p0 = pathAt(u0), o = { x: st.x - p0.x, y: st.y - p0.y, z: st.z - p0.z }, off = Math.abs(o.x) + Math.abs(o.y) + Math.abs(o.z) > 1e-4; ym = id; uT = k;
     const end = () => { uV = 0; ci = k + 1; ym = 0; uT = null; around(ci); setCnt(); yOff(); yrOff(500); autoNext(); };
     if (RM || (Math.abs(d) < 1e-4 && !off)) { showU(k); camU(k); return end(); }
@@ -10664,7 +10678,7 @@ function exvBuild(root, L, start){
       uV = ((3 * s2 - 4 * s + 1) * T * v0 + d * 6 * (s - s2)) / T; showU(u); camU(u, off ? o : null, 1 - h); if (s < 1) requestAnimationFrame(f); else end(); };
     requestAnimationFrame(f); };
   /* スクロール（マウスのホイール）で1点ずつ。動いている途中なら、その勢いのまま先の作品へ続けて（6点先まで） */
-  const uStep = dir => { const cont = !!ym && ym === tid && uT != null, k = Math.max(-1, Math.min(uHi(), (cont ? uT : nearK(U)) + dir)); if (!cont && Math.abs(U - k) < 1e-3) return; if (Math.abs(k - U) > 6) return;
+  const uStep = dir => { if (ovI && ovI === ci) { go(dir > 0 ? ci : ci - 1); return; } const cont = !!ym && ym === tid && uT != null, k = Math.max(-1, Math.min(uHi(), (cont ? uT : nearK(U)) + dir)); if (!cont && Math.abs(U - k) < 1e-3) return; if (Math.abs(k - U) > 6) return;
     glide(k, cont ? uV : null); };
 
   /* メニュー（10/6 本人）：表示する作品（作品アルバムのカテゴリと同じ。美術館は館も選べる）と、この作品の共有 */
@@ -10702,8 +10716,8 @@ function exvBuild(root, L, start){
   const shLink = async it => { const url = location.origin + location.pathname + '?exv=' + encodeURIComponent(it ? it.d.no : ''), ttl = it ? '下村良之介「' + (String(it.d.w['作品名'] || '').trim() || '無題') + '」' : '下村良之介';
     try { if (navigator.share) { await navigator.share({ title: ttl, text: ttl + '（展示ビュー）', url }); return; } } catch(e){ if (e && e.name === 'AbortError') return; }
     try { await navigator.clipboard.writeText(url); toast('リンクをコピーしました。LINE などに貼って送れます'); } catch(e){ toast('リンク：' + url); } };
-  xPrev.onclick = () => { poke(); go(ci - 1); }; xNext.onclick = () => { poke(); go(ci + 1); };
-  const key = e => { poke(); if (e.key === 'ArrowRight') { e.preventDefault(); go(ci + 1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); go(ci - 1); } };
+  xPrev.onclick = () => { poke(); step(-1); }; xNext.onclick = () => { poke(); step(1); };
+  const key = e => { poke(); if (e.key === 'ArrowRight') { e.preventDefault(); step(1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); } };
   const rs = () => { const w = stage.clientWidth || innerWidth, h = stage.clientHeight || innerHeight; if (w === W && h === H) return; layout(); }; addEventListener('resize', rs); addEventListener('keydown', key);
   const wait = root.querySelector('.xwait'); if (wait) wait.remove();
   ci = Math.max(0, Math.min(items.length, start || 0)); layout(); around(ci); setCnt(); autoNext(); awake();
@@ -10716,7 +10730,7 @@ function exvBuild(root, L, start){
     items.forEach(it => it.tx.forEach(t => t.dispose())); r.dispose(); if (r.forceContextLoss) r.forceContextLoss(); close0(); };
   EXV.go = go; EXV.yrc = () => { const it = items[ci - 1]; if (!it) return null; const v = new T3.Vector3(it.g.position.x, it.cyW, 0).project(cam), b = yrEl.getBoundingClientRect(), rb = root.getBoundingClientRect(); return { art: Math.round((1 - v.y) / 2 * H), yr: Math.round(b.top + b.height / 2 - rb.top), H }; }; EXV.lds = () => items.map(it => [it.d.no, it.pt ? 1 : 0, it.fail ? 1 : 0, it.tries || 0, it.cv.width, it.cv.height]); EXV.cur = () => ci; EXV.caps = () => { const it = items[ci - 1]; return it ? [it.capM].concat((it.xc || []).map(c => c.m)).map(m => [+m.position.x.toFixed(3), +m.position.y.toFixed(3), m.visible ? 1 : 0]) : []; }; EXV.tri = () => TRI.map(t => [t.i0, +t.f.toFixed(3)]); EXV.n = items.length; EXV.start = ci; EXV.loaded = () => items.map(it => it.hi ? 1 : it.lo ? 0.5 : 0); EXV.light = () => [LFt, +LF.toFixed(2)]; EXV.at = () => { const S = stops[ci]; return !!S && Math.abs(st.x - S.x) < 1e-3 && Math.abs(st.y - S.y) < 1e-3; };
   EXV.edges = () => items.map(it => { const w = it.W || it.w, y = it.d.b ? it.h / 2 : CY, b = el.getBoundingClientRect(), f = xx => { const v = new T3.Vector3(xx, y, 0).project(cam); return Math.round(b.left + (v.x + 1) / 2 * b.width); }; return [f(it.g.position.x - w / 2), f(it.capM.position.x + PWm / 2)]; }); /* 確かめ用 */
-  EXV.capRect = () => { const it = items[ci - 1], b = el.getBoundingClientRect(), v = new T3.Vector3(it.capM.position.x - PWm * 0.3, it.capM.position.y - PHm / 2 + PHm * 0.12, 0.006).project(cam); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }; /* 確かめ用：「作品ページへ」のあたり */ EXV.stop = () => ({ y: +st.y.toFixed(3), cy: stops[ci] && stops[ci].y, x: +st.x.toFixed(3), sx: stops[ci] && +stops[ci].x.toFixed(3), z: +st.z.toFixed(3), sz: stops[ci] && +stops[ci].z.toFixed(3), zoomed, ci });
+  EXV.capRect = () => { const it = items[ci - 1], b = el.getBoundingClientRect(), v = new T3.Vector3(it.capM.position.x - PWm * 0.3, it.capM.position.y - PHm / 2 + PHm * 0.12, 0.006).project(cam); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }; /* 確かめ用：「作品ページへ」のあたり */ EXV.stop = () => ({ y: +st.y.toFixed(3), cy: stops[ci] && stops[ci].y, x: +st.x.toFixed(3), sx: stops[ci] && +stops[ci].x.toFixed(3), z: +st.z.toFixed(3), sz: stops[ci] && +stops[ci].z.toFixed(3), zoomed, ci, ov: ovI });
   EXV.capAt = () => { const it = items[ci - 1]; if (!it) return null; const v = it.capM.position.clone().project(cam), b = el.getBoundingClientRect(); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }; /* 確かめ用 */
 }
 </script>
