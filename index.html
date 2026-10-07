@@ -2387,7 +2387,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '89184709df', APP_URL = location.origin + location.pathname;
+const BUILD = 'fc56fa05b4', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -10170,7 +10170,7 @@ function exvFresh(fid){ const p = (S.photos || []).find(x => x['ファイルID']
 async function exvOpen(start, noPush){
   if (!exvIsAdm() || EXV) return;
   exvCss(); const root = document.createElement('div'); root.id = 'exv'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-label', '展示ビュー');
-  root.innerHTML = '<div class="xst"></div><div class="xwait">展示室を準備しています…</div><button type="button" class="xsh" aria-label="メニュー（表示する作品・共有）" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="1.35" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.35" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.35" fill="currentColor" stroke="none"/></svg></button><button type="button" class="xcl" aria-label="展示ビューを出る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5H6.5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1H14"/><path d="M10.5 12h9M16.5 8.5 20 12l-3.5 3.5"/></svg></button><div class="xhint" style="opacity:0"><span></span></div><button type="button" class="xnav xprev" aria-label="前の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M12 2 2 13l10 11"/></svg></button><button type="button" class="xpp" aria-label="自動再生を一時停止"></button><button type="button" class="xnav xnext" aria-label="次の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M2 2l10 11L2 24"/></svg></button><div class="ynum"></div><div class="yloc"></div><div class="xyr" aria-hidden="true"></div><div class="yrs" aria-label="作品の位置（指を当てて左右に動かすと早送り）"><div class="ydots"><i class="ytr"></i><i class="yfl"></i><i class="yc"></i><b class="ycn"></b></div></div>';
+  root.innerHTML = '<div class="xst"></div><div class="xwait">展示室を準備しています…</div><button type="button" class="xsh" aria-label="メニュー（表示する作品・共有）" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="1.35" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.35" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.35" fill="currentColor" stroke="none"/></svg></button><button type="button" class="xcl" aria-label="展示ビューを出る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5H6.5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1H14"/><path d="M10.5 12h9M16.5 8.5 20 12l-3.5 3.5"/></svg></button><div class="xhint" style="opacity:0"><span></span></div><button type="button" class="xnav xprev" aria-label="前の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M12 2 2 13l10 11"/></svg></button><button type="button" class="xpp" aria-label="自動再生を一時停止"></button><button type="button" class="xnav xnext" aria-label="次の作品"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M2 2l10 11L2 24"/></svg></button><div class="ynum"></div><div class="yloc"></div><div class="xyr" aria-hidden="true"></div><div class="yrs" aria-label="作品の位置（右へ動かすと先へ。大きく速く動かすほど速く進む）"><div class="ydots"><i class="ytr"></i><i class="yfl"></i><i class="yc"></i><b class="ycn"></b></div></div>';
   document.body.appendChild(root); document.body.classList.add('exvopen');
   try { const fs = root.requestFullscreen || root.webkitRequestFullscreen; if (fs) { const q = fs.call(root); if (q && q.catch) q.catch(() => {}); } } catch(e){} /* 押した直後でないと全画面にできない */
   try { const tm = document.querySelector('meta[name="theme-color"]'); if (tm) tm.content = '#ebe8e3'; } catch(e){}
@@ -10657,8 +10657,10 @@ function exvBuild(root, L, start){
   const yOff = () => { clearTimeout(yHide); yHide = setTimeout(() => { if (!yd) { yA = false; showU(U); } }, 800); };
   let yWake = false, ym = 0;
   let yO = null, yU0 = 0, yOv = false;
-  yEl.onpointerdown = e => { yWake = root.classList.contains('xidle'); poke(); yO = null; yOv = !!(ovI && ovI === ci); if (mv) tIn(); clearTimeout(yrT); lastY = null; yd = true; try { yEl.setPointerCapture(e.pointerId); } catch(_){} tid++; zoomed = false; yx = e.clientX; yv = 0; ymv = 0; yt = performance.now(); yA = true; clearTimeout(yHide); showU(U); yEl.style.cursor = 'grabbing'; };
-  yEl.onpointermove = e => { if (!yd) return; const dx = e.clientX - yx, n = performance.now(); yx = e.clientX; ymv += Math.abs(dx); const du = -dx / SP; yv = 0.7 * yv + 0.3 * du / Math.max(1, n - yt); yt = n;
+  yEl.onpointerdown = e => { yWake = root.classList.contains('xidle'); poke(); yO = null; yOv = !!(ovI && ovI === ci); if (mv) tIn(); clearTimeout(yrT); lastY = null; yd = true; try { yEl.setPointerCapture(e.pointerId); } catch(_){} tid++; zoomed = false; yx = e.clientX; yv = 0; ymv = 0; yS = 0; yt = performance.now(); yA = true; clearTimeout(yHide); showU(U); yEl.style.cursor = 'grabbing'; };
+  /* 下の線：右へ動かすと先へ（線の○と同じ向き）。変速：ゆっくりなら1点ずつ（15pxで1点）、大きく速く動かすほど速く進む（最大10倍）（10/7 開発 v11 本人） */
+  let yS = 0; const yGain = s => 1 + 9 * Math.pow(Math.max(0, Math.min(1, (s - 0.3) / 1.7)), 1.6);
+  yEl.onpointermove = e => { if (!yd) return; const dx = e.clientX - yx, n = performance.now(), dt = Math.max(1, n - yt); yx = e.clientX; ymv += Math.abs(dx); yS = 0.6 * yS + 0.4 * Math.abs(dx) / dt; const du = dx / SP * yGain(yS); yv = 0.7 * yv + 0.3 * du / dt; yt = n;
     if (yOv && !yO) { const p0 = pathAt(U); yO = { x: st.x - p0.x, y: st.y - p0.y, z: st.z - p0.z }; yU0 = U; ovI = 0; }
     const u = Math.min(uHi(), Math.max(-1, U + du)); showU(u); camU(u, yO, yO ? Math.max(0, 1 - Math.abs(u - yU0) * 2) : 0); }; /* 全体から動かしたときは、全体の位置から少しずつ並びの道すじへ */
   yEl.onpointerup = yEl.onpointercancel = e => { if (!yd) return; yd = false; yEl.style.cursor = 'grab';
@@ -10666,7 +10668,7 @@ function exvBuild(root, L, start){
       if (Math.abs(x) > G) step(Math.sign(x)); else yrOff(500); yOff(); return; } /* 下の左右をタップ：前・次の作品へ */
     /* はなした速さで流れて、近い作品でやわらかく止まる（流れる距離は 速さ×0.31秒）。前は「流れる」と「近い作品へ寄せる」が2つの動きだったのを、1つのなめらかな動きに（10/7 本人「慣性を。気持ち良く」）。
        描く時刻が指をはなした時刻より前でも、時間はマイナスにならない（glide は t を 0 以上に。10/7「高速に送ると元に戻る」の対策のまま） */
-    const v = performance.now() - yt > 90 || Math.abs(yv) < 0.0003 ? 0 : yv; glide(nearK(U + v * 312), v); };
+    const v = performance.now() - yt > 90 || Math.abs(yv) < 0.0003 ? 0 : yv; glide(nearK(U + Math.max(-60, Math.min(60, v * 312))), v); }; /* 慣性で流れるのは60点まで */
   /* スクロールで作品送り：下の帯をさっと送ったときと同じ動き（カメラは作品と作品の止まる位置のあいだをまっすぐ移り、最後はゆっくり止まる。年もぱらぱら出る）（10/7 本人「下のバーをスワイプした時と同じモーションに」）。
      動いている途中でまたスクロールしたら、その先の作品へ続けて */
   let uT = null, uV = 0;
