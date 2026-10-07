@@ -2387,7 +2387,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '9800a6959b', APP_URL = location.origin + location.pathname;
+const BUILD = '562dbd84fc', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -10298,10 +10298,13 @@ function exvBuild(root, L, start){
   const capS = new T3.MeshStandardMaterial({ color: '#e7e3dc', roughness: 0.9 }), side = new T3.MeshStandardMaterial({ color: '#cfc7bb', roughness: 0.85 }), edge = new T3.MeshStandardMaterial({ color: '#2a2421', roughness: 0.55, dithering: true });
 
   /* 作品 */
-  const EXWC = '#d8d7d5'; /* 写真がまだの作品（キャンバス）：色は壁と同じ（ほぼ無彩色）、濃さは前の #dcd6cd と同じくらい（10/7 開発 v11 本人 16:20・16:46） */
+  const EXWC = '#d8d7d5', PHL = new T3.Color('#d8d7d5').convertSRGBToLinear(); /* 写真がまだの作品（キャンバス）：色は壁と同じ（ほぼ無彩色）、濃さは前の #dcd6cd と同じくらい（10/7 開発 v11 本人 16:20・16:46） */
   const items = L.map((d, i) => { const w = d.wd / 100, h = d.h / 100, g = new T3.Group(), [cv, x0] = cvs(16, 16); x0.fillStyle = EXWC; x0.fillRect(0, 0, 16, 16);
-    const base = mkTex(cv), it = { d, w, h, g, cv, tx: [base], req: 0, wm: w, hm: h };
-    const artM = t => new T3.MeshStandardMaterial({ map: t, bumpMap: abm, bumpScale: 0.0015, roughness: 0.96, dithering: true });
+    const base = mkTex(cv), it = { d, w, h, g, cv, tx: [base], req: 0, wm: w, hm: h, rv: { value: 1 } };
+    /* 絵の面：写真（map）とキャンバスの色（uPh）を uRv でまぜる。暗いあいだに届いた写真は、明かりがつくのと同じ動きでフェードイン（10/7 開発 v11 本人） */
+    const artM = t => { const m = new T3.MeshStandardMaterial({ map: t, bumpMap: abm, bumpScale: 0.0015, roughness: 0.96, dithering: true });
+      m.onBeforeCompile = sh => { sh.uniforms.uRv = it.rv; sh.uniforms.uPh = { value: PHL }; sh.fragmentShader = 'uniform float uRv;\nuniform vec3 uPh;\n' + sh.fragmentShader.replace('#include <map_fragment>', '#ifdef USE_MAP\n\tvec4 texelColor = texture2D( map, vUv );\n\ttexelColor = mapTexelToLinear( texelColor );\n\tdiffuseColor *= vec4( mix( uPh, texelColor.rgb, uRv ), texelColor.a );\n#endif'); };
+      m.customProgramCacheKey = () => 'exvArtFade1'; return m; };
     if (d.grp) { /* 組（パーツ）：パーツをすき間なしで横にくっつける。写真は全部を1枚の絵にまとめて（grpCompose）、パーツごとに貼り分ける。台帳にない・写真のないパーツは、紙に番号 */
       const G = d.grp, sF = Math.sqrt(w * h), dep = Math.min(0.05, Math.max(0.022, 0.018 + 0.02 * sF)), off = -0.003, cb = 0.012 + dep * 0.4;
       G.slots.forEach((sl, j) => { const pw = sl.wd / 100, ph = sl.h / 100, t = j ? base.clone() : base; if (j) { t.needsUpdate = true; it.tx.push(t); } t.repeat.set(sl.wd / G.W, sl.h / G.H); t.offset.set(G.x[j] / G.W, (G.H - sl.h) / (2 * G.H));
@@ -10384,6 +10387,7 @@ function exvBuild(root, L, start){
   const capLines = it => { if (it.d.grp) it = { d: it.d.grp.reg[0].pd }; const w = it.d.w, sz = it.d.tri ? '各 ' + (+it.d.h).toFixed(1) + ' × ' + (+it.d.wd).toFixed(1) + ' cm（3点・背中合わせ）' : it.d.set ? '各 ' + (+it.d.set.ph).toFixed(1) + ' × ' + (+it.d.set.pw).toFixed(1) + ' cm（' + it.d.set.n + '面）' : it.d.est ? '約 ' + it.d.h + ' × ' + it.d.wd + ' cm（推定）' : (+it.d.h).toFixed(1) + ' × ' + (+it.d.wd).toFixed(1) + ' cm' + (it.d.frame ? '（額込み）' : '');
     return [[it.d.tri ? it.d.tri.nos.join('・') : String(it.d.no), 10.5, 400, '#8a8379', 6, 1], [String(w['作品名'] || '').trim() || '無題', 17, 500, '#2a2724', 6, 1.5], [exvYearTxt(w), 11.5, 400, '#46413b', 2.5, 0.4], [String(w['画材'] || '').trim(), 11.5, 400, '#46413b', 2.5, 0.4], [sz, 11.5, 400, '#46413b', 2.5, 0.4], [exvOwner(w), 11.5, 400, '#46413b', it.d.cp ? 4 : 0, 0.4]].concat(it.d.cp ? [['画像 © ' + String(it.d.cp.mu || '').replace(/^[@＠]/, ''), 9.5, 400, '#8a8379', 0, 0.4]] : []); };
   const paint = (it, im) => { const iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height; if (!iw || !it.req) return; it.pt = 1; it.fail = 0;
+    { const dk = !RM && (LFt < 1 || LF < 0.98); it.fd = dk ? 1 : 0; it.rv.value = dk ? 0 : 1; } /* 部屋を暗くしているあいだに届いた写真は、明かりがつくまで見せない */
     const tr = it.tr || it.wm / it.hm, ir = iw / ih; let sx = 0, sy = 0, sw = iw, sh = ih;
     if (Math.abs(ir / tr - 1) > 0.06) { if (ir > tr) { sw = ih * tr; sx = (iw - sw) / 2; } else { sh = iw / tr; sy = (ih - sh) / 2; } } /* 形が台帳と合わないときは、まん中を切り出す */
     const k = Math.min(1, (it.mx || 1024) / Math.max(sw, sh)), cw = Math.max(2, Math.round(sw * k)), ch = Math.max(2, Math.round(sh * k)), c = it.cv, x = c.getContext('2d');
@@ -10644,10 +10648,12 @@ function exvBuild(root, L, start){
   yrEl.innerHTML = '<span class="xyt"></span><span class="xyn"></span>'; const yrTx = yrEl.querySelector('.xyt'), yrNo = yrEl.querySelector('.xyn'); /* 年の下に小さく作品番号（動かしている間、送るたびに変わる。10/7 開発 v11 本人） */
   const yrOf = k => exvYearBig(L[k].w['制作年']);
   let mv = false, pendT = null, pendL = '';
-  const lightTo = v => { LFt = v; if (RM) { LF = v; return redraw(); } if (LFa) return; let t0 = performance.now(), l0 = LF;
-    const f = n => { if (!EXV) { LFa = 0; return; } if (LFt !== f.t) { f.t = LFt; t0 = n; l0 = LF; } const ms = LFt < l0 ? 650 : 1100, t = Math.min(1, (n - t0) / ms), e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; LF = l0 + (LFt - l0) * e;
+  const fdUp = () => { if (LFt < 1) return; items.forEach(it => { if (!it.fd) return; it.rv.value = Math.max(it.rv.value, LF); if (LF >= 0.999) { it.fd = 0; it.rv.value = 1; } }); }; /* 明かりと同じ動きで写真をフェードイン */
+  const lightTo = v => { LFt = v; if (RM) { LF = v; fdUp(); return redraw(); } if (LFa) return; let t0 = performance.now(), l0 = LF;
+    const f = n => { if (!EXV) { LFa = 0; return; } if (LFt !== f.t) { f.t = LFt; t0 = n; l0 = LF; } const ms = LFt < l0 ? 650 : 1100, t = Math.min(1, (n - t0) / ms), e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; LF = l0 + (LFt - l0) * e; fdUp();
       if (performance.now() - wkT > 60) draw(); if (t < 1) LFa = requestAnimationFrame(f); else LFa = 0; }; f.t = LFt; LFa = requestAnimationFrame(f); };
-  const yrHide = () => { yrEl.classList.remove('xin'); lightTo(1); };
+  let lgT = 0; const yrHide = () => { yrEl.classList.remove('xin'); clearTimeout(lgT); const t0 = performance.now(); /* いまの作品の写真が届くまで明かりを待つ（4秒まで）。届いたら、明かりと一緒に写真が出る */
+    const w = () => { if (!EXV || yrEl.classList.contains('xin') || yd) return; const c = items[ci - 1]; if (!RM && c && c.req && !c.pt && !c.fail && performance.now() - t0 < 4000) { lgT = setTimeout(w, 80); return; } lightTo(1); }; w(); };
   const yrShow = t => { if (yrEl.dataset.t !== t) { yrEl.dataset.t = t; const ml = t.includes('\n'); yrEl.classList.toggle('xml', ml);
       if (ml) yrTx.innerHTML = t.split('\n').map(x => '<span class="l' + (x === '-' ? ' h' : '') + '">' + esc(x) + '</span>').join(''); else yrTx.textContent = t; } yrEl.classList.add('xin'); lightTo(0); }; /* 出ている間に年が変わったら、数字だけそのまま入れかえ */
   const yrPos = () => { yrEl.style.top = W < H ? 'calc(50% - 20px)' : ''; }; /* 縦長の画面だけ少し上げる。絵によって高さを変えない（10/6 本人） */
@@ -10765,7 +10771,7 @@ function exvBuild(root, L, start){
   EXV.close = () => { tid++; dead = 1; items.forEach(it => { it.req = 0; }); PQ.clear(); clearTimeout(PQT); clearInterval(LDT); clearTimeout(EXV.syncT); /* 閉じたあとに届いた写真で、捨てた描画を動かさない */ clearTimeout(autoT); clearTimeout(settle); clearTimeout(wt); if (rq) cancelAnimationFrame(rq); removeEventListener('resize', rs); removeEventListener('keydown', key);
     sc.traverse(o => { if (o.geometry) o.geometry.dispose(); const ms = o.material ? [].concat(o.material) : []; ms.forEach(m => { if (m.map) m.map.dispose(); if (m.bumpMap) m.bumpMap.dispose(); m.dispose(); }); });
     items.forEach(it => it.tx.forEach(t => t.dispose())); r.dispose(); if (r.forceContextLoss) r.forceContextLoss(); close0(); };
-  EXV.go = go; EXV.yrc = () => { const it = items[ci - 1]; if (!it) return null; const v = new T3.Vector3(it.g.position.x, it.cyW, 0).project(cam), b = yrEl.getBoundingClientRect(), rb = root.getBoundingClientRect(); return { art: Math.round((1 - v.y) / 2 * H), yr: Math.round(b.top + b.height / 2 - rb.top), H }; }; EXV.lds = () => items.map(it => [it.d.no, it.pt ? 1 : 0, it.fail ? 1 : 0, it.tries || 0, it.cv.width, it.cv.height]); EXV.cur = () => ci; EXV.caps = () => { const it = items[ci - 1]; return it ? [it.capM].concat((it.xc || []).map(c => c.m)).map(m => [+m.position.x.toFixed(3), +m.position.y.toFixed(3), m.visible ? 1 : 0]) : []; }; EXV.tri = () => TRI.map(t => [t.i0, +t.f.toFixed(3)]); EXV.n = items.length; EXV.start = ci; EXV.loaded = () => items.map(it => it.hi ? 1 : it.lo ? 0.5 : 0); EXV.light = () => [LFt, +LF.toFixed(2)]; EXV.at = () => { const S = stops[ci]; return !!S && Math.abs(st.x - S.x) < 1e-3 && Math.abs(st.y - S.y) < 1e-3; };
+  EXV.go = go; EXV.yrc = () => { const it = items[ci - 1]; if (!it) return null; const v = new T3.Vector3(it.g.position.x, it.cyW, 0).project(cam), b = yrEl.getBoundingClientRect(), rb = root.getBoundingClientRect(); return { art: Math.round((1 - v.y) / 2 * H), yr: Math.round(b.top + b.height / 2 - rb.top), H }; }; EXV.lds = () => items.map(it => [it.d.no, it.pt ? 1 : 0, it.fail ? 1 : 0, it.tries || 0, it.cv.width, it.cv.height]); EXV.cur = () => ci; EXV.caps = () => { const it = items[ci - 1]; return it ? [it.capM].concat((it.xc || []).map(c => c.m)).map(m => [+m.position.x.toFixed(3), +m.position.y.toFixed(3), m.visible ? 1 : 0]) : []; }; EXV.tri = () => TRI.map(t => [t.i0, +t.f.toFixed(3)]); EXV.n = items.length; EXV.start = ci; EXV.loaded = () => items.map(it => it.hi ? 1 : it.lo ? 0.5 : 0); EXV.light = () => [LFt, +LF.toFixed(2)]; EXV.rv = () => { const it = items[ci - 1]; return it ? [+it.rv.value.toFixed(2), it.pt ? 1 : 0, it.fd ? 1 : 0] : null; }; EXV.at = () => { const S = stops[ci]; return !!S && Math.abs(st.x - S.x) < 1e-3 && Math.abs(st.y - S.y) < 1e-3; };
   EXV.edges = () => items.map(it => { const w = it.W || it.w, y = it.d.b ? it.h / 2 : CY, b = el.getBoundingClientRect(), f = xx => { const v = new T3.Vector3(xx, y, 0).project(cam); return Math.round(b.left + (v.x + 1) / 2 * b.width); }; return [f(it.g.position.x - w / 2), f(it.capM.position.x + PWm / 2)]; }); /* 確かめ用 */
   EXV.capRect = () => { const it = items[ci - 1], b = el.getBoundingClientRect(), v = new T3.Vector3(it.capM.position.x - PWm * 0.3, it.capM.position.y - PHm / 2 + PHm * 0.12, 0.006).project(cam); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }; /* 確かめ用：「作品ページへ」のあたり */ EXV.stop = () => ({ y: +st.y.toFixed(3), cy: stops[ci] && stops[ci].y, x: +st.x.toFixed(3), sx: stops[ci] && +stops[ci].x.toFixed(3), z: +st.z.toFixed(3), sz: stops[ci] && +stops[ci].z.toFixed(3), zoomed, ci, ov: ovI });
   EXV.capAt = () => { const it = items[ci - 1]; if (!it) return null; const v = it.capM.position.clone().project(cam), b = el.getBoundingClientRect(); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }; /* 確かめ用 */
