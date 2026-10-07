@@ -1412,6 +1412,7 @@ html.tb{--tb:0px!important}
 .dwhead{display:flex;align-items:center;gap:12px;position:relative;padding:6px 36px 18px 10px}
 .dwicon{display:block;width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none}
 .dwtt{font-size:19px;line-height:1.35}
+.dwhome{display:flex;align-items:center;gap:12px;flex:1 1 auto;min-width:0;padding:0;margin:0;border:0;background:none;color:inherit;font:inherit;letter-spacing:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .dwx{display:flex;align-items:center;justify-content:center;position:absolute;top:0;right:0;width:28px;height:28px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--sub);cursor:pointer}
 .dwx:hover{background:color-mix(in srgb,var(--ink) 8%,transparent);color:var(--ink)}
 .dwx svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
@@ -1705,6 +1706,7 @@ body.rail{--pw:68px}
 body.rail .drawer.pin .dwpanel{padding-left:8px;padding-right:8px;overflow:visible}
 body.rail .dwhead{flex-direction:column;padding:4px 0 14px;gap:10px}
 body.rail .dwicon{width:40px;height:40px}
+body.rail .dwhome{flex:none;flex-direction:column;gap:10px}
 body.rail .dwtt,body.rail .dwpanel>.dwsrch{display:none!important}
 body.rail .dwx{position:static;width:40px;height:34px}
 body.rail .dwnav{overflow-x:hidden}
@@ -2362,7 +2364,7 @@ body.exvopen #toast:not(.hidden){z-index:9600!important} /* 展示ビューの�
   <div class="cbin"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><span class="cblbl" aria-hidden="true">作品検索</span><input id="fsq" type="search" enterkeyhint="search" autocomplete="off" placeholder="作品を探す"><button type="button" id="fsqClose" class="hidden" aria-label="検索をやめる">✕</button></div>
   <button type="button" id="fmAsk" class="cbask" aria-label="AIに質問"><span class="ic aispark"><svg viewBox="0 0 24 24" aria-hidden="true"><path style="fill:none;stroke:#fff;stroke-width:1.7;stroke-linejoin:round" d="M4.5 4.5h15a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-9l-4.5 3.6v-3.6H4.5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2z"/><path d="M12 6.8c.3 2.4 1.3 3.5 3.7 3.9-2.4.4-3.4 1.5-3.7 3.9-.3-2.4-1.3-3.5-3.7-3.9 2.4-.4 3.4-1.5 3.7-3.9z"/></svg><svg class="aisp2" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="aispg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f86f7"/><stop offset="1" stop-color="#a06cf0"/></linearGradient></defs><path fill="url(#aispg)" d="M12 2.5c.9 5 4.5 8.6 9.5 9.5-5 .9-8.6 4.5-9.5 9.5-.9-5-4.5-8.6-9.5-9.5 5-.9 8.6-4.5 9.5-9.5z"/></svg></span><span>AIに質問</span></button>
 </div>
-<div id="drawer" class="drawer hidden" aria-hidden="true"><button type="button" class="dwscrim" data-dwclose="1" aria-label="メニューを閉じる"></button><aside class="dwpanel" role="menu" aria-label="メニュー"><div class="dwhead"><img class="dwicon" src="icon.jpg" alt="" aria-hidden="true"><span class="dwtt">下村良之介<br>作品目録</span><button type="button" class="dwx" id="dwX" aria-label="メニューを閉じる"><svg class="dwxx" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg><svg class="dwxr" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M9 4.5v15"/></svg></button></div><div class="dwsrch" id="dwSrch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input id="dwq" type="search" placeholder="作品を探す" enterkeyhint="search" autocomplete="off" aria-label="探す"><button type="button" id="dwqClose" class="hidden" aria-label="検索をやめる">✕</button></div><div class="dwnav" id="dwNav"></div><div class="dwfoot" id="dwFoot"></div></aside></div>
+<div id="drawer" class="drawer hidden" aria-hidden="true"><button type="button" class="dwscrim" data-dwclose="1" aria-label="メニューを閉じる"></button><aside class="dwpanel" role="menu" aria-label="メニュー"><div class="dwhead"><button type="button" class="dwhome" aria-label="ホームへ"><img class="dwicon" src="icon.jpg" alt="" aria-hidden="true"><span class="dwtt">下村良之介<br>作品目録</span></button><button type="button" class="dwx" id="dwX" aria-label="メニューを閉じる"><svg class="dwxx" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg><svg class="dwxr" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M9 4.5v15"/></svg></button></div><div class="dwsrch" id="dwSrch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input id="dwq" type="search" placeholder="作品を探す" enterkeyhint="search" autocomplete="off" aria-label="探す"><button type="button" id="dwqClose" class="hidden" aria-label="検索をやめる">✕</button></div><div class="dwnav" id="dwNav"></div><div class="dwfoot" id="dwFoot"></div></aside></div>
 
 <div id="page" class="page hidden"></div>
 <div id="sheet" class="sheet hidden"><div class="box" id="sheetbox"></div></div>
@@ -2387,7 +2389,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd6cd48dbac', APP_URL = location.origin + location.pathname;
+const BUILD = '0f45f979eb', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2631,7 +2633,8 @@ function abRender0(){ const h = $('#abTitle'); if (!h) return;
   if (isW && SUBF[S.filter]) { base.push({nm:S.filter, ic:S.filter==='美術館' ? MUS_IC : icOf('loc'), at:'data-bc="flt"'}); if (S.mus) base.push({nm:S.mus, ic:icOf('loc'), at:'data-bc="mus"'}); }
   if (dfOn()) { base.push({nm:'資料ファイル', ic:'🗂', at:'data-bc="df0"'}); (S.dpath || []).forEach((x, i) => base.push({nm:x, ic:'📁', at:`data-bc="df${i + 1}"`})); }
   const bc = (items, cur, cnt) => { const one = (x, last) => `<span class="crumb cp${last ? ' cplast' : ''}" ${x.at} aria-label="${esc(x.nm)}"><span class="hmtx">${esc(x.nm)}</span>${x.ic ? `<span class="hmic">${x.ic}</span>` : ''}</span>` + SEP;
-    h.innerHTML = '<span class="crumb cdots" data-bc="view" aria-label="最初の階層">…</span>' + SEP + items.map((x, i) => one(x, i === items.length - 1)).join('') + `<span class="crumb cur">${esc(cur)}</span>` + (cnt == null ? '' : `<span class="abcn">${cnt}</span>`); };
+    h.innerHTML = (items[0] && /data-home/.test(items[0].at) ? '' : ROOT + SEP) /* 奥のページでも、いちばん左に題名（スマホは家の印）＝押すとホーム（10/7 本人） */
+      + '<span class="crumb cdots" data-bc="view" aria-label="最初の階層">…</span>' + SEP + items.map((x, i) => one(x, i === items.length - 1)).join('') + `<span class="crumb cur">${esc(cur)}</span>` + (cnt == null ? '' : `<span class="abcn">${cnt}</span>`); };
   if (pgOpen && S.pcur) {
     const TK = {w:'works', ot:'ot', ex:'ex', pb:'pb'};
     bc(base.concat((S.stack || []).map((x, i) => ({nm: pcName(x.t, x.id), ic: icOf(TK[x.t] || 'works'), at:`data-ci="${i + 1}"`}))), pcName(S.pcur.t, S.pcur.id));
@@ -8702,6 +8705,7 @@ document.addEventListener('click', e => {
   if (t.id==='dwX'){ if (isWide()) openDrawer(); else closeDrawer(); return; }
   if (t.dataset.dwclose){ closeDrawer(); return; }
   if (t.id==='btnMe2'){ openMe(t); return; }
+  if (t.classList.contains('dwhome')){ closeDrawer(); goHome(); return; } /* メニューの上の顔写真と題名：押すとホーム（10/7 本人） */
   if (t.closest('#dwNav')){ closeDrawer(); closeAllPages(); if (S.aiOpen && !aiCol()) closeAI(); }
   if (t.dataset.v==='exv'){ exvOpen(); return; }
   if (t.dataset.v==='inbox'){ shInbox(); return; }
