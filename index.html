@@ -2387,7 +2387,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'de8e788f20', APP_URL = location.origin + location.pathname;
+const BUILD = '76fb4f0ce2', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -10285,7 +10285,8 @@ function exvBuild(root, L, start){
   const capS = new T3.MeshStandardMaterial({ color: '#e7e3dc', roughness: 0.9 }), side = new T3.MeshStandardMaterial({ color: '#cfc7bb', roughness: 0.85 }), edge = new T3.MeshStandardMaterial({ color: '#2a2421', roughness: 0.55, dithering: true });
 
   /* 作品 */
-  const items = L.map((d, i) => { const w = d.wd / 100, h = d.h / 100, g = new T3.Group(), [cv, x0] = cvs(16, 16); x0.fillStyle = '#dcd6cd'; x0.fillRect(0, 0, 16, 16);
+  const EXWC = '#fbfaf8'; /* 写真がまだの作品（キャンバス）は壁と同じ色に（10/7 開発 v11 本人） */
+  const items = L.map((d, i) => { const w = d.wd / 100, h = d.h / 100, g = new T3.Group(), [cv, x0] = cvs(16, 16); x0.fillStyle = EXWC; x0.fillRect(0, 0, 16, 16);
     const base = mkTex(cv), it = { d, w, h, g, cv, tx: [base], req: 0, wm: w, hm: h };
     const artM = t => new T3.MeshStandardMaterial({ map: t, bumpMap: abm, bumpScale: 0.0015, roughness: 0.96, dithering: true });
     if (d.grp) { /* 組（パーツ）：パーツをすき間なしで横にくっつける。写真は全部を1枚の絵にまとめて（grpCompose）、パーツごとに貼り分ける。台帳にない・写真のないパーツは、紙に番号 */
@@ -10374,7 +10375,7 @@ function exvBuild(root, L, start){
     if (Math.abs(ir / tr - 1) > 0.06) { if (ir > tr) { sw = ih * tr; sx = (iw - sw) / 2; } else { sh = iw / tr; sy = (ih - sh) / 2; } } /* 形が台帳と合わないときは、まん中を切り出す */
     const k = Math.min(1, (it.mx || 1024) / Math.max(sw, sh)), cw = Math.max(2, Math.round(sw * k)), ch = Math.max(2, Math.round(sh * k)), c = it.cv, x = c.getContext('2d');
     c.width = cw; c.height = ch; x.drawImage(im, sx, sy, sw, sh, 0, 0, cw, ch);
-    try { const id = x.getImageData(0, 0, cw, ch), q = id.data; for (let i = 0; i < q.length; i += 4) { const r0 = q[i], g0 = q[i + 1], b0 = q[i + 2], l = 0.299 * r0 + 0.587 * g0 + 0.114 * b0; q[i] = (l + (r0 - l) * 1.14 - 128) * 1.05 + 128; q[i + 1] = (l + (g0 - l) * 1.14 - 128) * 1.05 + 128; q[i + 2] = (l + (b0 - l) * 1.14 - 128) * 1.05 + 128; } x.putImageData(id, 0, 0); } /* 発色を少しよく（10/6 本人） */ catch(e){ c.width = c.height = 16; x.fillStyle = '#dcd6cd'; x.fillRect(0, 0, 16, 16); it.tx.forEach(t => { t.needsUpdate = true; }); return redraw(); }
+    try { const id = x.getImageData(0, 0, cw, ch), q = id.data; for (let i = 0; i < q.length; i += 4) { const r0 = q[i], g0 = q[i + 1], b0 = q[i + 2], l = 0.299 * r0 + 0.587 * g0 + 0.114 * b0; q[i] = (l + (r0 - l) * 1.14 - 128) * 1.05 + 128; q[i + 1] = (l + (g0 - l) * 1.14 - 128) * 1.05 + 128; q[i + 2] = (l + (b0 - l) * 1.14 - 128) * 1.05 + 128; } x.putImageData(id, 0, 0); } /* 発色を少しよく（10/6 本人） */ catch(e){ c.width = c.height = 16; x.fillStyle = EXWC; x.fillRect(0, 0, 16, 16); it.tx.forEach(t => { t.needsUpdate = true; }); return redraw(); }
     matte(x, cw, ch); it.tx.forEach(t => { t.needsUpdate = true; }); redraw(); };
   const setPaint = (it, im0, lv) => { const S0 = it.d.set, tok = it.im, rest = S0.ids.slice(1), got = {}; rest.forEach(id => { const v = TH[lv + '_' + id]; if (v && /^data:/.test(v)) got[id] = v; });
     const need = rest.filter(id => !got[id]);
@@ -10411,14 +10412,14 @@ function exvBuild(root, L, start){
     const tok = {}; it.im = tok; const lo = TH['400_' + it.d.id]; if (lo && /^data:/.test(lo)) { const i0 = new Image(); i0.onload = () => { if (it.im === tok && !it.hi) paintX(it, i0, 400); }; i0.src = lo; }
     it.hi = 0; it.pt = 0; it.tries = 0; it.fail = 0; it.fresh = exvFresh(it.d.id); ldDraw(it, performance.now()); ldOn(); /* 届くまでは白い紙のまん中にローダー */
     PQ.set(it.d.id, it); clearTimeout(PQT); PQT = setTimeout(pull, 40); };
-  const cool = it => { if (!it.req) return; it.req = 0; if (it.gh) { it.pt = 0; it.hi = 0; return; } it.im = null; it.lo = 0; it.pt = 0; PQ.delete(it.d.id); const c = it.cv, x = c.getContext('2d'); c.width = c.height = 16; x.fillStyle = '#dcd6cd'; x.fillRect(0, 0, 16, 16); it.tx.forEach(t => { t.needsUpdate = true; });
+  const cool = it => { if (!it.req) return; it.req = 0; if (it.gh) { it.pt = 0; it.hi = 0; return; } it.im = null; it.lo = 0; it.pt = 0; PQ.delete(it.d.id); const c = it.cv, x = c.getContext('2d'); c.width = c.height = 16; x.fillStyle = EXWC; x.fillRect(0, 0, 16, 16); it.tx.forEach(t => { t.needsUpdate = true; });
     [[it.capM, it.capF], [it.ao, it.ao.material]].forEach(([o, m]) => { if (m.map) { m.map.dispose(); m.map = null; m.needsUpdate = true; } o.visible = false; }); if (it.cpM) it.cpM.visible = false; (it.xc || []).forEach(c => { if (c.F.map) { c.F.map.dispose(); c.F.map = null; c.F.needsUpdate = true; } c.m.visible = false; }); };
   /* 読み込み中の表示（10/6 本人）：白い紙のまん中に細い線の丸いローダー、下に小さな灰色の文字「画像を更新しています」。画面の上で同じくらいの大きさになるよう、
      止まったときの「1画面ピクセルあたりのメートル」（it.kpx）から描く大きさを決める。届かなければ「画像を読み込めませんでした」 */
   const ldDraw = (it, t) => { if (!it.req || it.pt) return; const kp = it.kpx || 0.002, pw = it.wm / kp, ph = it.tr ? pw / it.tr : it.hm / kp, q = Math.min(2, 1024 / Math.max(pw, ph, 1));
     const cw = Math.max(16, Math.round(pw * q)), ch = Math.max(16, Math.round(ph * q)), c = it.cv; if (c.width !== cw || c.height !== ch) { c.width = cw; c.height = ch; }
     const x = c.getContext('2d'), m = Math.min(cw, ch), R = Math.min(10 * q, 0.16 * m), fs = Math.min(10.5 * q, 0.075 * cw, 0.09 * ch), gap = Math.min(9 * q, 0.06 * m), cx = cw / 2;
-    x.fillStyle = '#dcd6cd'; x.fillRect(0, 0, cw, ch);
+    x.fillStyle = EXWC; x.fillRect(0, 0, cw, ch);
     if (!it.fail) { const cy = ch / 2 - (gap + fs) / 2; x.lineWidth = Math.max(1, 1.3 * q); x.lineCap = 'round'; x.strokeStyle = 'rgba(70,64,57,.16)'; x.beginPath(); x.arc(cx, cy, R, 0, Math.PI * 2); x.stroke();
       const a = (t || 0) / 1000 * Math.PI * 2; x.strokeStyle = 'rgba(70,64,57,.58)'; x.beginPath(); x.arc(cx, cy, R, a, a + Math.PI * 0.55); x.stroke(); x.textBaseline = 'top'; x.textAlign = 'center';
       x.font = '400 ' + fs + 'px "Helvetica Neue","Hiragino Sans","Noto Sans JP",sans-serif'; x.fillStyle = 'rgba(102,95,87,.9)'; x.fillText('画像を更新しています', cx, cy + R + gap); }
