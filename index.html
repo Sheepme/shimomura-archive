@@ -2389,7 +2389,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '0f45f979eb', APP_URL = location.origin + location.pathname;
+const BUILD = 'bf9fef5f7b', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4168,7 +4168,8 @@ function applyStart(){ if (applyStart.done || !S.user) return; applyStart.done =
 function themeIcon(){ return document.documentElement.getAttribute('data-theme')==='dark'
   ? '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/></svg>'
   : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>'; }
-function goHome(){ hidePop(); closeAllPages(); if (isGuest()) { if (!EXV) exvOpen(); return; } S.view = 'home'; render(); window.scrollTo(0, 0); }
+function goHome(){ hidePop(); closeAllPages(); if (isGuest()) { if (!EXV) exvOpen(); return; }
+  let n = 0; const go = () => { if (HIST.skip > 0 && n++ < 60) return setTimeout(go, 50); S.view = 'home'; render(); window.scrollTo(0, 0); }; go(); } /* 作品ページを閉じた「戻る」が済んでからホームを描く（先に描くと、遅れた「戻る」でアルバムにもどる） */
 function goTodo(k){
   closeAllPages();
   if (k==='doc') { S.view = 'doc'; render(); window.scrollTo(0, 0); return; }
@@ -7248,7 +7249,7 @@ function crKey(e){ if (!CR || !$('#crop') || /^(INPUT|TEXTAREA|SELECT)$/.test((e
   if (/^[-+=]$/.test(e.key) && e.target.type !== 'range' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); crZoomStep(e.key === '-' ? -1 : 1); return; } /* キーボードの＋・－で拡大・縮小 */
   const dd = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key]; if (!dd || CR.mode !== 'edit' || !CR.L || e.target.type === 'range') return;
   e.preventDefault(); const st = e.shiftKey ? 10 : 1, s = CR.sel, p = CR[s.a][s.i]; if (!p) return; /* 矢印キーで、最後にさわった点を1画素ずつ（Shift で10） */
-  CR[s.a][s.i] = [Math.min(1, Math.max(0, p[0] + dd[0] * st / CR.L.w)), Math.min(1, Math.max(0, p[1] + dd[1] * st / CR.L.h))]; CR.dirty = true; crDraw(); crNote(); }
+  CR[s.a][s.i] = [Math.min(1, Math.max(0, p[0] + dd[0] * st / CR.L.w)), Math.min(1, Math.max(0, p[1] + dd[1] * st / CR.L.h))]; CR.dirty = true; crDraw(); crNudgeLoupe(); crNote(); } /* 動かしているあいだは拡大鏡を出す（10/7 本人） */
 function cropClose(fromHist){ const el = $('#crop'); if (!el) return; el.remove(); document.removeEventListener('keydown', crKey); removeEventListener('resize', crLayout);
   if (CR && CR.ro) try { CR.ro.disconnect(); } catch(e){} CR = null; if (!fromHist) hback(); }
 /* 保存したあと：開いているページと写真の画面を新しくし、その写真を出す */
@@ -7697,7 +7698,9 @@ function fwdRecord(){ let f = null;
   else if (typeof VH !== 'undefined' && VH.length) { const s = vsnap(); f = () => { Object.assign(S, { view: s.view, wmode: s.wmode, filter: s.filter, mus: s.mus, dmode: s.dmode, dpath: s.dpath, otk: s.otk, q: s.q }); render(); setTimeout(() => window.scrollTo(0, s.y || 0), 30); }; }
   FW.push(f); if (FW.length > 60) FW.shift(); }
 function fwdGo(){ const f = FW.pop(); if (!f) return; HIST.noPush = 1; try { f(); } catch(e){} finally { HIST.noPush = 0; } }
-function hback(){ if (!hist_()) return; HIST.skip++; try { history.back(); } catch(e){ HIST.skip--; } setTimeout(() => { if (HIST.skip > 0) HIST.skip = Math.max(0, HIST.skip - 1); }, 1500); }
+function hback(){ if (!hist_()) return; HIST.skip++; try { history.back(); } catch(e){ HIST.skip--; return; } const t0 = Date.now();
+  /* 戻るの知らせ（popstate）が来なかったときだけ待ちを消す。iPhone は知らせが遅れることがあり、先に消すと遅れた知らせを「戻る」と取りちがえて前の画面（作品アルバム）にもどっていた（10/7 本人「🏠でアルバムになる」）。重い描き直しでタイマーが遅れたときは、もう少し待つ */
+  const chk = late => { if (HIST.skip <= 0) return; if (!late && Date.now() - t0 > 3400) return setTimeout(() => chk(1), 1500); HIST.skip = Math.max(0, HIST.skip - 1); }; setTimeout(chk, 3000); }
 /* 閉じる操作のあと（ブラウザの戻る待ち）に履歴を積む。先に積むと、戻るが新しい画面の分を消してしまう */
 function hpushLater(tag){ let n = 0; const go = () => { if (HIST.skip > 0 && n++ < 30) return setTimeout(go, 50); hpush(tag); }; go(); }
 function closeTop(){
@@ -8707,6 +8710,7 @@ document.addEventListener('click', e => {
   if (t.id==='btnMe2'){ openMe(t); return; }
   if (t.classList.contains('dwhome')){ closeDrawer(); goHome(); return; } /* メニューの上の顔写真と題名：押すとホーム（10/7 本人） */
   if (t.closest('#dwNav')){ closeDrawer(); closeAllPages(); if (S.aiOpen && !aiCol()) closeAI(); }
+  if (t.dataset.v==='home'){ goHome(); return; }
   if (t.dataset.v==='exv'){ exvOpen(); return; }
   if (t.dataset.v==='inbox'){ shInbox(); return; }
   if (t.id==='fsqClose'){ const fi = $('#fsq'); fi.value = ''; fi.dispatchEvent(new Event('input')); t.classList.add('hidden'); fi.blur(); return; }
