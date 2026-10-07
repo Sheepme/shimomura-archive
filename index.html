@@ -2389,7 +2389,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'bf9fef5f7b', APP_URL = location.origin + location.pathname;
+const BUILD = 'd1d950f4f6', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5040,7 +5040,9 @@ const guessKind = (type, place) => { const mus = /美術館|博物館|記念館|
 const wLabel = no => { const w = workOf(no); return w ? (isOtNo(no) ? no : nol(no)) + '　' + (w['作品名'] || (isOtNo(no) ? (w['種別'] || 'その他') + '（名前なし）' : '無題')) : ''; };
 const noOf = v => { const t = String(v||'').normalize('NFKC'), o = t.match(/(?:^|[^A-Za-z])([YHZ])\s*-?\s*(\d{1,3})(?!\d)/i);
   if (o) { const id = o[1].toUpperCase() + ('00' + o[2]).slice(-3); if (otById[id]) return id; }
-  const m = t.match(/(?:No\.?\s*)?(\d{1,4})/i); if (!m) return ''; const n = m[1], p = ('000' + n).slice(-3); return workOf(n) ? n : workOf(p) ? p : ''; };
+  const m = t.match(/(?:No\.?\s*)?(\d{1,4})(?:\s*[-‐‑−–ー]\s*(\d{1,3})(?!\d))?/i); if (!m) return ''; const n = m[1], p = ('000' + n).slice(-3);
+  if (m[2]) { const b = [n + '-' + m[2], p + '-' + m[2]].find(x => workOf(x)); if (b) return b; } /* 枝番のある作品（427-1 など）。10/7 本人「メモに 427-1 を入れたら見つからない」 */
+  return workOf(n) ? n : workOf(p) ? p : ''; };
 function sheetDocReview(id){ try { const d0 = docById(id); if (d0) pdfPrefetch([docPdfFid(d0)]); } catch(e){}
   const d = docById(id); if (!d) return;
   const r = docRes(d), pg = docPages(d), st = d['状態'];
