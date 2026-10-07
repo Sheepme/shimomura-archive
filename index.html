@@ -1622,7 +1622,7 @@ body:not(.pgopen):not(.searching):not(.dwopen) #top.tuck .chips.stk{transform:tr
 .chips.stk{top:var(--abb,0px)!important;transition:transform .25s ease!important;will-change:transform}
 /* iPhone：スクロールの途中でカテゴリの地が透ける件（前から。10/6 本人）。sticky の行を transform で動かすと、iPhone のスクロールの仕組みと食い違って地が描かれないことがあるので、スマホでは隠すときも top で動かす（transform は translateZ(0) のまま変えない） */
 @media(max-width:899px){.chips.stk{transition:top .25s ease!important;will-change:auto!important}body:not(.pgopen):not(.searching):not(.dwopen) #top.tuck .chips.stk{transform:translateZ(0)!important;top:var(--safe,0px)!important}}
-#safeCover{display:none;position:fixed;left:0;right:0;top:0;height:var(--safe,0px);background:var(--bg);z-index:97;pointer-events:none}
+#safeCover{display:none;position:fixed;left:0;right:0;top:-320px;height:calc(var(--safe,0px) + 320px);background:var(--bg);z-index:97;pointer-events:none}
 body:not(.pgopen):not(.searching):not(.dwopen):not(.loggedout) #safeCover{display:block} /* 画面上の切り欠きの部分は地の色（上のバーはこの下にもぐる） */
 html[data-theme=dark]{--bg:#1c1c1b}
 /* サブメニュー（すべて・自宅・美術館…など）は Pinterest と同じ：文字だけ、選んでいるものは太字＋下線 */
@@ -2275,6 +2275,9 @@ button.ulrow{cursor:pointer}
 }
 /* パソコン：「前の丸」は出さない（今までどおり） */
 #crop .cr-nprev{display:none}
+/* iPad（iPadOS 26）のホーム画面アプリは、時計の帯の下に、上へスクロールした作品が透けて見える（10/7 本人「iPad Pro 13インチだとヘッダーの上が透ける」）。
+   帯は画面の上の外側にあたるので、地の色の覆い（#safeCover）と、重ねる画面（作品ページ・写真・補正・展示ビュー）の上に、外へ地の色を伸ばして隠す */
+.page{box-shadow:0 -320px 0 0 var(--bg)}.viewer{box-shadow:0 -320px 0 0 var(--paper)}#crop{box-shadow:0 -320px 0 0 #1c1c1b}
 .pagehead .no .oldno{display:inline-block;margin-left:10px;font-size:.82em;font-weight:500;color:var(--sub);letter-spacing:0} /* 旧番号（10/7） */
 @media not all and (min-width:900px) and (min-aspect-ratio:5/4){ #crop .cr-nprev{display:block} }
 /* 本（画集・資料）の写真：屏風の形・色（カラーチップ）・縦横の比率・サイズ・AI で探す は使わない（10/7 本人） */
@@ -2419,7 +2422,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'f0d855b962', APP_URL = location.origin + location.pathname;
+const BUILD = 'afc32b4701', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -10128,7 +10131,7 @@ async function exvEstimate(L){
   need.forEach(x => { const r = Math.min(4, Math.max(0.25, x.r || (x.b ? 2.1 : 0.78))), a = x.b ? Ab : A; x.h = Math.round(Math.sqrt(a / r)); x.wd = Math.round(x.h * r); });
 }
 function exvCss(){ if (document.getElementById('exvcss')) return; const st = document.createElement('style'); st.id = 'exvcss';
-  st.textContent = `#exv{position:fixed;inset:0;z-index:9000;background:#efede9;color:#33302c;overflow:hidden;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui,sans-serif}
+  st.textContent = `#exv{position:fixed;inset:0;z-index:9000;background:#efede9;box-shadow:0 -320px 0 0 var(--exvtop,#efede9);color:#33302c;overflow:hidden;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui,sans-serif}
 #exv .xst{position:absolute;inset:0}#exv canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
 #exv .xcl,#exv .xsh{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8px);right:8px;width:48px;height:48px;border:0;background:transparent;color:#3a3530;mix-blend-mode:multiply;z-index:4;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;-webkit-tap-highlight-color:transparent}
 #exv .xcl svg,#exv .xsh svg{width:24px;height:24px;stroke:currentColor;stroke-width:1.4;fill:none;stroke-linecap:round;stroke-linejoin:round}#exv .xcl:focus-visible{outline:1.5px solid #2f2c28;outline-offset:2px;border-radius:8px}
@@ -10159,7 +10162,7 @@ body.exvopen{overflow:hidden}
 @media (prefers-reduced-motion: reduce){#exv .xhint,#exv .yd,#exv .xyr,#exv .ynum,#exv .yloc{transition:none!important}}`;
   document.head.appendChild(st); }
 /* 時計のところの帯（iPhone のホーム画面アプリ）は、ページの地の色で塗られるので、壁の色に合わせる */
-function exvBg(c){ try { document.documentElement.style.backgroundColor = c; document.body.style.backgroundColor = c; } catch(e){} }
+function exvBg(c){ try { document.documentElement.style.backgroundColor = c; document.body.style.backgroundColor = c; if (c) document.documentElement.style.setProperty('--exvtop', c); else document.documentElement.style.removeProperty('--exvtop'); } catch(e){} } /* --exvtop：iPad の時計の帯の下を壁の色で隠す */
 /* ========== 家族に送る・届いたもの（10/6 開発 v9）：iPhone のホーム画面のアプリはリンクから開けないので、アプリの中で受け取る。
    送る：展示ビューの共有ボタン・作品ページの「家族に送る」（編集・管理の人）→ 相手と、ひとこと → Google 側のシート「届いたもの」へ。
    受け取る：ホームのいちばん上の帯・メニューの「届いたもの」→ 押すと、その作品から展示ビュー（作品ページなら作品ページ）。見たら「見た」 ========== */
