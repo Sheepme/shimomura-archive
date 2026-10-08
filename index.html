@@ -1702,7 +1702,7 @@ body .decs button:hover{color:var(--ink)!important}
 @media(min-width:1000px){ #top .appbar,#top .brand.appbar{padding-right:20px!important} #top .appbar h1{font-size:19px!important} }
 
 
-#mepop{position:fixed;z-index:2147483000;width:228px;max-width:calc(100vw - 16px);background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.28),0 2px 6px rgba(0,0,0,.12);padding:6px;font-size:14.5px;animation:mepop .14s ease-out}#mepop.up{transform-origin:20px 100%}#mepop.down{transform-origin:20px 0}@keyframes mepop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}#mepop .mehd{display:flex;flex-direction:column;padding:8px 10px 6px}#mepop .mehd small,#mepop .menote{color:var(--sub);font-size:11.5px}#mepop .menote{display:block;padding:6px 10px 4px;line-height:1.4}#mepop button{display:block;width:100%;text-align:left;border:0;background:transparent;color:var(--ink);font:inherit;padding:7px 10px;border-radius:8px;cursor:pointer}#mepop button:hover,#mepop button:active{background:var(--wash)}#mepop .mesep{border-top:1px solid var(--line);margin:4px 6px}#mepop .metail{position:absolute;width:12px;height:12px;background:var(--paper);border:1px solid var(--line);transform:rotate(45deg)}#mepop.up .metail{bottom:-7px;border-top:0;border-left:0}#mepop.down .metail{top:-7px;border-bottom:0;border-right:0}
+#mepop{position:fixed;z-index:2147483000;width:256px;max-width:calc(100vw - 16px);background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.28),0 2px 6px rgba(0,0,0,.12);padding:6px;font-size:14.5px;animation:mepop .14s ease-out}#mepop.up{transform-origin:20px 100%}#mepop.down{transform-origin:20px 0}@keyframes mepop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}#mepop .mehd{display:flex;align-items:center;gap:10px;padding:8px 10px 8px}#mepop .mehd>span:last-child{display:flex;flex-direction:column;min-width:0}#mepop .mehd b{font-size:15px}#mepop .mebody{overflow-y:auto;overscroll-behavior:contain;margin:0 -2px;padding:0 2px}#mepop .megp{padding:3px 0}#mepop .megp+.megp,#mepop .megd+.megp,#mepop .megp+.megd{border-top:1px solid var(--line);margin-top:3px;padding-top:6px}#mepop .meh{margin:2px 10px 3px;font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--sub)}#mepop button small{display:block;font-size:11.5px;line-height:1.4;color:var(--sub);margin-top:1px}#mepop .megd summary{list-style:none;display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--sub)}#mepop .megd summary::-webkit-details-marker{display:none}#mepop .megd summary span{font-size:10.5px;font-weight:600;letter-spacing:0;padding:0 6px;border-radius:99px;background:var(--wash);color:var(--sub)}#mepop .megd summary::after{content:'';margin-left:auto;width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translate(-2px,-2px);transition:transform .15s}#mepop .megd[open] summary::after{transform:rotate(225deg) translate(-1px,-1px)}#mepop .megd summary:hover{background:var(--wash)}#mepop .meout button{color:#b3412f}#mepop .mehd small,#mepop .menote{color:var(--sub);font-size:11.5px}#mepop .menote{display:block;padding:6px 10px 4px;line-height:1.4}#mepop button{display:block;width:100%;text-align:left;border:0;background:transparent;color:var(--ink);font:inherit;padding:7px 10px;border-radius:8px;cursor:pointer}#mepop button:hover,#mepop button:active{background:var(--wash)}#mepop .mesep{border-top:1px solid var(--line);margin:4px 6px}#mepop .metail{position:absolute;width:12px;height:12px;background:var(--paper);border:1px solid var(--line);transform:rotate(45deg)}#mepop.up .metail{bottom:-7px;border-top:0;border-left:0}#mepop.down .metail{top:-7px;border-bottom:0;border-right:0}
 
 .dwx .dwxr{display:none}@media(min-width:1000px){body.wide .dwx .dwxx{display:none}body.wide .dwx .dwxr{display:block;width:19px;height:19px;stroke-width:1.6}}
 body.rail{--pw:68px}
@@ -2422,7 +2422,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '3272ee7e70', APP_URL = location.origin + location.pathname;
+const BUILD = '9356b9fae4', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -8606,17 +8606,27 @@ function openLogin(why){
 function openMe(anc){ /* 名前ボタンの上に出る小さな吹き出しメニュー（いちばん上のレイヤー） */
   const old = document.getElementById('mepop'); if (old) { old.remove(); return; }
   anc = anc || document.getElementById('btnMe2');
-  const it = (id, t) => `<button type="button" data-me="${id}">${t}</button>`;
+  /* 10/8 本人「名前メニューが増えてきたので使いやすく」：よく使うもの・写真・管理者の設定（たためる。開け閉めを覚える）・その他に分けて、説明は小さく2行目に。長いときは中だけスクロール */
+  const it = (id, t, sub) => `<button type="button" role="menuitem" data-me="${id}">${t}${sub ? '<small>' + sub + '</small>' : ''}</button>`;
+  const grp = (h, L) => { const b = L.filter(Boolean).join(''); return b ? `<div class="megp">${h ? '<p class="meh">' + h + '</p>' : ''}${b}</div>` : ''; };
+  const mdN = S.vm === 'guest' ? 'ゲスト' : S.vm === 'view' ? '閲覧' : 'フル', isAdm = S.user.role === '管理' && !isGuest();
+  let admOpen = false; try { admOpen = localStorage.getItem('smr_meadm') === '1'; } catch(e){}
+  const admL = isAdm ? [fullMode() ? it('users', '利用者の追加') : '', fullMode() ? it('usage', '利用の記録', 'だれがいつ使ったか') : '', fullMode() ? it('sign', '展示ビューのサイン', '入口の写真に金箔で入るサイン') : '',
+    S.ai ? it('ainl', S.aiNoLim ? 'AI質問のリミッター解除中' : 'AI質問のリミッター解除', S.aiNoLim ? '押すと、もとにもどします' : '※ クレジット消費が増えます') : ''].filter(Boolean) : [];
   const el = document.createElement('div'); el.id = 'mepop'; el.setAttribute('role', 'menu');
-  el.innerHTML = `<div class="mehd"><b>${esc(S.user.name||'')}</b><small>権限：${esc(S.user.role)}${S.vm ? '（いまは' + (S.vm === 'guest' ? 'ゲスト' : '閲覧') + 'モード）' : ''}</small>${S.dataAt ? `<small>情報：${new Date(S.dataAt).getHours()}:${String(new Date(S.dataAt).getMinutes()).padStart(2, '0')} に読み込み</small>` : ''}</div>
-    ${S.user.role !== 'ゲスト' ? it('mode', 'モード選択（いま：' + (S.vm === 'guest' ? 'ゲスト' : S.vm === 'view' ? '閲覧' : 'フル') + 'モード）') : ''}${S.user.role === '管理' && !isGuest() && S.ai ? `<button type="button" data-me="ainl">${S.aiNoLim ? 'AI質問のリミッター解除中（もとにもどす）' : 'AI質問のリミッター解除'}<small style="display:block;font-size:11.5px;opacity:.65;margin-top:2px">※ クレジット消費が増えます</small></button>` : ''}${S.user.role === '管理' && fullMode() ? it('users', '利用者の追加') + it('usage', '利用の記録（だれがいつ使ったか）') + it('sign', '展示ビューのサイン（入口）') : ''}${it('upd','最新版に更新')}${isGuest() ? '' : it('mic','マイクのテスト')}${canEdit() ? it('face','顔写真を追加') : ''}${noLog() ? '' : it('log','更新記録')}${canEdit() && S.ai ? it('rot','写真の向きをAIでそろえる') : ''}${canEdit() ? it('arc','削除したもの（アーカイブ）') : ''}${isGuest() ? '' : fpAdmin() ? it('fp','写真を速く読む') : fpGd() ? it('fp','Google ドライブとつなぐ（写真を速く）') : ''}
-    <div class="mesep"></div>${it('out','ログアウト')}<small class="menote">共用のパソコンでは、使い終わったらログアウトしてください</small><i class="metail"></i>`;
+  el.innerHTML = `<div class="mehd"><span class="avatar sm">${esc(String(S.user.name || '？').trim().charAt(0))}</span><span><b>${esc(S.user.name||'')}</b><small>${esc(S.user.role)}${S.vm ? '・いまは' + mdN + 'モード' : ''}${S.dataAt ? '・' + new Date(S.dataAt).getHours() + ':' + String(new Date(S.dataAt).getMinutes()).padStart(2, '0') + ' に読み込み' : ''}</small></span></div>
+    <div class="mebody">${grp('', [it('upd', '最新版に更新'), noLog() ? '' : it('log', '更新記録'), S.user.role !== 'ゲスト' ? it('mode', 'モード選択', 'いま：' + mdN + 'モード') : ''])}
+    ${grp('写真', [canEdit() ? it('face', '顔写真を追加', 'メニューと展示ビューの入口に出ます') : '', canEdit() && S.ai ? it('rot', '写真の向きをAIでそろえる') : '', isGuest() ? '' : fpAdmin() ? it('fp', '写真を速く読む') : fpGd() ? it('fp', 'Google ドライブとつなぐ', '写真を速く読む') : ''])}
+    ${admL.length ? `<details class="megd"${admOpen ? ' open' : ''}><summary>管理者の設定<span>${admL.length}</span></summary>${admL.join('')}</details>` : ''}
+    ${grp('その他', [canEdit() ? it('arc', '削除したもの（アーカイブ）') : '', isGuest() ? '' : it('mic', 'マイクのテスト')])}
+    <div class="megp meout">${it('out', 'ログアウト', '共用のパソコンでは、使い終わったらログアウトしてください')}</div></div><i class="metail"></i>`;
   document.body.appendChild(el);
   const r = anc ? anc.getBoundingClientRect() : { left: 12, right: 252, top: innerHeight - 12, bottom: innerHeight - 12, width: 240 };
-  const w = el.offsetWidth, h = el.offsetHeight, left = Math.max(8, Math.min(innerWidth - w - 8, r.left));
-  const up = r.top - h - 12 > 8; el.classList.add(up ? 'up' : 'down');
-  el.style.left = left + 'px'; el.style.top = (up ? r.top - h - 10 : r.bottom + 10) + 'px';
-  el.querySelector('.metail').style.left = Math.max(14, Math.min(w - 26, r.left + Math.min(28, r.width / 2) - left - 6)) + 'px';
+  const place = () => { el.classList.remove('up', 'down'); const bd = el.querySelector('.mebody'); bd.style.maxHeight = ''; const sp = Math.max(r.top, innerHeight - r.bottom) - 24, hd = el.querySelector('.mehd').offsetHeight + 14; bd.style.maxHeight = Math.max(160, sp - hd) + 'px';
+    const w = el.offsetWidth, h = el.offsetHeight, left = Math.max(8, Math.min(innerWidth - w - 8, r.left)), up = r.top - h - 12 > 8 || r.top > innerHeight - r.bottom; el.classList.add(up ? 'up' : 'down');
+    el.style.left = left + 'px'; el.style.top = Math.max(8, up ? r.top - h - 10 : r.bottom + 10) + 'px';
+    el.querySelector('.metail').style.left = Math.max(14, Math.min(w - 26, r.left + Math.min(28, r.width / 2) - left - 6)) + 'px'; };
+  place(); { const d = el.querySelector('.megd'); if (d) d.addEventListener('toggle', () => { try { localStorage.setItem('smr_meadm', d.open ? '1' : '0'); } catch(e){} place(); if (d.open) try { d.scrollIntoView({ block: 'nearest' }); } catch(e){} }); }
   const close = () => { el.remove(); document.removeEventListener('pointerdown', out, true); document.removeEventListener('keydown', esc1, true); window.removeEventListener('resize', close); };
   const out = e => { if (!el.contains(e.target) && !(anc && anc.contains(e.target))) close(); };
   const esc1 = e => { if (e.key === 'Escape') close(); };
