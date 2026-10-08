@@ -2231,6 +2231,32 @@ button.ulrow{cursor:pointer}
 .pomv{position:absolute;bottom:4px;right:42px;width:34px;height:34px;border-radius:999px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font-size:18px;line-height:1;cursor:pointer}
 .pomv.r{right:4px}
 .pomv:disabled{opacity:.3}
+.wacts{display:flex;flex-direction:column;gap:18px;margin:14px 0 8px}
+.wag h4{margin:0 0 8px;font:600 12px/1.4 var(--sans);color:var(--sub);letter-spacing:.08em}
+.wagb{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px}
+.wbt{display:flex;align-items:center;gap:12px;text-align:left;padding:11px 12px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:12px;cursor:pointer;font-family:inherit;position:relative;min-height:58px;transition:border-color .15s,background .15s}
+.wbt:hover{border-color:var(--ink)}
+.wbt .wbi{flex:none;width:36px;height:36px;border-radius:10px;background:var(--wash);display:flex;align-items:center;justify-content:center}
+.wbt .wbi svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.wbt .wbx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.wbt b{font-size:15px;font-weight:600}
+.wbt small{font-size:12px;color:var(--sub);line-height:1.45}
+.wbt.main{background:var(--ink);color:var(--inv);border-color:var(--ink)}
+.wbt.main small{color:inherit;opacity:.72}
+.wbt.main .wbi{background:rgba(255,255,255,.14)}
+.wbt.set{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 7%,var(--paper))}
+.wbt.set .wbi{background:color-mix(in srgb,var(--acc) 16%,transparent);color:var(--acc)}
+.wbt .wbs{position:absolute;top:-8px;right:10px;font-style:normal;font-size:11px;font-weight:600;color:#fff;background:var(--acc);border-radius:999px;padding:2px 9px;max-width:calc(100% - 20px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wagb .act{margin:0;border-radius:12px;min-height:46px}
+.wagb .delbtn{color:#C0392B}
+.pnsec{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0;display:flex;flex-direction:column;gap:8px}
+.pnst{font-size:15px;color:var(--ink)}
+.pnsw{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.pnsw input{width:20px;height:20px;margin-top:2px;flex:none}
+.pnsw span{display:flex;flex-direction:column;gap:3px}
+.pnsw small{color:var(--sub);font-size:12.5px;line-height:1.5}
+.pnbody.hidden{display:none}
+.pnyh{color:var(--sub);font-size:12.5px}
 .pnf{display:flex;flex-direction:column;gap:10px;margin:10px 0}
 .pnr{display:flex;flex-direction:column;gap:4px}
 .pnr b{font-size:13px;color:var(--sub);font-weight:500}
@@ -2533,7 +2559,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'a8eed6c4b0', APP_URL = location.origin + location.pathname;
+const BUILD = 'ed9ebf9335', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3797,43 +3823,51 @@ async function pjoinMake(no, P, main){ closeSheet(); busy(true, '写真を読み
     busy(false); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
     toast(P.length + '枚を横に並べて1枚にしました' + (main ? '（メイン画像）' : '') + '。いらなければ写真の画面の鉛筆から消せます'); }
   catch(e){ busy(false); alert('組み写真をつくれませんでした。\n' + (e.message || e)); } }
-/* 展示ビューのサイズ：1枚の大きさ × 枚数、1段に何枚、すき間、写真（左上のパネルから順）（10/8 本人「ボタンで入力フォーム」） */
-function pnForm(no){ if (!canEdit()) return; const w = workOf(no); if (!w) return; const sp0 = pnSpec(w), L = (photoBy[no] || []).filter(p => p['ファイルID']);
+/* 展示ビューの設定（10/8 本人）：設置の高さ（床から作品の下まで）と、パネル（1枚の大きさ × 枚数・1段に何枚・すき間・写真は左上のパネルから順）。画像は作らない */
+function pnForm(no){ if (!canEdit()) return; const w = workOf(no); if (!w) return; const sp0 = pnSpec(w), yb0 = exvYb(w), L = (photoBy[no] || []).filter(p => p['ファイルID']), scr = isScreenW(w) || isKannon(w);
   let SEL = sp0 && sp0.ids.length ? sp0.ids.filter(id => L.some(p => p['写真ID'] === id)) : [];
   if (!SEL.length) { const c = L.filter(p => p['種類'] !== '記録写真' && !isJoin(p)), n0 = pnN(w); if (n0 && c.length > 1 && n0 % c.length === 0) SEL = c.map(p => p['写真ID']); }
-  const v = (k, d) => esc(String(d == null ? '' : d));
-  openSheet(`<h3>展示ビューのサイズ（パネル・面）</h3><p class="hint">同じ大きさのパネル（襖・面など）が何枚かで1つの作品のとき。台帳には「1枚の大きさ × 枚数」で残り、展示ビューでは段に分けて並べられます。${!pnN(w) && (w['高さcm'] || w['幅cm']) ? '<br>いまの台帳のサイズ（H ' + esc(w['高さcm'] || '?') + ' × W ' + esc(w['幅cm'] || '?') + '）が全体の大きさなら、1枚の大きさに直してください。' : ''}</p>
-    <div class="pnf"><div class="pnr"><b>1枚の大きさ</b><span class="iesz"><span>H</span><input data-pn="h" inputmode="decimal" value="${v(0, w['高さcm'])}" placeholder="高さ"><span>×</span><span>W</span><input data-pn="w" inputmode="decimal" value="${v(0, w['幅cm'])}" placeholder="幅"><span>cm</span></span></div>
-      <div class="pnr"><b>枚数</b><span class="iesz"><input data-pn="n" inputmode="numeric" value="${v(0, pnN(w) || '')}" placeholder="例：12"><span>枚</span></span></div>
-      <div class="pnr"><b>展示ビューで1段に並べる</b><span class="iesz"><input data-pn="c" inputmode="numeric" value="${v(0, sp0 ? sp0.cols : '')}" placeholder="全部"><span>枚</span><em class="pnrows"></em></span></div>
-      <div class="pnr"><b>すき間</b><span class="iesz"><span>横</span><input data-pn="g" inputmode="decimal" value="${v(0, sp0 ? sp0.gap : 0)}"><span>cm</span><span>段のあいだ</span><input data-pn="vg" inputmode="decimal" value="${v(0, sp0 ? sp0.vgap : 20)}"><span>cm</span></span></div></div>
+  const v = d => esc(String(d == null ? '' : d)), dm = dimMain(w);
+  openSheet(`<h3>展示ビューの設定</h3><p class="hint">展示ビューでの見せ方だけを決めます。画像は作りません（写真を横に並べた画像を作るのは「組み写真をつくる」）。</p>
+    <div class="pnsec"><b class="pnst">設置の高さ</b>${scr ? '<p class="pnh">屏風・観音開きは床に立てて置くので、高さの指定は使いません。</p>' : `<div class="pnr"><b>床から作品の下の端まで</b><span class="iesz"><input data-pn="yb" inputmode="decimal" value="${v(yb0)}" placeholder="自動"><span>cm</span></span><small class="pnyh"></small></div>`}</div>
+    <div class="pnsec"><label class="pnsw"><input type="checkbox" data-pn="on"${pnN(w) ? ' checked' : ''}><span><b class="pnst">パネル・襖・面など</b><small>同じ大きさの板が何枚かで1つの作品のとき。台帳は「1枚の大きさ × 枚数」になり、展示ビューでは段に分けて並べられます</small></span></label>
+    <div class="pnbody">${!pnN(w) && (w['高さcm'] || w['幅cm']) ? '<p class="pnh">いまの台帳のサイズ（H ' + esc(w['高さcm'] || '?') + ' × W ' + esc(w['幅cm'] || '?') + '）が全体の大きさなら、1枚の大きさに直してください。</p>' : ''}
+    <div class="pnf"><div class="pnr"><b>1枚の大きさ</b><span class="iesz"><span>H</span><input data-pn="h" inputmode="decimal" value="${v(w['高さcm'])}" placeholder="高さ"><span>×</span><span>W</span><input data-pn="w" inputmode="decimal" value="${v(w['幅cm'])}" placeholder="幅"><span>cm</span></span></div>
+      <div class="pnr"><b>枚数</b><span class="iesz"><input data-pn="n" inputmode="numeric" value="${v(pnN(w) || '')}" placeholder="例：12"><span>枚</span></span></div>
+      <div class="pnr"><b>展示ビューで1段に並べる</b><span class="iesz"><input data-pn="c" inputmode="numeric" value="${v(sp0 ? sp0.cols : '')}" placeholder="全部"><span>枚</span><em class="pnrows"></em></span></div>
+      <div class="pnr"><b>すき間</b><span class="iesz"><span>横</span><input data-pn="g" inputmode="decimal" value="${v(sp0 ? sp0.gap : 0)}"><span>cm</span><span>段のあいだ</span><input data-pn="vg" inputmode="decimal" value="${v(sp0 ? sp0.vgap : 20)}"><span>cm</span></span></div></div>
     <p class="pnh"><b>写真</b>　左上のパネルが写っている写真から順に選んでください。1枚の写真に写っているパネルの数は、そろえてください（例：12枚を6枚ずつ2枚の写真に）。選ばなければメイン画像を全部のパネルに分けます。</p>
     <div class="pjgrid pngrid">${L.map(p => `<button type="button" class="pjit" data-pj="${esc(p['写真ID'])}">${thImg(p['ファイルID'], 400)}<span class="pjk">${esc(p['種類'] || '')}${isJoin(p) ? '・組み写真' : ''}</span><span class="pjn"></span></button>`).join('')}</div>
-    <div class="pnpvw"><small class="pnmsg"></small><div class="pnpv"></div></div>
-    <div class="btns"><button type="button" data-close>やめる</button>${pnN(w) ? '<button type="button" class="pnclr">パネルの設定を外す</button>' : ''}<button type="button" class="main pngo">保存</button></div>`);
-  const sh = $('#sheet'), val = k => String((sh.querySelector('[data-pn="' + k + '"]') || {}).value || '').normalize('NFKC').trim(), num = k => parseFloat(val(k).replace(/[^\d.]/g, '')); hydrate(sh);
-  const read = () => { const h = num('h'), wd = num('w'), n = Math.round(num('n')) || 0, c0 = Math.round(num('c')) || 0, cols = Math.max(1, Math.min(n || 1, c0 || n || 1)), gap = Math.max(0, num('g') || 0), vgap = Math.max(0, isNaN(num('vg')) ? 20 : num('vg'));
-    return { h, wd, n, cols, rows: n ? Math.ceil(n / cols) : 0, gap, vgap, ids: SEL.slice() }; };
-  const check = r => !(r.h > 0 && r.wd > 0) ? '1枚の高さと幅を入れてください' : !(r.n >= 2) ? '枚数は2枚以上にしてください（1枚の作品なら、この設定はいりません）' : r.n > 60 ? '枚数は60枚までです' : r.ids.length && r.n % r.ids.length ? 'パネル' + r.n + '枚を、写真' + r.ids.length + '枚に同じ数ずつ分けられません' : '';
-  const draw = () => { const r = read(), msg = check(r), pv = sh.querySelector('.pnpv');
+    <div class="pnpvw"><small class="pnmsg"></small><div class="pnpv"></div></div></div></div>
+    <div class="btns"><button type="button" data-close>やめる</button>${exvSetSum(w) ? '<button type="button" class="pnclr">設定を全部消す</button>' : ''}<button type="button" class="main pngo">保存</button></div>`);
+  const sh = $('#sheet'), val = k => String((sh.querySelector('[data-pn="' + k + '"]') || {}).value || '').normalize('NFKC').trim(), num = k => parseFloat(val(k).replace(/[^\d.]/g, '')), onEl = sh.querySelector('[data-pn="on"]'); hydrate(sh);
+  const read = () => { const on = onEl.checked, h = num('h'), wd = num('w'), n = Math.round(num('n')) || 0, c0 = Math.round(num('c')) || 0, cols = Math.max(1, Math.min(n || 1, c0 || n || 1)), gap = Math.max(0, num('g') || 0), vgap = Math.max(0, isNaN(num('vg')) ? 20 : num('vg')), yb = scr || val('yb') === '' ? null : num('yb');
+    return { on, h, wd, n, cols, rows: n ? Math.ceil(n / cols) : 0, gap, vgap, ids: SEL.slice(), yb }; };
+  const check = r => r.yb != null && (isNaN(r.yb) || r.yb > 400) ? '設置の高さは 0〜400 cm で入れてください' : !r.on ? '' : !(r.h > 0 && r.wd > 0) ? '1枚の高さと幅を入れてください' : !(r.n >= 2) ? '枚数は2枚以上にしてください（1枚の作品なら、パネルのチェックを外してください）' : r.n > 60 ? '枚数は60枚までです' : r.ids.length && r.n % r.ids.length ? 'パネル' + r.n + '枚を、写真' + r.ids.length + '枚に同じ数ずつ分けられません' : '';
+  const draw = () => { const r = read(), msg = check(r), pv = sh.querySelector('.pnpv'), H = r.on && r.n >= 2 && r.h > 0 ? r.rows * r.h + (r.rows - 1) * r.vgap : +dm['高さcm'] || 0;
+    sh.querySelector('.pnbody').classList.toggle('hidden', !r.on);
+    const yh = sh.querySelector('.pnyh'); if (yh) yh.textContent = H > 0 ? (r.yb != null && !isNaN(r.yb) ? '作品の上の端は床から ' + Math.round(r.yb + H) + ' cm' : '空のとき：床から約 ' + Math.max(0, Math.round(145 - H / 2)) + ' cm（絵のまん中が目の高さ 145 cm）') : '空のとき：絵のまん中が目の高さ（145 cm）';
     sh.querySelectorAll('[data-pj]').forEach(b => { const i = SEL.indexOf(b.dataset.pj); b.classList.toggle('on', i >= 0); b.querySelector('.pjn').textContent = i >= 0 ? i + 1 : ''; });
     sh.querySelector('.pnrows').textContent = r.n >= 2 ? '→ ' + r.rows + '段' + (r.rows > 1 ? '（' + Array.from({ length: r.rows }, (_, i) => Math.min(r.cols, r.n - i * r.cols)).join('・') + '枚）' : '') : '';
-    const per = r.ids.length ? r.n / r.ids.length : r.n, info = !msg ? '全体 H ' + (+(r.rows * r.h + (r.rows - 1) * r.vgap).toFixed(1)) + ' × W ' + (+(r.cols * r.wd + (r.cols - 1) * r.gap).toFixed(1)) + ' cm で並べます' + (r.ids.length ? '（写真1枚に' + per + '枚分）' : '（メイン画像を' + r.n + '枚に分ける）') : '';
-    sh.querySelector('.pnmsg').textContent = msg || info; sh.querySelector('.pnmsg').classList.toggle('err', !!msg); sh.querySelector('.pngo').disabled = !!msg;
-    if (msg) { pv.innerHTML = ''; return; }
+    const per = r.ids.length ? r.n / r.ids.length : r.n, info = r.on && !msg ? '全体 H ' + (+(r.rows * r.h + (r.rows - 1) * r.vgap).toFixed(1)) + ' × W ' + (+(r.cols * r.wd + (r.cols - 1) * r.gap).toFixed(1)) + ' cm で並べます' + (r.ids.length ? '（写真1枚に' + per + '枚分）' : '（メイン画像を' + r.n + '枚に分ける）') : '';
+    const mm = sh.querySelector('.pnmsg'); mm.textContent = msg || info; mm.classList.toggle('err', !!msg); sh.querySelector('.pngo').disabled = !!msg;
+    if (msg || !r.on) { pv.innerHTML = ''; return; }
     const tw = r.cols * r.wd + (r.cols - 1) * r.gap, th = r.rows * r.h + (r.rows - 1) * r.vgap, box = Math.min(560, (sh.clientWidth || 360) - 40), sc = Math.min(box / tw, 260 / th), src = r.ids.length ? r.ids.map(id => (L.find(p => p['写真ID'] === id) || {})['ファイルID']) : [((L.find(p => p['種類'] !== '記録写真') || L[0]) || {})['ファイルID']];
     pv.style.width = Math.round(tw * sc) + 'px'; pv.style.height = Math.round(th * sc) + 'px';
     pv.innerHTML = Array.from({ length: r.n }, (_, j) => { const c = j % r.cols, rw = (j / r.cols) | 0, k = Math.floor(j / per), sub = j % per, f = src[k], u = f && (TH['400_' + f] || TH['800_' + f] || TH['1200_' + f] || TH['200_' + f]);
       return `<span class="pnc" style="left:${(c * (r.wd + r.gap) * sc).toFixed(1)}px;top:${(rw * (r.h + r.vgap) * sc).toFixed(1)}px;width:${(r.wd * sc).toFixed(1)}px;height:${(r.h * sc).toFixed(1)}px;${u ? `background-image:url('${u}');background-size:${per * 100}% 100%;background-position:${per > 1 ? (sub / (per - 1) * 100).toFixed(3) : 0}% 0` : ''}"><i>${j + 1}</i></span>`; }).join(''); };
-  sh.querySelectorAll('[data-pn]').forEach(i => i.addEventListener('input', draw));
+  sh.querySelectorAll('[data-pn]').forEach(i => i.addEventListener(i.type === 'checkbox' ? 'change' : 'input', draw));
   sh.querySelector('.pngrid').onclick = e => { const b = e.target.closest('[data-pj]'); if (!b) return; const id = b.dataset.pj, i = SEL.indexOf(id); if (i >= 0) SEL.splice(i, 1); else SEL.push(id); draw(); };
   const save = async (patch, ok) => { busy(true, '保存しています…');
     try { const d = await call('updateWork', no, patch); if (d && d.works) setData(d); busy(false); const w2 = workOf(no) || {};
-      if (!('枚数' in w2) || !('展示の形' in w2)) { alert('Google 側の更新（「枚数」「展示の形」の列）がまだのため、パネルの設定を保存できませんでした。デプロイのあとで、もう一度保存してください。'); return; }
+      if (!('枚数' in w2) || !('展示の形' in w2)) { alert('Google 側の更新（「枚数」「展示の形」の列）がまだのため、展示ビューの設定を保存できませんでした。デプロイのあとで、もう一度保存してください。'); return; }
       closeSheet(); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); toast(ok); }
     catch(x){ busy(false); alert('保存できませんでした。\n' + (x.message || x)); } };
-  sh.querySelector('.pngo').onclick = () => { const r = read(); if (check(r)) return; save({ '高さcm': String(r.h), '幅cm': String(r.wd), '枚数': String(r.n), '展示の形': pnTxt(r) }, 'H ' + r.h + ' × W ' + r.wd + ' cm × ' + r.n + '枚' + (r.rows > 1 ? '（展示ビューは' + r.cols + '枚ずつ' + r.rows + '段）' : '') + 'にしました'); };
-  const clr = sh.querySelector('.pnclr'); if (clr) clr.onclick = () => { if (!confirm('パネルの設定（枚数・展示の形）を外しますか？\n台帳の高さ・幅は1枚の大きさのまま残ります。')) return; save({ '枚数': '', '展示の形': '' }, 'パネルの設定を外しました'); };
+  sh.querySelector('.pngo').onclick = () => { const r = read(); if (check(r)) return; const pan = r.on && r.n >= 2, patch = { '展示の形': exvSetTxt(pan ? r : null, r.yb) };
+    if (pan) Object.assign(patch, { '高さcm': String(r.h), '幅cm': String(r.wd), '枚数': String(r.n) }); else if (pnN(w)) patch['枚数'] = '';
+    const sum = [pan ? 'H ' + r.h + ' × W ' + r.wd + ' cm × ' + r.n + '枚' + (r.rows > 1 ? '（' + r.cols + '枚ずつ' + r.rows + '段）' : '') : '', r.yb != null ? '床から ' + r.yb + ' cm' : ''].filter(Boolean).join('・');
+    save(patch, sum ? '展示ビューの設定：' + sum : '展示ビューの設定を消しました'); };
+  const clr = sh.querySelector('.pnclr'); if (clr) clr.onclick = () => { if (!confirm('展示ビューの設定（設置の高さ・パネル）を全部消しますか？\n台帳の高さ・幅はそのまま残ります。')) return; save(Object.assign({ '展示の形': '' }, pnN(w) ? { '枚数': '' } : {}), '展示ビューの設定を消しました'); };
   draw(); }
 /* 写真の並べ替え：長押しせずにそのままドラッグ（指・マウス）、または ‹ › で1つずつ。1枚目がメイン画像（10/8 本人） */
 function phOrder(no){ if (!canEdit()) return; const L0 = (photoBy[no] || []).slice(); if (L0.length < 2) return toast('写真が2枚以上あるときに使えます'); let L = L0.map(p => p['写真ID']);
@@ -3864,6 +3898,30 @@ function phOrder(no){ if (!canEdit()) return; const L0 = (photoBy[no] || []).sli
       else toast('写真の並びを保存しました'); }
     catch(x){ busy(false); alert('保存できませんでした。\n' + (x.message || x)); } };
   draw(); }
+/* 作品の画面の「記録を更新する」：やることごとにまとめ、ボタンに一言の説明。設定が入っているものは色と「設定あり」（10/8 本人「ボタンが増えたので分かりやすく・順番を最適化・設定ありが分かるように」） */
+const WI = d => `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+const WIC = { event: WI('<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4M12 13v5M9.5 15.5h5"/>'), link: WI('<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>'),
+  doc: WI('<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/>'), photo: WI('<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/>'),
+  book: WI('<path d="M12 6.5C10.2 5.2 7.6 4.6 4 4.8v13c3.6-.2 6.2.4 8 1.7 1.8-1.3 4.4-1.9 8-1.7v-13c-3.6-.2-6.2.4-8 1.7zM12 6.5v13"/>'), order: WI('<path d="M7 4v16M4 7l3-3 3 3M17 20V4M14 17l3 3 3-3"/>'),
+  join: WI('<rect x="2.5" y="6" width="9" height="12" rx="1"/><rect x="12.5" y="6" width="9" height="12" rx="1"/>'), exv: WI('<path d="M3 20h18"/><rect x="5" y="5" width="6" height="9"/><rect x="13" y="5" width="6" height="9"/><path d="M8 3v2M16 3v2"/>'),
+  parts: WI('<rect x="3" y="7" width="6" height="10"/><rect x="9" y="7" width="6" height="10"/><rect x="15" y="7" width="6" height="10" stroke-dasharray="2 2"/>'), flag: WI('<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>'), move: WI('<path d="M4 12h14M13 7l5 5-5 5"/>') };
+const wBtn = (attr, ic, t, sub, st, main) => `<button type="button" class="wbt${main ? ' main' : ''}${st ? ' set' : ''}" ${attr}><span class="wbi">${WIC[ic] || ''}</span><span class="wbx"><b>${t}</b>${sub ? `<small>${sub}</small>` : ''}</span>${st ? `<em class="wbs">${st}</em>` : ''}</button>`;
+function workActsHTML(no, w, ot){ const ph = photoBy[no] || [], n = ph.length, joins = ph.filter(isJoin).length, ord = !!String(w['写真の並び'] || '').trim(), ex = exvSetSum(w), e = esc(no);
+  const g = (t, body) => body.trim() ? `<div class="wag"><h4>${t}</h4><div class="wagb">${body}</div></div>` : '';
+  return `<h3 class="sec">記録を更新する</h3><div class="wacts">`
+    + g('あゆみ・書類', wBtn('data-act="event"', 'event', 'できごとを追加', '展覧会・売買・移動などを1件', '', true)
+      + wBtn(`data-linkw="${e}"`, 'link', '展覧会・画集にひも付け', '出品・掲載をまとめて')
+      + wBtn('data-act="doc"', 'doc', '書類を撮る', '受領書・証明書などを読み取る'))
+    + g('写真', wBtn('data-act="photo"', 'photo', '写真を追加', '撮った写真・ファイルから')
+      + ((S.photos || []).some(pbPhOf) ? wBtn(`data-bkcut="${e}"`, 'book', '画集のページから切り出す', '本のページを作品の写真に') : '')
+      + (n > 1 ? wBtn(`data-phord="${e}"`, 'order', '写真の並べ替え', '1枚目がメイン画像になります', ord ? '並べ替え済み' : '')
+        + wBtn(`data-pjoin="${e}"`, 'join', '組み写真をつくる', '写真を横に並べた画像を新しく作り、メイン画像に。サムネイルにも使われます', joins ? '作成済み' + (joins > 1 ? ' ' + joins + '枚' : '') : '') : ''))
+    + (!ot ? g('展示ビュー', wBtn(`data-pnform="${e}"`, 'exv', '展示ビューの設定', '設置の高さ・パネル何枚・段の並べ方。画像は作らず、展示ビューの見せ方だけ', ex ? '設定あり：' + esc(ex) : '')
+      + (!grpOf(no) ? wBtn(`data-grpnew="${e}"`, 'parts', 'パーツを組にする', '別の番号の作品をつないで、1つの大きな作品に') + grpUndoBtn(no, 'act') : '')) : '')
+    + g('整理', wBtn('data-act="flag"', 'flag', w['要確認'] ? '要確認を外す' : '要確認にする', w['要確認'] ? '確かめ終わったら外す' : 'あとで確かめる印をつける', w['要確認'] ? '要確認中' : '')
+      + (ot ? wBtn(`data-tomain="${e}"`, 'move', '本作（本画の一覧）に移す', '') : wBtn(`data-toot="${e}"`, 'move', 'その他の作品に移す', 'やけもの・版画など'))
+      + delBtn('w', no, 'この作品'))
+    + `</div>`; }
 function crAfterScan(c0, pid){ const w = workOf(c0.no) || {}; render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
   bkOpen(c0.orig['作品番号'], c0.orig['写真ID']); toast(nol(c0.no) + '「' + (w['作品名'] || '無題') + '」の写真にしました' + (c0.fbMain ? '（メイン画像）' : '')); }
 /* スキャンした PDF からページを入れる（パソコンで。1ページずつ画像にして送る。同じ PDF のページは二重に入れないので、止まっても続きから） */
@@ -5689,9 +5747,12 @@ const isPrint = w => !!w && (w['種別']==='版画' || !!w['エディション']
    （写真は左上のパネルから順。1枚の写真に同じ数のパネルが写っている。選んでいなければメイン画像を全部のパネルに分ける）。どちらも Google 側の作品の列 */
 const pnN = w => { const n = parseInt(String((w || {})['枚数'] || '').normalize('NFKC'), 10); return n > 1 ? Math.min(n, 60) : 0; };
 const pnSpec = w => { const n = pnN(w); if (!n) return null; const t = String((w || {})['展示の形'] || '').normalize('NFKC'), num = (re, d) => { const m = re.exec(t); return m ? Math.max(0, +m[1] || 0) : d; };
-  const cols = Math.max(1, Math.min(n, Math.round(num(/1段\s*(\d+)/, n)))), ids = ((/写真\s*([^｜]*)/.exec(t) || [])[1] || '').split(/[,、\s]+/).map(x => x.trim()).filter(Boolean);
+  const cols = Math.max(1, Math.min(n, Math.round(num(/1段\s*(\d+)/, n)))), ids = ((/写真\s*([^｜|]*)/.exec(t) || [])[1] || '').split(/[,、\s]+/).map(x => x.trim()).filter(Boolean);
   return { n, cols, rows: Math.ceil(n / cols), gap: num(/すき間\s*([\d.]+)/, 0), vgap: num(/段間\s*([\d.]+)/, 20), ids }; };
 const pnTxt = sp => '1段' + sp.cols + '枚｜すき間' + (+sp.gap || 0) + '｜段間' + (+sp.vgap || 0) + (sp.ids && sp.ids.length ? '｜写真 ' + sp.ids.join(',') : '');
+const exvYb = w => { const m = /床から\s*([\d.]+)/.exec(String((w || {})['展示の形'] || '').normalize('NFKC')); return m ? Math.max(0, Math.min(400, +m[1])) : null; }; /* 展示ビューで、床から作品の下の端まで（cm） */
+const exvSetTxt = (sp, yb) => [sp ? '1段' + sp.cols + '枚｜すき間' + (+sp.gap || 0) + '｜段間' + (+sp.vgap || 0) + (sp.ids && sp.ids.length ? '｜写真 ' + sp.ids.join(',') : '') : '', yb != null && yb !== '' && !isNaN(+yb) ? '床から' + (+yb) : ''].filter(Boolean).join('｜');
+const exvSetSum = w => { const sp = pnSpec(w), yb = exvYb(w), a = []; if (sp) a.push(sp.n + '枚' + (sp.rows > 1 ? '・' + sp.cols + '枚×' + sp.rows + '段' : '')); if (yb != null) a.push('床から' + yb + 'cm'); return a.join('・'); };
 const pnLayTxt = w => { const sp = pnSpec(w); return sp && sp.rows > 1 ? '展示ビューは ' + sp.cols + '枚ずつ' + sp.rows + '段' : ''; };
 const dimTxt = (w, long, unit) => (w['幅cm']||w['高さcm']||w['奥行きcm']) ? `H ${w['高さcm']||'?'} × W ${w['幅cm']||'?'}${w['奥行きcm'] ? ' × D ' + w['奥行きcm'] : ''}${long ? ' cm' : unit || ''}${pnN(w) ? ' × ' + pnN(w) + '枚' : ''}` : ''; /* 標準の「縦×横」（高さ × 幅） */
 /* 作品ページのサイズの行：作品のみと分かっていれば（作品のみ）、額のサイズがあれば「額 高さ × 幅」も */
@@ -6488,19 +6549,7 @@ function openWork(no, keepScroll, restoreSc){
           ${canEdit()?`<button class="pen" data-evedit="${esc(e['出来事ID'])}" aria-label="このできごとを直す"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.6"/></svg></button>`:''}
         </div></li>`; }).join('')}</ul>` : '<p style="color:var(--sub)">まだ記録がありません</p>'}
       ${canEdit() ? workDiffsHTML(no) + workDocsHTML(no) : ''}
-      ${canEdit() ? `<h3 class="sec">記録を更新する</h3><div class="actions bottomacts">
-        <button class="act main" data-act="event">できごとを追加</button>
-        <button class="act" data-act="photo">写真を追加</button>
-        ${(S.photos || []).some(pbPhOf) ? `<button class="act" data-bkcut="${esc(no)}">📖 画集のページから切り出す</button>` : ''}
-        ${(photoBy[no] || []).length > 1 ? `<button class="act" data-phord="${esc(no)}">⇄ 写真の並べ替え</button><button class="act" data-pjoin="${esc(no)}">組み写真をつくる（襖・屏風など）</button>` : ''}
-        ${!ot ? `<button class="act" data-pnform="${esc(no)}">▦ 展示ビューのサイズ（パネル何枚・段）</button>` : ''}
-        <button class="act" data-act="doc">書類を撮る</button>
-        <button class="act" data-act="flag">${w['要確認']?'要確認を外す':'要確認にする'}</button>
-        <button class="act" data-linkw="${esc(no)}">＋ 展覧会・画集にひも付け</button>
-        ${!ot && !grpOf(no) ? `<button class="act" data-grpnew="${esc(no)}">＋ パーツを組にする（大きな作品の一部）</button>${grpUndoBtn(no, 'act')}` : ''}
-        ${ot ? `<button class="act" data-tomain="${esc(no)}">→ 本作（本画の一覧）に移す</button>` : `<button class="act" data-toot="${esc(no)}">→ その他の作品（やけもの・版画など）に移す</button>`}
-        ${delBtn('w', no, 'この作品')}
-      </div>` : ''}
+      ${canEdit() ? workActsHTML(no, w, ot) : ''}
       ${canEdit() && !ot ? workQuizHTML(no) : ''}
       ${histBlock(no, w['最終更新日時'], w['最終更新者'])}
     </div></div>`;
@@ -8480,7 +8529,7 @@ function inlineEdit(btn, no, f){
   if (f === 'w7') body = `<select class="iein" data-k="種別">${['', ...KINDS, ...(w['種別'] && !KINDS.includes(w['種別']) ? [w['種別']] : [])].map(k => `<option value="${esc(k)}" ${(w['種別']||'')===k?'selected':''}>${k ? esc(k) : '（未入力）'}</option>`).join('')}</select>`;
   else if (f === 'w6') body = matPick('iemat', w['画材']) + '<div class="mpg"><small>仕立て</small>' + formPick('ieform', w['仕立て']) + '</div>';
   else if (f === 'w3') body = `<div class="iesz"><span>H</span><input class="iein" data-k="高さcm" inputmode="decimal" value="${esc(w['高さcm']||'')}" placeholder="高さ（縦）"><span>×</span><span>W</span><input class="iein" data-k="幅cm" inputmode="decimal" value="${esc(w['幅cm']||'')}" placeholder="幅（横）"><span>cm</span></div><button type="button" class="ieswap" aria-label="縦と横を入れ替える">⇅ 縦と横を入れ替える</button>
-    <div class="iesz iepn"><span>枚数</span><input class="iein" data-k="枚数" inputmode="numeric" value="${esc(w['枚数']||'')}" placeholder="1"><span>枚</span><small>パネル・襖・面など同じ大きさの板が何枚かのとき。上は1枚の大きさ</small></div><button type="button" class="ieswap" data-pnform="${esc(no)}">▦ 展示ビューのサイズ・段に分けて並べる…</button>
+    <div class="iesz iepn"><span>枚数</span><input class="iein" data-k="枚数" inputmode="numeric" value="${esc(w['枚数']||'')}" placeholder="1"><span>枚</span><small>パネル・襖・面など同じ大きさの板が何枚かのとき。上は1枚の大きさ</small></div><button type="button" class="ieswap" data-pnform="${esc(no)}">▦ 展示ビューの設定（設置の高さ・パネルの段）…</button>
     <label class="iechk"><input type="checkbox" class="iein" data-k="サイズの確認" ${w['サイズの確認'] === '作品のみ' ? 'checked' : ''}>このサイズは作品のみ（額を含まない）</label>
     <small class="iesub">額のサイズ（分かれば）</small><div class="iesz"><span>H</span><input class="iein" data-k="額の高さcm" inputmode="decimal" value="${esc(w['額の高さcm']||'')}" placeholder="額の高さ"><span>×</span><span>W</span><input class="iein" data-k="額の幅cm" inputmode="decimal" value="${esc(w['額の幅cm']||'')}" placeholder="額の幅"><span>cm</span></div>`;
   else if (IE_AREA[f]) body = `<textarea class="iein" data-k="${spec[0][0]}" rows="3">${esc(w[spec[0][0]]||'')}</textarea>`;
@@ -10732,7 +10781,7 @@ function exvWorks(noF){ const L = [], keep = noF ? null : exvKeep();
     const pn = pnSpec(w), pnIds = pn && pn.ids.length ? pn.ids.map(i => ((photoBy[no] || []).find(x => x['写真ID'] === i) || {})['ファイルID']) : [], pnOk = pn && h0 > 0 && wd0 > 0 && (!pnIds.length || (pnIds.every(Boolean) && pn.n % pnIds.length === 0));
     const set = pnOk ? { n: pn.n, ids: pnIds.length ? pnIds : [id], per: pn.n / (pnIds.length || 1), cols: pn.cols, gap: pn.gap, vgap: pn.vgap, pw: wd0, ph: h0, pan: true } : sn > 1 && pl.length >= sn && h0 > 0 && wd0 > 0 ? { n: sn, ids: pl.slice(0, sn).map(x => x['ファイルID']), pw: wd0, ph: h0, dir: wd0 >= h0 ? 'v' : 'h', gap: 24 } : null; /* 何面かで1組（台帳のサイズは1面ぶん）：横長の面は縦に、縦長の面は横に並べる。写真は面ごとに1枚（はじめの n 枚）。すき間 24cm（10/7 本人：6 → 12 → 24cm） */
     const h = set && set.pan ? Math.ceil(set.n / set.cols) * h0 + (Math.ceil(set.n / set.cols) - 1) * set.vgap : set && set.dir === 'v' ? sn * h0 + (sn - 1) * set.gap : h0, wd = set && set.pan ? set.cols * wd0 + (set.cols - 1) * set.gap : set && set.dir === 'h' ? sn * wd0 + (sn - 1) * set.gap : wd0;
-    L.push({ no, w, id: set && set.pan ? set.ids[0] : id, set, y: yearOf(w['制作年']), s: String(w['シリーズ'] || '').trim(), h, wd, est: !(h > 0 && wd > 0), frame: szKind(w) === 'frame', b: isScreenW(w) || isKannon(w), k: isKannon(w), cp: copyOf(p) }); }); /* 転載した写真（©）も出す（10/6 本人）。キャプションに © */
+    L.push({ no, w, id: set && set.pan ? set.ids[0] : id, set, yb: exvYb(w), y: yearOf(w['制作年']), s: String(w['シリーズ'] || '').trim(), h, wd, est: !(h > 0 && wd > 0), frame: szKind(w) === 'frame', b: isScreenW(w) || isKannon(w), k: isKannon(w), cp: copyOf(p) }); }); /* 転載した写真（©）も出す（10/6 本人）。キャプションに © */
   /* 組（パーツ）：すき間なしで横にくっつけた1つの作品。台帳にない・写真のないパーツも、となりと同じくらいの大きさで入れて完成形に（10/7 本人） */
   (S.groups || []).forEach(g => { const sl = grpSlots(grpL(g)), reg = sl.filter(x => x.w); if (!reg.length || sl.length < 2) return; if (keep && !reg.some(x => keep.has(String(x.no)))) return;
     let X = 0; const xs = sl.map(x => { const v = X; X += x.wd; return v; }), H = Math.max(...sl.map(x => x.h)), w0 = reg[0].w, p0 = sl.find(x => x.id);
@@ -10874,7 +10923,7 @@ function exvLocTxt(ws){ const a = ws.map(w => String((w && (w['所在区分'] ==
   const C = {}; a.forEach(x => { if (!/^(不明|わからない)$/.test(x)) C[x] = (C[x] || 0) + 1; }); const k = Object.keys(C).sort((p, q) => C[q] - C[p])[0]; return k ? k + 'など' : '場所不明'; }
 const exvLocOf = d => exvLocTxt(d.grp ? d.grp.reg.map(x => x.w) : d.tri ? d.tri.nos.map(grpW).filter(Boolean) : [d.w]);
 const exvHas = (d, no) => String(d.no) === String(no) || !!(d.nos && d.nos.includes(String(no))); /* 組はどのパーツの番号でも */
-const exvSig = L => L.map(d => [d.no, d.id, d.set ? d.set.ids.join(',') + '/' + (d.set.cols || '') + '/' + (d.set.per || '') + '/' + (d.set.gap || 0) + '/' + (d.set.vgap || 0) : '', d.grp ? d.grp.name + '#' + d.grp.slots.map(x => [x.no, x.id, x.h, x.wd].join(':')).join(',') : '', d.slay ? d.slay.cols + '/' + d.slay.gap + '/' + d.slay.vgap + '/' + d.slay.list.join(',') : '', d.h, d.wd, d.y, d.s, d.b ? 1 : 0, d.k ? 1 : 0, d.frame ? 1 : 0, d.w['作品名'], d.w['制作年'], d.w['画材'], d.w['仕立て'], d.w['所在'], d.cp ? d.cp.mu : ''].join('|')).join('\n');
+const exvSig = L => L.map(d => [d.no, d.id, (d.yb != null ? 'y' + d.yb + '/' : '') + (d.set ? d.set.ids.join(',') + '/' + (d.set.cols || '') + '/' + (d.set.per || '') + '/' + (d.set.gap || 0) + '/' + (d.set.vgap || 0) : ''), d.grp ? d.grp.name + '#' + d.grp.slots.map(x => [x.no, x.id, x.h, x.wd].join(':')).join(',') : '', d.slay ? d.slay.cols + '/' + d.slay.gap + '/' + d.slay.vgap + '/' + d.slay.list.join(',') : '', d.h, d.wd, d.y, d.s, d.b ? 1 : 0, d.k ? 1 : 0, d.frame ? 1 : 0, d.w['作品名'], d.w['制作年'], d.w['画材'], d.w['仕立て'], d.w['所在'], d.cp ? d.cp.mu : ''].join('|')).join('\n');
 function exvSync(){ if (!EXV || !EXV.sig || !EXV.curNo || EXV.syncT) return; let L; try { L = exvWorks(); } catch(e){ return; } if (!L.length || exvSig(L) === EXV.sig) return;
   const go = () => { if (!EXV || !EXV.curNo) return; EXV.syncT = 0; if (EXV.busy()) { EXV.syncT = setTimeout(go, 1500); return; } /* 動いている・さわっている間は待つ */
     const no = EXV.curNo(), c = EXV.close, st = no != null && L.some(d => exvHas(d, no)) ? String(no) : 0; try { c(); } catch(e){} exvOpen(st, true); }; /* 履歴は増やさない */
@@ -11074,7 +11123,7 @@ function exvBuild(root, L, start){
   /* 作品 */
   const EXWC = '#d8d7d5', PHL = new T3.Color('#d8d7d5').convertSRGBToLinear(); /* 写真がまだの作品（キャンバス）：色は壁と同じ（ほぼ無彩色）、濃さは前の #dcd6cd と同じくらい（10/7 開発 v11 本人 16:20・16:46） */
   const items = L.map((d, i) => { const w = d.wd / 100, h = d.h / 100, g = new T3.Group(), [cv, x0] = cvs(16, 16); x0.fillStyle = EXWC; x0.fillRect(0, 0, 16, 16);
-    const base = mkTex(cv), it = { d, w, h, g, cv, tx: [base], req: 0, wm: w, hm: h, rv: { value: 1 } };
+    const base = mkTex(cv), it = { d, w, h, g, cv, tx: [base], req: 0, wm: w, hm: h, rv: { value: 1 }, yc: d.yb != null && !d.b && !d.grp && !d.tri ? d.yb / 100 + h / 2 : null }; /* 設置の高さ（展示の形「床から◯」）。なければ絵のまん中を CY に */
     /* 絵の面：写真（map）とキャンバスの色（uPh）を uRv でまぜる。暗いあいだに届いた写真は、明かりがつくのと同じ動きでフェードイン（10/7 開発 v11 本人） */
     const artM = t => { const m = new T3.MeshStandardMaterial({ map: t, bumpMap: abm, bumpScale: 0.0015, roughness: 0.96, dithering: true });
       m.onBeforeCompile = sh => { sh.uniforms.uRv = it.rv; sh.uniforms.uPh = { value: PHL }; sh.fragmentShader = 'uniform float uRv;\nuniform vec3 uPh;\n' + sh.fragmentShader.replace('#include <map_fragment>', '#ifdef USE_MAP\n\tvec4 texelColor = texture2D( map, vUv );\n\ttexelColor = mapTexelToLinear( texelColor );\n\tdiffuseColor *= vec4( mix( uPh, texelColor.rgb, uRv ), texelColor.a );\n#endif'); };
@@ -11107,7 +11156,7 @@ function exvBuild(root, L, start){
         pn.position.set(-w / 2 + pw / 2 + c * (pw + gp), h / 2 - ph / 2 - r * (ph + vg), off + dep / 2);
         g.add(pn, cStrip(pw + 0.004, cb, 0.46, pn.position.x, pn.position.y - ph / 2 - cb / 2 + 0.001, 0)); if (j === (R - 1) * C) it.cpH = { o: g, x: pn.position.x - pw / 2, y: pn.position.y - ph / 2, z: off + dep }; }
       const m = 0.03 + 0.06 * sF, bl = 0.008 + 0.025 * sF, ao = new T3.Mesh(new T3.PlaneGeometry(w + 2 * m, h + 2 * m), new T3.MeshBasicMaterial({ transparent: true, opacity: Math.min(0.32, 0.18 + 0.1 * sF), depthWrite: false })); ao.position.set(0, -0.004 - 0.008 * sF, 0.0012); ao.visible = false; ao.raycast = () => {}; g.add(ao);
-      g.position.y = CY; Object.assign(it, { ao, aoMk: () => softShadow(w, h, m, bl, Array.from({ length: n }, (_, j) => [(j % C) * (pw + gp), ((j / C) | 0) * (ph + vg), pw, ph])), tr: C * pw / (R * ph) }); }
+      g.position.y = it.yc != null ? it.yc : CY; Object.assign(it, { ao, aoMk: () => softShadow(w, h, m, bl, Array.from({ length: n }, (_, j) => [(j % C) * (pw + gp), ((j / C) | 0) * (ph + vg), pw, ph])), tr: C * pw / (R * ph) }); }
     else if (d.k) { /* 観音開き（10/7 本人の写真）：まん中の板は壁と平行、左右の扉を少しだけ手前に開く。写真は開いたところを正面から撮った1枚で、扉：まん中：扉 ＝ 1：2：1 */
       const th = 0.36, cw = w / 2, dw = w / 4, c = Math.cos(th), dz = dw * Math.sin(th), dep = 0.03, zb = EXZB, Wk = cw + 2 * dw * c, y0 = h / 2 + 0.004;
       const tL = base, tC = base.clone(), tR = base.clone(); [tC, tR].forEach(t => { t.needsUpdate = true; it.tx.push(t); });
@@ -11134,7 +11183,7 @@ function exvBuild(root, L, start){
       const m = 0.03 + 0.06 * sF, bl = 0.008 + 0.025 * sF, ao = new T3.Mesh(new T3.PlaneGeometry(w + 2 * m, h + 2 * m), new T3.MeshBasicMaterial({ transparent: true, opacity: Math.min(0.32, 0.18 + 0.1 * sF), depthWrite: false })); ao.position.set(0, -0.004 - 0.008 * sF, 0.0012); ao.visible = false; ao.raycast = () => {}; g.add(ao);
       /* 壁との際の濃い影（接地影）：下はやや広く濃く、左右と上はごく細く。これで「壁に掛かっている」と見える（10/6 本人「浮いている」） */
       const cb = 0.012 + dep * 0.4; g.add(cStrip(w + 0.004, cb, 0.46, 0, -h / 2 - cb / 2 + 0.001, 0), cStrip(h, 0.007, 0.2, -w / 2 - 0.0035 + 0.001, 0, -Math.PI / 2), cStrip(h, 0.007, 0.2, w / 2 + 0.0035 - 0.001, 0, Math.PI / 2), cStrip(w, 0.004, 0.1, 0, h / 2 + 0.002 - 0.001, Math.PI));
-      g.position.y = CY; Object.assign(it, { ao, aoMk: () => softShadow(w, h, m, bl) }); }
+      g.position.y = it.yc != null ? it.yc : CY; Object.assign(it, { ao, aoMk: () => softShadow(w, h, m, bl) }); }
     sc.add(g);
     if (d.cp && it.cpH && !cpBook(d.cp)) { /* 転載した写真（©）：絵の上の左下に、薄い灰色の小さな文字で「© 名前」（10/7 本人：はじめ絵の外 → 「このまま画像の上に。位置は左下」）。Webサイトから取り込んだ写真は「@サイト名」。大きさは put で（画面の上で同じくらいの大きさに） */
       const t0 = String(d.cp.mu || '').trim(), t = !t0 ? '©' : /^[@＠]/.test(t0) ? t0 : '© ' + t0, FS = 44, [c0] = cvs(8, 8), x1 = c0.getContext('2d'); x1.font = '400 ' + FS + 'px ' + FONT; const tw = Math.ceil(x1.measureText(t).width) + 8, [cc, xc] = cvs(tw, Math.round(FS * 1.5));
@@ -11322,9 +11371,9 @@ function exvBuild(root, L, start){
         g.font = (cs.fontWeight || '200') + ' ' + fs + 'px ' + cs.fontFamily; const m = g.measureText('1988'), fa = m.fontBoundingBoxAscent, fd = m.fontBoundingBoxDescent;
         if (fa > 0 && m.actualBoundingBoxAscent > 0) v = (lh - (fa + fd)) / 2 + fa - (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2 - lh / 2; } catch(e){}
       yrDy.k = W + 'x' + H; return yrDy.v = (W < H ? -20 : 0) + Math.max(-30, Math.min(30, v || 0)); }; /* 縦長の画面は年を 20px 上げている（yrPos） */
-    const frame = (it, tight) => { const h = it.h, w = it.W || it.w, cy = it.d.b ? h / 2 : CY, fw = FW * (tight ? 1.15 : 1), fh = FH * (tight ? 1.15 : 1);
+    const frame = (it, tight) => { const h = it.h, w = it.W || it.w, cy = it.d.b ? h / 2 : it.yc != null ? it.yc : CY, fw = FW * (tight ? 1.15 : 1), fh = FH * (tight ? 1.15 : 1);
       const cxo = it.d.b ? CAPX + 0.25 : CAPX, nc = 1 + (it.xc ? it.xc.length : 0), cR = Math.min(nc, 4), cW = Math.ceil(nc / cR) * PWm + (Math.ceil(nc / cR) - 1) * 0.03, cpr = Math.max(1, Math.floor((Math.max(w, PWm) + 0.03) / (PWm + 0.03))), cH = Math.ceil(nc / cpr) * PHm + (Math.ceil(nc / cpr) - 1) * 0.025; /* キャプションのかたまり（組はパーツの数だけ。横は4段ずつの列、下は作品の幅で折り返す） */ /* 床に立てる作品は手前にあるので、キャプションを少し右に離す（かくれないように） */
-      const k0 = Math.max(w / (fw * W), h / (fh * H), kz(0.25)), belowOk = !it.d.b && CY - h / 2 - CAPG - cH >= 0.55, rightFits = kk => (w / 2 + cxo + cW + 0.03) / kk <= W / 2 - 12;
+      const k0 = Math.max(w / (fw * W), h / (fh * H), kz(0.25)), belowOk = !it.d.b && cy - h / 2 - CAPG - cH >= 0.55, rightFits = kk => (w / 2 + cxo + cW + 0.03) / kk <= W / 2 - 12;
       /* キャプションを横に置く場合と、下（作品の右下）に置く場合の大きさをくらべる。スマホの縦はいつも下。横長の画面は、横に置いても作品がひどく小さくならなければ横（10/6 本人「スマホ表示になってる」） */
       const kS = Math.max(rightFits(k0) ? k0 : (w / 2 + cxo + cW + 0.03) / (W / 2 - 12), k0, (h / 2) / (H / 2 - 90)), fcB = cy - (CAPG + cH) * 0.3;
       const kB = belowOk ? Math.max(k0, Math.max(w, 2 * PWm - w) / (0.92 * W), (cy + h / 2 - fcB) / (H / 2 - 70), (fcB - (cy - h / 2 - CAPG - cH)) / (H / 2 - 110)) : Infinity;
@@ -11337,10 +11386,10 @@ function exvBuild(root, L, start){
     const put = (f, Lx, seed) => { const it = f.it, Rx = Lx + f.w; it.g.position.x = Lx + f.w / 2;
       if (it.cpM) { const th = Math.min(0.06, Math.max(0.008, 16 * f.k)), tw = th * it.cpA; it.cpM.scale.set(tw, th, 1); /* 文字の高さは画面の上で約11px */
         const C = it.cpH, pd = th * 0.55; it.cpM.position.set(C.x + pd + tw / 2 - th * 0.06, C.y + pd * 0.8 + th / 2, C.z + 0.0015); } /* 絵の左下のすみから少し内側 */ it.kpx = f.k; it.box = null; it.cyW = f.cy; it.yOff = (f.cy - f.fc) / f.k; if (it.req && !it.pt) ldDraw(it, performance.now()); addSpec(Lx + f.w / 2, f.cy, f.w, f.h, seed);
-      if (f.below) it.capM.position.set(Rx - PWm / 2, CY - f.h / 2 - CAPG - PHm / 2, 0.003); else it.capM.position.set(Rx + (it.d.b ? CAPX + 0.25 : CAPX) + PWm / 2, Math.max(CAPMIN, it.d.b ? 0 : CY - f.h / 2) + PHm / 2, 0.003);
+      if (f.below) it.capM.position.set(Rx - PWm / 2, f.cy - f.h / 2 - CAPG - PHm / 2, 0.003); else it.capM.position.set(Rx + (it.d.b ? CAPX + 0.25 : CAPX) + PWm / 2, Math.max(CAPMIN, it.d.b ? 0 : f.cy - f.h / 2) + PHm / 2, 0.003);
       if (it.xc) { const cs = [it.capM].concat(it.xc.map(c => c.m)), nc = cs.length; /* 組：キャプションをパーツの順に（横に置くときは4段ずつの列、下に置くときは作品の幅で折り返す） */
-        if (f.below) { const cpr = Math.max(1, Math.floor((Math.max(f.w, PWm) + 0.03) / (PWm + 0.03))); cs.forEach((m, q) => m.position.set(Lx + PWm / 2 + (q % cpr) * (PWm + 0.03), CY - f.h / 2 - CAPG - PHm / 2 - Math.floor(q / cpr) * (PHm + 0.025), 0.003)); }
-        else { const R = Math.min(nc, 4), y0 = Math.max(CAPMIN, CY - f.h / 2) + PHm / 2; cs.forEach((m, q) => m.position.set(Rx + CAPX + PWm / 2 + Math.floor(q / R) * (PWm + 0.03), y0 + (R - 1 - q % R) * (PHm + 0.025), 0.003)); } }
+        if (f.below) { const cpr = Math.max(1, Math.floor((Math.max(f.w, PWm) + 0.03) / (PWm + 0.03))); cs.forEach((m, q) => m.position.set(Lx + PWm / 2 + (q % cpr) * (PWm + 0.03), f.cy - f.h / 2 - CAPG - PHm / 2 - Math.floor(q / cpr) * (PHm + 0.025), 0.003)); }
+        else { const R = Math.min(nc, 4), y0 = Math.max(CAPMIN, f.cy - f.h / 2) + PHm / 2; cs.forEach((m, q) => m.position.set(Rx + CAPX + PWm / 2 + Math.floor(q / R) * (PWm + 0.03), y0 + (R - 1 - q % R) * (PHm + 0.025), 0.003)); } }
       stops.push({ x: Lx + f.w / 2, y: f.fc, z: f.k * H / (2 * TN) }); };
     let vR = TWm / 2 + kt * W / 2, eR = TWm;
     for (let ii = 0; ii < items.length; ii++) { const it = items[ii], g = it.grp;
@@ -11652,7 +11701,7 @@ function exvBuild(root, L, start){
     sc.traverse(o => { if (o.geometry) o.geometry.dispose(); const ms = o.material ? [].concat(o.material) : []; ms.forEach(m => { if (m.map) m.map.dispose(); if (m.bumpMap) m.bumpMap.dispose(); m.dispose(); }); });
     items.forEach(it => it.tx.forEach(t => t.dispose())); r.dispose(); if (r.forceContextLoss) r.forceContextLoss(); close0(); };
   EXV.go = go; EXV.elf = () => ELF; EXV.cam = () => ({ x: st.x, y: st.y, z: st.z, zoomed, ci }); /* 試験用 */ EXV.yrc = () => { const it = items[ci - 1]; if (!it) return null; const v = new T3.Vector3(it.g.position.x, it.cyW, 0).project(cam), b = yrEl.getBoundingClientRect(), rb = root.getBoundingClientRect(); return { art: Math.round((1 - v.y) / 2 * H), yr: Math.round(b.top + b.height / 2 - rb.top), H }; }; EXV.lds = () => items.map(it => [it.d.no, it.pt ? 1 : 0, it.fail ? 1 : 0, it.tries || 0, it.cv.width, it.cv.height]); EXV.cur = () => ci; EXV.caps = () => { const it = items[ci - 1]; return it ? [it.capM].concat((it.xc || []).map(c => c.m)).map(m => [+m.position.x.toFixed(3), +m.position.y.toFixed(3), m.visible ? 1 : 0]) : []; }; EXV.tri = () => TRI.map(t => [t.i0, +t.f.toFixed(3)]); EXV.n = items.length; EXV.start = ci; EXV.loaded = () => items.map(it => it.hi ? 1 : it.lo ? 0.5 : 0); EXV.light = () => [LFt, +LF.toFixed(2)]; EXV.rv = () => { const it = items[ci - 1]; return it ? [+it.rv.value.toFixed(2), it.pt ? 1 : 0, it.fd ? 1 : 0] : null; }; EXV.at = () => { const S = stops[ci]; return !!S && Math.abs(st.x - S.x) < 1e-3 && Math.abs(st.y - S.y) < 1e-3; };
-  EXV.edges = () => items.map(it => { const w = it.W || it.w, y = it.d.b ? it.h / 2 : CY, b = el.getBoundingClientRect(), f = xx => { const v = new T3.Vector3(xx, y, 0).project(cam); return Math.round(b.left + (v.x + 1) / 2 * b.width); }; return [f(it.g.position.x - w / 2), f(it.capM.position.x + PWm / 2)]; }); /* 確かめ用 */
+  EXV.edges = () => items.map(it => { const w = it.W || it.w, y = it.d.b ? it.h / 2 : it.yc != null ? it.yc : CY, b = el.getBoundingClientRect(), f = xx => { const v = new T3.Vector3(xx, y, 0).project(cam); return Math.round(b.left + (v.x + 1) / 2 * b.width); }; return [f(it.g.position.x - w / 2), f(it.capM.position.x + PWm / 2)]; }); /* 確かめ用 */
   EXV.capRect = () => { const it = items[ci - 1], b = el.getBoundingClientRect(), v = new T3.Vector3(it.capM.position.x - PWm * 0.3, it.capM.position.y - PHm / 2 + PHm * 0.12, 0.006).project(cam); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }; /* 確かめ用：「作品ページへ」のあたり */ EXV.stop = () => ({ y: +st.y.toFixed(3), cy: stops[ci] && stops[ci].y, x: +st.x.toFixed(3), sx: stops[ci] && +stops[ci].x.toFixed(3), z: +st.z.toFixed(3), sz: stops[ci] && +stops[ci].z.toFixed(3), zoomed, ci, ov: ovI });
   EXV.capAt = () => { const it = items[ci - 1]; if (!it) return null; const v = it.capM.position.clone().project(cam), b = el.getBoundingClientRect(); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }; /* 確かめ用 */
 }
