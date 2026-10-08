@@ -2598,7 +2598,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '3d8719b971', APP_URL = location.origin + location.pathname;
+const BUILD = 'dccef96032', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -11105,7 +11105,8 @@ let EXVENT = null;
 const exvImgCv = (im, max) => { const iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height, q = Math.min(1, max / Math.max(iw, ih, 1)), c = document.createElement('canvas'); c.width = Math.max(1, Math.round(iw * q)); c.height = Math.max(1, Math.round(ih * q)); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); return c; };
 async function exvThumb(id, w, ms){ const k = w + '_' + id; if (/^data:/.test(TH[k] || '')) return TH[k];
   try { const sv = await thGet([k]); if (sv && /^data:/.test(sv[k] || '')) return (TH[k] = sv[k]); } catch(e){}
-  try { const m = await Promise.race([call('getThumbs', [id], w, null, 1), new Promise(r => setTimeout(() => r({}), ms || 30000))]); const v = m && m[id]; if (v && /^data:/.test(v)) { TH[k] = v; try { thPut({ [k]: v }); } catch(e){} return v; } } catch(e){}
+  try { const gp = call('getThumbs', [id], w, null, 1).then(m => { const v = m && m[id]; if (v && /^data:/.test(v)) { TH[k] = v; try { thPut({ [k]: v }); } catch(e){} return v; } return ''; }).catch(() => ''); /* 間に合わなくても、届いたら覚えておく（次は待たない） */
+    return await Promise.race([gp, new Promise(r => setTimeout(() => r(''), ms || 30000))]) || ''; } catch(e){}
   return ''; }
 /* サインの線だけを取り出す：透明の PNG はそのまま、白い紙なら白を透明に（色は紙の白を引いて残す＝朱の落款も）、黒い紙なら明るい線を墨色に。線のまわりで切り抜く */
 const exvInk = im => { const c = exvImgCv(im, 1400), W = c.width, H = c.height, x = c.getContext('2d'), d = x.getImageData(0, 0, W, H), p = d.data, n = W * H;
@@ -11149,13 +11150,14 @@ const exvGold = m => { const W = m.c.width, H = m.c.height; let sd = 20261008; c
   y.fillStyle = '#000'; y.fillRect(0, 0, W, H); y.save(); y.shadowColor = '#fff'; y.shadowBlur = 2.2 * u; y.shadowOffsetX = W * 3; y.drawImage(m.c, -W * 3, 0); y.restore();
   x.globalCompositeOperation = 'source-over'; return { g, b }; };
 async function exvEntPrep(){ const F = exvFaces(), E = { pid: F.length ? F[Math.floor(Math.random() * F.length)] : '', ph: null, lo: 0, sg: null };
-  const ph = (async () => { if (!E.pid) return; let src = await exvThumb(E.pid, 1200, 3500), lo = 0; if (!src) { src = TH['400_' + E.pid] || TH['200_' + E.pid] || ''; lo = 1; } if (!/^data:/.test(src)) return;
+  const ph = (async () => { if (!E.pid) return; let src = await exvThumb(E.pid, 1200, 1200), lo = 0; /* 待つのは 1.2 秒まで（間に合わなければ小さい写真で始めて、あとで差しかえる）（10/9 本人「最初の表示までかなり時間」） */ if (!src) { src = TH['400_' + E.pid] || TH['200_' + E.pid] || ''; lo = 1; } if (!/^data:/.test(src)) return;
     try { const im = await loadImg(src); E.ph = { c: exvImgCv(im, 1600), ar: (im.naturalWidth || 1) / (im.naturalHeight || 1) }; E.lo = lo; } catch(e){} })();
   const sg = (async () => { if (!S.sign) return; let svg = ''; const k = 'svg_' + S.sign; /* SVG なら線のデータを読む（端末に覚えておく）。画像なら写真と同じく読み、線だけ取り出す */
     try { const sv = await thGet([k]); svg = sv && typeof sv[k] === 'string' && /<svg/i.test(sv[k]) ? sv[k] : ''; } catch(e){}
-    if (!svg) try { const r = await Promise.race([call('getSign'), new Promise(ok => setTimeout(() => ok(null), 4000))]); if (r && r.id === S.sign && r.svg) { svg = r.svg; try { thPut({ [k]: svg }); } catch(e){} } } catch(e){}
+    if (!svg) try { const gp = call('getSign').then(r => { if (r && r.id === S.sign && r.svg) { try { thPut({ [k]: r.svg }); } catch(e){} return r.svg; } return ''; }).catch(() => ''); /* 間に合わなくても、届いたら端末に覚えて次から待たない */
+      svg = await Promise.race([gp, new Promise(ok => setTimeout(() => ok(''), 1500))]) || ''; } catch(e){}
     if (svg) { const m = exvSvgMask(svg, 1600); if (m) { E.sg = m; return; } }
-    const src = await exvThumb(S.sign, 1600, 4000); if (!src) return; try { const ink = exvInk(await loadImg(src)); if (ink.c.height >= 100) E.sg = ink; } catch(e){} })(); /* 小さすぎる画像（SVG をドライブの縮小版で読んだときなど）は使わない */
+    const src = await exvThumb(S.sign, 1600, 1000); if (!src) return; /* 待つのは短く（間に合わなければ名前の文字で） */ try { const ink = exvInk(await loadImg(src)); if (ink.c.height >= 100) E.sg = ink; } catch(e){} })(); /* 小さすぎる画像（SVG をドライブの縮小版で読んだときなど）は使わない */
   await Promise.all([ph, sg]); return E; }
 /* 名前のメニュー（管理者）「展示ビューのサイン」：PNG・JPEG を選ぶ → 線だけを取り出した見本を見せて登録。ドライブ「写真/メニューの顔写真」に「サイン_日時.png」で入る（ドライブに直接、名前に「サイン」を入れて置いてもよい） */
 function signPick(){ const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/svg+xml,.svg,image/png,image/jpeg,image/webp'; inp.style.display = 'none'; document.body.appendChild(inp);
