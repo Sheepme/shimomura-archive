@@ -2203,6 +2203,16 @@ button.ulrow{cursor:pointer}
 .scpv .wplist{display:flex;flex-direction:column;gap:6px}
 .scbar{display:flex;align-items:center;gap:10px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--bg)}
 .scbar .scgo{flex:1;margin:0;min-height:44px}
+.scpv .cmpside{position:relative}
+.scex{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 14px;border-top:1px solid var(--line)}
+.scexb{display:inline-flex;align-items:center;gap:6px;border:0;background:none;color:var(--sub);font-size:13px;padding:4px 0;cursor:pointer}.scexb span{text-decoration:underline;text-underline-offset:3px}
+.scexc{display:inline-flex;align-items:center;gap:2px;font-size:12.5px;padding:3px 4px 3px 10px;border-radius:999px;background:var(--wash);color:var(--ink)}.scexc button{border:0;background:none;font-size:15px;line-height:1;padding:0 4px;cursor:pointer;color:var(--sub)}
+.scov{position:absolute;inset:0;background:var(--bg);z-index:6;display:flex;flex-direction:column}.scov.hidden{display:none}
+.scovh{padding:12px 14px 10px;display:flex;flex-direction:column;gap:6px;border-bottom:1px solid var(--line)}.scovh b{font-size:16px}.scovh small{color:var(--sub);font-size:12.5px;line-height:1.5}.scovh .wpq{width:100%;box-sizing:border-box}
+.scovl{flex:1;min-height:0;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:6px;-webkit-overflow-scrolling:touch}
+.scform{gap:10px}.scform label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--sub)}.scform input,.scform select{font-size:16px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font-family:inherit}
+.scov .scbar .act{flex:1;margin:0;min-height:44px}
+.wprow.scnew{justify-content:center;border:1px dashed var(--line);background:transparent;min-height:48px;color:var(--ink)}
 @media (max-width:899px){.scpv .cmpdoc{flex:0 0 40%}}
 .pbpdfb{display:block;text-align:center;margin:10px 0}
 .pbinp{border:0;padding:0;background:var(--wash);border-radius:8px;overflow:hidden;aspect-ratio:3/4;cursor:zoom-in}
@@ -2466,7 +2476,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'f1a6ff765e', APP_URL = location.origin + location.pathname;
+const BUILD = 'f6f2b4799f', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3567,8 +3577,8 @@ function scanPick(p){ if (!canEdit() || !scanOf(p)) return; const id = p['作品
     <div class="cmpdoc scdoc"><div class="scimg"><img alt="スキャンしたページ"></div><div class="sczb"><button type="button" data-scz="-1" aria-label="縮小">－</button><button type="button" data-scz="0">全体</button><button type="button" data-scz="1" aria-label="拡大">＋</button></div><span class="sccap">${esc(pbLab(id))}${scanNo(p) ? '　' + scanNo(p) + '枚目' : ''}</span></div>
     <div class="cmpside"><div class="scph"><b>作品の写真にする</b><small>このページに載っている作品を選ぶと、次の画面で四隅を合わせて切り出します。</small>
       <input type="search" class="wpq" placeholder="作品名・番号・年・場所で探す" enterkeyhint="search"><div class="scf">${[['', 'すべて'], ['pb', 'この画集'], ['np', '写真なし']].map(([k, t]) => `<button type="button" data-scf="${k}" class="${k ? '' : 'on'}">${t}</button>`).join('')}</div></div>
-      <div class="cmpw"><div class="wplist"></div></div>
-      <div class="scbar"><label class="scmain"><input type="checkbox"> メイン画像にする</label><button type="button" class="act main scgo" disabled>作品を選んでください</button></div></div></div>`;
+      <div class="cmpw"><div class="wplist"></div></div><div class="scex"></div>
+      <div class="scbar"><label class="scmain"><input type="checkbox"> メイン画像にする</label><button type="button" class="act main scgo" disabled>作品を選んでください</button></div><div class="scov hidden"></div></div></div>`;
   document.body.appendChild(el); hpush('n'); scrPush(el); document.body.classList.add('cmpon');
   const mo = new MutationObserver(() => { if (!el.isConnected) { mo.disconnect(); if (!document.querySelector('.noteview.cmpv')) document.body.classList.remove('cmpon'); pinDrawer(); } }); mo.observe(document.body, { childList: true }); pinDrawer();
   /* ページの画像：開く大きさ（1600）→ 拡大したら高画質（3200）。指2本・2回タップ・＋－で拡大 */
@@ -3598,20 +3608,56 @@ function scanPick(p){ if (!canEdit() || !scanOf(p)) return; const id = p['作品
     const hit = all.map((w, i) => ({ w, i, r: inb.has(String(w['作品番号'])) ? 0 : 1 })).sort((a, b) => a.r - b.r || a.i - b.i).slice(0, 80).map(x => x.w);
     L.innerHTML = (hit.length ? hit.map(w => { const no = String(w['作品番号']), n = (photoBy[no] || []).length;
       return `<button type="button" class="wprow${SEL === no ? ' on' : ''}" data-wp="${esc(no)}"><span class="dfwth">${n ? thumbHTML(no, 200) : '<span class="dfwnp">写真なし</span>'}</span><span class="wpt"><b>${esc(nol(no))}　${esc(w['作品名'] || '無題')}</b><small>${esc([w['制作年'], dimTxt(w), w['所在']].filter(Boolean).join('　'))}</small>${inb.has(no) || cut.has(no) ? `<em>${[inb.has(no) ? 'この画集に掲載' : '', cut.has(no) ? '✂ このページから切り出し済み' : ''].filter(Boolean).join('・')}</em>` : ''}</span><span class="wpck">${SEL === no ? '✓' : ''}</span></button>`; }).join('')
-      : `<p class="hint">${k ? '見つかりません' : F === 'pb' ? 'この画集にひも付いた作品はまだありません。「すべて」から探してください' : '該当する作品はありません'}</p>`) + (all.length > 80 ? `<p class="hint">ほか ${all.length - 80}点。番号や作品名で探してください</p>` : '');
+      : `<p class="hint">${k ? '見つかりません' : F === 'pb' ? 'この画集にひも付いた作品はまだありません。「すべて」から探してください' : '該当する作品はありません'}</p>`) + (all.length > 80 ? `<p class="hint">ほか ${all.length - 80}点。番号や作品名で探してください</p>` : '')
+      + `<button type="button" class="wprow scnew" data-scnew="1">＋ 台帳にない作品として新しく登録${k && !/^\d+$/.test(k) ? '（「' + esc(q.value.trim()) + '」）' : ''}</button>`;
     hydrate(L); };
+  /* 画面の右（下）に重ねる小さな画面：新しい作品の登録・ほかの本の選択 */
+  const ov = el.querySelector('.scov'), ovOpen = html => { ov.innerHTML = html; ov.classList.remove('hidden'); }, ovClose = () => { ov.classList.add('hidden'); ov.innerHTML = ''; };
+  /* 台帳にない作品：画集の説明を見ながら入れて登録 →（要確認の印）→ そのまま切り出せる（10/8 本人） */
+  const newWorkForm = () => { const k0 = q.value.trim(), nm = /^(no\.?\s*)?\d+$/i.test(k0) ? '' : k0;
+    ovOpen(`<div class="scovh"><b>台帳にない作品を新しく登録</b><small>画集の説明（題・年・サイズ・画材）を見ながら入れてください。わからないところは空でかまいません。台帳に同じ作品がないか、あとで確かめられるよう「要確認」の印を付けます。</small></div>
+      <div class="scovl scform">${[['作品名', nm, '例：鳥たちの神殿'], ['制作年', '', '例：1987'], ['高さcm', '', '縦の長さ'], ['幅cm', '', '横の長さ'], ['画材', '', '例：紙粘土・顔料・紙']].map(([k, v, ph]) => `<label><span>${k === '高さcm' ? 'H 高さ（cm）' : k === '幅cm' ? 'W 幅（cm）' : k}</span><input data-nf="${k}" value="${esc(v)}" placeholder="${ph}"${/cm$/.test(k) ? ' inputmode="decimal"' : ''}></label>`).join('')}
+      <label><span>いまの場所</span><select data-nf="所在区分">${['不明', '自宅', '美術館', '個人蔵', 'その他'].map(x => `<option>${x}</option>`).join('')}</select></label><label><span>くわしい場所（あれば）</span><input data-nf="所在" placeholder="例：京都国立近代美術館"></label></div>
+      <div class="scbar"><button type="button" class="act" data-ovx="1">やめる</button><button type="button" class="act main" data-nwok="1">登録する</button></div>`);
+    ov.querySelector('[data-ovx]').onclick = ovClose;
+    ov.querySelector('[data-nwok]').onclick = async () => { const f = {}; ov.querySelectorAll('[data-nf]').forEach(i => { const v = String(i.value || '').trim(); if (v) f[i.dataset.nf] = /cm$/.test(i.dataset.nf) ? v.normalize('NFKC').replace(/[^\d.]/g, '') : v; });
+      if (f['所在区分'] === '不明') delete f['所在']; f['補足'] = '画集『' + pbLab(id) + '』' + (scanNo(p) ? 'のスキャン ' + scanNo(p) + '枚目' : '') + 'に掲載'; f['要確認'] = '要確認'; f['要確認メモ'] = '画集のスキャンから新しく登録しました。台帳に同じ作品がないか確かめてください';
+      if (!confirm('この内容で新しい作品を登録しますか？\n' + [f['作品名'] || '（無題）', f['制作年'], f['高さcm'] || f['幅cm'] ? 'H ' + (f['高さcm'] || '?') + ' × W ' + (f['幅cm'] || '?') + ' cm' : ''].filter(Boolean).join('　'))) return;
+      busy(true, '作品を登録しています…');
+      try { const d = await call('newWork', f); setData(d); busy(false); const no = d && d.newNo; ovClose(); if (!no) { draw(); return toast('登録しました。一覧から選んでください'); }
+        q.value = no; F = ''; el.querySelectorAll('.scf button').forEach(x => x.classList.toggle('on', !x.dataset.scf)); SEL = String(no); draw(); cb.checked = true; gb.disabled = false; gb.textContent = '✂ ' + nol(no) + ' を切り出す'; toast(nol(no) + ' を登録しました。続けて切り出してください'); }
+      catch(x){ busy(false); alert('登録できませんでした。\n' + (x.message || x)); } }; };
+  /* ほかの本の挿絵などにも載っている：その本の「掲載作品」にもする（あゆみに「画集掲載・挿絵」）（10/8 本人） */
+  let EX = []; const exBox = el.querySelector('.scex');
+  const exDraw = () => { exBox.innerHTML = `<button type="button" class="scexb">${BOOKI}<span>${EX.length ? 'ほかの本にも載っている：' : 'ほかの本の挿絵などにも載っている？'}</span></button>${EX.map(x => `<span class="scexc">${esc(pbLab(x))}<button type="button" data-exrm="${esc(x)}" aria-label="外す">×</button></span>`).join('')}`; };
+  const exPick = () => { const sel = new Set(EX);
+    ovOpen(`<div class="scovh"><b>ほかの本にも載っている（挿絵など）</b><small>この作品が挿絵などで載っている本を選ぶと、その本の「掲載作品」にもなります（あゆみに「画集掲載・挿絵」と入ります）。</small><input type="search" class="wpq" placeholder="書名・発行元・年で探す" enterkeyhint="search"></div><div class="scovl"></div>
+      <div class="scbar"><button type="button" class="act" data-ovx="1">やめる</button><button type="button" class="act main" data-ovok="1">決める</button></div>`);
+    const q2 = ov.querySelector('.wpq'), L2 = ov.querySelector('.scovl');
+    const d2 = () => { const k = q2.value.normalize('NFKC').trim().toLowerCase(), list = (S.pubs || []).filter(b => b['資料ID'] !== id && (!k || [b['タイトル'], b['発行元'], b['発行年月'], b['種類']].join(' ').normalize('NFKC').toLowerCase().includes(k))).slice(0, 60);
+      L2.innerHTML = list.map(b => `<button type="button" class="wprow${sel.has(b['資料ID']) ? ' on' : ''}" data-exp="${esc(b['資料ID'])}"><span class="dfwth">${hasCover(b) ? thImg(b['表紙写真ファイルID'], 200) : '<span class="dfwnp">表紙なし</span>'}</span><span class="wpt"><b>${esc(b['タイトル'] || '（書名未入力）')}</b><small>${esc([b['種類'], yr(b['発行年月']), b['発行元']].filter(Boolean).join('　'))}</small></span><span class="wpck">${sel.has(b['資料ID']) ? '✓' : ''}</span></button>`).join('')
+        + (k ? `<button type="button" class="wprow scnew" data-expnew="1">＋「${esc(q2.value.trim())}」を新しい本として登録</button>` : '<p class="hint">見つからないときは、書名を入れると新しい本として登録できます</p>'); hydrate(L2); };
+    q2.oninput = () => { clearTimeout(q2._t); q2._t = setTimeout(d2, 200); }; d2();
+    L2.onclick = async e => { const b = e.target.closest('[data-exp]'); if (b) { const k = b.dataset.exp; if (sel.has(k)) sel.delete(k); else sel.add(k); b.classList.toggle('on', sel.has(k)); b.querySelector('.wpck').textContent = sel.has(k) ? '✓' : ''; return; }
+      if (e.target.closest('[data-expnew]')) { const t = q2.value.trim(); if (!t || !confirm('「' + t + '」を新しい本（資料）として登録しますか？')) return; busy(true, '本を登録しています…');
+        try { const d = await call('newPub', { 'タイトル': t, '種類': '書籍', 'メモ': '画集『' + pbLab(id) + '』のスキャンから、挿絵の載っている本として登録' }); setData(d); if (d && d.newId) sel.add(d.newId); busy(false); q2.value = ''; d2(); toast('「' + t + '」を登録しました'); }
+        catch(x){ busy(false); alert('登録できませんでした。\n' + (x.message || x)); } } };
+    ov.querySelector('[data-ovx]').onclick = ovClose; ov.querySelector('[data-ovok]').onclick = () => { EX = [...sel]; ovClose(); exDraw(); }; };
+  exBox.onclick = e => { const r = e.target.closest('[data-exrm]'); if (r) { EX = EX.filter(x => x !== r.dataset.exrm); return exDraw(); } if (e.target.closest('.scexb')) exPick(); };
+  exDraw();
   q.oninput = () => { clearTimeout(q._t); q._t = setTimeout(draw, 200); };
   el.querySelector('.scf').onclick = e => { const b = e.target.closest('[data-scf]'); if (!b) return; F = b.dataset.scf; el.querySelectorAll('.scf button').forEach(x => x.classList.toggle('on', x === b)); draw(); };
-  L.addEventListener('click', e => { const b = e.target.closest('[data-wp]'); if (!b) return; SEL = String(b.dataset.wp); L.querySelectorAll('.wprow').forEach(r => { const on = r === b; r.classList.toggle('on', on); r.querySelector('.wpck').textContent = on ? '✓' : ''; });
+  L.addEventListener('click', e => { if (e.target.closest('[data-scnew]')) return newWorkForm(); const b = e.target.closest('[data-wp]'); if (!b) return; SEL = String(b.dataset.wp); L.querySelectorAll('.wprow[data-wp]').forEach(r => { const on = r === b, ck = r.querySelector('.wpck'); r.classList.toggle('on', on); if (ck) ck.textContent = on ? '✓' : ''; });
     const n = (photoBy[SEL] || []).length; cb.checked = !n; gb.disabled = false; gb.textContent = '✂ ' + nol(SEL) + ' を切り出す'; });
-  gb.onclick = () => { if (!SEL) return; const no = SEL, main = cb.checked; scrBack(); setTimeout(() => openCrop(p, no, { fresh: true, main }), 320); };
+  gb.onclick = () => { if (!SEL) return; const no = SEL, main = cb.checked, extra = EX.slice(); scrBack(); setTimeout(() => openCrop(p, no, { fresh: true, main, extra }), 320); };
   el.querySelector('.cmpback').onclick = e => { e.stopPropagation(); scrBack(); };
   draw(); }
-/* 切り出した作品に、この画集の「画集掲載」のあゆみがなければ入れる */
-async function crScanLink(c0, say){ const pb = c0.orig['作品番号'], no = c0.no, has = () => S.events.some(e => String(e['作品番号']) === String(no) && e['資料ID'] === pb); if (has()) return;
-  say('画集掲載のあゆみを入れています…');
-  try { await crCall('linkWorkMulti', [no, [{ kind: 'pb', id: pb }], ''], has); if (!has()) { S.events.push(tmpLinkEv(no, 'pb', pb, '')); index(); } }
-  catch(e){ toast('画集掲載のあゆみは入れられませんでした（資料のページの「掲載作品をひも付け」から入れられます）'); } }
+/* 切り出した作品に、この画集の「画集掲載」のあゆみがなければ入れる。ほかの本（挿絵など）を選んでいれば、その本にも（内容「挿絵」） */
+async function crScanLink(c0, say){ const no = c0.no, T = [{ id: c0.orig['作品番号'], note: '' }].concat((c0.fbExtra || []).filter(x => x && x !== c0.orig['作品番号']).map(x => ({ id: x, note: '挿絵' })));
+  for (const t of T) { const has = () => S.events.some(e => String(e['作品番号']) === String(no) && e['資料ID'] === t.id); if (has()) continue;
+    say(t.note ? '「' + pbLab(t.id) + '」にも挿絵としてひも付けています…' : '画集掲載のあゆみを入れています…');
+    try { await crCall('linkWorkMulti', [no, [{ kind: 'pb', id: t.id }], t.note], has); if (!has()) { S.events.push(tmpLinkEv(no, 'pb', t.id, t.note)); index(); } }
+    catch(e){ toast('「' + pbLab(t.id) + '」へのひも付けは入れられませんでした（資料のページの「掲載作品をひも付け」から入れられます）'); } } }
 /* 保存したあと：画集のページの画面にもどる（続けて同じページのほかの作品も切り出せるように） */
 function crAfterScan(c0, pid){ const w = workOf(c0.no) || {}; render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
   bkOpen(c0.orig['作品番号'], c0.orig['写真ID']); toast(nol(c0.no) + '「' + (w['作品名'] || '無題') + '」の写真にしました' + (c0.fbMain ? '（メイン画像）' : '')); }
@@ -7163,7 +7209,7 @@ async function openCrop(p, to, opt){
     cp: copyOf(t.orig) || (t.corr && copyOf(t.corr)) || (fb ? scanCp(t.orig) : null), cs: t.info && t.info.col ? t.info.cs : crCsLast(), wp: t.info && t.info.wp ? t.info.wp.slice() : null, ws: t.info && t.info.wp ? t.info.ws : 100, wpick: false, rot: t.info ? t.info.rot || 0 : 0, st: t.info ? t.info.st || 0 : 0 };
   if (t.info) { CR.n = t.info.n; CR.kan = !!t.info.kan; CR.top = t.info.top.map(a => a.slice()); CR.bot = t.info.bot.map(a => a.slice()); } else if (!book && isKannon(w)) crSetN(3, CR_P0, true); else crSetN(1, CR_P0, false);
   CR.book = book; if (!CR.led) CR.ratio = 'auto';
-  CR.fb = fb; CR.fbMain = !!(opt && opt.main); CR.fbBack = fresh ? t.orig['写真ID'] : ''; if (fb) CR.szDone = true; /* 画集の写真で「台帳のサイズは額込みか」は判定しない */
+  CR.fb = fb; CR.fbMain = !!(opt && opt.main); CR.fbExtra = (opt && opt.extra) || []; CR.fbBack = fresh ? t.orig['写真ID'] : ''; if (fb) CR.szDone = true; /* 画集の写真で「台帳のサイズは額込みか」は判定しない */
   if (!CR.kan && !CR_NS.some(x => x[0] === CR.n)) CR_NS.push([CR.n, CR.n + '曲']);
   const el = document.createElement('div'); el.id = 'crop'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', '切り抜き・補正');
   el.innerHTML = `<div class="cr-top"><button type="button" class="cr-x">やめる</button><b>切り抜き・補正</b><button type="button" class="cr-save" disabled>保存</button></div>
