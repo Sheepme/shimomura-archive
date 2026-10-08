@@ -36,7 +36,7 @@
     return o;
   }
   /* 軽い保存（10/9 開発 v14）：保存のあと Google 側は、書いたシートの分だけ返す（__part）。ほかは端末の控え（C）から足して、いつもの形にして画面に渡す */
-  var LITE = ['updateWork','updateWorks','addEvent','updateEvent','setLocConfirmed','setFlag','newWork','addPhoto','linkPhotos','mergeWorks','updateExhibit','updatePub','newExhibit','newPub','setDocCheck','learnAlias','resolveDiff','resolveDiffOther','linkWorks','unlinkEvent','replacePhoto','addCover','newOther','newOtherFromUrl','addDoc','registerDoc','setDocTitle','setDocState','interviewSave','saveVenue','deleteVenue','archiveItem','restoreItem','saveMemo','moveToOther','moveToMain','setFind','setFinds','fixPlaces','moveDocWork'];
+  var LITE = ['addPbScans','addFilePhotos','movePhoto','updateWork','updateWorks','addEvent','updateEvent','setLocConfirmed','setFlag','newWork','addPhoto','linkPhotos','mergeWorks','updateExhibit','updatePub','newExhibit','newPub','setDocCheck','learnAlias','resolveDiff','resolveDiffOther','linkWorks','unlinkEvent','replacePhoto','addCover','newOther','newOtherFromUrl','addDoc','registerDoc','setDocTitle','setDocState','interviewSave','saveVenue','deleteVenue','archiveItem','restoreItem','saveMemo','moveToOther','moveToMain','setFind','setFinds','fixPlaces','moveDocWork'];
   function full(p){
     if (!p || typeof p !== 'object' || !Array.isArray(p.__part) || !C) return p;
     var d = {}, ks = p.__keys || [];
@@ -91,6 +91,7 @@
 /* 画像を保存・コピーしにくくする（右クリック・長押し・ドラッグ・選択）。スクリーンショットは防げない（開発 v10） */
 img,canvas,video,picture{-webkit-user-drag:none;user-drag:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .dvbar{display:flex;gap:8px;margin:8px 0}.dvbar button{padding:7px 14px;border:1px solid var(--line);border-radius:999px;background:var(--paper);color:var(--ink);font-size:14px}.dvg{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin:8px 0 14px}.dvi{position:relative;display:flex;flex-direction:column;gap:3px;cursor:pointer}.dvi input{position:absolute;top:6px;left:6px;width:20px;height:20px;z-index:1}.dvth{display:block;aspect-ratio:1;background:var(--accent-soft);border-radius:8px;overflow:hidden}.dvth img{width:100%;height:100%;object-fit:cover}.dvi small{font-size:11px;color:var(--sub);line-height:1.3}.dvi input:not(:checked)~.dvth{opacity:.4}
+#plwrap .plsum{margin:4px 0 10px;color:var(--sub)}.plc{display:grid;grid-template-columns:150px 1fr;gap:12px;padding:12px 0;border-top:1px solid var(--line)}.plc.pldone{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:15px}.plimg{position:relative;display:block}.plimg img{width:100%;height:auto;border-radius:6px;background:var(--accent-soft)}.plimg small{position:absolute;right:4px;bottom:4px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;padding:1px 6px;border-radius:8px}.plt{display:flex;flex-direction:column;gap:3px;min-width:0}.plt>b{font-size:16px}.plt>small{font-size:13px;color:var(--sub);line-height:1.5}.plcs,.plres{display:flex;flex-direction:column;gap:6px;margin-top:8px}.plcd{display:flex;gap:10px;align-items:center;text-align:left;padding:6px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink)}.plcd:hover{border-color:var(--ink)}.plth{flex:none;width:64px;height:64px;border-radius:6px;overflow:hidden;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--faint)}.plth img{width:100%;height:100%;object-fit:cover}.plct{display:flex;flex-direction:column;min-width:0}.plct b{font-size:14px}.plct small{font-size:12px;color:var(--sub)}.plbar{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.plbar input{flex:1 1 180px;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-size:15px}.plbar button,.pldone button{padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:var(--paper);font-size:14px;color:var(--ink)}@media (max-width:600px){.plc{grid-template-columns:96px 1fr}}
 </style>
 <script>
 /* 画像の上の右クリック・長押しのメニュー（画像を保存・コピー）、画像のドラッグ、画像を含む選択のコピーを止める（10/7 開発 v10）。
@@ -2608,7 +2609,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '42595ba251', APP_URL = location.origin + location.pathname;
+const BUILD = 'a6ed1447e9', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4113,6 +4114,7 @@ document.addEventListener('click', e => {
   const mv = e.target.closest('[data-pbmv]'); if (mv) { const g = mv.closest('.pbtop').querySelector('.pbgal'); g.scrollBy({ left: pbStep(g) * +mv.dataset.pbmv, behavior: 'smooth' }); return; }
   const sc = e.target.closest('[data-pbscan]'); if (sc) { e.preventDefault(); const [id, pid] = sc.dataset.pbscan.split('|'); return bkOpen(id, pid); }
   const pf = e.target.closest('[data-pbpdf]'); if (pf) return sheetPbPdf(pf.dataset.pbpdf);
+  const pq = e.target.closest('[data-pbplate]'); if (pq) return plOpen(pq.dataset.pbplate);
   const g = e.target.closest('[data-vbkgo]'); if (g) { const p = V.list[V.i]; if (!p) return; closeViewer(); setTimeout(() => scanPick(p), 350); return; }
   const vw = e.target.closest('[data-vbkw]'); if (vw) { const no = vw.dataset.vbkw; closeViewer(); setTimeout(() => openWork(no), 300); return; }
   const ag = e.target.closest('[data-vbkag]'); if (ag) { cropAgain(V.list[V.i]); return; }
@@ -7180,7 +7182,7 @@ function openPb(id, keepScroll, restoreSc){
       ${dd2('家にある冊数', x['家にある冊数'] ? esc(x['家にある冊数']) + '冊' : '')}
       ${ex ? dd2('関連する展覧会', `<button class="golink" data-ex="${esc(ex['展覧会ID'])}">${PRM(ex['名称'])}${esc(ex['名称'])} ›</button>`) : ''}
       ${dd2('メモ', escU(x['メモ']))}${srcDD(x)}</dl>`}
-    ${canEdit() ? `<h3 class="sec">記録を更新する</h3><div class="actions bottomacts one"><button class="act main" data-link="pb|${esc(id)}">＋ 掲載作品をひも付け</button><button class="act" data-cover="${esc(id)}">${cover ? '表紙の写真を差し替える' : '表紙の写真を登録（カメラ・写真）'}</button><button class="act" data-pbpages="${esc(id)}">＋ 中のページの写真を撮る</button><button class="act" data-pbpdf="${esc(id)}">＋ スキャンした PDF からページを入れる</button><button class="act" data-mmadd="1">📝 お母さんへの確認メモを書く</button>${delBtn('pb', id, 'この資料')}</div>` : ''}${histBlock(id, x['登録日時'], x['登録者'])}</div>`;
+    ${canEdit() ? `<h3 class="sec">記録を更新する</h3><div class="actions bottomacts one">${(n => n ? `<button class="act main" data-pbplate="${esc(id)}">📖 図版の照合（あと${n}点）</button>` : '')(plGroups(id).length)}<button class="act main" data-link="pb|${esc(id)}">＋ 掲載作品をひも付け</button><button class="act" data-cover="${esc(id)}">${cover ? '表紙の写真を差し替える' : '表紙の写真を登録（カメラ・写真）'}</button><button class="act" data-pbpages="${esc(id)}">＋ 中のページの写真を撮る</button><button class="act" data-pbpdf="${esc(id)}">＋ スキャンした PDF からページを入れる</button><button class="act" data-mmadd="1">📝 お母さんへの確認メモを書く</button>${delBtn('pb', id, 'この資料')}</div>` : ''}${histBlock(id, x['登録日時'], x['登録者'])}</div>`;
   showPage({t:'pb', id}, html, keepScroll, restoreSc); pbNudge();
 }
 /* はじめてのうちは、いちばん上の写真を少し横に動かして「めくれる」ことを見せる（自分でめくったら、もう動かさない） */
@@ -9466,6 +9468,67 @@ async function driveOpen(){ busy(true, 'ドライブを調べています…（1
     busy(false); closeSheet(); toast(n + '枚をゴミ箱へ入れました' + (skip ? '（' + skip + '枚は使われていたので、そのまま）' : '')); });
   (async () => { const ids = L.map(x => x[0]); for (let i = 0; i < ids.length; i += 24) { if (!box.querySelector('.dvg')) return; let t = {}; try { t = await call('getThumbs', ids.slice(i, i + 24), 200, 30) || {}; } catch(e){}
     ids.slice(i, i + 24).forEach(id => { const el = box.querySelector('[data-dvth="' + id + '"]'); if (el && t[id]) el.innerHTML = '<img alt="" src="' + t[id] + '">'; }); } })(); }
+/* 図録の図版の照合（10/9 開発 v14 本人「迷う図版は、確かめる画面で」）：画集・図録の写真のうち種類「図版」（台帳のどの作品か決めきれなかった図版。メモ＝図版 No.｜題｜年｜寸法｜技法｜所蔵・出品｜候補｜理由｜ページ｜四隅）を、
+   図版と候補の写真を見くらべて1点ずつ作品に振り分ける。選ぶと：写真をその作品へ移す（メイン・転載元つき）、展覧会の出品・図録の掲載（図版番号）のあゆみ、台帳の空いている欄を図録で埋める。「もどす」で取り消せる */
+const PLDONE = {};
+const plGroups = pbId => { const G = {}; (S.photos || []).filter(p => p['作品番号'] === pbId && p['種類'] === '図版').forEach(p => { const f = String(p['メモ'] || '').split('｜'), m = /^図版 No\.([^（\s]+)/.exec(f[0] || ''); if (!m) return;
+    const k = m[1], g = G[k] || (G[k] = { key: k, no: k, title: f[1] || '', year: f[2] || '', size: f[3] || '', tech: f[4] || '', note: f[5] || '', cands: String(f[6] || '').replace(/^候補\s*/, '').split(',').map(s => s.trim()).filter(Boolean), why: String(f[7] || '').replace(/^理由\s*/, ''), ph: [] }); g.ph.push(p); });
+  const nk = s => { const m = /^(M-)?(\d+)/.exec(s); return m ? (m[1] ? 1000 : 0) + +m[2] : 9999; }, pi = p => { const m = /（(\d+)）/.exec(String(p['メモ'] || '').split('｜')[0]); return m ? +m[1] : 1; };
+  return Object.values(G).map(g => { g.ph.sort((a, b) => pi(a) - pi(b)); return g; }).sort((a, b) => nk(a.key) - nk(b.key)); };
+const plFields = g => { const y = String(g.year || '').normalize('NFKC'), m = y.match(/(1[89]\d\d)/), z = String(g.size || '').normalize('NFKC'), s = !/各|他|高さ/.test(z) && z.match(/^(\d+(?:\.\d+)?)\s*[×x]\s*(\d+(?:\.\d+)?)$/);
+  return { '制作年': m ? m[1] + (/頃/.test(y) ? '頃' : '') : '', '高さcm': s ? s[1] : '', '幅cm': s ? s[2] : '', '画材': String(g.tech || '').split('／')[0].trim() }; };
+const plMemo = (pbId, g, p, i) => { const f = String(p['メモ'] || '').split('｜'), pid = String(f[8] || '').replace(/^ページ\s*/, '').trim(), b = String(f[9] || '').replace(/^四隅\s*/, '').split(',').map(Number), t = String((pbById[pbId] || {})['タイトル'] || pbId).replace(/｜/g, ' ');
+  const pts = b.length === 4 && b.every(v => isFinite(v)) ? (() => { const [tp, l, bo, r] = b.map(v => (v / 1000).toFixed(4)); return [l + ',' + tp, r + ',' + tp, r + ',' + bo, l + ',' + bo].join(' '); })() : '';
+  return '転載元：' + t + '｜' + pbId + '/' + pid + '｜｜図版 No.' + g.no + (g.ph.length > 1 ? '（' + (i + 1) + '）' : '') + (pid && pts ? '｜補正：元の写真 ' + pid + '｜四隅 ' + pts + '｜ふくらみ 0｜明るさ 0%｜比率 写真｜色 なし｜元の種類 スキャン' : ''); };
+const plCore = t => String(t || '').normalize('NFKC').replace(/^(油彩習作|素描)\s*/, '').replace(/^今様浮世絵珍具・当世舞子哀歌百態\s*/, '').replace(/[\s「」『』（）()"“”・]/g, '').replace(/の一部$/, '');
+const plAll = () => (S.works || []).concat(S.others || []);
+const plSuggest = g => { const out = [], add = no => { if (no && workOf(no) && !out.includes(no)) out.push(no); }; g.cands.forEach(add);
+  const c = plCore(g.title); if (c) plAll().forEach(w => { const t = plCore(w['作品名']); if (t && (t === c || (t.length >= 2 && c.includes(t)) || (c.length >= 2 && t.includes(c)))) add(w['作品番号']); });
+  return out.slice(0, 8); };
+const plCand = (key, no) => { const w = workOf(no) || {}, z = w['高さcm'] && w['幅cm'] ? 'H' + w['高さcm'] + '×W' + w['幅cm'] : '';
+  return `<button type="button" class="plcd" data-plpick="${esc(key)}|${esc(no)}"><span class="plth">${thumbHTML(no, 200)}</span><span class="plct"><b>${esc(nol(no))} ${esc(w['作品名'] || '無題')}</b><small>${esc([w['制作年'], z, w['所在'] || w['所在区分']].filter(Boolean).join('・'))}</small></span></button>`; };
+function plOpen(pbId){ if (!canEdit()) return; openSheet(`<h3>図版の照合</h3><p class="hint">「${esc((pbById[pbId] || {})['タイトル'] || pbId)}」の図版のうち、台帳のどの作品か決めきれなかったものです。図版と候補の写真を見くらべて、同じ作品を選んでください。選ぶと、その作品の写真（メイン）になり、出品・図録の掲載（図版番号）のあゆみがつき、台帳の空いている欄を図録の内容で埋めます。</p><div id="plwrap" data-pb="${esc(pbId)}"></div><div class="actions one"><button type="button" class="act" data-close>閉じる</button></div>`);
+  const W = $('#plwrap'); plDraw();
+  W.addEventListener('click', e => { const b = e.target.closest('[data-plpick],[data-plnew],[data-plskip],[data-plundo],[data-plbig]'); if (!b) return; e.preventDefault(); const G = plGroups(pbId), find = k => G.find(g => g.key === k);
+    if (b.dataset.plbig) { const g = find(b.dataset.plbig); if (g) openViewerL(g.ph, 0); return; }
+    if (b.dataset.plskip) { PLDONE[b.dataset.plskip] = { skip: 1 }; return plDraw(); }
+    if (b.dataset.plundo) return plUndo(pbId, b.dataset.plundo);
+    if (b.dataset.plnew) { const g = find(b.dataset.plnew); if (g && confirm('図版 No.' + g.no + '「' + g.title + '」を、新しい作品として台帳に登録しますか？（要確認を付けます）')) plPick(pbId, g, ''); return; }
+    const [k, no] = b.dataset.plpick.split('|'), g = find(k), w = workOf(no) || {}; if (g && confirm('図版 No.' + g.no + '「' + g.title + '」を\n' + nol(no) + ' ' + (w['作品名'] || '無題') + ' の写真にしますか？')) plPick(pbId, g, no); });
+  W.addEventListener('input', e => { const q = e.target.closest('[data-plq]'); if (!q) return; const k = q.dataset.plq, s = String(q.value || '').normalize('NFKC').trim().toLowerCase(), r = $('#plr-' + CSS.escape(k)); if (!r) return;
+    if (!s) { r.innerHTML = ''; return; }
+    const L = plAll().filter(w => (String(w['作品番号']).toLowerCase() === s || String(w['作品名'] || '').normalize('NFKC').toLowerCase().includes(s) || String(w['作品名メモ'] || '').normalize('NFKC').toLowerCase().includes(s))).slice(0, 8);
+    r.innerHTML = L.length ? L.map(w => plCand(k, w['作品番号'])).join('') : '<small class="muted">見つかりません</small>'; hydrate(r); }); }
+function plDraw(){ const W = $('#plwrap'); if (!W) return; const pbId = W.dataset.pb, G = plGroups(pbId), done = Object.keys(PLDONE).filter(k => PLDONE[k].no), left = G.filter(g => !(PLDONE[g.key] && PLDONE[g.key].skip));
+  W.innerHTML = `<p class="plsum">のこり <b>${G.length}</b>点${done.length ? '・この画面で決めた ' + done.length + '点' : ''}</p>`
+    + done.map(k => { const d = PLDONE[k], w = workOf(d.no) || {}; return `<div class="plc pldone"><span>✓ 図版 No.${esc(k)} → ${esc(nol(d.no))} ${esc(w['作品名'] || '無題')}${d.created ? '（新しく登録）' : ''}</span><button type="button" class="ghost" data-plundo="${esc(k)}">もどす</button></div>`; }).join('')
+    + left.map(g => `<div class="plc"><a href="#" class="plimg" data-plbig="${esc(g.key)}" aria-label="図版を大きく見る">${thImg(g.ph[0]['ファイルID'], 400)}${g.ph.length > 1 ? `<small>${g.ph.length}枚</small>` : ''}</a><div class="plt"><b>図版 No.${esc(g.no)}　${esc(g.title)}</b><small>${esc([g.year, g.size, g.tech].filter(Boolean).join('・'))}</small>${g.note ? `<small>所蔵・出品（図録）：${esc(g.note)}</small>` : ''}${g.why ? `<small class="muted">${esc(g.why)}</small>` : ''}
+      <div class="plcs">${plSuggest(g).map(no => plCand(g.key, no)).join('') || '<small class="muted">候補が見つかりません</small>'}</div>
+      <div class="plbar"><input type="search" enterkeyhint="search" placeholder="ほかの作品を探す（名前・番号）" data-plq="${esc(g.key)}"><button type="button" class="ghost" data-plnew="${esc(g.key)}">＋ 新しく登録</button><button type="button" class="ghost" data-plskip="${esc(g.key)}">あとで</button></div><div class="plres" id="plr-${esc(g.key)}"></div></div></div>`).join('');
+  hydrate(W); }
+async function plPick(pbId, g, no){ busy(true, '図版を作品の写真にしています…'); const rec = { no: '', created: false, patch: {}, ph: g.ph.map(p => [p['写真ID'], p['メモ']]), gno: g.no };
+  try { if (!no) { const t = String(g.tech || ''), F = plFields(g), ho = [((pbById[pbId] || {})['タイトル'] || pbId) + ' 図版 No.' + g.no, g.note ? '所蔵・出品（図録）：' + g.note : ''].filter(Boolean).join('\n'), memo = '図録の図版 No.' + g.no + ' から新しく入れました。台帳に同じ作品がないか確かめてください';
+      if (/エッチング|版画|リトグラフ|木版|銅版/.test(t) || /陶|やけもの/.test(t + g.title)) { const d = await call('newOther', { '作品名': g.title, '種類': /陶|やけもの/.test(t + g.title) ? 'やけもの' : '版画', '所在区分': '不明' }); setData(d); no = d.newId; setData(await call('updateWork', no, Object.assign({}, F, { '補足': ho }))); setData(await call('setFlag', no, true, memo)); }
+      else { const d = await call('newWork', Object.assign({ '作品名': g.title, '種別': /^油彩習作/.test(g.title) ? '習作' : /^素描/.test(g.title) ? 'デッサン' : '本画', '補足': ho, '所在区分': '不明', '要確認': '要確認', '要確認メモ': memo }, F)); setData(d); no = d.newNo; }
+      if (!no) throw new Error('新しい作品の番号がわかりませんでした'); rec.created = true; }
+    rec.no = no; if (!rec.created) rec.wasMain = ((photoBy[no] || []).find(p => p['メイン']) || {})['写真ID'] || ''; /* もどすときに前のメイン写真を戻す */
+    for (let i = 0; i < g.ph.length; i++) { const p = g.ph[i]; await call('replacePhoto', p['写真ID'], '', '', i ? '部分' : '表', plMemo(pbId, g, p, i), true); setData(await call('movePhoto', p['写真ID'], no, null, i === 0)); }
+    const ex = (pbById[pbId] || {})['関連展覧会ID'], has = (k, id) => S.events.some(e => String(e['作品番号']) === String(no) && e[k] === id);
+    if (ex && !has('展覧会ID', ex)) { setData(await call('linkWorks', 'ex', ex, [no], { [no]: '図録 No.' + g.no })); rec.ex = ex; }
+    if (!has('資料ID', pbId)) { setData(await call('linkWorks', 'pb', pbId, [no], { [no]: '図版 No.' + g.no })); rec.pb = pbId; }
+    if (!rec.created) { const w = workOf(no) || {}, F = plFields(g); Object.keys(F).forEach(k => { if (F[k] && !String(w[k] || '').trim()) rec.patch[k] = F[k]; }); if (Object.keys(rec.patch).length) setData(await call('updateWork', no, rec.patch)); }
+    PLDONE[g.key] = rec; toast(nol(no) + ' の写真にしました');
+  } catch(e){ alert('とちゅうで止まりました。\n' + (e && e.message || e)); try { setData(await call('getData')); } catch(x){} }
+  finally { busy(false); plDraw(); render(); } }
+async function plUndo(pbId, k){ const d = PLDONE[k]; if (!d || !d.no || !confirm('図版 No.' + k + ' の振り分けを取り消しますか？')) return; busy(true, 'もとにもどしています…');
+  try { for (const [pid, memo] of d.ph) { await call('replacePhoto', pid, '', '', '図版', memo, true); setData(await call('movePhoto', pid, pbId, null, false)); }
+    const evs = S.events.filter(e => String(e['作品番号']) === String(d.no) && ((d.ex && e['展覧会ID'] === d.ex && e['内容'] === '図録 No.' + k) || (d.pb && e['資料ID'] === d.pb && e['内容'] === '図版 No.' + k)));
+    for (const e of evs) setData(await call('archiveItem', 'e', e['出来事ID'], '図録の図版の振り分けを取り消した'));
+    if (Object.keys(d.patch || {}).length) { const p = {}; Object.keys(d.patch).forEach(x => { p[x] = ''; }); setData(await call('updateWork', d.no, p)); }
+    if (d.created) setData(await call('archiveItem', /^[YHZ]\d/.test(d.no) ? 'ot' : 'w', d.no, '図録の図版の振り分けを取り消した（新しく登録した作品）'));
+    else if (d.wasMain && S.photos.some(x => x['写真ID'] === d.wasMain && x['作品番号'] === d.no)) { await call('setMainPhoto', d.wasMain); S.photos.forEach(x => { if (x['作品番号'] === d.no) x['メイン'] = x['写真ID'] === d.wasMain ? 'メイン' : ''; }); index(); }
+    delete PLDONE[k]; toast('もとにもどしました');
+  } catch(e){ alert('もどせませんでした。\n' + (e && e.message || e)); } finally { busy(false); plDraw(); render(); } }
 /* AI質問のリミッター解除（名前のメニュー。管理者が自分の分だけ）：1日の回数の上限（使いすぎ防止）で止めない。クレジット消費が増える（10/7 開発 v11 本人） */
 async function aiNoLimit(){ const on = !S.aiNoLim;
   if (on && !confirm('AI質問の1日の回数の上限（使いすぎ防止）を外します。\nクレジット消費が増えます。外しますか？')) return;
