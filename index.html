@@ -2476,7 +2476,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'f6f2b4799f', APP_URL = location.origin + location.pathname;
+const BUILD = '78fc84bceb', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3548,6 +3548,9 @@ const pbInner = id => (S.photos || []).filter(p => p['作品番号'] === id && p
 const SCAN_K = 'スキャン', SCAN_LONG = 5000, SCAN_PX = 15e6;
 const scanNo = p => { const m = /スキャン\s*(\d+)/.exec(String((p || {})['メモ'] || '')); return m ? +m[1] : 0; };
 const scanOf = p => !!p && /^PB-/.test(String(p['作品番号'] || '')) && p['種類'] === SCAN_K;
+/* 作品の写真を切り出せる本の写真：スキャンしたページ・中のページ・表紙（写真で入れたものも）（10/8 本人） */
+const pbPhOf = p => !!p && /^PB-/.test(String(p['作品番号'] || '')) && !!p['写真ID'] && !!p['ファイルID'] && !!pbById[p['作品番号']];
+const pbPhLab = p => scanNo(p) ? scanNo(p) + '枚目' : p['種類'] === '表紙' ? '表紙' : '中のページ';
 const pbScans = id => (S.photos || []).filter(p => p['作品番号'] === id && p['種類'] === SCAN_K).sort((a, b) => scanNo(a) - scanNo(b) || String(a['写真ID']).localeCompare(String(b['写真ID'])));
 const scanCuts = pid => (S.photos || []).filter(x => !/^PB-/.test(String(x['作品番号'] || '')) && (crInfo(x) || {}).orig === pid);
 const pbLab = id => String((pbById[id] || {})['タイトル'] || id).trim();
@@ -3560,21 +3563,21 @@ document.addEventListener('scroll', e => { const g = e.target; if (!g || !g.clas
   if (i > 0 && !g._nudge) try { localStorage.setItem('smr_pbswiped', '1'); } catch(e){} }, true);
 const pbStep = g => { const a = g.children[0], b = g.children[1]; return Math.max(1, a && b ? b.offsetLeft - a.offsetLeft : g.clientWidth); }; /* 1ページ分の横の長さ（次のページの端を見せているので、幅より少し短い） */
 const BOOKI = '<svg class="booki" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6.5C10.2 5.2 7.6 4.6 4 4.8v13c3.6-.2 6.2.4 8 1.7 1.8-1.3 4.4-1.9 8-1.7v-13c-3.6-.2-6.2.4-8 1.7zM12 6.5v13"/></svg>';
-const scanCp = p => ({ mu: pbLab(p['作品番号']), u: p['作品番号'] + '/' + p['写真ID'], hide: false, n: scanNo(p) ? scanNo(p) + '枚目' : '' });
+const scanCp = p => ({ mu: pbLab(p['作品番号']), u: p['作品番号'] + '/' + p['写真ID'], hide: false, n: pbPhLab(p) });
 /* 画集のスキャンしたページを、写真の画面でめくる。作品の画面（© の「画集のページを開く」）から開いたときは、閉じたら作品にもどす */
-function bkOpen(id, pid){ const L = pbScans(id); if (!L.length) return toast('スキャンしたページが見つかりません');
-  if (V.prevCur === undefined) V.prevCur = S.cur; S.cur = id; openViewerL(L, Math.max(0, L.findIndex(p => p['写真ID'] === pid)), 'scan'); }
+function bkOpen(id, pid){ let L = pbScans(id), m = 'scan'; if (!L.some(p => p['写真ID'] === pid)) { L = pbTop(id); m = 'pbtop'; } /* 表紙・中のページの写真なら、いちばん上と同じ並びで */
+  if (!L.length) return toast('本のページが見つかりません'); if (V.prevCur === undefined) V.prevCur = S.cur; S.cur = id; openViewerL(L, Math.max(0, L.findIndex(p => p['写真ID'] === pid)), m); }
 /* 写真の画面の上：「✂ 作品の写真にする」と、このページから切り出した作品 */
-function vBk(p){ const el = $('#vbk'); if (!el) return; const sc = scanOf(p); el.classList.toggle('hidden', !sc); $('#viewer').classList.toggle('vscan', sc); if (!sc) { el.innerHTML = ''; return; }
+function vBk(p){ const el = $('#vbk'); if (!el) return; const sc = pbPhOf(p) && (canEdit() || scanCuts(p['写真ID']).length > 0); el.classList.toggle('hidden', !sc); $('#viewer').classList.toggle('vscan', sc); if (!sc) { el.innerHTML = ''; return; }
   const seen = new Set(), cuts = scanCuts(p['写真ID']).filter(x => !seen.has(x['作品番号']) && seen.add(x['作品番号']));
   el.innerHTML = (canEdit() ? '<button type="button" class="vbkgo" data-vbkgo="1">✂ 作品の写真にする</button>' : '')
     + (cuts.length ? '<div class="vbkw"><span>このページの作品</span>' + cuts.map(x => { const w = workOf(x['作品番号']) || {}; return `<button type="button" data-vbkw="${esc(x['作品番号'])}">${esc(nol(x['作品番号']))} ${esc(w['作品名'] || '無題')}</button>`; }).join('') + '</div>' : ''); }
 /* どの作品の写真にするか選ぶ → 切り抜きの画面へ。書類と作品の見比べと同じ形：ページ（上／左）を拡大して見ながら、作品（下／右）を探す（10/8 本人） */
 const SCZ = [1, 1.5, 2, 3, 4];
-function scanPick(p){ if (!canEdit() || !scanOf(p)) return; const id = p['作品番号'], pid = p['写真ID'], fid = p['ファイルID'];
+function scanPick(p){ if (!canEdit() || !pbPhOf(p)) return; const id = p['作品番号'], pid = p['写真ID'], fid = p['ファイルID'];
   const el = document.createElement('div'); el.className = 'noteview cmpv scpv'; el._reopen = () => scanPick(p);
   el.innerHTML = `<div class="cmpin"><button type="button" class="cmpback" aria-label="戻る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
-    <div class="cmpdoc scdoc"><div class="scimg"><img alt="スキャンしたページ"></div><div class="sczb"><button type="button" data-scz="-1" aria-label="縮小">－</button><button type="button" data-scz="0">全体</button><button type="button" data-scz="1" aria-label="拡大">＋</button></div><span class="sccap">${esc(pbLab(id))}${scanNo(p) ? '　' + scanNo(p) + '枚目' : ''}</span></div>
+    <div class="cmpdoc scdoc"><div class="scimg"><img alt="スキャンしたページ"></div><div class="sczb"><button type="button" data-scz="-1" aria-label="縮小">－</button><button type="button" data-scz="0">全体</button><button type="button" data-scz="1" aria-label="拡大">＋</button></div><span class="sccap">${esc(pbLab(id))}　${esc(pbPhLab(p))}</span></div>
     <div class="cmpside"><div class="scph"><b>作品の写真にする</b><small>このページに載っている作品を選ぶと、次の画面で四隅を合わせて切り出します。</small>
       <input type="search" class="wpq" placeholder="作品名・番号・年・場所で探す" enterkeyhint="search"><div class="scf">${[['', 'すべて'], ['pb', 'この画集'], ['np', '写真なし']].map(([k, t]) => `<button type="button" data-scf="${k}" class="${k ? '' : 'on'}">${t}</button>`).join('')}</div></div>
       <div class="cmpw"><div class="wplist"></div></div><div class="scex"></div>
@@ -3621,7 +3624,7 @@ function scanPick(p){ if (!canEdit() || !scanOf(p)) return; const id = p['作品
       <div class="scbar"><button type="button" class="act" data-ovx="1">やめる</button><button type="button" class="act main" data-nwok="1">登録する</button></div>`);
     ov.querySelector('[data-ovx]').onclick = ovClose;
     ov.querySelector('[data-nwok]').onclick = async () => { const f = {}; ov.querySelectorAll('[data-nf]').forEach(i => { const v = String(i.value || '').trim(); if (v) f[i.dataset.nf] = /cm$/.test(i.dataset.nf) ? v.normalize('NFKC').replace(/[^\d.]/g, '') : v; });
-      if (f['所在区分'] === '不明') delete f['所在']; f['補足'] = '画集『' + pbLab(id) + '』' + (scanNo(p) ? 'のスキャン ' + scanNo(p) + '枚目' : '') + 'に掲載'; f['要確認'] = '要確認'; f['要確認メモ'] = '画集のスキャンから新しく登録しました。台帳に同じ作品がないか確かめてください';
+      if (f['所在区分'] === '不明') delete f['所在']; f['補足'] = '画集『' + pbLab(id) + '』（' + pbPhLab(p) + '）に掲載'; f['要確認'] = '要確認'; f['要確認メモ'] = '画集のスキャンから新しく登録しました。台帳に同じ作品がないか確かめてください';
       if (!confirm('この内容で新しい作品を登録しますか？\n' + [f['作品名'] || '（無題）', f['制作年'], f['高さcm'] || f['幅cm'] ? 'H ' + (f['高さcm'] || '?') + ' × W ' + (f['幅cm'] || '?') + ' cm' : ''].filter(Boolean).join('　'))) return;
       busy(true, '作品を登録しています…');
       try { const d = await call('newWork', f); setData(d); busy(false); const no = d && d.newNo; ovClose(); if (!no) { draw(); return toast('登録しました。一覧から選んでください'); }
@@ -6814,7 +6817,7 @@ function closeViewer(fromHist){ if (V.prevCur !== undefined) { S.cur = V.prevCur
 /* 美術館などから転載した画像の注意書き（写真のメモが「転載元：館名｜URL」のとき） */
 const creditHTML = ph => [...new Set((ph||[]).map(p => String(p['メモ']||'')).filter(m => /^(?:【仮】)?転載元：/.test(m)).map(m => { const [mu, u] = m.replace(/^(?:【仮】)?転載元：/, '').split('｜'); return (mu||'').trim() + '｜' + (u||'').trim(); }))].map(m => { // 同じ転載元は1つにまとめる
   const [mu, u] = m.split('｜');
-  if (/^PB-\d+\//.test(u)) { const [pb, pid] = u.split('/'); return `<p class="credit">＊この画像は、画集『${esc(mu)}』のスキャンしたページから切り出したものです。家族用の資料としての利用に限ります。<button type="button" class="golink" data-pbscan="${esc(pb)}|${esc(pid)}">画集のページを開く ›</button></p>`; } /* 10/8 開発 v13 */
+  if (/^PB-\d+\//.test(u)) { const [pb, pid] = u.split('/'); return `<p class="credit">＊この画像は、画集『${esc(mu)}』のページから切り出したものです。家族用の資料としての利用に限ります。<button type="button" class="golink" data-pbscan="${esc(pb)}|${esc(pid)}">画集のページを開く ›</button></p>`; } /* 10/8 開発 v13 */
   return `<p class="credit">＊この画像は${/^[@＠]/.test(mu) ? 'Webサイト「' + esc(mu.slice(1)) + '」' : esc(mu)}から転載したものです。家族用の資料としての利用に限定します。転載したり誰かに渡す場合は、撮影元に確認を取ってください。${u ? `（<a href="${esc(u)}" target="_blank" rel="noopener">出典を開く</a>）` : ''}</p>`; }).join('');
 function showV(){ const p = V.list[V.i]; if (!p) return;
   const k = (TH['3200_' + p['ファイルID']] ? '3200_' : '1600_') + p['ファイルID']; $('#vimg').removeAttribute('src'); vzReset(); $('#vimg').classList.remove('lowres');
@@ -7198,7 +7201,7 @@ let CR = null;
 const CR_P0 = { top: [[.06, .06], [.94, .06]], bot: [[.06, .94], [.94, .94]] };
 const CR_NS = [[1, 'ふつう'], [2, '二曲'], [4, '四曲'], [6, '六曲'], [8, '八曲'], ['k', '観音開き']];
 async function openCrop(p, to, opt){
-  const fresh = !!(opt && opt.fresh && canEdit() && scanOf(p) && workOf(to)); /* 画集のスキャンしたページから、作品 to の写真を新しく切り出す（10/8 開発 v13） */
+  const fresh = !!(opt && opt.fresh && canEdit() && pbPhOf(p) && workOf(to)); /* 画集のスキャンしたページから、作品 to の写真を新しく切り出す（10/8 開発 v13） */
   if ((!fresh && !crCan(p)) || $('#crop')) return;
   const dest = String(fresh ? to : S.cur), t = fresh ? { orig: p, corr: null, info: null } : crTargets(p), fb = /^PB-/.test(String(t.orig['作品番号'] || '')) && !/^PB-/.test(dest) && !!workOf(dest); /* fb：画集のページから切り出した作品の写真（直し直しも） */
   const book = !fb && /^PB-/.test(dest), w = (!book && workOf(dest)) || {}, hh = parseFloat(w['高さcm']), ww = parseFloat(w['幅cm']);
