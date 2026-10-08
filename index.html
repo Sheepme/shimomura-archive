@@ -2477,7 +2477,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '62f72067ed', APP_URL = location.origin + location.pathname;
+const BUILD = '2e8a8f2712', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3013,7 +3013,8 @@ function thumbHTML(no, w){
   return p ? thImg(p['ファイルID'], w) : '写真なし'; /* ルール：サムネイルには「©」「@」の権利表示を出さない（小さい枠からはみ出して崩れるため）。大きい写真と写真ビューアでだけ出す */
 }
 /* 権利のない（転載した）画像の上に、真ん中に小さく「© 権利元」を出す */
-const wm = p => { const m = /^(?:【仮】)?転載元：([^｜]+)/.exec(String((p||{})['メモ']||'')); if (!m) return ''; const t = m[1].trim(); return `<span class="wm">${/^[@＠]/.test(t) ? esc(t) : '© ' + esc(t)}</span>`; }; // Webサイトから取り込んだ写真は「@サイト名」
+const cpBook = c => !!c && /^PB-\d+\//.test(String(c.u || '')); /* 画集のページから切り出した写真（画像の上に © は出さない。注釈は出す：10/8 本人） */
+const wm = p => { const m = /^(?:【仮】)?転載元：([^｜]+)/.exec(String((p||{})['メモ']||'')); if (!m || cpBook(copyOf(p))) return ''; const t = m[1].trim(); return `<span class="wm">${/^[@＠]/.test(t) ? esc(t) : '© ' + esc(t)}</span>`; }; // Webサイトから取り込んだ写真は「@サイト名」
 const PAGE_NM = {upd:'更新記録', album:'作品アルバム', list:'作品リスト', works:'作品', ot:'その他', ex:'展覧会', pb:'画集', chrono:'年表', doc:'書類', ai:'作品', home:'作品'};
 function navOn(){ const nv = S.view;
   document.querySelectorAll('#fmPop button, #fmInline button').forEach(b => b.classList.toggle('on', b.dataset.v===nv));
@@ -10852,7 +10853,7 @@ function exvBuild(root, L, start){
       const cb = 0.012 + dep * 0.4; g.add(cStrip(w + 0.004, cb, 0.46, 0, -h / 2 - cb / 2 + 0.001, 0), cStrip(h, 0.007, 0.2, -w / 2 - 0.0035 + 0.001, 0, -Math.PI / 2), cStrip(h, 0.007, 0.2, w / 2 + 0.0035 - 0.001, 0, Math.PI / 2), cStrip(w, 0.004, 0.1, 0, h / 2 + 0.002 - 0.001, Math.PI));
       g.position.y = CY; Object.assign(it, { ao, aoMk: () => softShadow(w, h, m, bl) }); }
     sc.add(g);
-    if (d.cp && it.cpH) { /* 転載した写真（©）：絵の上の左下に、薄い灰色の小さな文字で「© 名前」（10/7 本人：はじめ絵の外 → 「このまま画像の上に。位置は左下」）。Webサイトから取り込んだ写真は「@サイト名」。大きさは put で（画面の上で同じくらいの大きさに） */
+    if (d.cp && it.cpH && !cpBook(d.cp)) { /* 転載した写真（©）：絵の上の左下に、薄い灰色の小さな文字で「© 名前」（10/7 本人：はじめ絵の外 → 「このまま画像の上に。位置は左下」）。Webサイトから取り込んだ写真は「@サイト名」。大きさは put で（画面の上で同じくらいの大きさに） */
       const t0 = String(d.cp.mu || '').trim(), t = !t0 ? '©' : /^[@＠]/.test(t0) ? t0 : '© ' + t0, FS = 44, [c0] = cvs(8, 8), x1 = c0.getContext('2d'); x1.font = '400 ' + FS + 'px ' + FONT; const tw = Math.ceil(x1.measureText(t).width) + 8, [cc, xc] = cvs(tw, Math.round(FS * 1.5));
       xc.font = '400 ' + FS + 'px ' + FONT; xc.textBaseline = 'middle'; xc.fillStyle = '#a59e94'; xc.fillText(t, 4, cc.height / 2 + 1);
       const cpM = new T3.Mesh(new T3.PlaneGeometry(1, 1), new T3.MeshStandardMaterial({ map: mkTex(cc), transparent: true, roughness: 0.95, depthWrite: false })); cpM.visible = false; cpM.raycast = () => {}; it.cpH.o.add(cpM); Object.assign(it, { cpM, cpA: cc.width / cc.height }); }
