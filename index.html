@@ -2422,7 +2422,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '34d512494c', APP_URL = location.origin + location.pathname;
+const BUILD = 'ff667b41ab', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -10011,7 +10011,9 @@ function exvKeep(F){ F = F || EXVF; if (!exvFOn(F)) return null; let keep = null
   if (F.kind.length || F.era.length) { const u = new Set(); (S.works || []).forEach(w => { if (F.kind.length && !F.kind.some(k => exvKindOf(w).includes(k))) return; if (F.era.length && !F.era.includes(exvEra(w))) return; u.add(String(w['作品番号'])); }); and(u); }
   return keep; }
 /* 入口の題：選んだ条件の名前（3つまで。館を選んだら館の名前） */
-const exvFTitle = () => { if (!exvFOn()) return '全作品'; const L = []; EXVF.loc.forEach(k => L.push(k === '美術館' && EXVF.mus ? EXVF.mus : (EXV_LOC.find(x => x[0] === k) || [k, k])[1])); EXVF.kind.forEach(k => L.push(k)); EXVF.era.forEach(k => L.push(k)); EXVF.st.forEach(k => L.push((EXV_ST.find(x => x[0] === k) || [k, k])[1])); return L.length > 3 ? L.slice(0, 3).join('・') + 'ほか' : L.join('・'); };
+const exvFTitle = () => { if (!exvFOn()) return '全作品'; const P = [], cut = (a, n) => a.length > n ? a.slice(0, n).join('・') + 'ほか' : a.join('・'); /* 13:39 本人「後ろに『集』を付けて：屏風集・自画像集」。場所・年代だけなら「〜の作品」 */
+  EXVF.loc.forEach(k => P.push(k === '美術館' && EXVF.mus ? EXVF.mus : (EXV_LOC.find(x => x[0] === k) || [k, k])[1])); EXVF.era.forEach(k => P.push(k)); EXVF.st.forEach(k => P.push((EXV_ST.find(x => x[0] === k) || [k, k])[1]));
+  const hd = cut(P, 2); if (EXVF.kind.length) { const kk = cut(EXVF.kind, 2) + '集'; return hd ? hd + 'の' + kk : kk; } return hd + 'の作品'; };
 /* 作品アルバムのカテゴリ（すべて・自宅・美術館…）に入る作品番号 */
 function exvSet(k, mus, q){ const b = [S.filter, S.mus, S.q]; S.filter = k; S.mus = mus || ''; S.q = q || ''; let a = []; try { a = filtered(); } catch(e){} finally { [S.filter, S.mus, S.q] = b; } return new Set(a.map(w => String(w['作品番号']))); }
 /* ---------- 組（パーツ）（10/7 開発 v10 本人「複数パーツを並べた作品の1パーツが1作品として台帳に入っていることがある（12個くらいまで）。くっつけて1作品に。足りないパーツも補って完成形を。全何パーツか決めて、順番はプレビューで入れかえ。キャプションはパーツの数だけ並べる」）
@@ -10578,7 +10580,7 @@ function exvBuild(root, L, start){
   let enAr = EN.ph ? Math.min(3, Math.max(0.33, EN.ph.ar)) : 0.8; /* 写真の形のまま（切り取らない。10/8 13:30 本人「展示ビューではトリミングなし」。極端に細長いものだけ） */
   const enTex = c => { const iw = c.width, ih = c.height; let sx = 0, sy = 0, sw = iw, sh = ih; if (iw / ih > enAr) { sw = ih * enAr; sx = (iw - sw) / 2; } else if (iw / ih < enAr) { sh = iw / enAr; sy = (ih - sh) * 0.3; } /* 形が合わないときは切り出す（顔は上のほうにあることが多いので、縦は上寄り） */
     const [o, ox] = cvs(Math.max(1, Math.round(sw)), Math.max(1, Math.round(sh))); ox.drawImage(c, sx, sy, sw, sh, 0, 0, o.width, o.height); if (enFront.map) enFront.map.dispose(); enFront.map = mkTex(o); enFront.color.set('#ffffff'); enFront.needsUpdate = true; };
-  const enPh = new T3.Mesh(new T3.BoxGeometry(1, 1, 1), [enEdge, enEdge, enEdge, enEdge, enFront, enEdge]); enPh.castShadow = true; enPh.visible = !!EN.pid; enPh.raycast = () => {}; if (EN.ph) enTex(EN.ph.c); sc.add(enPh);
+  enFront.roughness = 0.66; const enPh = new T3.Mesh(new T3.PlaneGeometry(1, 1), enFront); enPh.receiveShadow = true; enPh.visible = !!EN.pid; enPh.raycast = () => {}; if (EN.ph) enTex(EN.ph.c); sc.add(enPh); /* 13:39 本人「パネルをやめて壁に大きく貼る（ポスターのイメージ）」：厚みのない紙を壁に貼る */
   /* サイン：写真の左下に金箔（10/8 本人「画集『反骨の画家』の表紙と同じイメージ。画面遷移で動くように」）。金属の面に、部屋の明かり（enEnv）とスポットが映り込み、動くと光り方が変わる。サインがないときは縦書きの名前を金箔で */
   const enGm = EN.sg || { c: exvVName() }; if (!enGm.ar) enGm.ar = enGm.c.width / enGm.c.height; const enGd = exvGold(enGm);
   const enEnv = (() => { try { const es = new T3.Scene(), bm = c => new T3.MeshBasicMaterial({ color: c, side: T3.DoubleSide }); const bx = new T3.Mesh(new T3.BoxGeometry(12, 7, 12), new T3.MeshBasicMaterial({ color: '#5e5850', side: T3.BackSide })); es.add(bx);
@@ -10588,9 +10590,7 @@ function exvBuild(root, L, start){
       const pm = new T3.PMREMGenerator(r), rt = pm.fromScene(es, 0.02); pm.dispose(); return rt.texture; } catch(e){ return null; } })();
   const enGM = new T3.MeshStandardMaterial({ map: mkTex(enGd.g), bumpMap: mkTex(enGd.b, false), bumpScale: 0.0005, transparent: true, metalness: 1, roughness: 0.24, envMap: enEnv, envMapIntensity: 1.3, depthWrite: false }); ENL.m = enEnv ? enGM : null;
   const enSg = new T3.Mesh(new T3.PlaneGeometry(1, 1), enGM); enSg.raycast = () => {}; sc.add(enSg);
-  /* 右の壁の縦書きの題：表示している作品のまとまり（全部なら「全作品」、しぼったら「自宅」「美術館」、館をえらんだらその館の名前）（10/8 本人「写真の中に名前を入れたので、名前の部分は全作品に。絞り込んだらその名前に」） */
-  const enTt = exvFTitle(), enTtC = exvVName(enTt), enTtN = [...enTt].length;
-  const enTtV = mkTex(enTtC), enTtHC = exvHName(enTt); let enTtH = null; const enTtM = new T3.Mesh(new T3.PlaneGeometry(1, 1), new T3.MeshStandardMaterial({ map: enTtV, transparent: true, roughness: 0.95, depthWrite: false })); enTtM.raycast = () => {}; sc.add(enTtM);
+  /* 題は壁に書かず、作品名と同じところ（上の文字）に出す（13:39 本人「屏風などのタイトルは作品名と同じ所に」。yTxt(-1)） */
   if (EN.pid && (!EN.ph || EN.lo)) exvThumb(EN.pid, 1200, 40000).then(src => src ? loadImg(src) : null).then(im => { if (im && !dead) { enTex(exvImgCv(im, 1600)); redraw(); } }).catch(() => {}); /* 細かい写真が間に合わなかったとき */
   /* シリーズ：同じシリーズ名が続く作品（2点以上）をひとまとまりに */
   for (let i = 0; i < items.length; ) { const s0 = items[i].d.s; let j = i + 1; while (s0 && j < items.length && items[j].d.s === s0) j++; if (s0 && j - i >= 2) { const g = { name: s0, n: j - i, m: [], lay: items[i].d.slay || null }; for (let q = i; q < j; q++) { g.m.push(q); items[q].grp = g; } } i = j; }
@@ -10711,18 +10711,12 @@ function exvBuild(root, L, start){
 
   const layout = () => { W = stage.clientWidth || innerWidth; H = stage.clientHeight || innerHeight; r.setSize(W, H); cam.aspect = W / H; cam.updateProjectionMatrix();
     const port = W / H < 1, kz = z => 2 * z * TN / H, kmin = kz(0.55), kmax = kz(14), mx = port ? 22 : 24, my = port ? 280 : 200; stops.length = 0; specs.length = 0; zoomed = false;
-    /* 入口：写真パネル（高さ 1.3m・厚さ 2.5cm、まん中の高さ 1.5m）。金箔のサインは左下（高さはパネルの 6 割の 90%、左と下を 4.5% あける）。右の壁に縦書きの題。写真がないときは金箔の名前と題 */
-    const PHe = EN.pid && enAr > 1.46 ? 1.9 / enAr : 1.3, PWe = EN.pid ? PHe * enAr : 0, ye = 1.5; let SWe, SHe2, TWm, THm; /* 横長の写真は幅 1.9m まで（高さを小さく） */
-    /* 題は 1字 15cm（長い館の名前はパネルの高さに収まるまで小さく）、パネルの右 24cm、上の端をパネルの上の端にそろえる */
-    const tc = Math.min(0.15, (EN.pid ? PHe : 1.3) / Math.max(1, enTtN)), GPt = 0.24; let tH = tc * enTtC.height / (96 * 1.16 * 2), tW = tH * enTtC.width / enTtC.height;
-    const ttTex = port && EN.pid ? (enTtH = enTtH || mkTex(enTtHC)) : enTtV; if (enTtM.material.map !== ttTex) { enTtM.material.map = ttTex; enTtM.material.needsUpdate = true; }
-    let eyS = ye; /* スマホの縦の画面：題はパネルの下に横書き、パネルは画面の左右まん中・少し上に（10/8 13:15 本人） */
-    if (EN.pid) { const gs = PHe * 0.045; SWe = 0.9 * Math.min(PWe * 0.32, PHe * 0.6 * enGm.ar); SHe2 = SWe / enGm.ar; TWm = PWe + GPt + tW; THm = PHe; enSg.position.set(gs + SWe / 2, ye - PHe / 2 + gs + SHe2 / 2, 0.0258); /* サインは左下：左と下のすき間を同じに（パネルの高さの 4.5%）、大きさは前の 90%（10/8 13:13 本人） */ enTtM.position.set(PWe + GPt + tW / 2, ye + PHe / 2 - tH / 2, 0.0016);
-      if (port) { const hH = 0.1, hW = Math.min(PWe, hH * enTtHC.width / enTtHC.height), hH2 = hW * enTtHC.height / enTtHC.width; tW = hW; tH = hH2; TWm = PWe; THm = PHe + 0.2 + hH2; enTtM.position.set(PWe / 2, ye - PHe / 2 - 0.2 - hH2 / 2, 0.0016); /* パネルの影にかからないよう 20cm 下（13:26 本人） */ eyS = ye - PHe * 0.16; } }
-    else { SWe = Math.min(0.5, 1.0 * enGm.ar); SHe2 = SWe / enGm.ar; TWm = SWe + GPt + tW; THm = Math.max(SHe2, tH); enSg.position.set(SWe / 2, ye, 0.0016); enTtM.position.set(SWe + GPt + tW / 2, ye + SHe2 / 2 - tH / 2, 0.0016); }
-    enTtM.scale.set(tW, tH, 1);
-    enPh.scale.set(Math.max(PWe, 0.001), PHe, 0.025); enPh.position.set(PWe / 2, ye, 0.0125); enSg.scale.set(SWe, SHe2, 1);
-    const kt = Math.max((TWm + 0.4) / (W - 2 * mx), (THm + 0.5) / (H - my)); stops.push({ x: TWm / 2, y: eyS, z: kt * H / (2 * TN) }); addSpec(TWm / 2, ye, TWm, THm, 0);
+    /* 入口：写真を壁に大きく貼る（ポスター。高さ 2m、横長は幅 2.8m まで、まん中の高さ 1.62m）。金箔のサインは左下（高さは写真の 6 割の 90% まで、左と下を写真の高さの 4.5% あける）。写真がないときは金箔の名前だけ */
+    const PHe = EN.pid ? Math.min(2.0, 2.8 / enAr) : 1.3, PWe = EN.pid ? PHe * enAr : 0, ye = 1.62; let SWe, SHe2, TWm, THm, eyS = ye;
+    if (EN.pid) { const gs = PHe * 0.045; SWe = 0.9 * Math.min(PWe * 0.32, PHe * 0.6 * enGm.ar); SHe2 = SWe / enGm.ar; TWm = PWe; THm = PHe; enSg.position.set(gs + SWe / 2, ye - PHe / 2 + gs + SHe2 / 2, 0.0026); if (port) eyS = ye - PHe * 0.06; }
+    else { SWe = Math.min(0.5, 1.0 * enGm.ar); SHe2 = SWe / enGm.ar; TWm = SWe; THm = SHe2; enSg.position.set(SWe / 2, ye, 0.0016); }
+    enPh.scale.set(Math.max(PWe, 0.001), PHe, 1); enPh.position.set(PWe / 2, ye, 0.0018); enSg.scale.set(SWe, SHe2, 1);
+    const kt = Math.max((TWm + 0.3) / (W - 2 * mx), (THm + 0.4) / (H - my)); stops.push({ x: TWm / 2, y: eyS, z: kt * H / (2 * TN) }); addSpec(TWm / 2, ye, TWm, THm, 0);
     let x = TWm + 1.8;
     const FW = port ? 0.72 : 0.64, FH = port ? 0.46 : 0.62;
     /* 1点ぶんの見せ方：画面に占める割合（シリーズの中は少し大きく＝間をつめて掛ける）・キャプションの置き方・見る高さ */
@@ -10891,8 +10885,8 @@ function exvBuild(root, L, start){
   const SP = 15, yEl = root.querySelector('.yrs'), yNum = root.querySelector('.ynum'), yLoc = root.querySelector('.yloc'), yDots = root.querySelector('.ydots'), DOTS = [];
   const yC = yDots.querySelector('.yc'), yFl = yDots.querySelector('.yfl'), yTr = yDots.querySelector('.ytr'), yCn = yDots.querySelector('.ycn'), YTW = 128; /* 位置の線の長さ（px） */
   let U = -1, yd = false, yA = false, yx = 0, yv = 0, yt = 0, ymv = 0, yHide = 0; const uHi = () => items.length - 1;
-  const yTxt = k => k < 0 ? '' : (String(L[k].w['作品名'] || '').trim() || '無題');
-  const yLocTx = k => k < 0 ? '' : exvLocOf(L[k]); /* 作品名の下の、いまの場所（10/7 本人） */
+  const yTxt = k => k < 0 ? exvFTitle() : (String(L[k].w['作品名'] || '').trim() || '無題'); /* 入口は表示している作品のまとまりの名前（全作品・屏風集など） */
+  const yLocTx = k => k < 0 ? L.length + '点' : exvLocOf(L[k]); /* 作品名の下の、いまの場所（10/7 本人） */
   const yG = () => 14;
   xPP.innerHTML = STOP; xPP.onclick = () => { poke(); if (playing) setPlay(false); else { setPlay(true); go(ci < stops.length - 1 ? ci + 1 : 1); } }; /* ▶︎ を押すとすぐ次へ。最後なら最初の作品から */
   const yrEl = root.querySelector('.xyr'); let yrT = 0, lastY = null;
