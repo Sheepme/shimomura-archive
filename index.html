@@ -1314,6 +1314,9 @@ body.loggedout::before{display:none}
 
 /* 年表・展覧会の「年」：ガラスのボタン＋画面いっぱいの線を、上のボタンのすぐ下にいっしょに固定。止まっている間は線より上をぼかす */
 html,body{overflow-x:clip}
+@media(max-width:899px){html.iosw .chips.stk{position:relative!important;top:auto!important}html.iosw .chips.stk.stkfx{position:fixed!important;left:0!important;right:0!important;top:var(--rowtop,0px)!important;transform:translateZ(0)!important}}
+html.iosw #main section.cy>.cyh{position:relative!important;top:auto!important;transition:none!important}
+html.iosw body:not(.zz1):not(.zz2):not(.zz3) #top .chips.stk:not(.stkfx){top:auto!important}
 .cy{grid-template-columns:1fr!important;gap:10px!important;padding-top:10px!important;margin-top:18px!important;border-top:0!important}
 .cy::before{display:none!important}
 @media(min-width:700px){.cy>.ce{padding-top:0!important}}
@@ -2477,7 +2480,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '2e8a8f2712', APP_URL = location.origin + location.pathname;
+const BUILD = 'a54331af20', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -10187,10 +10190,19 @@ function markStuck0(){ const hs = [...document.querySelectorAll('#main .cyh')]; 
   if (wide && tb) { const r = tb.getBoundingClientRect(); fx.style.top = r.top + 'px'; fx.style.setProperty('--abh', r.height + 'px'); inner.style.setProperty('padding-left', r.right + 'px', 'important'); } // パソコン：ページ名の右に並べる
   else { fx.style.top = t + 'px'; inner.style.setProperty('padding-left', Math.max(0, src.getBoundingClientRect().left) + 'px', 'important'); }
   src.style.visibility = 'hidden'; fx.classList.remove('hidden'); }
+/* iPhone・iPad（iOS 26 の Safari）：長いページを下までスクロールすると、position:sticky の要素（カテゴリの段・年表の年）が描かれなくなることがある（WebKit の不具合 298709）。
+   iOS では sticky を使わず、カテゴリの段は「止まる位置を過ぎたら fixed にして、元の場所に同じ高さの空きを置く」、年表の年はふつうに流す（10/8 本人「年表でスクロールするとカテゴリと年が消える」） */
+const IOSW = (() => { try { if (localStorage.getItem('smr_iosw') === '1') return true; } catch(e){} return /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); })();
+if (IOSW) document.documentElement.classList.add('iosw');
+function stkFix(el, top){ let ph = el.previousElementSibling; if (!(ph && ph.classList.contains('stkph'))) ph = null;
+  const nat = (ph || el).getBoundingClientRect().top, on = innerWidth < 900 && nat < top - 0.5;
+  if (on && !ph) { ph = document.createElement('div'); ph.className = 'stkph'; ph.style.height = el.offsetHeight + 'px'; el.parentNode.insertBefore(ph, el); el.classList.add('stkfx'); }
+  else if (!on && ph) { ph.remove(); el.classList.remove('stkfx'); }
+  else if (on && ph) ph.style.height = el.offsetHeight + 'px'; }
 function hdStick(){ const hd = document.getElementById('top'), ab = hd && hd.querySelector('.appbar'); if (!hd || !ab) return;
-  const rows = [...hd.querySelectorAll('#finder:not(.hidden) .chips:not(.hidden), #chronobar:not(.hidden) .chips')].filter(x => x.offsetParent);
+  const rows = [...hd.querySelectorAll('#finder:not(.hidden) .chips:not(.hidden), #chronobar:not(.hidden) .chips')].filter(x => x.offsetParent || (x.classList.contains('stkfx') && x.getClientRects().length)); /* fixed にした段は offsetParent が空になる */
   const last = rows[rows.length - 1];
-  hd.querySelectorAll('.chips.stk').forEach(x => { if (x !== last) x.classList.remove('stk'); }); if (last) last.classList.add('stk');
+  hd.querySelectorAll('.chips.stk').forEach(x => { if (x !== last) { x.classList.remove('stk', 'stkfx'); const p = x.previousElementSibling; if (p && p.classList.contains('stkph')) p.remove(); } }); if (last) last.classList.add('stk');
   const tuck = hd.classList.contains('tuck') && !document.body.classList.contains('pgopen'), cs = getComputedStyle(document.documentElement);
   let pr = document.getElementById('safeProbe'); if (!pr) { pr = document.createElement('div'); pr.id = 'safeProbe'; pr.style.cssText = 'position:fixed;left:0;top:0;width:0;visibility:hidden;pointer-events:none;height:calc(var(--tb,0px) + var(--cap,0px))'; document.body.appendChild(pr); }
   const safe = pr.offsetHeight; // 画面上の切り欠きの高さ（実際の長さで測る）
@@ -10198,8 +10210,9 @@ function hdStick(){ const hd = document.getElementById('top'), ab = hd && hd.que
   document.documentElement.style.setProperty('--abb', abb + 'px'); document.documentElement.style.setProperty('--safe', safe + 'px');
   if (!document.getElementById('safeCover')) { const sc = document.createElement('div'); sc.id = 'safeCover'; document.body.appendChild(sc); }
   document.documentElement.style.setProperty('--rowtop', top + 'px'); document.documentElement.style.setProperty('--rowh', (last ? last.offsetHeight : 0) + 'px');
+  if (IOSW && last) stkFix(last, top);
   return last ? top + last.offsetHeight : top; }
-function stkTop(){ try { const rows = [...document.querySelectorAll('#finder > .chips')].filter(e => e.offsetParent && !e.classList.contains('hidden')); document.documentElement.style.setProperty('--fmh', Math.max(0, rows.reduce((a, e) => a + e.getBoundingClientRect().height, 0) - .5) + 'px'); /* 少しだけ重ねて、カテゴリと並べ替えの段のあいだにすき間を出さない（10/7 本人） */
+function stkTop(){ try { const rows = [...document.querySelectorAll('#finder > .chips')].filter(e => (e.offsetParent || e.classList.contains('stkfx')) && !e.classList.contains('hidden')); document.documentElement.style.setProperty('--fmh', Math.max(0, rows.reduce((a, e) => a + e.getBoundingClientRect().height, 0) - .5) + 'px'); /* 少しだけ重ねて、カテゴリと並べ替えの段のあいだにすき間を出さない（10/7 本人） */
     if (!stkTop.ro && window.ResizeObserver) { stkTop.ro = new ResizeObserver(() => { clearTimeout(stkTop.t); stkTop.t = setTimeout(stkTop, 60); }); document.querySelectorAll('#finder > .chips, #top .appbar').forEach(e => stkTop.ro.observe(e)); } } catch(e){} /* 文字の読み込みなどでカテゴリの段の高さが変わったら測り直す */ /* 並び替えの段は、カテゴリの段のすぐ下に止める */
   let hb = 0; try { hb = hdStick() || 0; } catch(e){} const ab = document.querySelector('#top .appbar'); const b = hb ? hb + 6 : (ab ? Math.max(0, ab.getBoundingClientRect().bottom + 6) : 0); document.documentElement.style.setProperty('--stk', b + 'px'); document.documentElement.style.setProperty('--stkx', '0px');  markStuck(); }
 window.addEventListener('resize', () => stkTop());
@@ -10972,8 +10985,13 @@ function exvBuild(root, L, start){
   const retry = it => { if (!it.req || it.hi) return; it.tries = (it.tries || 0) + 1; const D = [1200, 3000, 7000, 15000, 30000].concat(it.fresh ? [30000, 30000, 30000] : []); /* 登録して20分以内の写真（切り抜き・補正したばかりなど）は、Google 側の縮小写真ができるまで長めに待つ */
     if (it.tries > D.length) { if (!it.pt) { it.fail = 1; ldDraw(it, 0); redraw(); } return; } const ms = D[it.tries - 1];
     setTimeout(() => { if (EXV && it.req && !it.hi) { PQ.set(it.d.id, it); clearTimeout(PQT); PQT = setTimeout(pull, 40); } }, ms); };
-  const pull = async () => { const cur = ci - 1, all = [...PQ.entries()].sort((a, b) => Math.abs(items.indexOf(a[1]) - cur) - Math.abs(items.indexOf(b[1]) - cur)); /* いま見ている作品から先に */
-    const batch = all.slice(0, 6); batch.forEach(([id]) => PQ.delete(id)); if (!batch.length) return; if (PQ.size) PQT = setTimeout(pull, 60);
+  /* 読み込みは同時に2組まで。組を作るのは送る直前（そのとき見ている作品に近い順）にする。つまみで速く動いたとき、通り過ぎた作品の分が先に並んで、止まった作品が待たされていた（10/8 本人「スライダで移動した後、読み込みが終わらない」） */
+  let PB = 0;
+  const pull = async () => { if (PB >= 2) return; const cur = ci - 1, dist = it => Math.abs(items.indexOf(it) - (ci - 1)); [...PQ.entries()].forEach(([id, it]) => { if (!it.req) PQ.delete(id); });
+    const all = [...PQ.entries()].sort((a, b) => dist(a[1]) - dist(b[1])); /* いま見ている作品から先に */
+    const batch = all.slice(0, 6); batch.forEach(([id]) => PQ.delete(id)); if (!batch.length) return; PB++;
+    try { await pull1(batch); } finally { PB--; if (PQ.size) { clearTimeout(PQT); PQT = setTimeout(pull, 20); } } };
+  const pull1 = async batch => { const dist = it => Math.abs(items.indexOf(it) - (ci - 1));
     const ids = batch.map(([id]) => id), out = {}, need = [], PQ0 = Object.fromEntries(batch);
     ids.forEach(id => { const v = TH['800_' + id]; if (v && /^data:/.test(v)) out[id] = v; else need.push(id); });
     const tmo = (p, ms) => Promise.race([p, new Promise(r => setTimeout(() => r(null), ms))]);
@@ -10984,6 +11002,7 @@ function exvBuild(root, L, start){
       const ask = []; rest.forEach(id => { const v = TH['400_' + id] || sv['400_' + id]; if (v && /^data:/.test(v)) { TH['400_' + id] = v; loP(id, v); } else if (PQ0[id].req && !PQ0[id].lo) ask.push(id); });
       if (ask.length) { try { const m = await tmo(call('getThumbs', ask, 400, null, 1), 20000), kl = {}; ask.forEach(id => { const v = m && m[id]; if (v && /^data:/.test(v)) { TH['400_' + id] = v; kl['400_' + id] = v; loP(id, v); } }); if (Object.keys(kl).length) thPut(kl); } catch(e){} }
       rest = rest.filter(id => PQ0[id].req); /* 遠ざかった作品の 800px は頼まない */
+      rest = rest.filter(id => { if (dist(PQ0[id]) <= 2) return true; PQ.set(id, PQ0[id]); return false; }); /* 800px は、いま見ている作品のまわり（前後2点）を先に。ほかは並び直して、あとで */
       const take = (m, keep) => { rest = rest.filter(id => { const v = m && m[id]; if (v && /^data:/.test(v)) { out[id] = v; TH['800_' + id] = v; keep['800_' + id] = v; return false; } return true; }); };
       const keep = {};
       if (rest.length && fpOn()) { try { take(await tmo(fpThumbs(false, [rest, 800], false), 8000), keep); } catch(e){} } /* Mac・ドライブから速く読む設定：3Dに貼れる data: だけ使う */
