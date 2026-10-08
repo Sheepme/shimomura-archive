@@ -2320,6 +2320,12 @@ button.ulrow{cursor:pointer}
 .pjrow{display:flex;height:120px;background:var(--wash);border-radius:8px;overflow-x:auto;justify-content:safe center}
 .pjrow img{height:100%;width:auto;display:block;flex:none}
 .pjmain{margin:4px 0 8px}
+.pjgap{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px}
+.pjgap span{font-size:13px;color:var(--sub);margin-right:2px}
+.pjgap button{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer}
+.pjgap button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pjgap small{flex-basis:100%;color:var(--sub);font-size:12px}
+.pjrow.pjclear{background-color:#fff;background-image:linear-gradient(45deg,#ddd 25%,transparent 25%,transparent 75%,#ddd 75%),linear-gradient(45deg,#ddd 25%,transparent 25%,transparent 75%,#ddd 75%);background-size:14px 14px;background-position:0 0,7px 7px}
 .scexb{display:inline-flex;align-items:center;gap:6px;border:0;background:none;color:var(--sub);font-size:13px;padding:4px 0;cursor:pointer}.scexb span{text-decoration:underline;text-underline-offset:3px}
 .scexc{display:inline-flex;align-items:center;gap:2px;font-size:12.5px;padding:3px 4px 3px 10px;border-radius:999px;background:var(--wash);color:var(--ink)}.scexc button{border:0;background:none;font-size:15px;line-height:1;padding:0 4px;cursor:pointer;color:var(--sub)}
 .scov{position:absolute;inset:0;background:var(--bg);z-index:6;display:flex;flex-direction:column}.scov.hidden{display:none}
@@ -2592,7 +2598,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '00cc8c4421', APP_URL = location.origin + location.pathname;
+const BUILD = '470f128d70', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3848,28 +3854,30 @@ const JOIN_PX = 15e6, isJoin = p => /組み写真：/.test(String((p || {})['メ
 function pjoin(no){ if (!canEdit()) return; const L = (photoBy[no] || []).filter(p => p['ファイルID']); if (L.length < 2) return toast('写真が2枚以上あるときに使えます'); let SEL = [];
   openSheet(`<h3>組み写真をつくる（襖・屏風など）</h3><p class="hint">分けて撮った写真を、<b>左から順に</b>選んでください（2〜8枚）。高さをそろえて横に並べ、1枚の写真にします。元の写真はそのまま残ります。</p>
     <div class="pjgrid">${L.map(p => `<button type="button" class="pjit" data-pj="${esc(p['写真ID'])}">${thImg(p['ファイルID'], 400)}<span class="pjk">${esc(p['種類'] || '')}${isJoin(p) ? '・組み写真' : ''}</span><span class="pjn"></span></button>`).join('')}</div>
-    <div class="pjpv hidden"><div class="pjpvh"><small>できあがり（左から）</small><button type="button" class="pjrev">⇄ 左右を入れかえる</button></div><div class="pjrow"></div></div>
+    <div class="pjpv hidden"><div class="pjpvh"><small>できあがり（左から）</small><button type="button" class="pjrev">⇄ 左右を入れかえる</button></div><div class="pjrow"></div>
+      <div class="pjgap"><span>写真のあいだのすき間</span>${[0, 1, 2, 4, 8].map(g => `<button type="button" data-pjg="${g}" class="${g ? '' : 'on'}">${g ? g + '%' : 'なし'}</button>`).join('')}<small>すき間は透明（PNG で保存）。％は写真の高さに対する割合</small></div></div>
     <label class="scmain pjmain"><input type="checkbox" checked> メイン画像にする</label>
     <div class="btns"><button type="button" data-close>やめる</button><button type="button" class="main pjgo" disabled>写真を2枚以上選んでください</button></div>`);
-  const sh = $('#sheet'); hydrate(sh);
+  const sh = $('#sheet'); hydrate(sh); let GAP = 0;
   const draw = () => { sh.querySelectorAll('[data-pj]').forEach(b => { const i = SEL.indexOf(b.dataset.pj); b.classList.toggle('on', i >= 0); b.querySelector('.pjn').textContent = i >= 0 ? i + 1 : ''; });
-    const row = sh.querySelector('.pjrow'); sh.querySelector('.pjpv').classList.toggle('hidden', !SEL.length); row.innerHTML = SEL.map(id => thImg((L.find(x => x['写真ID'] === id) || {})['ファイルID'], 400)).join(''); hydrate(row);
+    const row = sh.querySelector('.pjrow'); row.style.columnGap = (120 * GAP / 100) + 'px'; row.classList.toggle('pjclear', GAP > 0); sh.querySelector('.pjpv').classList.toggle('hidden', !SEL.length); row.innerHTML = SEL.map(id => thImg((L.find(x => x['写真ID'] === id) || {})['ファイルID'], 400)).join(''); hydrate(row);
     const g = sh.querySelector('.pjgo'); g.disabled = SEL.length < 2; g.textContent = SEL.length < 2 ? '写真を2枚以上選んでください' : SEL.length + '枚を横に並べて1枚にする'; };
   sh.querySelector('.pjgrid').onclick = e => { const b = e.target.closest('[data-pj]'); if (!b) return; const id = b.dataset.pj, i = SEL.indexOf(id); if (i >= 0) SEL.splice(i, 1); else if (SEL.length < 8) SEL.push(id); draw(); };
   sh.querySelector('.pjrev').onclick = () => { SEL.reverse(); draw(); };
-  sh.querySelector('.pjgo').onclick = () => { const P = SEL.map(id => L.find(x => x['写真ID'] === id)).filter(Boolean); if (P.length >= 2) pjoinMake(no, P, sh.querySelector('.pjmain input').checked); }; }
-async function pjoinMake(no, P, main){ closeSheet(); busy(true, '写真を読み込んでいます…（' + P.length + '枚）');
+  sh.querySelector('.pjgap').onclick = e => { const b = e.target.closest('[data-pjg]'); if (!b) return; GAP = +b.dataset.pjg; sh.querySelectorAll('[data-pjg]').forEach(x => x.classList.toggle('on', x === b)); draw(); };
+  sh.querySelector('.pjgo').onclick = () => { const P = SEL.map(id => L.find(x => x['写真ID'] === id)).filter(Boolean); if (P.length >= 2) pjoinMake(no, P, sh.querySelector('.pjmain input').checked, GAP); }; }
+async function pjoinMake(no, P, main, gp){ gp = Math.max(0, Math.min(20, +gp || 0)); /* gp：写真のあいだのすき間（高さに対する％）。すき間は透明 → PNG（大きくなりすぎないよう 800万画素まで） */ closeSheet(); busy(true, '写真を読み込んでいます…（' + P.length + '枚）');
   try { const ims = [];
     for (const p of P) { const o = await call('getOriginal', p['ファイルID']).catch(() => null), im = o && o.b64 ? await loadImg('data:' + (o.mime || 'image/jpeg') + ';base64,' + o.b64).catch(() => null) : null; if (!im) throw new Error('写真（' + (p['種類'] || '') + '）を読み込めませんでした'); ims.push(im); }
     busy(true, '横に並べています…');
-    const H0 = Math.min(...ims.map(im => im.naturalHeight)), ws = ims.map(im => im.naturalWidth * H0 / im.naturalHeight), W0 = ws.reduce((a, b) => a + b, 0), k = Math.min(1, Math.sqrt(JOIN_PX / (W0 * H0)), 16000 / W0);
-    const c = document.createElement('canvas'), H = Math.max(1, Math.round(H0 * k)); c.width = Math.max(1, Math.round(W0 * k)); c.height = H; const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, H); g.imageSmoothingQuality = 'high';
-    let x = 0; ims.forEach((im, i) => { const x0 = Math.round(x), x1 = i === ims.length - 1 ? c.width : Math.round(x + ws[i] * k); g.drawImage(im, x0, 0, x1 - x0, H); x += ws[i] * k; });
-    const b64 = c.toDataURL('image/jpeg', 0.92).split(',')[1], seeds = crSeeds(c); c.width = c.height = 1;
-    const cp = P.map(copyOf).find(Boolean), tag = '組み写真：' + P.map(p => p['写真ID']).join('＋'), memo = cp ? copyCrMemo(cp, tag) : tag;
+    const H0 = Math.min(...ims.map(im => im.naturalHeight)), ws = ims.map(im => im.naturalWidth * H0 / im.naturalHeight), G0 = H0 * gp / 100, W0 = ws.reduce((a, b) => a + b, 0) + G0 * (ims.length - 1), k = Math.min(1, Math.sqrt((gp ? 8e6 : JOIN_PX) / (W0 * H0)), 16000 / W0);
+    const c = document.createElement('canvas'), H = Math.max(1, Math.round(H0 * k)); c.width = Math.max(1, Math.round(W0 * k)); c.height = H; const g = c.getContext('2d'); if (!gp) { g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, H); } g.imageSmoothingQuality = 'high';
+    let x = 0; ims.forEach((im, i) => { const x0 = Math.round(x), x1 = i === ims.length - 1 ? c.width : Math.round(x + ws[i] * k); g.drawImage(im, x0, 0, x1 - x0, H); x += ws[i] * k + G0 * k; });
+    const mime = gp ? 'image/png' : 'image/jpeg', b64 = c.toDataURL(mime, 0.92).split(',')[1], seeds = crSeeds(c, !!gp); c.width = c.height = 1;
+    const cp = P.map(copyOf).find(Boolean), tag = '組み写真：' + P.map(p => p['写真ID']).join('＋') + (gp ? '｜すき間 ' + gp + '%' : ''), memo = cp ? copyCrMemo(cp, tag) : tag;
     const has = () => S.photos.some(x => x['作品番号'] === no && String(x['メモ'] || '').includes(tag));
     busy(true, '保存しています…');
-    const sr = await crCall('saveCrop', [{ no, oid: '_' + P[0]['写真ID'], cid: '', b64, mime: 'image/jpeg', kind: '表', memo, main, led: null }], has); /* 元の写真を「記録写真」にしないよう、見つからない番号を渡す */
+    const sr = await crCall('saveCrop', [{ no, oid: '_' + P[0]['写真ID'], cid: '', b64, mime, kind: '表', memo, main, led: null }], has); /* 元の写真を「記録写真」にしないよう、見つからない番号を渡す */
     if (sr && sr.photos) { S.photos = S.photos.filter(x => x['作品番号'] !== no).concat(sr.photos); index(); } else if (!has()) setData(await call('getData'));
     const pid = (sr && sr.pid) || (S.photos.filter(x => x['作品番号'] === no && String(x['メモ'] || '').includes(tag)).pop() || {})['写真ID'];
     if (pid) crSeed(pid, seeds);
@@ -8118,8 +8126,8 @@ async function cropSave(){ const c0 = CR; if (!c0 || c0.saving || !c0.img) retur
 function hqScale(src, W, H){ let cur = src, cw = src.naturalWidth || src.width, ch = src.naturalHeight || src.height; W = Math.max(1, Math.round(W)); H = Math.max(1, Math.round(H));
   while (cw / 2 >= W * 1.05 && ch / 2 >= H * 1.05) { const t = document.createElement('canvas'); t.width = Math.max(W, Math.round(cw / 2)); t.height = Math.max(H, Math.round(ch / 2)); const g = t.getContext('2d'); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(cur, 0, 0, t.width, t.height); if (cur !== src) { cur.width = cur.height = 1; } cur = t; cw = t.width; ch = t.height; }
   const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d'); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(cur, 0, 0, W, H); if (cur !== src) { cur.width = cur.height = 1; } return c; }
-function crSeeds(oc){ const out = {}; try { let base = oc; [1600, 1200, 800, 400].forEach(w => { const k = Math.min(1, w / oc.width), W = Math.max(1, Math.round(oc.width * k)), H = Math.max(1, Math.round(oc.height * k));
-  const c = hqScale(base, W, H); out[w] = c.toDataURL('image/jpeg', 0.9); if (base !== oc) { base.width = base.height = 1; } base = c; }); if (base !== oc) { base.width = base.height = 1; } } catch(e){} return out; }
+function crSeeds(oc, png){ const out = {}; try { let base = oc; [1600, 1200, 800, 400].forEach(w => { const k = Math.min(1, w / oc.width), W = Math.max(1, Math.round(oc.width * k)), H = Math.max(1, Math.round(oc.height * k));
+  const c = hqScale(base, W, H); out[w] = png ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.9); /* すき間が透明の組み写真は PNG のまま */ if (base !== oc) { base.width = base.height = 1; } base = c; }); if (base !== oc) { base.width = base.height = 1; } } catch(e){} return out; }
 function crSeed(pid, seeds){ const fid = pid && (crPh(pid) || {})['ファイルID']; if (!fid || !seeds) return; const keep = {};
   Object.keys(seeds).forEach(w => { const u = seeds[w]; if (!u) return; TH[w + '_' + fid] = u; if (+w <= 800) keep[w + '_' + fid] = u; }); try { thPut(keep); } catch(e){} }
 /* 補正をやめる：補正した写真をアーカイブへ移し、元の写真の種類とメイン画像をもどす */
@@ -11388,7 +11396,7 @@ function exvBuild(root, L, start){
     const tr = it.tr || it.wm / it.hm, ir = iw / ih; let sx = 0, sy = 0, sw = iw, sh = ih;
     if (Math.abs(ir / tr - 1) > 0.06) { if (ir > tr) { sw = ih * tr; sx = (iw - sw) / 2; } else { sh = iw / tr; sy = (ih - sh) / 2; } } /* 形が台帳と合わないときは、まん中を切り出す */
     const k = Math.min(1, (it.hdMx || it.mx || (it.d.set ? 2048 : 1024)) / Math.max(sw, sh)), cw = Math.max(2, Math.round(sw * k)), ch = Math.max(2, Math.round(sh * k)), c = it.cv, x = c.getContext('2d');
-    c.width = cw; c.height = ch; x.imageSmoothingQuality = 'high'; x.drawImage(k < 0.6 ? hqScale(im, Math.round(iw * k), Math.round(ih * k)) : im, k < 0.6 ? sx * k : sx, k < 0.6 ? sy * k : sy, k < 0.6 ? cw : sw, k < 0.6 ? ch : sh, 0, 0, cw, ch);
+    c.width = cw; c.height = ch; x.fillStyle = EXWC; x.fillRect(0, 0, cw, ch); /* 透明な所（組み写真のすき間）は壁の色に */ x.imageSmoothingQuality = 'high'; x.drawImage(k < 0.6 ? hqScale(im, Math.round(iw * k), Math.round(ih * k)) : im, k < 0.6 ? sx * k : sx, k < 0.6 ? sy * k : sy, k < 0.6 ? cw : sw, k < 0.6 ? ch : sh, 0, 0, cw, ch);
     try { const id = x.getImageData(0, 0, cw, ch), q = id.data; for (let i = 0; i < q.length; i += 4) { const r0 = q[i], g0 = q[i + 1], b0 = q[i + 2], l = 0.299 * r0 + 0.587 * g0 + 0.114 * b0; q[i] = (l + (r0 - l) * 1.14 - 128) * 1.05 + 128; q[i + 1] = (l + (g0 - l) * 1.14 - 128) * 1.05 + 128; q[i + 2] = (l + (b0 - l) * 1.14 - 128) * 1.05 + 128; } x.putImageData(id, 0, 0); } /* 発色を少しよく（10/6 本人） */ catch(e){ c.width = c.height = 16; x.fillStyle = EXWC; x.fillRect(0, 0, 16, 16); it.tx.forEach(t => { t.needsUpdate = true; }); return redraw(); }
     matte(x, cw, ch); it.tx.forEach(t => { t.needsUpdate = true; }); redraw(); };
   const setPaint = (it, im0, lv) => { const S0 = it.d.set, tok = it.im, rest = S0.ids.slice(1), got = {}; rest.forEach(id => { const v = TH[lv + '_' + id]; if (v && /^data:/.test(v)) got[id] = v; });
