@@ -2174,6 +2174,8 @@ button.ulrow{cursor:pointer}
 .vbkw span{align-self:center}.vbkw button{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:4px 10px;font-size:12px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .scmain{display:flex;align-items:center;gap:8px;font-size:15px;white-space:nowrap}.scmain input{width:20px;height:20px}
 .cover.pbtop{max-width:min(640px,100%)}
+.pbph .pbsl{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:var(--wash);opacity:0;transition:opacity .9s ease;z-index:1;pointer-events:none}
+.pbph .pbsl.on{opacity:1}.pbph .wm{transition:opacity .9s}.pbph.pbon .wm{opacity:0}
 .pbgal{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
 .pbgal::-webkit-scrollbar{display:none}
 .pbgal a{flex:0 0 100%;scroll-snap-align:center;height:min(78vw,440px);display:flex;align-items:center;justify-content:center;position:relative;cursor:zoom-in;padding:10px;box-sizing:border-box}
@@ -2459,7 +2461,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'f7b25db3c2', APP_URL = location.origin + location.pathname;
+const BUILD = '815a4c5b9b', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6397,13 +6399,27 @@ function renderPbList(){
   $('#pq').oninput = e => { S.pq = e.target.value; drawPbList(); };
   drawPbList();
 }
+/* 画集の一覧：中のページ（スキャン・中面）がある本のサムネイルは、表紙 → 中のページ → … → 表紙 と順に、ゆっくり切りかえる（10/8 本人）。
+   画面に見えているものだけ、3秒ごと（となりどうしは1秒ずらす）。次のページの縮小写真は1つ先だけ読む。動きを減らす設定・ページを開いているあいだは止める */
+let PBC_T = 0;
+setInterval(() => { if (document.hidden || S.view !== 'pb' || !$('#page').classList.contains('hidden') || !$('#viewer').classList.contains('hidden')) return;
+  try { if (matchMedia('(prefers-reduced-motion: reduce)').matches) return; } catch(e){}
+  PBC_T++; const vh = innerHeight; document.querySelectorAll('#main .pbph.pbcyc').forEach((ph, k) => { if ((PBC_T + k) % 3) return; const r = ph.getBoundingClientRect(); if (r.bottom < 0 || r.top > vh) return; pbcStep(ph); }); }, 1000);
+function pbcImg(ph, fid){ let im = [...ph.querySelectorAll('.pbsl')].find(e => e.dataset.f === fid);
+  if (!im) { im = document.createElement('img'); im.className = 'pbsl'; im.alt = ''; im.dataset.f = fid; im.dataset.tid = fid; im.dataset.w = '400'; ph.appendChild(im); queueThumb(im); } return im; }
+function pbcStep(ph){ const ids = String(ph.dataset.pbs || '').split(',').filter(Boolean); if (!ids.length) return; const i = ((+ph.dataset.pbi || 0) + 1) % (ids.length + 1);
+  if (!i) { ph.querySelectorAll('.pbsl.on').forEach(e => e.classList.remove('on')); ph.classList.remove('pbon'); ph.dataset.pbi = 0; pbcImg(ph, ids[0]); return; } /* 表紙にもどる */
+  const im = pbcImg(ph, ids[i - 1]); if (!im.getAttribute('src') || !im.complete || !im.naturalWidth) return; /* まだ届いていないときは、次の回にもう一度 */
+  ph.querySelectorAll('.pbsl.on').forEach(e => { if (e !== im) e.classList.remove('on'); }); im.classList.add('on'); ph.classList.add('pbon'); ph.dataset.pbi = i;
+  if (ids[i]) pbcImg(ph, ids[i]); } /* 1つ先を読んでおく */
 function drawPbList(){
   const q = S.pq.normalize('NFKC').trim().toLowerCase();
   const list = S.pubs.filter(p => (S.pt==='すべて' || p['種類']===S.pt) && (!S.pnl || !(worksByPb[p['資料ID']]||[]).length) && (!q || [p['タイトル'], p['発行元'], p['著者・編者'], p['発行年月'], p['掲載内容'], p['メモ']].join(' ').normalize('NFKC').toLowerCase().includes(q)))
     .sort((a,b) => dateKey(a['発行年月'])-dateKey(b['発行年月']) || String(a['タイトル']).localeCompare(String(b['タイトル']),'ja'));
   let html = `<div class="chead"><h2>画集・資料</h2><p class="csub">${list.length}件${list.length!==S.pubs.length ? '（全' + S.pubs.length + '件）' : ''}</p></div>`;
   html += '<div class="grid">' + list.map(p => { const n = new Set(worksByPb[p['資料ID']]||[]).size;
-    return `<button class="tile" data-pb="${esc(p['資料ID'])}"><div class="ph pbph">${hasCover(p) ? thImg(p['表紙写真ファイルID'], 400) + wm(coverPh(p)) : `<span class="pbt">${esc(p['タイトル']||'（書名未入力）')}</span>`}</div>
+    const T = hasCover(p) ? pbTop(p['資料ID']) : []; /* 中のページがある本は、表紙 → 中のページ の順に切りかえる（pbcStep） */
+    return `<button class="tile" data-pb="${esc(p['資料ID'])}"><div class="ph pbph${T.length > 1 ? ' pbcyc' : ''}"${T.length > 1 ? ` data-pbs="${esc(T.slice(1).map(x => x['ファイルID']).join(','))}"` : ''}>${hasCover(p) ? thImg(p['表紙写真ファイルID'], 400) + wm(coverPh(p)) : `<span class="pbt">${esc(p['タイトル']||'（書名未入力）')}</span>`}</div>
       <div class="cap"><div class="no">${esc([p['種類'], yr(p['発行年月'])].filter(Boolean).join('・'))}</div><div class="tt">${esc(p['タイトル']||'（書名未入力）')}</div>${n ? `<div class="yr">掲載作品 ${n}点</div>` : ''}</div></button>`; }).join('')
     + (canEdit() ? '<button class="tile addtile" data-addk="pb"><div class="ph pbph"><span class="plus">＋</span></div><div class="cap"><div class="tt">追加する</div></div></button>' : '') + '</div>';
   if (!list.length) html += '<p class="muted" style="text-align:center;padding:40px 0">見つかりませんでした</p>';
