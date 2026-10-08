@@ -35,9 +35,18 @@
       else o[k] = v; });
     return o;
   }
+  /* 軽い保存（10/9 開発 v14）：保存のあと Google 側は、書いたシートの分だけ返す（__part）。ほかは端末の控え（C）から足して、いつもの形にして画面に渡す */
+  var LITE = ['updateWork','updateWorks','addEvent','updateEvent','setLocConfirmed','setFlag','newWork','addPhoto','linkPhotos','mergeWorks','updateExhibit','updatePub','newExhibit','newPub','setDocCheck','learnAlias','resolveDiff','resolveDiffOther','linkWorks','unlinkEvent','replacePhoto','addCover','newOther','newOtherFromUrl','addDoc','registerDoc','setDocTitle','setDocState','interviewSave','saveVenue','deleteVenue','archiveItem','restoreItem','saveMemo','moveToOther','moveToMain','setFind','setFinds','fixPlaces','moveDocWork'];
+  function full(p){
+    if (!p || typeof p !== 'object' || !Array.isArray(p.__part) || !C) return p;
+    var d = {}, ks = p.__keys || [];
+    ks.forEach(function(k){ if (p.__part.indexOf(k) >= 0) d[k] = p[k]; else if (C.s[k]) d[k] = C.s[k].map(function(x){ return JSON.parse(x); }); else if (k in C.o) d[k] = C.o[k]; });
+    Object.keys(p).forEach(function(k){ if (k.charAt(0) !== '_' && ks.indexOf(k) < 0) d[k] = p[k]; }); /* newId などの知らせ */
+    return d;
+  }
   function take(v){ // 受け取ったデータを元の形に戻し、覚え直す（画面が中身を書きかえる前に）
-    if (v && v.__pk) v = unpack(v); if (isData(v)) { remember(v); return v; }
-    if (v && typeof v === 'object' && v.data) { if (v.data.__pk) v.data = unpack(v.data); if (isData(v.data)) remember(v.data); }
+    if (v && v.__pk) v = unpack(v); v = full(v); if (isData(v)) { remember(v); return v; }
+    if (v && typeof v === 'object' && v.data) { if (v.data.__pk) v.data = unpack(v.data); v.data = full(v.data); if (isData(v.data)) remember(v.data); }
     return v;
   }
   function send(fn, args){ return ready.then(function(){ return send2(fn, args); }); }
@@ -46,7 +55,7 @@
     if (UNL) return new Promise(function(){}); var t0 = Date.now(), tries = 0;
     function once(){
       tries++;
-      var body = { fn: fn, args: args }; if (C && NOH.indexOf(fn) < 0) { body.h = {}; Object.keys(C.h).forEach(function(k){ body.h[k] = C.h[k].join(','); }); }
+      var body = { fn: fn, args: args }; if (C && LITE.indexOf(fn) >= 0) body.lite = 1; if (C && NOH.indexOf(fn) < 0) { body.h = {}; Object.keys(C.h).forEach(function(k){ body.h[k] = C.h[k].join(','); }); }
       return fetch(API, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(body), redirect:'follow', cache:'no-store'})
         .then(function(r){ if (!r.ok) { var er = new Error('通信に失敗しました（' + r.status + '）'); er.net = true; throw er; } return r.json(); }, function(e){ if (UNL) return new Promise(function(){}); var sec = Math.round((Date.now() - t0) / 1000), er = new Error(sec > 40 ? '時間がかかりすぎて止まりました（' + fn + '・' + sec + '秒）\nもう一度ためしてください。' : '通信が切れました（' + fn + '・' + sec + '秒）\nもう一度ためしてください。'); er.net = true; throw er; })
         .then(function(j){
@@ -81,6 +90,7 @@
 <style>
 /* 画像を保存・コピーしにくくする（右クリック・長押し・ドラッグ・選択）。スクリーンショットは防げない（開発 v10） */
 img,canvas,video,picture{-webkit-user-drag:none;user-drag:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.dvbar{display:flex;gap:8px;margin:8px 0}.dvbar button{padding:7px 14px;border:1px solid var(--line);border-radius:999px;background:var(--paper);color:var(--ink);font-size:14px}.dvg{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin:8px 0 14px}.dvi{position:relative;display:flex;flex-direction:column;gap:3px;cursor:pointer}.dvi input{position:absolute;top:6px;left:6px;width:20px;height:20px;z-index:1}.dvth{display:block;aspect-ratio:1;background:var(--accent-soft);border-radius:8px;overflow:hidden}.dvth img{width:100%;height:100%;object-fit:cover}.dvi small{font-size:11px;color:var(--sub);line-height:1.3}.dvi input:not(:checked)~.dvth{opacity:.4}
 </style>
 <script>
 /* 画像の上の右クリック・長押しのメニュー（画像を保存・コピー）、画像のドラッグ、画像を含む選択のコピーを止める（10/7 開発 v10）。
@@ -2598,7 +2608,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '22147b7930', APP_URL = location.origin + location.pathname;
+const BUILD = '42595ba251', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -9357,7 +9367,7 @@ function openMe(anc){ /* 名前ボタンの上に出る小さな吹き出しメ�
   const grp = (h, L) => { const b = L.filter(Boolean).join(''); return b ? `<div class="megp">${h ? '<p class="meh">' + h + '</p>' : ''}${b}</div>` : ''; };
   const mdN = S.vm === 'guest' ? 'ゲスト' : S.vm === 'view' ? '閲覧' : 'フル', isAdm = S.user.role === '管理' && !isGuest();
   let admOpen = false; try { admOpen = localStorage.getItem('smr_meadm') === '1'; } catch(e){}
-  const admL = isAdm ? [fullMode() ? it('users', '利用者の追加') : '', fullMode() ? it('usage', '利用の記録', 'だれがいつ使ったか') : '', fullMode() ? it('sign', '展示ビューのサイン', '入口の写真に金箔で入るサイン') : '',
+  const admL = isAdm ? [fullMode() ? it('users', '利用者の追加') : '', fullMode() ? it('usage', '利用の記録', 'だれがいつ使ったか') : '', fullMode() ? it('drive', 'ドライブの整理', '使っていない画像をゴミ箱へ') : '', fullMode() ? it('sign', '展示ビューのサイン', '入口の写真に金箔で入るサイン') : '',
     S.ai ? it('ainl', S.aiNoLim ? 'AI質問のリミッター解除中' : 'AI質問のリミッター解除', S.aiNoLim ? '押すと、もとにもどします' : '※ クレジット消費が増えます') : ''].filter(Boolean) : [];
   const el = document.createElement('div'); el.id = 'mepop'; el.setAttribute('role', 'menu');
   el.innerHTML = `<div class="mehd"><span class="avatar sm">${esc(String(S.user.name || '？').trim().charAt(0))}</span><span><b>${esc(S.user.name||'')}</b><small>${esc(S.user.role)}${S.vm ? '・いまは' + mdN + 'モード' : ''}${S.dataAt ? '・' + new Date(S.dataAt).getHours() + ':' + String(new Date(S.dataAt).getMinutes()).padStart(2, '0') + ' に読み込み' : ''}</small></span></div>
@@ -9381,6 +9391,7 @@ function openMe(anc){ /* 名前ボタンの上に出る小さな吹き出しメ�
     if (v === 'mode') return modePick();
     if (v === 'ainl') return aiNoLimit();
     if (v === 'usage') return usageOpen();
+    if (v === 'drive') return driveOpen();
     if (v === 'users') return usersOpen();
     if (v === 'sign') return signPick();
     if (v === 'upd') freshReload();
@@ -9432,6 +9443,29 @@ async function usageOpen(){ busy(true, '利用の記録を読んでいます…'
     return `<details class="usg"${L.length && n !== S.user.name ? ' open' : ''}><summary><b>${esc(n)}</b><small>${esc(u.role || (L[0] && L[0]['権限']) || '')}${u.last ? '・最後のログイン ' + esc(md(u.last)) : ''}</small><span>${L.length ? L.length + '回・' + tot + '分' : '記録なし'}</span></summary>
       ${L.length ? `<div class="usgl">${L.slice(0, 60).map(x => `<p><b>${esc(md(String(x['始め']).slice(0, 10)))}</b> ${esc(tm(x['始め']))}〜${esc(tm(x['最後']))}<span>${esc(x['分'])}分</span></p>`).join('')}</div>` : '<p class="hint">この機能を入れてからは、まだ使っていません。</p>'}</details>`; };
   openSheet(`<h3>利用の記録</h3><p class="hint">アプリを開いて使っていた時間です（1分ごとに記録。30分あいたら別の回）。管理者だけが見られます。</p>${names.map(card).join('') || '<p class="hint">まだ記録はありません。</p>'}<div class="actions one"><button type="button" class="act" data-close>閉じる</button></div>`); }
+/* ドライブの整理（名前のメニュー。管理者だけ。10/9 開発 v14 本人「データはシンプルに」）：台帳のどこからも使われていない画像を数えて、選んでゴミ箱へ。
+   ゴミ箱へ入れられるのは「写真/追加写真」の、作って1日より前の画像だけ（Google 側の driveAudit・trashUnused で確かめ直す）。2017年の番号フォルダ・元データは数えるだけ（本人「マスタなので触らない」） */
+async function driveOpen(){ busy(true, 'ドライブを調べています…（1分ほどかかります）'); let r;
+  try { r = await call('driveAudit'); } catch(e){ busy(false); return alert('調べられませんでした。' + (/この操作はできません/.test(String(e && e.message || e)) ? '\nGoogle 側の更新（デプロイ）がまだです。' : '\n' + (e && e.message || e))); }
+  busy(false); const L = (r && r.un) || [], mb = b => (b / 1048576).toFixed(b >= 10485760 ? 0 : 1) + 'MB', day = t => String(t || '').slice(0, 10).replace(/-/g, '/');
+  const sz = ids => L.filter(x => ids.indexOf(x[0]) >= 0).reduce((a, x) => a + (+x[2] || 0), 0);
+  openSheet(`<h3>ドライブの整理</h3>
+    <p class="hint">「写真/追加写真」の ${r.add.n}枚（${mb(r.add.size)}）のうち、台帳のどこからも使われていない画像：<b>${L.length}枚（${mb(sz(L.map(x => x[0])))}）</b>。写真の回転・「元の写真に上書き」・補正の直し直し・表紙の差し替えで残った、前の画像です。${r.unNew ? `（作って1日たっていない ${r.unNew}枚は、念のため入れていません）` : ''}</p>
+    ${L.length ? `<div class="dvbar"><button type="button" class="ghost" data-dvall="1">すべて選ぶ</button><button type="button" class="ghost" data-dvall="0">すべて外す</button></div>
+    <div class="dvg">${L.map(x => `<label class="dvi"><input type="checkbox" data-dv="${esc(x[0])}" checked><span class="dvth" data-dvth="${esc(x[0])}"></span><small>${esc(day(x[3]))}・${esc(mb(+x[2] || 0))}</small></label>`).join('')}</div>` : '<p class="hint">ゴミ箱に入れる画像はありません。</p>'}
+    <p class="hint">数えるだけ（さわりません）：2017年の番号フォルダ ${r.num.n}枚（そのうち台帳で使っていないもの ${r.num.un}枚・${mb(r.num.size)}）、元データ（トリミング前）${r.orig.n}枚（${mb(r.orig.size)}）、削除したもの（アーカイブ。「削除したもの」から戻せる）${r.arc.n}枚（${mb(r.arc.size)}）。</p>
+    <div class="actions">${L.length ? '<button type="button" class="act" id="dvgo"></button>' : ''}<button type="button" class="act ghost" data-close>閉じる</button></div>
+    <p class="hint">ゴミ箱に入れた画像は、Google ドライブのゴミ箱から30日間は戻せます。</p>`);
+  const box = $('#sheetbox'), sel = () => [...box.querySelectorAll('[data-dv]:checked')].map(c => c.dataset.dv), lab = () => { const b = $('#dvgo'), ids = sel(); if (b) { b.textContent = ids.length ? '選んだ ' + ids.length + '枚（' + mb(sz(ids)) + '）をゴミ箱へ' : '画像を選んでください'; b.disabled = !ids.length; } };
+  lab(); box.querySelectorAll('[data-dv]').forEach(c => c.addEventListener('change', lab));
+  box.querySelectorAll('[data-dvall]').forEach(b => b.addEventListener('click', () => { box.querySelectorAll('[data-dv]').forEach(c => { c.checked = b.dataset.dvall === '1'; }); lab(); }));
+  const go = $('#dvgo'); if (go) go.addEventListener('click', async () => { const ids = sel(); if (!ids.length) return;
+    if (!confirm('選んだ ' + ids.length + '枚をゴミ箱へ入れますか？\nGoogle ドライブのゴミ箱から30日間は戻せます。')) return;
+    let n = 0, skip = 0; try { for (let i = 0; i < ids.length; i += 40) { busy(true, 'ゴミ箱へ入れています（' + Math.min(ids.length, i + 40) + ' / ' + ids.length + '）'); const x = await call('trashUnused', ids.slice(i, i + 40)); n += (x && x.n) || 0; skip += (x && x.skip) || 0; } }
+    catch(e){ busy(false); return alert('途中で止まりました（' + n + '枚はゴミ箱へ入れました）。\n' + (e && e.message || e)); }
+    busy(false); closeSheet(); toast(n + '枚をゴミ箱へ入れました' + (skip ? '（' + skip + '枚は使われていたので、そのまま）' : '')); });
+  (async () => { const ids = L.map(x => x[0]); for (let i = 0; i < ids.length; i += 24) { if (!box.querySelector('.dvg')) return; let t = {}; try { t = await call('getThumbs', ids.slice(i, i + 24), 200, 30) || {}; } catch(e){}
+    ids.slice(i, i + 24).forEach(id => { const el = box.querySelector('[data-dvth="' + id + '"]'); if (el && t[id]) el.innerHTML = '<img alt="" src="' + t[id] + '">'; }); } })(); }
 /* AI質問のリミッター解除（名前のメニュー。管理者が自分の分だけ）：1日の回数の上限（使いすぎ防止）で止めない。クレジット消費が増える（10/7 開発 v11 本人） */
 async function aiNoLimit(){ const on = !S.aiNoLim;
   if (on && !confirm('AI質問の1日の回数の上限（使いすぎ防止）を外します。\nクレジット消費が増えます。外しますか？')) return;
