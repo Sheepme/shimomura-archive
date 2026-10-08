@@ -2231,7 +2231,8 @@ button.ulrow{cursor:pointer}
 .cr-top .cr-save{background:#58A700;border-color:#58A700;color:#fff;font-weight:800}
 .cr-top .cr-save:disabled{opacity:.4;cursor:default}
 .cr-hint{flex:none;margin:0;padding:0 18px 8px;font-size:13.5px;line-height:1.5;color:rgba(250,249,245,.75);text-align:center}
-.cr-stage{position:relative;flex:1;min-height:120px;margin:0 30px 8px;touch-action:none}
+.cr-stage{position:relative;flex:1;min-height:120px;margin:0 30px 8px;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+html.cropon,html.cropon body{overscroll-behavior:none}
 .cr-stage canvas.cr-img,.cr-stage canvas.cr-pv{position:absolute;display:block}
 .cr-grid{position:absolute;pointer-events:none;box-shadow:0 0 0 1px rgba(255,255,255,.35);background-image:linear-gradient(to right,transparent calc(33.333% - .5px),rgba(255,255,255,.45) calc(33.333% - .5px),rgba(255,255,255,.45) calc(33.333% + .5px),transparent calc(33.333% + .5px),transparent calc(66.666% - .5px),rgba(255,255,255,.45) calc(66.666% - .5px),rgba(255,255,255,.45) calc(66.666% + .5px),transparent calc(66.666% + .5px)),linear-gradient(to bottom,transparent calc(33.333% - .5px),rgba(255,255,255,.45) calc(33.333% - .5px),rgba(255,255,255,.45) calc(33.333% + .5px),transparent calc(33.333% + .5px),transparent calc(66.666% - .5px),rgba(255,255,255,.45) calc(66.666% - .5px),rgba(255,255,255,.45) calc(66.666% + .5px),transparent calc(66.666% + .5px))}
 .cr-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
@@ -2476,7 +2477,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '78fc84bceb', APP_URL = location.origin + location.pathname;
+const BUILD = '62f72067ed', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -7283,6 +7284,8 @@ async function openCrop(p, to, opt){
   el.querySelectorAll('[data-crrot]').forEach(b => b.onclick = () => crRotate(+b.dataset.crrot));
   el.querySelector('[data-crcht]').onclick = () => { CR.chtMoved = true; if (!CR.cht) CR.cht = [[.35, .04], [.65, .04], [.65, .09], [.35, .09]]; CR.col = true; CR.mode = 'edit'; CR.dirty = true; crColorCalc(); crUI(); crLayout(); crNote(); };
   const st = el.querySelector('.cr-stage');
+  /* iPhone：丸を動かしたり、拡大した絵をなぞったりしているあいだに、画面全体がゴムのように伸びて動かないように（10/8 本人「角丸を動かしても画面が動く」） */
+  st.addEventListener('touchmove', e => { if (e.cancelable) e.preventDefault(); }, { passive: false }); document.documentElement.classList.add('cropon');
   /* 2本指で拡大・縮小（つまむ・広げる）、拡大中は1本指で何もないところをなぞると動かす。何もないところを2回タップで全体にもどす（10/6 本人） */
   const PT = new Map(), pinchStart = () => { const [a, b] = [...PT.values()], m = [(a.x + b.x) / 2, (a.y + b.y) / 2], [Z, L] = crZL();
     CR.drag = null; CR.g = null; CR.pan = null; CR.pz = { d0: Math.hypot(a.x - b.x, a.y - b.y) || 1, s0: Z.s, P: [(m[0] - L.ox) / L.w, (m[1] - L.oy) / L.h] }; if (!CR.pin) crLoupeOff(); crDraw(); };
@@ -7579,7 +7582,7 @@ function crKey(e){ if (!CR || !$('#crop') || /^(INPUT|TEXTAREA|SELECT)$/.test((e
   const dd = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key]; if (!dd || CR.mode !== 'edit' || !CR.L || e.target.type === 'range') return;
   e.preventDefault(); const st = e.shiftKey ? 10 : 1, s = CR.sel, p = CR[s.a][s.i]; if (!p) return; /* 矢印キーで、最後にさわった点を1画素ずつ（Shift で10） */
   CR[s.a][s.i] = [Math.min(1, Math.max(0, p[0] + dd[0] * st / CR.L.w)), Math.min(1, Math.max(0, p[1] + dd[1] * st / CR.L.h))]; CR.dirty = true; crDraw(); crNudgeLoupe(); crNote(); } /* 動かしているあいだは拡大鏡を出す（10/7 本人） */
-function cropClose(fromHist){ const el = $('#crop'); if (!el) return; el.remove(); document.removeEventListener('keydown', crKey); removeEventListener('resize', crLayout);
+function cropClose(fromHist){ const el = $('#crop'); if (!el) return; el.remove(); document.documentElement.classList.remove('cropon'); document.removeEventListener('keydown', crKey); removeEventListener('resize', crLayout);
   if (CR && CR.ro) try { CR.ro.disconnect(); } catch(e){} CR = null; if (!fromHist) hback(); }
 /* 保存したあと：開いているページと写真の画面を新しくし、その写真を出す */
 function crAfter(no, pid){ if (AC.open) { render(); acDraw(); return; } render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
