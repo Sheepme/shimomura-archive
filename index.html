@@ -2422,7 +2422,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '7e68311eb0', APP_URL = location.origin + location.pathname;
+const BUILD = '5cfdbb768b', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -10399,19 +10399,17 @@ const exvSvgMask = (t, Hpx) => { let sv = null; try { sv = new DOMParser().parse
     const fr = e.closest('[fill-rule]'); if (d) try { P.push([new Path2D(d), fr && fr.getAttribute('fill-rule') === 'evenodd' ? 'evenodd' : 'nonzero']); } catch(x){} });
   if (!P.length) return null; const k = Hpx / vb[3], c = document.createElement('canvas'); c.width = Math.max(1, Math.round(vb[2] * k)); c.height = Math.round(Hpx); const x = c.getContext('2d');
   x.setTransform(k, 0, 0, k, -vb[0] * k, -vb[1] * k); x.fillStyle = '#fff'; P.forEach(([q, r]) => x.fill(q, r)); return { c, ar: vb[2] / vb[3], P: P.map(q => q[0]), k, vb }; };
-/* 金箔：型（白い部分・透明でない部分）に、少しずつ色のちがう箔を重ねて貼る（つぎ目は茶色の細い線、しわは明るい線と暗い線）。SVG なら縁を少し濃く。g＝色、b＝凹凸（光り方を細かく変える） */
+/* 金箔（10/8 14:38 本人「もう少し上品に。一枚の箔に。少しだけ箔押し加工に」）：型（白い部分・透明でない部分）を、つぎ目のない一枚の落ち着いた金で塗り、
+   押しこんだような縁（左上の縁の内側にうすい影、右下の縁の内側にかすかな光）をつける。b＝凹凸（縁だけなだらかに高さが変わる＝動くと縁が光る） */
 const exvGold = m => { const W = m.c.width, H = m.c.height; let sd = 20261008; const rnd = () => (sd = (sd * 1103515245 + 12345) % 2147483648) / 2147483648;
-  const mk = () => { const c = document.createElement('canvas'); c.width = W; c.height = H; return [c, c.getContext('2d')]; }, [g, x] = mk(), [b, y] = mk();
-  x.fillStyle = '#b8873f'; x.fillRect(0, 0, W, H); y.fillStyle = '#808080'; y.fillRect(0, 0, W, H);
-  const s = Math.max(20, W * 0.56), lw = Math.max(1, W * 0.006);
-  for (let yy = -s * rnd(); yy < H; yy += s * 0.93) { const off = -s * rnd(); for (let xx = off; xx < W; xx += s * 0.93) { const sx = xx + (rnd() - 0.5) * lw * 3, sy = yy + (rnd() - 0.5) * lw * 3;
-    x.fillStyle = 'hsl(' + (31 + rnd() * 8).toFixed(1) + ',' + (46 + rnd() * 16).toFixed(1) + '%,' + (38 + rnd() * 17).toFixed(1) + '%)'; x.fillRect(sx, sy, s, s); /* 表紙の金箔のように、少し赤みのある金（明るさのちがう箔） */
-    x.strokeStyle = 'rgba(104,66,20,0.5)'; x.lineWidth = lw; x.strokeRect(sx, sy, s, s); y.strokeStyle = 'rgba(60,60,60,0.7)'; y.lineWidth = lw * 1.5; y.strokeRect(sx, sy, s, s); } }
-  for (let i = 0; i < 420; i++) { let px = rnd() * W, py = rnd() * H; const lt = rnd() < 0.5, n = 3 + (rnd() * 5 | 0), st = W * (0.02 + rnd() * 0.05);
-    x.strokeStyle = lt ? 'rgba(255,238,190,0.22)' : 'rgba(84,52,14,0.2)'; y.strokeStyle = lt ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)'; x.lineWidth = y.lineWidth = Math.max(0.7, W * 0.0028);
-    x.beginPath(); y.beginPath(); x.moveTo(px, py); y.moveTo(px, py); for (let j = 0; j < n; j++) { px += (rnd() - 0.5) * st * 2; py += (rnd() - 0.5) * st * 2; x.lineTo(px, py); y.lineTo(px, py); } x.stroke(); y.stroke(); }
+  const mk = () => { const c = document.createElement('canvas'); c.width = W; c.height = H; return [c, c.getContext('2d')]; }, [g, x] = mk(), [b, y] = mk(), u = Math.max(1, Math.min(W, H) / 200);
+  const gr = x.createLinearGradient(0, 0, W * 0.7, H); gr.addColorStop(0, '#d6bd86'); gr.addColorStop(0.45, '#c6a668'); gr.addColorStop(1, '#b8975c'); x.fillStyle = gr; x.fillRect(0, 0, W, H);
+  for (let i = 0, n = Math.round(W * H / 70); i < n; i++) { x.fillStyle = rnd() < 0.5 ? 'rgba(255,248,226,0.06)' : 'rgba(86,62,24,0.06)'; x.fillRect(rnd() * W, rnd() * H, 1.3, 1.3); } /* ごく細かいざらつき（箔の地） */
   x.globalCompositeOperation = 'destination-in'; x.drawImage(m.c, 0, 0);
-  if (m.P) { x.globalCompositeOperation = 'source-atop'; x.setTransform(m.k, 0, 0, m.k, -m.vb[0] * m.k, -m.vb[1] * m.k); x.strokeStyle = 'rgba(92,56,14,0.55)'; x.lineWidth = Math.max(1.2, W * 0.014) / m.k; x.lineJoin = 'round'; m.P.forEach(q => x.stroke(q)); x.setTransform(1, 0, 0, 1, 0, 0); }
+  const [iv, ix] = mk(); ix.fillStyle = '#000'; ix.fillRect(0, 0, W, H); ix.globalCompositeOperation = 'destination-out'; ix.drawImage(m.c, 0, 0); /* 型の外側 */
+  const inner = (col, dx, dy, bl) => { x.save(); x.globalCompositeOperation = 'source-atop'; x.shadowColor = col; x.shadowBlur = bl; x.shadowOffsetX = dx + W * 3; x.shadowOffsetY = dy; x.drawImage(iv, -W * 3, 0); x.restore(); };
+  inner('rgba(64,44,12,0.5)', 1.4 * u, 1.6 * u, 2.4 * u); inner('rgba(255,246,220,0.32)', -1.1 * u, -1.2 * u, 1.8 * u);
+  y.fillStyle = '#000'; y.fillRect(0, 0, W, H); y.save(); y.shadowColor = '#fff'; y.shadowBlur = 2.2 * u; y.shadowOffsetX = W * 3; y.drawImage(m.c, -W * 3, 0); y.restore();
   x.globalCompositeOperation = 'source-over'; return { g, b }; };
 async function exvEntPrep(){ const F = exvFaces(), E = { pid: F.length ? F[Math.floor(Math.random() * F.length)] : '', ph: null, lo: 0, sg: null };
   const ph = (async () => { if (!E.pid) return; let src = await exvThumb(E.pid, 1200, 3500), lo = 0; if (!src) { src = TH['400_' + E.pid] || TH['200_' + E.pid] || ''; lo = 1; } if (!/^data:/.test(src)) return;
@@ -10633,7 +10631,7 @@ function exvBuild(root, L, start){
       [-4.2, -2.1, -0.7, 0.6, 1.9, 3.6].forEach((px, i) => pan(0.5 + (i % 3) * 0.35, 4.6, px, 0.6, 5.9, 0, Math.PI, i % 2 ? '#fff6e6' : '#ffe9c4')); /* 見る人の後ろ（映り込む側）に明るい帯：横に動くと、帯が順に光る */
       pan(10, 1.4, 0, 3.4, 2, Math.PI / 2, 0, '#fffaf0'); pan(12, 3, 0, -3.4, 0, -Math.PI / 2, 0, '#2b2622');
       const pm = new T3.PMREMGenerator(r), rt = pm.fromScene(es, 0.02); pm.dispose(); return rt.texture; } catch(e){ return null; } })();
-  const enGM = new T3.MeshStandardMaterial({ map: mkTex(enGd.g), bumpMap: mkTex(enGd.b, false), bumpScale: 0.0005, transparent: true, metalness: 1, roughness: 0.24, envMap: enEnv, envMapIntensity: 1.3, depthWrite: false }); ENL.m = enEnv ? enGM : null;
+  const enGM = new T3.MeshStandardMaterial({ map: mkTex(enGd.g), bumpMap: mkTex(enGd.b, false), bumpScale: 0.0009, transparent: true, metalness: 1, roughness: 0.2, envMap: enEnv, envMapIntensity: 1.3, depthWrite: false }); ENL.m = enEnv ? enGM : null;
   const enSg = new T3.Mesh(new T3.PlaneGeometry(1, 1), enGM); enSg.raycast = () => {}; sc.add(enSg);
   /* 題は壁に書かず、作品名と同じところ（上の文字）に出す（13:39 本人「屏風などのタイトルは作品名と同じ所に」。yTxt(-1)） */
   if (EN.pid && (!EN.ph || EN.lo)) exvThumb(EN.pid, 1200, 40000).then(src => src ? loadImg(src) : null).then(im => { if (im && !dead) { enTex(exvImgCv(im, 1600)); redraw(); } }).catch(() => {}); /* 細かい写真が間に合わなかったとき */
@@ -10850,7 +10848,7 @@ function exvBuild(root, L, start){
   const AUTO = 10000; let autoT = 0, playing = true, wake = false; const xPP = root.querySelector('.xpp');
   const PLAY = '<svg viewBox="0 0 20 26" aria-hidden="true"><path d="M4 2.5v21L18 13z"/></svg>', STOP = '<svg viewBox="0 0 20 26" aria-hidden="true"><path d="M6.5 2.5v21M13.5 2.5v21"/></svg>'; /* 一時停止は2本線 */
   const setPlay = v => { playing = v; xPP.innerHTML = v ? STOP : PLAY; xPP.setAttribute('aria-label', v ? '自動再生を一時停止' : '自動再生'); if (v) autoNext(); else clearTimeout(autoT); };
-  const autoNext = () => { clearTimeout(autoT); if (!playing || (EXV && EXV.na)) return; autoT = setTimeout(() => { if (!EXV || document.hidden || ELF < 1 || zoomed || yd || (ym && ym === tid) || P.size || root.classList.contains('xmo')) return autoNext(); if (ci < stops.length - 1) step(1); else setPlay(false); }, AUTO); };
+  const autoNext = () => { clearTimeout(autoT); if (!playing || (EXV && EXV.na)) return; autoT = setTimeout(() => { if (!EXV || document.hidden || ELF < 1 || zoomed || yd || (ym && ym === tid) || P.size || root.classList.contains('xmo')) return autoNext(); const ld = () => { const c = items[ci - 1]; return !!(c && c.req && !c.pt && !c.fail); }; if (ld()) { const w = () => { if (!EXV || !playing) return; if (ld()) { autoT = setTimeout(w, 400); return; } autoNext(); }; autoT = setTimeout(w, 400); return; } /* 写真を読み込み中は次へ進まない。届いてから、あらためて10秒（14:41 本人） */ if (ci < stops.length - 1) step(1); else setPlay(false); }, AUTO); };
   let idleT = 0; const awake = () => { root.classList.remove('xidle'); clearTimeout(idleT); idleT = setTimeout(() => { if (yd || P.size || root.classList.contains('xmo')) awake(); else root.classList.add('xidle'); }, 3000); };
   const poke = () => { autoNext(); awake(); }; /* さわったら、消えていたボタンを出す（再生中なら、次へ進むのは10秒後から数えなおし） */
   let holdT = 0, ovI = 0; /* ovI：シリーズの全体を見せているとき、その1点目の止まる位置（全体からの次へは1点目、前へは前の作品。10/7 本人） */
