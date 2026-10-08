@@ -2598,7 +2598,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'dccef96032', APP_URL = location.origin + location.pathname;
+const BUILD = 'c6757fde5b', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3966,18 +3966,18 @@ function phOrder(no){ if (!canEdit()) return; const L0 = (photoBy[no] || []).sli
 /* 写真の見出し（種類）を一覧でまとめて直す・いらない記録写真を消す（10/8 本人「パネルの作品は 表→1/12 のように。数が多いので一覧で」「記録写真が不要なら削除。補正した写真は残す」） */
 /* 写真をまとめて削除（アーカイブへ）：先に画面から消して、Google への削除は裏で1枚ずつ。失敗した写真は元にもどす */
 async function pdelRun(ids, why){ ids.forEach(id => PDEL.add(id)); index(); render(); if (S.pcur && $('#sheet').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
-  toast(ids.length + '枚を削除しています（裏で保存中。待たずに続けられます）'); BG++; let ng = 0, ok = 0, d = null;
-  for (const id of ids) { try { d = await call('archiveItem', 'p', id, why); ok++; } catch(e){ if (/見つかりません/.test(String(e && e.message || e))) ok++; else { ng++; PDEL.delete(id); } } }
-  BG--; try { if (d && d.photos) setData(d); else await refreshData(); } catch(e){} ids.forEach(id => PDEL.delete(id)); index(); render(); if (S.pcur && $('#sheet').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+  toast(ids.length + '枚を削除しています（裏で進めます。待たずに続けられます）'); BG++; BGS.n++; let ng = 0, ok = 0, d = null, k = 0; /* 画面の下に「削除しています（3/12）」（写真の保存と同じ帯） */
+  for (const id of ids) { bgShow('記録写真を削除しています（' + (++k) + '/' + ids.length + '）'); try { d = await call('archiveItem', 'p', id, why); ok++; } catch(e){ if (/見つかりません/.test(String(e && e.message || e))) ok++; else { ng++; PDEL.delete(id); } } }
+  BG--; BGS.n--; bgShow(); try { if (d && d.photos) setData(d); else await refreshData(); } catch(e){} ids.forEach(id => PDEL.delete(id)); index(); render(); if (S.pcur && $('#sheet').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
   if (ng) alert(ng + '枚は削除できませんでした（' + ok + '枚は削除済み）。もう一度やり直してください。'); else toast(ok + '枚の記録写真を削除しました'); }
 function phLabels(no){ if (!canEdit()) return; const all = (photoBy[no] || []).filter(p => p['写真ID']), w = workOf(no) || {};
   const L = all.filter(p => p['種類'] !== '記録写真'), R = () => (photoBy[no] || []).filter(p => p['種類'] === '記録写真'), corrOf = id => (photoBy[no] || []).find(x => (crInfo(x) || {}).orig === id);
   const row = p => `<div class="plr" data-pl="${esc(p['写真ID'])}"><span class="plth">${thImg(p['ファイルID'], 200)}</span><input class="plin" value="${esc(p['種類'] || '')}" maxlength="20" enterkeyhint="next" aria-label="見出し"><small>${p['メイン'] ? 'メイン画像' : ''}${isJoin(p) ? (p['メイン'] ? '・' : '') + '組み写真' : ''}</small></div>`;
-  const rrow = p => { const c = corrOf(p['写真ID']); return `<label class="plr plrec" data-plr="${esc(p['写真ID'])}"><input type="checkbox" class="plck" value="${esc(p['写真ID'])}"><span class="plth">${thImg(p['ファイルID'], 200)}</span><span class="plt">記録写真<small>${c ? '→「' + esc(c['種類'] || '') + '」に補正済み' : '補正した写真は見つかりません'}</small></span></label>`; };
+  const rrow = p => { const c = corrOf(p['写真ID']); return `<label class="plr plrec" data-plr="${esc(p['写真ID'])}"><input type="checkbox" class="plck" data-nosnap="1" value="${esc(p['写真ID'])}"><span class="plth">${thImg(p['ファイルID'], 200)}</span><span class="plt">記録写真<small>${c ? '→「' + esc(c['種類'] || '') + '」に補正済み' : '補正した写真は見つかりません'}</small></span></label>`; };
   openSheet(`<h3>写真の見出しと整理</h3><p class="hint">見出しは、写真の下や拡大画面に出る名前です（表・裏・部分、パネルなら 1/12 など）。</p>
     <div class="pltools"><button type="button" data-plseq="1">連番をふる（1/${pnN(w) || L.length} …）</button>${['表', '裏', '部分', 'サイン'].map(t => `<button type="button" data-plq="${t}">${t}</button>`).join('')}<small>入れたい欄を選んでから押すと、その欄に入ります</small></div>
     <div class="pllist">${L.map(row).join('')}</div>
-    <div class="plrecs">${R().length ? '<h4>記録写真（切り抜き・補正の元の写真）</h4><p class="pnh">いらなければ削除できます。補正した写真はそのまま残ります（削除すると、四隅の直し直しは元の写真からはできなくなります）。削除したものは「削除したもの」から戻せます。</p><div class="plrh"><label><input type="checkbox" class="plall"> すべて選ぶ</label><button type="button" class="plrm" data-plrmall="1" disabled>選んだ記録写真を削除</button></div>' + R().map(rrow).join('') : ''}</div>
+    <div class="plrecs">${R().length ? '<h4>記録写真（切り抜き・補正の元の写真）</h4><p class="pnh">いらなければ削除できます。補正した写真はそのまま残ります（削除すると、四隅の直し直しは元の写真からはできなくなります）。削除したものは「削除したもの」から戻せます。</p><div class="plrh"><label><input type="checkbox" class="plall" data-nosnap="1"> すべて選ぶ</label><button type="button" class="plrm" data-plrmall="1" disabled>選んだ記録写真を削除</button></div>' + R().map(rrow).join('') : ''}</div>
     <div class="btns"><button type="button" data-close>やめる</button><button type="button" class="main plgo" disabled>保存</button></div>`);
   const sh = $('#sheet'), go = sh.querySelector('.plgo'); hydrate(sh); let last = null;
   const chg = () => { const n = [...sh.querySelectorAll('[data-pl]')].filter(r => { const p = all.find(x => x['写真ID'] === r.dataset.pl); return p && r.querySelector('.plin').value.trim() !== String(p['種類'] || ''); }).length; go.disabled = !n; go.textContent = n ? n + '枚を保存' : '保存'; };
@@ -3990,7 +3990,7 @@ function phLabels(no){ if (!canEdit()) return; const all = (photoBy[no] || []).f
   recs.addEventListener('click', e => { const b = e.target.closest('[data-plrmall]'); if (!b) return; const ids = cks().filter(c => c.checked).map(c => c.value); if (!ids.length) return;
     if (!confirm(ids.length + '枚の記録写真を削除しますか？\n補正した写真は残ります。削除したものは「削除したもの」から戻せます。\n削除は裏で順に進むので、待たずに続けて作業できます。')) return;
     ids.forEach(id => { const r = recs.querySelector('[data-plr="' + CSS.escape(id) + '"]'); if (r) r.remove(); }); if (!recs.querySelector('[data-plr]')) recs.innerHTML = '';
-    WCHG = 1; pdelRun(ids, '記録写真（切り抜き・補正の元の写真）がいらないため'); });
+    WCHG = 1; pdelRun(ids, '記録写真（切り抜き・補正の元の写真）がいらないため'); if (go.disabled) closeSheet(); /* 見出しを直していなければ、画面を閉じて裏で削除を続ける（10/9 本人） */ });
   let WCHG = 0; const mo = new MutationObserver(() => { if (sh.classList.contains('hidden') || !sh.querySelector('.pllist')) { mo.disconnect(); if (WCHG && S.pcur) { render(); ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); } } }); mo.observe(sh, { attributes: true, childList: true, subtree: false });
   go.onclick = async () => { const ch = [...sh.querySelectorAll('[data-pl]')].map(r => ({ id: r.dataset.pl, v: r.querySelector('.plin').value.trim().replace(/[｜|]/g, ' ') })).filter(x => { const p = all.find(y => y['写真ID'] === x.id); return p && x.v !== String(p['種類'] || ''); });
     if (ch.some(x => !x.v)) return alert('見出しが空の写真があります');
@@ -8450,7 +8450,7 @@ function openSheet(html){ if (S.sheetDoc && !$('#sheet').classList.contains('hid
 /* 入力中の内容があるか（開いたときの状態とくらべる）。写真を選んだ・項目を選んだ・文字を入れた、を見分ける */
 const SNAP = { v: null, t: 0 };
 function sheetState(){ const b = $('#sheetbox'); if (!b) return '';
-  return [...b.querySelectorAll('input:not([type=file]),textarea,select')].map(e => (e.type==='checkbox' || e.type==='radio') ? e.checked : e.value).join('\u0001')
+  return [...b.querySelectorAll('input:not([type=file]):not([data-nosnap]),textarea,select')].map(e => (e.type==='checkbox' || e.type==='radio') ? e.checked : e.value).join('\u0001')
     + '|' + [...b.querySelectorAll('.pick')].map(p => p.dataset.v).join('\u0001') + '|' + b.querySelectorAll('.on').length
     + '|' + [...b.querySelectorAll('img.preview,.pvs img')].filter(i => !i.classList.contains('hidden') && i.getAttribute('src')).length; }
 const sheetDirty = () => !$('#sheet').classList.contains('hidden') && SNAP.v !== null && sheetState() !== SNAP.v;
