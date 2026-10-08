@@ -2598,7 +2598,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '0841410767', APP_URL = location.origin + location.pathname;
+const BUILD = '22147b7930', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -8069,7 +8069,7 @@ async function cropSave(){ const c0 = CR; if (!c0 || c0.saving || !c0.img) retur
     if (!full) c0.lowSrc = true;
     const iw = im.naturalWidth, ih = im.naturalHeight, r = crRatio(), ow = sd ? ih : iw, oh = sd ? iw : ih, [W0] = crSize(c0.top, c0.bot, ow, oh, r, 1e9, 1e15), [W1] = crSize(c0.top, c0.bot, ow, oh, r, 3200, 8e6);
     /* 元の写真を、切り出す絵が出来上がりとほぼ同じ大きさ（1:1）になるまで、きれいに縮めてからゆがみを直す（大きいまま直すと、縮める所がギザギザになる）。1600万画素まで（iPhone の上限） */
-    const k = Math.min(1, Math.sqrt(16e6 / (iw * ih)), W0 > 0 ? (W1 / W0) * 1.3 : 1), dw = Math.max(1, Math.round(iw * k)), dh = Math.max(1, Math.round(ih * k));
+    const k = Math.min(1, Math.sqrt(16e6 / (iw * ih)), W0 > 0 ? W1 / W0 : 1) /* 出来上がりと同じ大きさまで先に縮める（ゆがみ直しが 1:1 になり、網点のモアレが出にくい。10/9 開発 v14：1.3倍より良かった） */, dw = Math.max(1, Math.round(iw * k)), dh = Math.max(1, Math.round(ih * k));
     const sc = document.createElement('canvas'); sc.width = sd ? dh : dw; sc.height = sd ? dw : dh; const sg = sc.getContext('2d'); sg.imageSmoothingEnabled = true; sg.imageSmoothingQuality = 'high';
     { const pre = k < 0.75 ? hqScale(im, dw, dh) : im; if (rot) { sg.translate(sc.width / 2, sc.height / 2); sg.rotate(rot * Math.PI / 180); sg.drawImage(pre, -dw / 2, -dh / 2, dw, dh); } else sg.drawImage(pre, 0, 0, dw, dh); if (pre !== im) pre.width = pre.height = 1; } /* 向きを変えたときは、回しながら縮める */
     const src = sg.getImageData(0, 0, sc.width, sc.height); sc.width = sc.height = 1;
@@ -8321,14 +8321,14 @@ function acCalc(img, ai, led){ const c = { img, n: 1, top: null, bot: null, v: 0
     if (acPtOk(ai.chart)) c.cht = ai.chart.map(q => q.slice()); /* 色は合わせない（本人：自動の色合わせは白飛びするので、トリミングだけ。あとで選んで合わせる） */
     return { c, snap, small: ar < .1, a: crAutoNow() };
   } finally { CR = prev; } }
-/* 補正した写真を作る（cropSave と同じ作り方：9MP まで読み、長い辺3200px・8MP まで、JPEG 0.92） */
+/* 補正した写真を作る（cropSave と同じ作り方：1600万画素・出来上がりと同じ大きさまで hqScale、長い辺3200px・8MP まで、JPEG 0.94） */
 function acBuild(c, im){ const prev = CR; CR = c;
-  try { const iw = im.naturalWidth, ih = im.naturalHeight, k = Math.min(1, Math.sqrt(9e6 / (iw * ih)));
-    const sc = document.createElement('canvas'); sc.width = Math.round(iw * k); sc.height = Math.round(ih * k); const sg = sc.getContext('2d'); sg.drawImage(im, 0, 0, sc.width, sc.height);
+  try { const iw = im.naturalWidth, ih = im.naturalHeight, r = crRatio(), [W0] = crSize(c.top, c.bot, iw, ih, r, 1e9, 1e15), [W1] = crSize(c.top, c.bot, iw, ih, r, 3200, 8e6), k = Math.min(1, Math.sqrt(16e6 / (iw * ih)), W0 > 0 ? W1 / W0 : 1); /* 切り抜きの保存と同じ、きれいな縮め方（10/9） */
+    const sc = k < 0.75 ? hqScale(im, Math.round(iw * k), Math.round(ih * k)) : (() => { const c2 = document.createElement('canvas'); c2.width = Math.round(iw * k); c2.height = Math.round(ih * k); const g2 = c2.getContext('2d'); g2.imageSmoothingQuality = 'high'; g2.drawImage(im, 0, 0, c2.width, c2.height); return c2; })(); const sg = sc.getContext('2d');
     const src = sg.getImageData(0, 0, sc.width, sc.height); sc.width = sc.height = 1;
-    const r = crRatio(), [W, H] = crSize(c.top, c.bot, src.width, src.height, r, 3200, 8e6);
+    const [W, H] = crSize(c.top, c.bot, src.width, src.height, r, 3200, 8e6);
     const oc = document.createElement('canvas'); oc.width = W; oc.height = H; const out = crWarp(src.data, src.width, src.height, c.top, c.bot, 0, W, H); crTone(out.data, crUseT()); oc.getContext('2d').putImageData(out, 0, 0);
-    const b64 = oc.toDataURL('image/jpeg', 0.92).split(',')[1]; oc.width = oc.height = 1; return b64;
+    const b64 = oc.toDataURL('image/jpeg', 0.94).split(',')[1]; oc.width = oc.height = 1; return b64;
   } finally { CR = prev; } }
 async function acOne(it){ const p = it.p, no = it.no, fid = p['ファイルID'], w = workOf(no) || it.w, hh = parseFloat(w['高さcm']), ww = parseFloat(w['幅cm']), led = hh > 0 && ww > 0 ? { h: hh, w: ww } : null;
   acStep('AI で角を探しています', it);
@@ -10990,7 +10990,7 @@ function exvCss(){ if (document.getElementById('exvcss')) return; const st = doc
 #exv .xst{position:absolute;inset:0}#exv canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
 #exv .xcl,#exv .xsh{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8px);right:8px;width:48px;height:48px;border:0;background:transparent;color:#3a3530;mix-blend-mode:multiply;z-index:4;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;-webkit-tap-highlight-color:transparent}
 #exv .xcl svg,#exv .xsh svg{width:24px;height:24px;stroke:currentColor;stroke-width:1.4;fill:none;stroke-linecap:round;stroke-linejoin:round}#exv .xcl:focus-visible{outline:1.5px solid #2f2c28;outline-offset:2px;border-radius:8px}
-#exv .xwait{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;letter-spacing:.12em;color:#6f685f;z-index:2}
+#exv .xwait{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;letter-spacing:.12em;color:#6f685f;z-index:2}#exv .xwait.xdk{pointer-events:none;color:rgba(255,255,255,.6);text-shadow:0 1px 3px rgba(0,0,0,.5);transition:opacity .8s}
 #exv .xhint{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 78px);display:flex;justify-content:center;font-size:13px;line-height:1.65;pointer-events:none;transition:opacity .8s;z-index:3}
 #exv .xhint span{background:rgba(250,249,246,.93);border:1px solid rgba(51,48,44,.12);border-radius:10px;padding:8px 14px;max-width:24em;text-align:center}
 #exv .yrs{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 6px);height:76px;z-index:3;touch-action:none;cursor:grab;mix-blend-mode:multiply}
@@ -11639,7 +11639,7 @@ function exvBuild(root, L, start){
   const AUTO = 10000; let autoT = 0, playing = true, wake = false; const xPP = root.querySelector('.xpp');
   const PLAY = '<svg viewBox="0 0 20 26" aria-hidden="true"><path d="M4 2.5v21L18 13z"/></svg>', STOP = '<svg viewBox="0 0 20 26" aria-hidden="true"><path d="M6.5 2.5v21M13.5 2.5v21"/></svg>'; /* 一時停止は2本線 */
   const setPlay = v => { playing = v; xPP.innerHTML = v ? STOP : PLAY; xPP.setAttribute('aria-label', v ? '自動再生を一時停止' : '自動再生'); if (v) autoNext(); else clearTimeout(autoT); };
-  const autoNext = () => { clearTimeout(autoT); if (!playing || (EXV && EXV.na)) return; autoT = setTimeout(() => { if (!EXV || document.hidden || ELF < 1 || zoomed || yd || (ym && ym === tid) || P.size || root.classList.contains('xmo')) return autoNext(); const ld = () => { const c = items[ci - 1]; return !!(c && c.req && !c.pt && !c.fail); }; if (ld()) { const w = () => { if (!EXV || !playing) return; if (ld()) { autoT = setTimeout(w, 400); return; } autoNext(); }; autoT = setTimeout(w, 400); return; } /* 写真を読み込み中は次へ進まない。届いてから、あらためて10秒（14:41 本人） */ if (ci < stops.length - 1) step(1); else setPlay(false); }, AUTO); };
+  const autoNext = () => { clearTimeout(autoT); if (!playing || (EXV && EXV.na)) return; autoT = setTimeout(() => { if (!EXV || document.hidden || ELF < 1 || LFt < 1 || zoomed || yd || (ym && ym === tid) || P.size || root.classList.contains('xmo')) return autoNext(); const ld = () => { const c = items[ci - 1]; return !!(c && c.req && !c.pt && !c.fail); }; if (ld()) { const w = () => { if (!EXV || !playing) return; if (ld()) { autoT = setTimeout(w, 400); return; } autoNext(); }; autoT = setTimeout(w, 400); return; } /* 写真を読み込み中は次へ進まない。届いてから、あらためて10秒（14:41 本人） */ if (ci < stops.length - 1) step(1); else setPlay(false); }, AUTO); };
   let idleT = 0, mHov = 0, mX = -1, mY = -1; const hovUI = () => mHov && [...root.querySelectorAll('.xnav,.xpp,.xsh,.xcl,.xphs,.ytr,.yc')].some(b => { const q = b.getBoundingClientRect(); return q.width > 0 && mX >= q.left - 14 && mX <= q.right + 14 && mY >= q.top - 18 && mY <= q.bottom + 18; }); /* マウスがボタンやつまみの上（近く）にある間は消さない（マウスのときだけ） */
   const awake = () => { if (dead) return; root.classList.remove('xidle'); clearTimeout(idleT); idleT = setTimeout(() => { if (dead) return; if (yd || P.size || root.classList.contains('xmo') || hovUI()) awake(); else root.classList.add('xidle'); }, 3000); };
   const poke = () => { autoNext(); awake(); }; /* さわったら、消えていたボタンを出す（再生中なら、次へ進むのは10秒後から数えなおし） */
@@ -11738,8 +11738,11 @@ function exvBuild(root, L, start){
   const lightTo = v => { LFt = v; if (RM) { LF = v; fdUp(); return redraw(); } if (LFa) return; let t0 = performance.now(), l0 = LF;
     const f = n => { if (!EXV) { LFa = 0; return; } if (LFt !== f.t) { f.t = LFt; t0 = n; l0 = LF; } const ms = LFt < l0 ? 650 : 1100, t = Math.min(1, (n - t0) / ms), e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; LF = l0 + (LFt - l0) * e; fdUp();
       if (performance.now() - wkT > 60) draw(); if (t < 1) LFa = requestAnimationFrame(f); else LFa = 0; }; f.t = LFt; LFa = requestAnimationFrame(f); };
+  /* 読み込みが終わるまで部屋を明るくしない（10/9 本人「読み込み終わるまでは明るくならないで」）：いまの作品と両どなり（入口では顔写真と手前の2点）の写真が届くまで待つ（15秒まで）。待つあいだは小さく「読み込んでいます…」 */
+  const LDMAX = 15000, ldNear = () => (ci > 0 ? [items[ci - 2], items[ci - 1], items[ci]] : [items[0], items[1]]).filter(Boolean), ldy = () => (ci > 0 || !EN.pid || !!enFront.map) && ldNear().every(it => !it.req || it.pt || it.fail);
+  const xwSay = on => { const e = root.querySelector('.xwait'); if (!e) return; e.classList.add('xdk'); if (on) e.textContent = '読み込んでいます…'; e.style.opacity = on ? '1' : '0'; };
   let lgT = 0; const yrHide = () => { yrEl.classList.remove('xin'); clearTimeout(lgT); const t0 = performance.now(); /* いまの作品の写真が届くまで明かりを待つ（4秒まで）。届いたら、明かりと一緒に写真が出る */
-    const w = () => { if (!EXV || yrEl.classList.contains('xin') || yd) return; const c = items[ci - 1]; if (!RM && c && c.req && !c.pt && !c.fail && performance.now() - t0 < 4000) { lgT = setTimeout(w, 80); return; } lightTo(1); }; w(); };
+    const w = () => { if (!EXV || yrEl.classList.contains('xin') || yd) return; if (!RM && !ldy() && performance.now() - t0 < LDMAX) { if (performance.now() - t0 > 1200) xwSay(1); lgT = setTimeout(w, 80); return; } xwSay(0); lightTo(1); }; w(); };
   const yrShow = t => { if (yrEl.dataset.t !== t) { yrEl.dataset.t = t; const ml = t.includes('\n'); yrEl.classList.toggle('xml', ml);
       if (ml) yrTx.innerHTML = t.split('\n').map(x => '<span class="l' + (x === '-' ? ' h' : '') + '">' + esc(x) + '</span>').join(''); else yrTx.textContent = t; } yrEl.classList.add('xin'); lightTo(0); }; /* 出ている間に年が変わったら、数字だけそのまま入れかえ */
   const yrPos = () => { yrEl.style.top = W < H ? 'calc(50% - 20px)' : ''; }; /* 縦長の画面だけ少し上げる。絵によって高さを変えない（10/6 本人） */
@@ -11872,12 +11875,13 @@ function exvBuild(root, L, start){
   xPrev.onclick = () => { poke(); step(-1); }; xNext.onclick = () => { poke(); step(1); };
   const key = e => { poke(); if (e.key === 'ArrowRight') { e.preventDefault(); step(1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); } };
   const rs = () => { const w = stage.clientWidth || innerWidth, h = stage.clientHeight || innerHeight; if (w === W && h === H) return; layout(); }; addEventListener('resize', rs); addEventListener('keydown', key);
-  const wait = root.querySelector('.xwait'); if (wait) wait.remove();
+  const dk0 = ELF >= 1 && !RM && (+start || 0) > 0; if (dk0) LF = LFt = 0; /* 作品から開いたときも、写真が届くまで暗いまま（10/9） */ xwSay(1);
   ci = Math.max(0, Math.min(items.length, start || 0)); layout(); around(ci); setCnt(); autoNext(); awake();
+  if (dk0) { const T0 = performance.now(); const w = () => { if (!EXV || dead) return; if (!ldy() && performance.now() - T0 < LDMAX) { lgT = setTimeout(w, 80); return; } xwSay(0); lightTo(1); }; w(); } else if (ELF >= 1) xwSay(0);
   /* 入口の電気：暗い部屋 → スポットライトがゆっくり明るくなり、続いて部屋全体が明るくなる（約4秒。写真が届くまで 3 秒は待つ）。ついたら自動再生の時間を数え直す（10/8 本人「暗いところから電気」「ゆっくりフェード。スポットライト→全体の順」） */
-  if (ELF < 1) { let w = 0, t = -1, ln = 0; const D = 4000; /* 時間は1こまで 50ms まで進める（重い端末でも飛ばない） */
+  if (ELF < 1) { let w = 0, t = -1, ln = 0; const D = 4000, T0 = performance.now(); /* 時間は1こまで 50ms まで進める（重い端末でも飛ばない） */
     const f = n => { if (!EXV || dead) return; const dt = ln ? Math.min(50, n - ln) : 0; ln = n;
-      if (t < 0) { w += dt; if (w < 700 || (EN.pid && !enFront.map && w < 3200)) return requestAnimationFrame(f); t = 0; } else t += dt;
+      if (t < 0) { w += dt; if (w < 700 || (!ldy() && performance.now() - T0 < LDMAX)) return requestAnimationFrame(f); t = 0; xwSay(0); } else t += dt;
       ELF = Math.min(1, t / D); draw(); if (ELF < 1) requestAnimationFrame(f); else { autoNext(); phBtn(); } };
     requestAnimationFrame(f); }
   /* PC：マウスを動かすと、消えていた操作が出る（15:03 本人）。画面のどこで動かしても（上に何か重なっていても）拾えるよう、window でとる。ホイールでも出す */
@@ -11889,7 +11893,7 @@ function exvBuild(root, L, start){
   EXV.close = () => { tid++; dead = 1; items.forEach(it => { it.req = 0; }); PQ.clear(); clearTimeout(PQT); clearInterval(LDT); clearTimeout(EXV.syncT); /* 閉じたあとに届いた写真で、捨てた描画を動かさない */ clearTimeout(autoT); clearTimeout(settle); clearTimeout(wt); if (rq) cancelAnimationFrame(rq); removeEventListener('resize', rs); removeEventListener('keydown', key);
     sc.traverse(o => { if (o.geometry) o.geometry.dispose(); const ms = o.material ? [].concat(o.material) : []; ms.forEach(m => { if (m.map) m.map.dispose(); if (m.bumpMap) m.bumpMap.dispose(); m.dispose(); }); });
     items.forEach(it => it.tx.forEach(t => t.dispose())); r.dispose(); if (r.forceContextLoss) r.forceContextLoss(); close0(); };
-  EXV.go = go; EXV.elf = () => ELF; EXV.cam = () => ({ x: st.x, y: st.y, z: st.z, zoomed, ci }); /* 試験用 */ EXV.yrc = () => { const it = items[ci - 1]; if (!it) return null; const v = new T3.Vector3(it.g.position.x, it.cyW, 0).project(cam), b = yrEl.getBoundingClientRect(), rb = root.getBoundingClientRect(); return { art: Math.round((1 - v.y) / 2 * H), yr: Math.round(b.top + b.height / 2 - rb.top), H }; }; EXV.lds = () => items.map(it => [it.d.no, it.pt ? 1 : 0, it.fail ? 1 : 0, it.tries || 0, it.cv.width, it.cv.height]); EXV.cur = () => ci; EXV.caps = () => { const it = items[ci - 1]; return it ? [it.capM].concat((it.xc || []).map(c => c.m)).map(m => [+m.position.x.toFixed(3), +m.position.y.toFixed(3), m.visible ? 1 : 0]) : []; }; EXV.tri = () => TRI.map(t => [t.i0, +t.f.toFixed(3)]); EXV.n = items.length; EXV.start = ci; EXV.loaded = () => items.map(it => it.hi ? 1 : it.lo ? 0.5 : 0); EXV.light = () => [LFt, +LF.toFixed(2)]; EXV.rv = () => { const it = items[ci - 1]; return it ? [+it.rv.value.toFixed(2), it.pt ? 1 : 0, it.fd ? 1 : 0] : null; }; EXV.at = () => { const S = stops[ci]; return !!S && Math.abs(st.x - S.x) < 1e-3 && Math.abs(st.y - S.y) < 1e-3; };
+  EXV.go = go; EXV.elf = () => ELF; EXV.lf = () => LF; EXV.ldy = () => [ci, ldy(), ldNear().map(it => [it.d.no, it.req, it.pt, it.fail])]; EXV.cam = () => ({ x: st.x, y: st.y, z: st.z, zoomed, ci }); /* 試験用 */ EXV.yrc = () => { const it = items[ci - 1]; if (!it) return null; const v = new T3.Vector3(it.g.position.x, it.cyW, 0).project(cam), b = yrEl.getBoundingClientRect(), rb = root.getBoundingClientRect(); return { art: Math.round((1 - v.y) / 2 * H), yr: Math.round(b.top + b.height / 2 - rb.top), H }; }; EXV.lds = () => items.map(it => [it.d.no, it.pt ? 1 : 0, it.fail ? 1 : 0, it.tries || 0, it.cv.width, it.cv.height]); EXV.cur = () => ci; EXV.caps = () => { const it = items[ci - 1]; return it ? [it.capM].concat((it.xc || []).map(c => c.m)).map(m => [+m.position.x.toFixed(3), +m.position.y.toFixed(3), m.visible ? 1 : 0]) : []; }; EXV.tri = () => TRI.map(t => [t.i0, +t.f.toFixed(3)]); EXV.n = items.length; EXV.start = ci; EXV.loaded = () => items.map(it => it.hi ? 1 : it.lo ? 0.5 : 0); EXV.light = () => [LFt, +LF.toFixed(2)]; EXV.rv = () => { const it = items[ci - 1]; return it ? [+it.rv.value.toFixed(2), it.pt ? 1 : 0, it.fd ? 1 : 0] : null; }; EXV.at = () => { const S = stops[ci]; return !!S && Math.abs(st.x - S.x) < 1e-3 && Math.abs(st.y - S.y) < 1e-3; };
   EXV.hdInfo = () => { const it = items[nearIdx() - 1]; return it ? [nearIdx(), it.d.no, hdLv(it), !!it.hi, it.hd || 0, +st.z.toFixed(2), H, PRH] : null; }; /* 試験用 */
   EXV.edges = () => items.map(it => { const w = it.W || it.w, y = it.d.b ? it.h / 2 : it.yc != null ? it.yc : CY, b = el.getBoundingClientRect(), f = xx => { const v = new T3.Vector3(xx, y, 0).project(cam); return Math.round(b.left + (v.x + 1) / 2 * b.width); }; return [f(it.g.position.x - w / 2), f(it.capM.position.x + PWm / 2)]; }); /* 確かめ用 */
   EXV.capRect = () => { const it = items[ci - 1], b = el.getBoundingClientRect(), v = new T3.Vector3(it.capM.position.x - PWm * 0.3, it.capM.position.y - PHm / 2 + PHm * 0.12, 0.006).project(cam); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }; /* 確かめ用：「作品ページへ」のあたり */ EXV.stop = () => ({ y: +st.y.toFixed(3), cy: stops[ci] && stops[ci].y, x: +st.x.toFixed(3), sx: stops[ci] && +stops[ci].x.toFixed(3), z: +st.z.toFixed(3), sz: stops[ci] && +stops[ci].z.toFixed(3), zoomed, ci, ov: ovI });
