@@ -2210,6 +2210,33 @@ button.ulrow{cursor:pointer}
 .scbar .scgo{flex:1;margin:0;min-height:44px}
 .scpv .cmpside{position:relative}
 .scex{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 14px;border-top:1px solid var(--line)}
+.bkcv .cmpdoc{display:flex;align-items:center;justify-content:center}
+.bkcnone{color:var(--sub);font-size:14px;padding:20px;text-align:center}
+.bkcsel{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.bkcsel span{display:flex;align-items:center;gap:6px;font-weight:600;font-size:14px}
+.bkcsel .booki{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6}
+.bkchg{border:0;background:none;color:var(--sub);font-size:13px;padding:2px 0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.bkpgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.bkpg{position:relative;border:0;padding:0;border-radius:8px;overflow:hidden;background:var(--wash);aspect-ratio:3/4;cursor:pointer;box-shadow:0 0 0 1px var(--line) inset}
+.bkpg img{width:100%;height:100%;object-fit:cover;display:block}
+.bkpg.on{box-shadow:0 0 0 3px var(--ink)}
+.bkpg small{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);color:#fff;font-size:11px;padding:3px 5px;text-align:left}
+.bkpg em{position:absolute;top:5px;right:5px;background:#2E7D4F;color:#fff;font-style:normal;font-size:10.5px;border-radius:6px;padding:1px 6px}
+.pjgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin:10px 0}
+.pjit{position:relative;border:0;padding:0;border-radius:10px;overflow:hidden;background:var(--wash);aspect-ratio:1;cursor:pointer;box-shadow:0 0 0 1px var(--line) inset}
+.pjit img{width:100%;height:100%;object-fit:contain;display:block}
+.pjit.on{box-shadow:0 0 0 3px var(--ink)}
+.pjk{position:absolute;left:5px;bottom:5px;background:var(--paper);color:var(--sub);font-size:11px;border-radius:6px;padding:1px 6px}
+.pjn{position:absolute;top:6px;left:6px;min-width:24px;height:24px;border-radius:999px;background:var(--ink);color:var(--bg);font-weight:700;font-size:13px;display:none;align-items:center;justify-content:center}
+.pjit.on .pjn{display:flex}
+.pjpv{margin:6px 0 10px}
+.pjpv.hidden{display:none}
+.pjpvh{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.pjpvh small{color:var(--sub)}
+.pjrev{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer}
+.pjrow{display:flex;height:120px;background:var(--wash);border-radius:8px;overflow-x:auto;justify-content:safe center}
+.pjrow img{height:100%;width:auto;display:block;flex:none}
+.pjmain{margin:4px 0 8px}
 .scexb{display:inline-flex;align-items:center;gap:6px;border:0;background:none;color:var(--sub);font-size:13px;padding:4px 0;cursor:pointer}.scexb span{text-decoration:underline;text-underline-offset:3px}
 .scexc{display:inline-flex;align-items:center;gap:2px;font-size:12.5px;padding:3px 4px 3px 10px;border-radius:999px;background:var(--wash);color:var(--ink)}.scexc button{border:0;background:none;font-size:15px;line-height:1;padding:0 4px;cursor:pointer;color:var(--sub)}
 .scov{position:absolute;inset:0;background:var(--bg);z-index:6;display:flex;flex-direction:column}.scov.hidden{display:none}
@@ -2482,7 +2509,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'b010d62ee1', APP_URL = location.origin + location.pathname;
+const BUILD = '0c3bdf639f', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2747,10 +2774,14 @@ function docCacheSync(docs){ let V = {}; try { V = JSON.parse(localStorage.getIt
   const first = !Object.keys(V).length, del = [], N = {};
   (docs || []).forEach(d => { const v = String(d['更新日時'] || ''), fs = docPages(d); fs.forEach(f => { N[f] = v; if (!first && V[f] && V[f] !== v) { del.push('pdf_' + f, ...[100, 200, 300, 400, 800, 1200, 1600, 3200].map(w => 'd' + w + '_' + f)); delete DPDF[f]; if (typeof PDOC !== 'undefined') delete PDOC[f]; Object.keys(DTH).forEach(k => { if (k.endsWith('_' + f)) delete DTH[k]; }); } }); });
   if (del.length) thDel(del); try { localStorage.setItem('smr_dver', JSON.stringify(N)); } catch(e){} }
+/* 前の版で作った縮小写真（切り抜き・スキャン・組み写真の、この端末にだけ保存した 400・800）は粗かったので、一度だけ消して Google の縮小を取り直す（10/8 開発 v13） */
+function seedFix(){ try { if (localStorage.getItem('smr_seedfix') === '1') return; } catch(e){ return; } const ks = [];
+  (S.photos || []).forEach(p => { if (/補正：元の写真|^スキャン |組み写真：/.test(String(p['メモ'] || '')) && p['ファイルID']) ['400_', '800_', '200_'].forEach(w => { ks.push(w + p['ファイルID']); delete TH[w + p['ファイルID']]; }); });
+  if (ks.length) thDel(ks); try { localStorage.setItem('smr_seedfix', '1'); } catch(e){} }
 function setData(d){ shTake(d); if (S.upd) S.upd.t = 0; try { if (d && d.docs && d.docs.length) docCacheSync(d.docs); } catch(e){}
   const allW = d.works || []; d = Object.assign({}, d, {works: allW.filter(w => !OTRE.test(w['作品番号'])), others: allW.filter(w => OTRE.test(w['作品番号']))});
   S.merged = Array.isArray(d.merged) ? d.merged : (S.merged || []);
-  Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, museums:d.museums||[], exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], finds:d.finds||[], lits:d.lits||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], faces:d.faces||[], faceInfo:d.faceInfo||{}, sign:d.sign||'', memoChecker:d.memoChecker||'直美', marks:d.marks||[], pimg:d.pimg||S.pimg||[], hist:Array.isArray(d.hist) ? d.hist : (S.hist || null), autoc:Array.isArray(d.autoc) ? d.autoc : (S.autoc || []), groups:Array.isArray(d.groups) ? d.groups : (S.groups || []), slays:Array.isArray(d.slays) ? d.slays : (S.slays || []), user:d.user, ai:d.ai, aiNoLim:!!d.aiNoLim, publicView:d.publicView, gcid:d.gcid || ''}); if (S.token && !d.user) setToken(''); index(); try { pimgIndex(); } catch(e){} renderUser(); try { faceInit(); } catch(e){} try { fpInit(); } catch(e){}  if (d.user) setTimeout(prefetchThumbs, 0); }
+  Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, museums:d.museums||[], exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], finds:d.finds||[], lits:d.lits||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], faces:d.faces||[], faceInfo:d.faceInfo||{}, sign:d.sign||'', memoChecker:d.memoChecker||'直美', marks:d.marks||[], pimg:d.pimg||S.pimg||[], hist:Array.isArray(d.hist) ? d.hist : (S.hist || null), autoc:Array.isArray(d.autoc) ? d.autoc : (S.autoc || []), groups:Array.isArray(d.groups) ? d.groups : (S.groups || []), slays:Array.isArray(d.slays) ? d.slays : (S.slays || []), user:d.user, ai:d.ai, aiNoLim:!!d.aiNoLim, publicView:d.publicView, gcid:d.gcid || ''}); if (S.token && !d.user) setToken(''); index(); try { pimgIndex(); } catch(e){} renderUser(); try { faceInit(); } catch(e){} try { fpInit(); } catch(e){}  try { seedFix(); } catch(e){} if (d.user) setTimeout(prefetchThumbs, 0); }
 const canRole = () => !!(S.user && ['編集','管理'].includes(S.user.role));
 const isGuest = () => !!(S.user && (S.user.role === 'ゲスト' || S.gmode)); /* ゲスト（ゲストの人と、名前のメニューの「モード選択」でゲストモードにした人）：見るだけ。ホームは展示ビュー（閉じると作品アルバム）。届いたもの・確認メモ・使い方・更新記録・書類・インタビュー・Google 連携は出さない。AI に質問はできる（10/7 開発 v11 本人） */
 const canEdit = () => canRole() && !isGuest() && S.vm !== 'view';
@@ -3666,6 +3697,79 @@ async function crScanLink(c0, say){ const no = c0.no, T = [{ id: c0.orig['作品
     try { await crCall('linkWorkMulti', [no, [{ kind: 'pb', id: t.id }], t.note], has); if (!has()) { S.events.push(tmpLinkEv(no, 'pb', t.id, t.note)); index(); } }
     catch(e){ toast('「' + pbLab(t.id) + '」へのひも付けは入れられませんでした（資料のページの「掲載作品をひも付け」から入れられます）'); } } }
 /* 保存したあと：画集のページの画面にもどる（続けて同じページのほかの作品も切り出せるように） */
+/* 作品の画面から：画集のページを選んで切り出す（10/8 本人「作品からも画集のページを指定して切り出せる。複数の本に載っている場合がある」）。
+   scanPick の逆向き：左（上）にページを大きく、右（下）で本 → ページを選ぶ。この作品が載っている本（あゆみ・切り出した写真）が先。本が1冊ならすぐページ */
+const pbPages = id => pbTop(id).filter(pbPhOf);
+function wBookCut(no){ if (!canEdit() || !workOf(no)) return; const w = workOf(no) || {};
+  const on = new Set(S.events.filter(e => String(e['作品番号']) === String(no) && /^PB-/.test(String(e['資料ID'] || ''))).map(e => e['資料ID']));
+  (photoBy[no] || []).forEach(x => { const c = copyOf(x), b = c && String(c.u || '').split('/')[0]; if (/^PB-/.test(b || '')) on.add(b); });
+  const all = (S.pubs || []).filter(b => pbPages(b['資料ID']).length).map((b, i) => ({ b, i, r: on.has(b['資料ID']) ? 0 : 1 })).sort((a, b) => a.r - b.r || a.i - b.i).map(x => x.b);
+  if (!all.length) return toast('ページの写真が入っている本がまだありません（資料のページで入れられます）');
+  const el = document.createElement('div'); el.className = 'noteview cmpv scpv bkcv'; el._reopen = () => wBookCut(no);
+  el.innerHTML = `<div class="cmpin"><button type="button" class="cmpback" aria-label="戻る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="cmpdoc scdoc"><p class="bkcnone">本とページを選ぶと、ここに大きく出ます</p><div class="scimg hidden"><img alt="画集のページ"></div><div class="sczb hidden"><button type="button" data-scz="-1" aria-label="縮小">－</button><button type="button" data-scz="0">全体</button><button type="button" data-scz="1" aria-label="拡大">＋</button></div><span class="sccap hidden"></span></div>
+    <div class="cmpside"><div class="scph"><b>画集のページから切り出す</b><small>${esc(nol(no))}「${esc(w['作品名'] || '無題')}」が載っている本とページを選ぶと、次の画面で四隅を合わせて切り出します。</small><div class="bkch"></div></div>
+      <div class="cmpw"><div class="wplist"></div></div>
+      <div class="scbar"><label class="scmain"><input type="checkbox"> メイン画像にする</label><button type="button" class="act main scgo" disabled>ページを選んでください</button></div></div></div>`;
+  document.body.appendChild(el); hpush('n'); scrPush(el); document.body.classList.add('cmpon');
+  const mo = new MutationObserver(() => { if (!el.isConnected) { mo.disconnect(); if (!document.querySelector('.noteview.cmpv')) document.body.classList.remove('cmpon'); pinDrawer(); } }); mo.observe(document.body, { childList: true }); pinDrawer();
+  const box = el.querySelector('.scimg'), im = box.querySelector('img'), cap = el.querySelector('.sccap'), hd = el.querySelector('.bkch'), L = el.querySelector('.wplist'), gb = el.querySelector('.scgo'), cb = el.querySelector('.scmain input');
+  let BK = all.length === 1 ? all[0]['資料ID'] : (on.size === 1 && all.some(b => on.has(b['資料ID'])) ? [...on].find(id => all.some(b => b['資料ID'] === id)) : ''), PG = null, q32 = false, K = '';
+  cb.checked = !(photoBy[no] || []).length;
+  const pz = pzMake(box, im, { onZoom: z => { if (z > 1.4 && PG && !q32 && !TH['3200_' + PG['ファイルID']]) { q32 = true; get(PG, 3200); } } });
+  const get = (P, wd) => { const f = P['ファイルID']; return call('getThumbs', [f], wd).then(m => { if (m && m[f]) { TH[wd + '_' + f] = m[f]; if (PG === P && (wd === 3200 || !TH['3200_' + f])) im.src = m[f]; } }).catch(() => {}); };
+  const show = P => { PG = P; q32 = false; pz.reset(); const f = P['ファイルID']; ['.scimg', '.sczb', '.sccap'].forEach(k => el.querySelector(k).classList.remove('hidden')); el.querySelector('.bkcnone').classList.add('hidden');
+    im.src = TH['3200_' + f] || TH['1600_' + f] || TH['1200_' + f] || TH['800_' + f] || TH['400_' + f] || ''; if (!TH['1600_' + f] && !TH['3200_' + f]) get(P, 1600);
+    cap.textContent = pbLab(P['作品番号']) + '　' + pbPhLab(P); gb.disabled = false; gb.textContent = '✂ このページから切り出す'; };
+  const draw = () => { if (!BK) { hd.innerHTML = '<input type="search" class="wpq" placeholder="書名・発行元・年で探す" enterkeyhint="search">'; const q = hd.querySelector('.wpq'); q.value = K; q.oninput = () => { K = q.value; clearTimeout(q._t); q._t = setTimeout(list, 200); }; list(); return; }
+    const b = pbById[BK] || {}; hd.innerHTML = `<div class="bkcsel">${all.length > 1 ? '<button type="button" class="bkchg">‹ 本を選びなおす</button>' : ''}<span>${BOOKI}${esc(pbLab(BK))}</span></div>`; list(); };
+  const list = () => { if (!BK) { const k = K.normalize('NFKC').trim().toLowerCase(), hit = all.filter(b => !k || [b['タイトル'], b['発行元'], b['発行年月'], b['種類']].join(' ').normalize('NFKC').toLowerCase().includes(k));
+      L.innerHTML = hit.length ? hit.map(b => { const id = b['資料ID'], n = pbPages(id).length; return `<button type="button" class="wprow" data-bk="${esc(id)}"><span class="dfwth">${hasCover(b) ? thImg(b['表紙写真ファイルID'], 200) : '<span class="dfwnp">表紙なし</span>'}</span><span class="wpt"><b>${esc(b['タイトル'] || '（書名未入力）')}</b><small>${esc([b['種類'], yr(b['発行年月']), n + 'ページ'].filter(Boolean).join('　'))}</small>${on.has(id) ? '<em>この作品が載っている</em>' : ''}</span></button>`; }).join('') : '<p class="hint">見つかりません</p>';
+      hydrate(L); return; }
+    const pgs = pbPages(BK); L.innerHTML = `<div class="bkpgs">${pgs.map(P => { const done = scanCuts(P['写真ID']).some(x => String(x['作品番号']) === String(no));
+      return `<button type="button" class="bkpg${PG && PG['写真ID'] === P['写真ID'] ? ' on' : ''}" data-pg="${esc(P['写真ID'])}">${thImg(P['ファイルID'], 400)}<small>${esc(pbPhLab(P))}</small>${done ? '<em>切り出し済み</em>' : ''}</button>`; }).join('')}</div>`; hydrate(L); };
+  hd.addEventListener('click', e => { if (e.target.closest('.bkchg')) { BK = ''; draw(); } });
+  L.addEventListener('click', e => { const b = e.target.closest('[data-bk]'); if (b) { BK = b.dataset.bk; draw(); L.scrollTop = 0; return; }
+    const g = e.target.closest('[data-pg]'); if (!g) return; const P = pbPages(BK).find(x => x['写真ID'] === g.dataset.pg); if (!P) return; L.querySelectorAll('.bkpg').forEach(x => x.classList.toggle('on', x === g)); show(P); });
+  el.querySelector('.sczb').onclick = e => { const b = e.target.closest('[data-scz]'); if (!b) return; const d = +b.dataset.scz; if (!d) return pz.reset(); pz.zoomBy(d > 0 ? 1.6 : 1 / 1.6); };
+  gb.onclick = () => { if (!PG) return; const P = PG, main = cb.checked; scrBack(); setTimeout(() => openCrop(P, no, { fresh: true, main, extra: [], back: 'w' }), 320); };
+  el.querySelector('.cmpback').onclick = e => { e.stopPropagation(); scrBack(); };
+  draw(); }
+/* 組み写真：襖・屏風など何枚かに分けて撮った（切り出した）写真を、左から順に横に並べて1枚にし、メイン画像にする（10/8 本人）。
+   元の写真はそのまま。高さをいちばん低い写真にそろえて並べるだけ（すき間なし・1500万画素まで）。できた写真のメモ「組み写真：P1＋P2」（転載した写真なら転載元も引きつぐ） */
+const JOIN_PX = 15e6, isJoin = p => /組み写真：/.test(String((p || {})['メモ'] || ''));
+function pjoin(no){ if (!canEdit()) return; const L = (photoBy[no] || []).filter(p => p['ファイルID']); if (L.length < 2) return toast('写真が2枚以上あるときに使えます'); let SEL = [];
+  openSheet(`<h3>組み写真をつくる（襖・屏風など）</h3><p class="hint">分けて撮った写真を、<b>左から順に</b>選んでください（2〜8枚）。高さをそろえて横に並べ、1枚の写真にします。元の写真はそのまま残ります。</p>
+    <div class="pjgrid">${L.map(p => `<button type="button" class="pjit" data-pj="${esc(p['写真ID'])}">${thImg(p['ファイルID'], 400)}<span class="pjk">${esc(p['種類'] || '')}${isJoin(p) ? '・組み写真' : ''}</span><span class="pjn"></span></button>`).join('')}</div>
+    <div class="pjpv hidden"><div class="pjpvh"><small>できあがり（左から）</small><button type="button" class="pjrev">⇄ 左右を入れかえる</button></div><div class="pjrow"></div></div>
+    <label class="scmain pjmain"><input type="checkbox" checked> メイン画像にする</label>
+    <div class="btns"><button type="button" data-close>やめる</button><button type="button" class="main pjgo" disabled>写真を2枚以上選んでください</button></div>`);
+  const sh = $('#sheet'); hydrate(sh);
+  const draw = () => { sh.querySelectorAll('[data-pj]').forEach(b => { const i = SEL.indexOf(b.dataset.pj); b.classList.toggle('on', i >= 0); b.querySelector('.pjn').textContent = i >= 0 ? i + 1 : ''; });
+    const row = sh.querySelector('.pjrow'); sh.querySelector('.pjpv').classList.toggle('hidden', !SEL.length); row.innerHTML = SEL.map(id => thImg((L.find(x => x['写真ID'] === id) || {})['ファイルID'], 400)).join(''); hydrate(row);
+    const g = sh.querySelector('.pjgo'); g.disabled = SEL.length < 2; g.textContent = SEL.length < 2 ? '写真を2枚以上選んでください' : SEL.length + '枚を横に並べて1枚にする'; };
+  sh.querySelector('.pjgrid').onclick = e => { const b = e.target.closest('[data-pj]'); if (!b) return; const id = b.dataset.pj, i = SEL.indexOf(id); if (i >= 0) SEL.splice(i, 1); else if (SEL.length < 8) SEL.push(id); draw(); };
+  sh.querySelector('.pjrev').onclick = () => { SEL.reverse(); draw(); };
+  sh.querySelector('.pjgo').onclick = () => { const P = SEL.map(id => L.find(x => x['写真ID'] === id)).filter(Boolean); if (P.length >= 2) pjoinMake(no, P, sh.querySelector('.pjmain input').checked); }; }
+async function pjoinMake(no, P, main){ closeSheet(); busy(true, '写真を読み込んでいます…（' + P.length + '枚）');
+  try { const ims = [];
+    for (const p of P) { const o = await call('getOriginal', p['ファイルID']).catch(() => null), im = o && o.b64 ? await loadImg('data:' + (o.mime || 'image/jpeg') + ';base64,' + o.b64).catch(() => null) : null; if (!im) throw new Error('写真（' + (p['種類'] || '') + '）を読み込めませんでした'); ims.push(im); }
+    busy(true, '横に並べています…');
+    const H0 = Math.min(...ims.map(im => im.naturalHeight)), ws = ims.map(im => im.naturalWidth * H0 / im.naturalHeight), W0 = ws.reduce((a, b) => a + b, 0), k = Math.min(1, Math.sqrt(JOIN_PX / (W0 * H0)), 16000 / W0);
+    const c = document.createElement('canvas'), H = Math.max(1, Math.round(H0 * k)); c.width = Math.max(1, Math.round(W0 * k)); c.height = H; const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, H); g.imageSmoothingQuality = 'high';
+    let x = 0; ims.forEach((im, i) => { const x0 = Math.round(x), x1 = i === ims.length - 1 ? c.width : Math.round(x + ws[i] * k); g.drawImage(im, x0, 0, x1 - x0, H); x += ws[i] * k; });
+    const b64 = c.toDataURL('image/jpeg', 0.92).split(',')[1], seeds = crSeeds(c); c.width = c.height = 1;
+    const cp = P.map(copyOf).find(Boolean), tag = '組み写真：' + P.map(p => p['写真ID']).join('＋'), memo = cp ? copyCrMemo(cp, tag) : tag;
+    const has = () => S.photos.some(x => x['作品番号'] === no && String(x['メモ'] || '').includes(tag));
+    busy(true, '保存しています…');
+    const sr = await crCall('saveCrop', [{ no, oid: '_' + P[0]['写真ID'], cid: '', b64, mime: 'image/jpeg', kind: '表', memo, main, led: null }], has); /* 元の写真を「記録写真」にしないよう、見つからない番号を渡す */
+    if (sr && sr.photos) { S.photos = S.photos.filter(x => x['作品番号'] !== no).concat(sr.photos); index(); } else if (!has()) setData(await call('getData'));
+    const pid = (sr && sr.pid) || (S.photos.filter(x => x['作品番号'] === no && String(x['メモ'] || '').includes(tag)).pop() || {})['写真ID'];
+    if (pid) crSeed(pid, seeds);
+    if (main && pid && ((photoBy[no] || [])[0] || {})['写真ID'] !== pid) { await crCall('setMainPhoto', [pid], () => !!crPh(pid)['メイン']); S.photos.forEach(x => { if (x['作品番号'] === no) x['メイン'] = x['写真ID'] === pid ? 'メイン' : ''; }); index(); }
+    busy(false); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+    toast(P.length + '枚を横に並べて1枚にしました' + (main ? '（メイン画像）' : '') + '。いらなければ写真の画面の鉛筆から消せます'); }
+  catch(e){ busy(false); alert('組み写真をつくれませんでした。\n' + (e.message || e)); } }
 function crAfterScan(c0, pid){ const w = workOf(c0.no) || {}; render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
   bkOpen(c0.orig['作品番号'], c0.orig['写真ID']); toast(nol(c0.no) + '「' + (w['作品名'] || '無題') + '」の写真にしました' + (c0.fbMain ? '（メイン画像）' : '')); }
 /* スキャンした PDF からページを入れる（パソコンで。1ページずつ画像にして送る。同じ PDF のページは二重に入れないので、止まっても続きから） */
@@ -6239,8 +6343,8 @@ function openWork(no, keepScroll, restoreSc){
   const html = `
     <div class="pagehead"><button class="back" id="back">← もどる</button><span class="no">${esc(NO)}${(OLDS[no] || []).length ? `<small class="oldno">旧番号 ${esc(OLDS[no].join('・'))}</small>` : ''}</span></div>
     <div class="pagebody"><div class="media">
-      ${ph.length ? `<div class="gallery ${ph.length>1?'many':''}">${ph.map((p,i)=>`<a href="#" data-view="${i}"${pbPhOf(p) ? ' class="pgref"' : ''}>${thImg(p['ファイルID'],1200)}${wm(p)}<span class="kind">${pbPhOf(p) ? '画集のページ' : esc(p['種類'])}${/^【仮】/.test(p['メモ']||'') ? '・仮の写真' : ''}</span></a>`).join('')}</div>`
-                  : `<div class="nophoto">まだ写真がありません${canEdit()?'<br><button class="act main" style="margin-top:12px" data-act="photo">写真を追加</button>':''}</div>`}
+      ${ph.length ? `<div class="gallery ${ph.length>1?'many':''}">${ph.map((p,i)=>`<a href="#" data-view="${i}"${pbPhOf(p) ? ' class="pgref"' : ''}>${thImg(p['ファイルID'],1200)}${wm(p)}<span class="kind">${pbPhOf(p) ? '画集のページ' : esc(p['種類']) + (isJoin(p) ? '・組み写真' : '')}${/^【仮】/.test(p['メモ']||'') ? '・仮の写真' : ''}</span></a>`).join('')}</div>`
+                  : `<div class="nophoto">まだ写真がありません${canEdit()?'<br><button class="act main" style="margin-top:12px" data-act="photo">写真を追加</button>' + ((S.photos || []).some(pbPhOf) ? `<br><button class="act" style="margin-top:8px" data-bkcut="${esc(no)}">📖 画集のページから切り出す</button>` : ''):''}</div>`}
       ${ph.length>1?`<div class="dots">${ph.map((p,i)=>`<span class="${i?'':'on'}" data-dot="${i}"></span>`).join('')}</div>`:''}
       ${creditHTML(ph)}
       </div><div class="textcol">
@@ -6283,6 +6387,8 @@ function openWork(no, keepScroll, restoreSc){
       ${canEdit() ? `<h3 class="sec">記録を更新する</h3><div class="actions bottomacts">
         <button class="act main" data-act="event">できごとを追加</button>
         <button class="act" data-act="photo">写真を追加</button>
+        ${(S.photos || []).some(pbPhOf) ? `<button class="act" data-bkcut="${esc(no)}">📖 画集のページから切り出す</button>` : ''}
+        ${(photoBy[no] || []).length > 1 ? `<button class="act" data-pjoin="${esc(no)}">組み写真をつくる（襖・屏風など）</button>` : ''}
         <button class="act" data-act="doc">書類を撮る</button>
         <button class="act" data-act="flag">${w['要確認']?'要確認を外す':'要確認にする'}</button>
         <button class="act" data-linkw="${esc(no)}">＋ 展覧会・画集にひも付け</button>
@@ -6829,7 +6935,7 @@ function showV(){ const p = V.list[V.i]; if (!p) return;
   if (TH[k]) { $('#vimg').src = TH[k]; vSpin(false); }
   else { if (lo) { $('#vimg').src = TH[lo + '_' + p['ファイルID']]; $('#vimg').classList.add('lowres'); } vSpin(true); // 大きい写真が届くまで、小さい写真＋読み込み中のマーク
     call('getThumbs', [p['ファイルID']], 1600).then(m => { if (m[p['ファイルID']]) { TH[k] = m[p['ファイルID']]; if (V.list[V.i] === p) { $('#vimg').src = TH[k]; $('#vimg').classList.remove('lowres'); vSpin(false); } } }).catch(() => { if (V.list[V.i] === p) vSpin(false); }); }
-  const ref = isPgRef(p); $('#vcount').textContent = (V.i+1) + ' / ' + V.list.length + '　' + (ref ? '画集のページ・' + pbLab(p['作品番号']) + ' ' + pbPhLab(p) : p['種類']||'') + (crInfo(p) ? '・補正' : '') + (/^【仮】/.test(p['メモ']||'') ? '・仮' : '') + (copyOf(p) && copyOf(p).n ? '・' + copyOf(p).mu + ' ' + copyOf(p).n : '');
+  const ref = isPgRef(p); $('#vcount').textContent = (V.i+1) + ' / ' + V.list.length + '　' + (ref ? '画集のページ・' + pbLab(p['作品番号']) + ' ' + pbPhLab(p) : (p['種類']||'') + (isJoin(p) ? '・組み写真' : '')) + (crInfo(p) ? '・補正' : '') + (/^【仮】/.test(p['メモ']||'') ? '・仮' : '') + (copyOf(p) && copyOf(p).n ? '・' + copyOf(p).mu + ' ' + copyOf(p).n : '');
   $('#vcredit').innerHTML = creditHTML([p]); $('#vwm').innerHTML = wm(p).replace(/<\/?span[^>]*>/g, ''); vBk(p);
   const isW = S.cur && workOf(S.cur), isMain = V.i===0; $('#vmain').classList.toggle('hidden', !canEdit() || !isW || V.list.length < 2 || !p['写真ID']); $('#vmain').textContent = isMain ? '★ メイン画像' : '☆ メイン画像にする'; $('#vmain').disabled = isMain;
   $('#vcopy').classList.toggle('hidden', !canEdit() || !p['写真ID']); $('#vcopy').textContent = copyOf(p) ? '© 著作物（' + copyOf(p).mu + '）' : '© 著作物の設定';
@@ -7235,7 +7341,7 @@ async function openCrop(p, to, opt){
     cp: copyOf(t.orig) || (t.corr && copyOf(t.corr)) || (fb ? scanCp(t.orig) : null), cs: t.info && t.info.col ? t.info.cs : crCsLast(), wp: t.info && t.info.wp ? t.info.wp.slice() : null, ws: t.info && t.info.wp ? t.info.ws : 100, wpick: false, rot: t.info ? t.info.rot || 0 : 0, st: t.info ? t.info.st || 0 : 0 };
   if (t.info) { CR.n = t.info.n; CR.kan = !!t.info.kan; CR.top = t.info.top.map(a => a.slice()); CR.bot = t.info.bot.map(a => a.slice()); } else if (!book && isKannon(w)) crSetN(3, CR_P0, true); else crSetN(1, CR_P0, false);
   CR.book = book; if (!CR.led) CR.ratio = 'auto';
-  CR.fb = fb; CR.fbMain = !!(opt && opt.main); CR.fbExtra = (opt && opt.extra) || []; CR.fbBack = fresh ? t.orig['写真ID'] : ''; if (fb) CR.szDone = true; /* 画集の写真で「台帳のサイズは額込みか」は判定しない */
+  CR.fb = fb; CR.fbMain = !!(opt && opt.main); CR.fbExtra = (opt && opt.extra) || []; CR.fbBack = fresh && !(opt && opt.back === 'w') ? t.orig['写真ID'] : ''; CR.fbW = fresh && !!(opt && opt.back === 'w'); if (fb) CR.szDone = true; /* 画集の写真で「台帳のサイズは額込みか」は判定しない */
   if (!CR.kan && !CR_NS.some(x => x[0] === CR.n)) CR_NS.push([CR.n, CR.n + '曲']);
   const el = document.createElement('div'); el.id = 'crop'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', '切り抜き・補正');
   el.innerHTML = `<div class="cr-top"><button type="button" class="cr-x">やめる</button><b>切り抜き・補正</b><button type="button" class="cr-save" disabled>保存</button></div>
@@ -7680,14 +7786,17 @@ async function cropSave(){ const c0 = CR; if (!c0 || c0.saving || !c0.img) retur
   if (!c0.corr) { const ch = S.photos.find(x => x['作品番号'] === c0.no && (crInfo(x) || {}).orig === c0.orig['写真ID']); if (ch) c0.corr = ch; } /* 前の保存が通信の失敗で終わったのに、Google 側では入っていたとき：二重にせず、その写真を直す */
   say('補正した写真を作っています…'); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 30)));
   try {
-    const im = c0.full || await c0.fullP || c0.img0 || c0.img, rot = c0.rot || 0, sd = rot % 180 !== 0; /* 元のファイルが読めないときは、表示に使っている写真で作る */
-    const iw = im.naturalWidth, ih = im.naturalHeight, k = Math.min(1, Math.sqrt(9e6 / (iw * ih)));
-    const sc = document.createElement('canvas'), dw = Math.round(iw * k), dh = Math.round(ih * k); sc.width = sd ? dh : dw; sc.height = sd ? dw : dh; const sg = sc.getContext('2d');
-    if (rot) { sg.translate(sc.width / 2, sc.height / 2); sg.rotate(rot * Math.PI / 180); sg.drawImage(im, -dw / 2, -dh / 2, dw, dh); } else sg.drawImage(im, 0, 0, dw, dh); /* 向きを変えたときは、回しながら縮める */
+    const full = c0.full || await c0.fullP, im = full || c0.img0 || c0.img, rot = c0.rot || 0, sd = rot % 180 !== 0; /* 元のファイルが読めないときは、表示に使っている写真で作る */
+    if (!full) c0.lowSrc = true;
+    const iw = im.naturalWidth, ih = im.naturalHeight, r = crRatio(), ow = sd ? ih : iw, oh = sd ? iw : ih, [W0] = crSize(c0.top, c0.bot, ow, oh, r, 1e9, 1e15), [W1] = crSize(c0.top, c0.bot, ow, oh, r, 3200, 8e6);
+    /* 元の写真を、切り出す絵が出来上がりとほぼ同じ大きさ（1:1）になるまで、きれいに縮めてからゆがみを直す（大きいまま直すと、縮める所がギザギザになる）。1600万画素まで（iPhone の上限） */
+    const k = Math.min(1, Math.sqrt(16e6 / (iw * ih)), W0 > 0 ? (W1 / W0) * 1.3 : 1), dw = Math.max(1, Math.round(iw * k)), dh = Math.max(1, Math.round(ih * k));
+    const sc = document.createElement('canvas'); sc.width = sd ? dh : dw; sc.height = sd ? dw : dh; const sg = sc.getContext('2d'); sg.imageSmoothingEnabled = true; sg.imageSmoothingQuality = 'high';
+    { const pre = k < 0.75 ? hqScale(im, dw, dh) : im; if (rot) { sg.translate(sc.width / 2, sc.height / 2); sg.rotate(rot * Math.PI / 180); sg.drawImage(pre, -dw / 2, -dh / 2, dw, dh); } else sg.drawImage(pre, 0, 0, dw, dh); if (pre !== im) pre.width = pre.height = 1; } /* 向きを変えたときは、回しながら縮める */
     const src = sg.getImageData(0, 0, sc.width, sc.height); sc.width = sc.height = 1;
-    const r = crRatio(), [W, H] = crSize(c0.top, c0.bot, src.width, src.height, r, 3200, 8e6);
+    const [W, H] = crSize(c0.top, c0.bot, src.width, src.height, r, 3200, 8e6);
     const oc = document.createElement('canvas'); oc.width = W; oc.height = H; oc.getContext('2d').putImageData((() => { const im = crWarp(src.data, src.width, src.height, c0.top, c0.bot, crK(), W, H, crCut(c0.n, c0.kan)); crTone(im.data, crUseT()); return im; })(), 0, 0);
-    const b64 = oc.toDataURL('image/jpeg', 0.92).split(',')[1]; const seeds = crSeeds(oc); oc.width = oc.height = 1;
+    const b64 = oc.toDataURL('image/jpeg', 0.94).split(',')[1]; const seeds = crSeeds(oc); oc.width = oc.height = 1;
     const shape = c0.kan ? '観音開き 上 ' + crPts(c0.top) + ' 下 ' + crPts(c0.bot) : c0.n > 1 ? '屏風 ' + c0.n + '曲 上 ' + crPts(c0.top) + ' 下 ' + crPts(c0.bot) : '四隅 ' + crPts(crQuad(c0.top, c0.bot, 0));
     const crm = '補正：元の写真 ' + c0.orig['写真ID'] + '｜' + shape + (c0.rot ? '｜回転 ' + c0.rot : '')
       + '｜ふくらみ ' + c0.v + '｜明るさ ' + (c0.bri || 0) + '%｜比率 ' + (c0.ratio === 'led' && c0.led ? '台帳' : '写真') + (c0.ratio !== 'led' && c0.st ? '｜縦横 ' + (c0.st > 0 ? '+' : '') + c0.st + '%' : '') + '｜色 ' + (c0.col && c0.cht && c0.T ? 'チップ ' + crPts(c0.cht) + (crPct(c0.cs) < 1 ? '｜色の強さ ' + c0.cs + '%' : '') : 'なし' + (c0.cht ? '｜チップ位置 ' + crPts(c0.cht) : ''))
@@ -7728,13 +7837,17 @@ async function cropSave(){ const c0 = CR; if (!c0 || c0.saving || !c0.img) retur
     if (c0.flagMemo) { say('要確認の印をつけています…'); const fm = c0.flagMemo, okF = () => { const w = workOf(c0.no) || {}; return !!w['要確認'] && String(w['要確認メモ'] || '').indexOf(fm) >= 0; };
       if (!okF()) { const old = String((workOf(c0.no) || {})['要確認メモ'] || '').trim(), d = await crCall('setFlag', [c0.no, true, old ? old + ' / ' + fm : fm], okF); if (d && d.works) setData(d); } }
     crSeed(pid, seeds); /* 新しいファイルの縮小写真は Google 側ですぐにはできないので、手元で作ったものを先に入れる（展示ビュー・作品ページが白くならないように） */
-    if (CR === c0) cropClose(); if (c0.fbBack) { crAfterScan(c0, pid); return; } crAfter(c0.no, pid); toast((c0.ledPatch ? '補正した写真を保存し、台帳のサイズを直しました' : c0.corr ? '補正を直しました' : '補正した写真を保存しました') + (c0.flagMemo ? '（要確認の印をつけました）' : ''));
+    if (CR === c0) cropClose(); if (c0.fbBack) { crAfterScan(c0, pid); return; } crAfter(c0.no, pid); if (c0.lowSrc) { toast('元の画像が読めなかったので、表示用の写真から作りました（画質が落ちています）。通信のよいときに、もう一度切り出してください'); return; } if (c0.fbW) { toast('画集のページから切り出して、' + nol(c0.no) + 'の写真にしました' + (c0.fbMain ? '（メイン画像）' : '')); return; } toast((c0.ledPatch ? '補正した写真を保存し、台帳のサイズを直しました' : c0.corr ? '補正を直しました' : '補正した写真を保存しました') + (c0.flagMemo ? '（要確認の印をつけました）' : ''));
   } catch(e){ alert(isLoginErr(e) ? 'ログインの有効期限が切れました。もう一度ログインしてください。' : '保存できませんでした。\n' + (e.message || e)); refreshData().catch(() => {}); }
   finally { busy(false); c0.saving = false; if (CR === c0) { const o = $('#crop .cr-saving'); if (o) o.remove(); if (sb) sb.textContent = '保存'; if (hint) { hint.classList.remove('cr-busy'); hint.textContent = h0; } crUI(); } }
 }
 /* 補正して保存した写真の縮小写真（幅 1600・1200・800・400）を、保存する前の画像から作る。保存できたら新しいファイルIDで TH に入れ、800・400 は端末にも残す（10/6 開発 v9） */
-function crSeeds(oc){ const out = {}; try { [1600, 1200, 800, 400].forEach(w => { const k = Math.min(1, w / oc.width), c = document.createElement('canvas'); c.width = Math.max(1, Math.round(oc.width * k)); c.height = Math.max(1, Math.round(oc.height * k));
-  c.getContext('2d').drawImage(oc, 0, 0, c.width, c.height); out[w] = c.toDataURL('image/jpeg', 0.86); c.width = c.height = 1; }); } catch(e){} return out; }
+/* きれいに縮める：半分ずつ（高品質の補間で）縮めてから最後の大きさに。一度に大きく縮めると、ギザギザ・印刷の網点のモアレが出る（10/8 本人「画集から切り出した画像の画質が悪い」） */
+function hqScale(src, W, H){ let cur = src, cw = src.naturalWidth || src.width, ch = src.naturalHeight || src.height; W = Math.max(1, Math.round(W)); H = Math.max(1, Math.round(H));
+  while (cw / 2 >= W * 1.05 && ch / 2 >= H * 1.05) { const t = document.createElement('canvas'); t.width = Math.max(W, Math.round(cw / 2)); t.height = Math.max(H, Math.round(ch / 2)); const g = t.getContext('2d'); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(cur, 0, 0, t.width, t.height); if (cur !== src) { cur.width = cur.height = 1; } cur = t; cw = t.width; ch = t.height; }
+  const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d'); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(cur, 0, 0, W, H); if (cur !== src) { cur.width = cur.height = 1; } return c; }
+function crSeeds(oc){ const out = {}; try { let base = oc; [1600, 1200, 800, 400].forEach(w => { const k = Math.min(1, w / oc.width), W = Math.max(1, Math.round(oc.width * k)), H = Math.max(1, Math.round(oc.height * k));
+  const c = hqScale(base, W, H); out[w] = c.toDataURL('image/jpeg', 0.9); if (base !== oc) { base.width = base.height = 1; } base = c; }); if (base !== oc) { base.width = base.height = 1; } } catch(e){} return out; }
 function crSeed(pid, seeds){ const fid = pid && (crPh(pid) || {})['ファイルID']; if (!fid || !seeds) return; const keep = {};
   Object.keys(seeds).forEach(w => { const u = seeds[w]; if (!u) return; TH[w + '_' + fid] = u; if (+w <= 800) keep[w + '_' + fid] = u; }); try { thPut(keep); } catch(e){} }
 /* 補正をやめる：補正した写真をアーカイブへ移し、元の写真の種類とメイン画像をもどす */
@@ -10430,6 +10543,8 @@ document.addEventListener('pointerdown', e => { const pp = e.target.closest && e
   document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up); document.addEventListener('pointercancel', up); });
 document.addEventListener('click', e => { const t = e.target; if (!t || !t.closest) return;
   const nw = t.closest('[data-grpnew]'); if (nw) { grpEdit('', nw.dataset.grpnew); return; }
+  const bc = t.closest('[data-bkcut]'); if (bc) { wBookCut(bc.dataset.bkcut); return; }
+  const pj = t.closest('[data-pjoin]'); if (pj) { pjoin(pj.dataset.pjoin); return; }
   const ed = t.closest('[data-grped]'); if (ed) { grpEdit(ed.dataset.grped, ed.dataset.gpfrom); return; }
   const ud = t.closest('[data-gpundo]'); if (ud) { grpUndo(ud.dataset.gpundo); return; }
   const gw = t.closest('[data-gpw]'); if (gw && !t.closest('#gped')) { const no = gw.dataset.gpw; if (!(S.pcur && S.pcur.t === 'w' && String(S.pcur.id) === no)) openWork(no); return; }
