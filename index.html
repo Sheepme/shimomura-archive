@@ -2172,7 +2172,31 @@ button.ulrow{cursor:pointer}
 .vbk .vbkgo{border:0;background:var(--accent,#c0603a);color:#fff;font-size:14px;padding:8px 16px;border-radius:999px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.18)}
 .vbkw{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;font-size:12px;color:var(--sub)}
 .vbkw span{align-self:center}.vbkw button{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:4px 10px;font-size:12px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.scmain{display:flex;align-items:center;gap:8px;margin:12px 0 2px;font-size:15px}.scmain input{width:20px;height:20px}
+.scmain{display:flex;align-items:center;gap:8px;font-size:15px;white-space:nowrap}.scmain input{width:20px;height:20px}
+.cover.pbtop{max-width:min(640px,100%)}
+.pbgal{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
+.pbgal::-webkit-scrollbar{display:none}
+.pbgal a{flex:0 0 100%;scroll-snap-align:center;height:min(78vw,440px);display:flex;align-items:center;justify-content:center;position:relative;cursor:zoom-in;padding:10px;box-sizing:border-box}
+.pbgal img{max-width:100%;max-height:100%;width:auto!important;height:auto;object-fit:contain;display:block}
+.pbtop .pbmv{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--paper);opacity:.92;color:var(--ink);font-size:22px;line-height:1;padding:0 0 2px;z-index:2;cursor:pointer}
+.pbtop .pbmv.prev{left:8px}.pbtop .pbmv.next{right:8px}.pbtop .pbmv:disabled{opacity:0;pointer-events:none}
+.pbtop .pbcnt{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);font-size:12px;line-height:1;padding:4px 9px;border-radius:999px;background:rgba(0,0,0,.5);color:#fff;z-index:2;pointer-events:none}
+@media (hover:none){.pbtop .pbmv{display:none}}
+.scdoc{position:relative;background:var(--wash)}
+.scimg{position:absolute;inset:0;overflow:hidden;display:flex;align-items:center;justify-content:center;touch-action:pan-x pan-y}
+.scimg img{width:100%;height:auto;max-height:100%;object-fit:contain;display:block;user-select:none;-webkit-user-select:none}
+.scimg.zoomed{overflow:auto;display:block}.scimg.zoomed img{max-height:none;max-width:none;height:auto;margin:0 auto}
+.sczb{position:absolute;right:10px;bottom:10px;display:flex;gap:4px;z-index:2}
+.sczb button{min-width:38px;height:34px;border-radius:999px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font-size:14px;padding:0 10px;cursor:pointer}
+.sccap{position:absolute;left:10px;bottom:12px;font-size:12px;color:var(--sub);background:var(--paper);padding:3px 9px;border-radius:999px;z-index:2;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.scph{padding:10px 14px 8px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.scph b{font-size:16px}.scph small{color:var(--sub);font-size:12.5px;line-height:1.5}
+.scph .wpq{width:100%;box-sizing:border-box}
+.scf{display:flex;gap:6px}.scf button{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer}.scf button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.scpv .wplist{display:flex;flex-direction:column;gap:6px}
+.scbar{display:flex;align-items:center;gap:10px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--bg)}
+.scbar .scgo{flex:1;margin:0;min-height:44px}
+@media (max-width:899px){.scpv .cmpdoc{flex:0 0 40%}}
 .pbpdfb{display:block;text-align:center;margin:10px 0}
 .pbinp{border:0;padding:0;background:var(--wash);border-radius:8px;overflow:hidden;aspect-ratio:3/4;cursor:zoom-in}
 .pbinp img{width:100%;height:100%;object-fit:cover;min-height:0!important;display:block}
@@ -2435,7 +2459,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '0c3e523bb6', APP_URL = location.origin + location.pathname;
+const BUILD = 'f7b25db3c2', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3510,6 +3534,12 @@ const scanOf = p => !!p && /^PB-/.test(String(p['作品番号'] || '')) && p['�
 const pbScans = id => (S.photos || []).filter(p => p['作品番号'] === id && p['種類'] === SCAN_K).sort((a, b) => scanNo(a) - scanNo(b) || String(a['写真ID']).localeCompare(String(b['写真ID'])));
 const scanCuts = pid => (S.photos || []).filter(x => !/^PB-/.test(String(x['作品番号'] || '')) && (crInfo(x) || {}).orig === pid);
 const pbLab = id => String((pbById[id] || {})['タイトル'] || id).trim();
+/* 資料のページのいちばん上でめくる写真：表紙 → スキャンしたページ → 中のページ（表紙と同じファイルは1回だけ）（10/8 本人「中面があればトップ画像から左右に送る」） */
+const pbTop = id => { const x = pbById[id] || {}, cv = coverPh(x), cf = String(x['表紙写真ファイルID'] || ''), L = (cv ? [cv] : []).concat(pbScans(id), pbInner(id));
+  return L.filter((p, i) => L.findIndex(q => q['写真ID'] === p['写真ID']) === i && (p === cv || !cf || p['ファイルID'] !== cf)); };
+document.addEventListener('scroll', e => { const g = e.target; if (!g || !g.classList || !g.classList.contains('pbgal')) return; const b = g.closest('.pbtop'); if (!b) return;
+  const n = g.children.length, i = Math.max(0, Math.min(n - 1, Math.round(g.scrollLeft / Math.max(1, g.clientWidth)))), c = b.querySelector('.pbcnt'), pv = b.querySelector('.pbmv.prev'), nx = b.querySelector('.pbmv.next');
+  if (c) c.textContent = (i + 1) + ' / ' + n; if (pv) pv.disabled = i <= 0; if (nx) nx.disabled = i >= n - 1; }, true);
 const scanCp = p => ({ mu: pbLab(p['作品番号']), u: p['作品番号'] + '/' + p['写真ID'], hide: false, n: scanNo(p) ? scanNo(p) + '枚目' : '' });
 /* 画集のスキャンしたページを、写真の画面でめくる。作品の画面（© の「画集のページを開く」）から開いたときは、閉じたら作品にもどす */
 function bkOpen(id, pid){ const L = pbScans(id); if (!L.length) return toast('スキャンしたページが見つかりません');
@@ -3519,26 +3549,54 @@ function vBk(p){ const el = $('#vbk'); if (!el) return; const sc = scanOf(p); el
   const seen = new Set(), cuts = scanCuts(p['写真ID']).filter(x => !seen.has(x['作品番号']) && seen.add(x['作品番号']));
   el.innerHTML = (canEdit() ? '<button type="button" class="vbkgo" data-vbkgo="1">✂ 作品の写真にする</button>' : '')
     + (cuts.length ? '<div class="vbkw"><span>このページの作品</span>' + cuts.map(x => { const w = workOf(x['作品番号']) || {}; return `<button type="button" data-vbkw="${esc(x['作品番号'])}">${esc(nol(x['作品番号']))} ${esc(w['作品名'] || '無題')}</button>`; }).join('') + '</div>' : ''); }
-/* どの作品の写真にするか選ぶ → 切り抜きの画面へ */
-function sheetScanPick(p){ if (!canEdit() || !scanOf(p)) return; const id = p['作品番号'], cut = new Set(scanCuts(p['写真ID']).map(x => x['作品番号'])), inb = new Set(S.events.filter(e => e['資料ID'] === id).map(e => e['作品番号']));
-  let sel = '';
-  openSheet(`<h3>作品の写真にする</h3><p class="hint">${esc(pbLab(id))}${scanNo(p) ? '　' + scanNo(p) + '枚目' : ''}　このページに載っている作品を選んでください。次の画面で、作品の四隅を合わせて切り出します（写真には「© ${esc(pbLab(id))}」が付きます）。</p>
-    <div class="search" style="margin:0 0 10px"><input id="sq" type="search" placeholder="番号・作品名・年で探す"></div>
-    <div id="sres" class="pickl"></div>
-    <label class="scmain"><input type="checkbox" id="smain"> メイン画像にする</label><p class="hint" id="smainh"></p>
-    <div class="btns"><button type="button" data-close>やめる</button><button type="button" class="primary" id="ok" disabled>切り出す</button></div>`);
-  const nl = w => (isOtNo(w['作品番号']) ? '' : 'No.') + esc(w['作品番号']);
-  const draw = () => { const q = ($('#sq').value || '').normalize('NFKC').trim().toLowerCase(); let list = S.works.concat(S.others || []);
-    list = (q ? list.filter(w => [w['作品番号'], w['作品名'], w['作品名メモ'], w['制作年'], w['シリーズ']].join(' ').normalize('NFKC').toLowerCase().includes(q)) : list.filter(w => inb.has(w['作品番号']))).slice(0, 80);
-    $('#sres').innerHTML = list.map(w => `<button type="button" class="pr ${sel === w['作品番号'] ? 'on' : ''}" data-pno="${esc(w['作品番号'])}"><span class="th">${(photoBy[w['作品番号']] || []).length ? thumbHTML(w['作品番号'], 200) : nl(w)}</span><span class="tx"><b>${nl(w)}</b>　${esc(w['作品名'] || '無題')}<small>${esc([w['制作年'], dimTxt(w)].filter(Boolean).join('　'))}${cut.has(w['作品番号']) ? '　✂ このページから切り出し済み' : ''}</small></span><span class="ck">✓</span></button>`).join('')
-      || `<p class="muted">${q ? '見つかりません' : 'この画集の掲載作品は、まだひも付いていません。番号か作品名で探してください'}</p>`;
-    hydrate($('#sres')); };
-  $('#sq').oninput = draw;
-  $('#sres').onclick = e => { const b = e.target.closest('[data-pno]'); if (!b) return; sel = b.dataset.pno; document.querySelectorAll('#sres .pr').forEach(x => x.classList.toggle('on', x === b));
-    const n = (photoBy[sel] || []).length; $('#smain').checked = !n; $('#smainh').textContent = n ? 'いまの写真が ' + n + '枚あります。画集の写真をメインにするときはチェックを入れてください' : 'まだ写真がない作品なので、メイン画像にします'; $('#ok').disabled = false; };
-  draw();
-  $('#ok').onclick = () => { if (!sel) return; const main = $('#smain').checked, no = sel; closeSheet(); setTimeout(() => openCrop(p, no, { fresh: true, main }), 320); };
-}
+/* どの作品の写真にするか選ぶ → 切り抜きの画面へ。書類と作品の見比べと同じ形：ページ（上／左）を拡大して見ながら、作品（下／右）を探す（10/8 本人） */
+const SCZ = [1, 1.5, 2, 3, 4];
+function scanPick(p){ if (!canEdit() || !scanOf(p)) return; const id = p['作品番号'], pid = p['写真ID'], fid = p['ファイルID'];
+  const el = document.createElement('div'); el.className = 'noteview cmpv scpv'; el._reopen = () => scanPick(p);
+  el.innerHTML = `<div class="cmpin"><button type="button" class="cmpback" aria-label="戻る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="cmpdoc scdoc"><div class="scimg"><img alt="スキャンしたページ"></div><div class="sczb"><button type="button" data-scz="-1" aria-label="縮小">－</button><button type="button" data-scz="0">全体</button><button type="button" data-scz="1" aria-label="拡大">＋</button></div><span class="sccap">${esc(pbLab(id))}${scanNo(p) ? '　' + scanNo(p) + '枚目' : ''}</span></div>
+    <div class="cmpside"><div class="scph"><b>作品の写真にする</b><small>このページに載っている作品を選ぶと、次の画面で四隅を合わせて切り出します。</small>
+      <input type="search" class="wpq" placeholder="作品名・番号・年・場所で探す" enterkeyhint="search"><div class="scf">${[['', 'すべて'], ['pb', 'この画集'], ['np', '写真なし']].map(([k, t]) => `<button type="button" data-scf="${k}" class="${k ? '' : 'on'}">${t}</button>`).join('')}</div></div>
+      <div class="cmpw"><div class="wplist"></div></div>
+      <div class="scbar"><label class="scmain"><input type="checkbox"> メイン画像にする</label><button type="button" class="act main scgo" disabled>作品を選んでください</button></div></div></div>`;
+  document.body.appendChild(el); hpush('n'); scrPush(el); document.body.classList.add('cmpon');
+  const mo = new MutationObserver(() => { if (!el.isConnected) { mo.disconnect(); if (!document.querySelector('.noteview.cmpv')) document.body.classList.remove('cmpon'); pinDrawer(); } }); mo.observe(document.body, { childList: true }); pinDrawer();
+  /* ページの画像：開く大きさ（1600）→ 拡大したら高画質（3200）。指2本・2回タップ・＋－で拡大 */
+  const box = el.querySelector('.scimg'), im = box.querySelector('img'); let z = 1, hi = false;
+  const src = w => TH[w + '_' + fid]; im.src = src(3200) || src(1600) || src(800) || src(400) || '';
+  const get = w => call('getThumbs', [fid], w).then(m => { if (m && m[fid]) { TH[w + '_' + fid] = m[fid]; if (w === 3200 || !hi) im.src = m[fid]; if (w === 3200) hi = true; } }).catch(() => {});
+  if (!src(1600) && !src(3200)) get(1600);
+  const zoom = (nz, cx, cy) => { nz = Math.max(1, Math.min(4, nz)); const r = box.getBoundingClientRect(), ar = (im.naturalWidth / im.naturalHeight) || 1, fw = Math.min(r.width, r.height * ar), px = cx == null ? r.width / 2 : cx - r.left, py = cy == null ? r.height / 2 : cy - r.top;
+    let cw, ch, ox, oy; if (z > 1) { cw = im.offsetWidth; ch = im.offsetHeight; ox = im.offsetLeft - box.scrollLeft; oy = im.offsetTop - box.scrollTop; } else { cw = fw; ch = fw / ar; ox = (r.width - cw) / 2; oy = (r.height - ch) / 2; }
+    const fx = Math.max(0, Math.min(1, (px - ox) / Math.max(1, cw))), fy = Math.max(0, Math.min(1, (py - oy) / Math.max(1, ch))); z = nz; box.classList.toggle('zoomed', z > 1); im.style.width = z > 1 ? Math.round(fw * z) + 'px' : '';
+    if (z > 1) { box.scrollLeft = im.offsetLeft + fx * fw * z - px; box.scrollTop = im.offsetTop + fy * fw * z / ar - py; } if (z > 1.4 && !hi && !src(3200)) get(3200); };
+  el.querySelector('.sczb').onclick = e => { const b = e.target.closest('[data-scz]'); if (!b) return; const d = +b.dataset.scz; if (!d) return zoom(1);
+    const k = SCZ.findIndex(v => v >= z - .01); zoom(SCZ[Math.max(0, Math.min(SCZ.length - 1, (k < 0 ? SCZ.length - 1 : k) + d))]); };
+  let tap = 0, pin = null; box.addEventListener('dblclick', e => zoom(z > 1 ? 1 : 2.5, e.clientX, e.clientY));
+  box.addEventListener('touchstart', e => { if (e.touches.length === 2) { const [a, b] = e.touches; pin = { d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), z }; }
+    else if (e.touches.length === 1) { const t = Date.now(); if (t - tap < 300) { e.preventDefault(); zoom(z > 1 ? 1 : 2.5, e.touches[0].clientX, e.touches[0].clientY); tap = 0; } else tap = t; } }, { passive: false });
+  box.addEventListener('touchmove', e => { if (pin && e.touches.length === 2) { e.preventDefault(); const [a, b] = e.touches; zoom(pin.z * Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) / pin.d, (a.clientX + b.clientX) / 2, (a.clientY + b.clientY) / 2); } }, { passive: false });
+  box.addEventListener('touchend', e => { if (e.touches.length < 2) pin = null; });
+  /* 作品の一覧：この画集の作品が先。番号・名前・年・場所で探す */
+  const q = el.querySelector('.wpq'), L = el.querySelector('.wplist'), gb = el.querySelector('.scgo'), cb = el.querySelector('.scmain input'); let SEL = '', F = '';
+  const cut = new Set(scanCuts(pid).map(x => x['作品番号'])), inb = new Set(S.events.filter(e => e['資料ID'] === id).map(e => String(e['作品番号'])));
+  S.photos.forEach(x => { const c = copyOf(x); if (c && String(c.u || '').split('/')[0] === id) inb.add(String(x['作品番号'])); }); /* この画集から切り出した写真のある作品も */
+  const draw = () => { const k = q.value.normalize('NFKC').trim().toLowerCase().replace(/^no\.?\s*/, '');
+    let all = S.works.concat(S.others || []).filter(w => w['所在区分'] !== '統合済み');
+    if (F === 'pb') all = all.filter(w => inb.has(String(w['作品番号']))); else if (F === 'np') all = all.filter(w => !(photoBy[w['作品番号']] || []).length);
+    if (k) all = all.filter(w => [w['作品番号'], w['作品名'], w['作品名メモ'], w['制作年'], w['シリーズ'], w['所在'], w['画材']].join(' ').normalize('NFKC').toLowerCase().includes(k));
+    const hit = all.map((w, i) => ({ w, i, r: inb.has(String(w['作品番号'])) ? 0 : 1 })).sort((a, b) => a.r - b.r || a.i - b.i).slice(0, 80).map(x => x.w);
+    L.innerHTML = (hit.length ? hit.map(w => { const no = String(w['作品番号']), n = (photoBy[no] || []).length;
+      return `<button type="button" class="wprow${SEL === no ? ' on' : ''}" data-wp="${esc(no)}"><span class="dfwth">${n ? thumbHTML(no, 200) : '<span class="dfwnp">写真なし</span>'}</span><span class="wpt"><b>${esc(nol(no))}　${esc(w['作品名'] || '無題')}</b><small>${esc([w['制作年'], dimTxt(w), w['所在']].filter(Boolean).join('　'))}</small>${inb.has(no) || cut.has(no) ? `<em>${[inb.has(no) ? 'この画集に掲載' : '', cut.has(no) ? '✂ このページから切り出し済み' : ''].filter(Boolean).join('・')}</em>` : ''}</span><span class="wpck">${SEL === no ? '✓' : ''}</span></button>`; }).join('')
+      : `<p class="hint">${k ? '見つかりません' : F === 'pb' ? 'この画集にひも付いた作品はまだありません。「すべて」から探してください' : '該当する作品はありません'}</p>`) + (all.length > 80 ? `<p class="hint">ほか ${all.length - 80}点。番号や作品名で探してください</p>` : '');
+    hydrate(L); };
+  q.oninput = () => { clearTimeout(q._t); q._t = setTimeout(draw, 200); };
+  el.querySelector('.scf').onclick = e => { const b = e.target.closest('[data-scf]'); if (!b) return; F = b.dataset.scf; el.querySelectorAll('.scf button').forEach(x => x.classList.toggle('on', x === b)); draw(); };
+  L.addEventListener('click', e => { const b = e.target.closest('[data-wp]'); if (!b) return; SEL = String(b.dataset.wp); L.querySelectorAll('.wprow').forEach(r => { const on = r === b; r.classList.toggle('on', on); r.querySelector('.wpck').textContent = on ? '✓' : ''; });
+    const n = (photoBy[SEL] || []).length; cb.checked = !n; gb.disabled = false; gb.textContent = '✂ ' + nol(SEL) + ' を切り出す'; });
+  gb.onclick = () => { if (!SEL) return; const no = SEL, main = cb.checked; scrBack(); setTimeout(() => openCrop(p, no, { fresh: true, main }), 320); };
+  el.querySelector('.cmpback').onclick = e => { e.stopPropagation(); scrBack(); };
+  draw(); }
 /* 切り出した作品に、この画集の「画集掲載」のあゆみがなければ入れる */
 async function crScanLink(c0, say){ const pb = c0.orig['作品番号'], no = c0.no, has = () => S.events.some(e => String(e['作品番号']) === String(no) && e['資料ID'] === pb); if (has()) return;
   say('画集掲載のあゆみを入れています…');
@@ -3618,9 +3676,11 @@ function sheetPbPages(id){ const x = pbById[id]; if (!x || !canEdit()) return;
 document.addEventListener('click', e => {
   const a = e.target.closest('[data-pbpages]'); if (a) return sheetPbPages(a.dataset.pbpages);
   const b = e.target.closest('[data-pbin]'); if (b) { const [id, pid] = b.dataset.pbin.split('|'); S.cur = id; const L = (photoBy[id] || []).filter(p => p['種類'] !== SCAN_K); openViewerL(L, Math.max(0, L.findIndex(p => p['写真ID'] === pid)), 'pbin'); }
+  const pt = e.target.closest('[data-pbtop]'); if (pt) { e.preventDefault(); const [id, i] = pt.dataset.pbtop.split('|'); if (V.prevCur === undefined) V.prevCur = S.cur; S.cur = id; return openViewerL(pbTop(id), +i, 'pbtop'); }
+  const mv = e.target.closest('[data-pbmv]'); if (mv) { const g = mv.closest('.pbtop').querySelector('.pbgal'); g.scrollBy({ left: g.clientWidth * +mv.dataset.pbmv, behavior: 'smooth' }); return; }
   const sc = e.target.closest('[data-pbscan]'); if (sc) { e.preventDefault(); const [id, pid] = sc.dataset.pbscan.split('|'); return bkOpen(id, pid); }
   const pf = e.target.closest('[data-pbpdf]'); if (pf) return sheetPbPdf(pf.dataset.pbpdf);
-  const g = e.target.closest('[data-vbkgo]'); if (g) { const p = V.list[V.i]; if (!p) return; closeViewer(); setTimeout(() => sheetScanPick(p), 350); return; }
+  const g = e.target.closest('[data-vbkgo]'); if (g) { const p = V.list[V.i]; if (!p) return; closeViewer(); setTimeout(() => scanPick(p), 350); return; }
   const vw = e.target.closest('[data-vbkw]'); if (vw) { const no = vw.dataset.vbkw; closeViewer(); setTimeout(() => openWork(no), 300); return; }
 });
 function qcLitAct(a, c){ const l = ltById(c.id); if (!l) return;
@@ -6655,7 +6715,8 @@ function openPb(id, keepScroll, restoreSc){
     <div class="pagebody one"><div class="eyebrow">${esc(x['種類']||'出版物')}</div>
     <h2 class="title">${esc(x['タイトル']||'（書名未入力）')}</h2>
     <div class="tombstone">${esc([fmtDate(x['発行年月']), x['発行元'], x['著者・編者']].filter(Boolean).join('　|　'))}</div>
-    ${cover ? `<div class="cover">${thImg(x['表紙写真ファイルID'], 800)}${wm(coverPh(x))}${canEdit() ? `<button type="button" class="cvpen" data-cvedit="${esc(id)}" aria-label="表紙を直す">${PEN}</button>` : ''}</div>${creditHTML([coverPh(x)].filter(Boolean))}` : ''}
+    ${(T => T.length > 1 ? `<div class="cover pbtop"><div class="pbgal">${T.map((p, i) => `<a href="#" data-pbtop="${esc(id)}|${i}" aria-label="${i + 1}枚目を大きく見る">${thImg(p['ファイルID'], 800)}${wm(p)}</a>`).join('')}</div>${canEdit() && cover ? `<button type="button" class="cvpen" data-cvedit="${esc(id)}" aria-label="表紙を直す">${PEN}</button>` : ''}<button type="button" class="pbmv prev" data-pbmv="-1" aria-label="前のページ" disabled>‹</button><button type="button" class="pbmv next" data-pbmv="1" aria-label="次のページ">›</button><span class="pbcnt">1 / ${T.length}</span></div>${creditHTML([coverPh(x)].filter(Boolean))}`
+      : cover ? `<div class="cover">${thImg(x['表紙写真ファイルID'], 800)}${wm(coverPh(x))}${canEdit() ? `<button type="button" class="cvpen" data-cvedit="${esc(id)}" aria-label="表紙を直す">${PEN}</button>` : ''}</div>${creditHTML([coverPh(x)].filter(Boolean))}` : '')(pbTop(id))}
     ${(P => P.length ? `<h3 class="sec">スキャンしたページ ${P.length}枚</h3><div class="pbscan">${P.map((ph, i) => { const n = new Set(scanCuts(ph['写真ID']).map(x => x['作品番号'])).size; return `<button type="button" class="pbsc" data-pbscan="${esc(id)}|${esc(ph['写真ID'])}" aria-label="${i + 1}枚目を開く">${thImg(ph['ファイルID'], 400)}<span class="pbscn">${i + 1}</span>${n ? `<span class="pbscw">${n}点</span>` : ''}</button>`; }).join('')}</div>` : '')(pbScans(id))}
     ${(P => P.length ? `<h3 class="sec">中のページ ${P.length}枚</h3><div class="pbin">${P.map(ph => `<button type="button" class="pbinp" data-pbin="${esc(id)}|${esc(ph['写真ID'])}">${thImg(ph['ファイルID'], 400)}</button>`).join('')}</div>` : '')(pbInner(id))}
     <h3 class="sec">掲載作品 ${new Set(nos).size}点</h3>${linkedGrid('pb', id)}${docLinks('資料ID', id)}${memosFor(id)}
@@ -6672,7 +6733,7 @@ function openPb(id, keepScroll, restoreSc){
 let V = {list:[], i:0};
 function openViewer(i){ openViewerL(photoBy[S.cur]||[], i, ''); }
 /* 写真の一覧を渡して開く。mode：'scan'＝画集のスキャンしたページだけ、'pbin'＝本の表紙と中のページ（スキャンは入れない）（10/8 開発 v13） */
-const vList = no => V.mode === 'scan' ? pbScans(no) : V.mode === 'pbin' ? (photoBy[no] || []).filter(p => p['種類'] !== SCAN_K) : (photoBy[no] || []);
+const vList = no => V.mode === 'scan' ? pbScans(no) : V.mode === 'pbtop' ? pbTop(no) : V.mode === 'pbin' ? (photoBy[no] || []).filter(p => p['種類'] !== SCAN_K) : (photoBy[no] || []);
 function openViewerL(L, i, mode){ V.list = L; V.i = i; V.mode = mode || ''; document.body.classList.add('vopen'); showV(); if ($('#viewer').classList.contains('hidden')) { hpush('v'); $('#viewer').classList.remove('hidden'); scrPush($('#viewer')); } }
 function closeViewer(fromHist){ if (V.prevCur !== undefined) { S.cur = V.prevCur; V.prevCur = undefined; } /* 画集のページを作品の画面から開いたときは、作品にもどす */ const open = !$('#viewer').classList.contains('hidden'); if (open) scrPop($('#viewer')); $('#viewer').classList.add('hidden'); setTimeout(() => document.body.classList.remove('vopen'), 400); /* 閉じた直後のタップが下のメニューに届かないよう少し待つ */ if (open && !fromHist) hback(); }
 /* 美術館などから転載した画像の注意書き（写真のメモが「転載元：館名｜URL」のとき） */
@@ -7887,7 +7948,7 @@ function fwdRecord(){ let f = null;
   if (SCR.length) { const top = SCR[SCR.length - 1];
     if (top._reopen) f = top._reopen;
     else if (top.id === 'sheet' && S.sheetDoc) { const id = S.sheetDoc; f = () => sheetDocReview(id); }
-    else if (top.id === 'viewer') { const i = V.i, m = V.mode, c = S.cur; f = () => { if (m === 'scan') bkOpen(c, (pbScans(c)[i] || {})['写真ID']); else openViewer(i); }; } }
+    else if (top.id === 'viewer') { const i = V.i, m = V.mode, c = S.cur; f = () => { if (m === 'scan') bkOpen(c, (pbScans(c)[i] || {})['写真ID']); else if (m === 'pbtop') { S.cur = c; openViewerL(pbTop(c), i, 'pbtop'); } else openViewer(i); }; } }
   else if (!$('#page').classList.contains('hidden') && S.pcur) { const p = Object.assign({}, S.pcur), st = (S.stack || []).slice(); f = () => { S.stack = st; ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[p.t](p.id); }; }
   else if (typeof VH !== 'undefined' && VH.length) { const s = vsnap(); f = () => { Object.assign(S, { view: s.view, wmode: s.wmode, filter: s.filter, mus: s.mus, dmode: s.dmode, dpath: s.dpath, otk: s.otk, q: s.q }); render(); setTimeout(() => window.scrollTo(0, s.y || 0), 30); }; }
   FW.push(f); if (FW.length > 60) FW.shift(); }
