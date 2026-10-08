@@ -2598,7 +2598,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '120c056f71', APP_URL = location.origin + location.pathname;
+const BUILD = '0841410767', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -9150,17 +9150,16 @@ async function savePhotosKeep(no, list, kind, memo, cp){
       const crm = String(x.crm || '').replace('補正：元の写真 ｜', '補正：元の写真 ' + np['写真ID'] + '｜'), m2 = (/^【仮】/.test(memo) ? '【仮】' : '') + (cp ? copyCrMemo(cp, crm) : crm);
       r = await callRetryN(note, 'saveCrop', { no, oid: np['写真ID'], cid: '', b64: x.b64, mime: 'image/jpeg', kind, memo: m2, main: !!np['メイン'], led: null }); }
     return r && r.works ? r : null; }); }
-function shrink(file){ /* 長い辺を1800pxに縮めてJPEGに（透明な部分があるPNGはPNGのまま） */
+function shrink(file){ /* 長い辺を1800pxに縮めてJPEG（0.92）に（透明な部分があるPNGはPNGのまま） */
   return new Promise((ok, ng) => {
     const r = new FileReader();
     r.onload = () => { const im = new Image(); im.onload = () => {
       const m = 1800, k = Math.min(1, m / Math.max(im.width, im.height));
-      const c = document.createElement('canvas'); c.width = Math.round(im.width*k); c.height = Math.round(im.height*k);
-      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+      const c = hqScale(im, Math.round(im.width*k), Math.round(im.height*k)); /* 半分ずつ高品質に縮める（一度に縮めるとギザギザ）（10/9 本人「iPhone で作業すると画質が変わる？」の調べで） */
       let png = false;
       if (/png/i.test(file.type)) { try { const px = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; for (let i = 3; i < px.length; i += 4) if (px[i] < 255) { png = true; break; } } catch(e){} }
       PMIME = png ? 'image/png' : 'image/jpeg';
-      ok(c.toDataURL(PMIME, 0.85).split(',')[1]); }; im.onerror = ng; im.src = r.result; };
+      ok(c.toDataURL(PMIME, 0.92).split(',')[1]); c.width = c.height = 1; }; im.onerror = ng; im.src = r.result; };
     r.onerror = ng; r.readAsDataURL(file);
   });
 }
