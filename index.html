@@ -2422,7 +2422,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd074af375d', APP_URL = location.origin + location.pathname;
+const BUILD = '4dc514e4ed', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -8655,7 +8655,9 @@ async function auSave(){ const v = id => (document.getElementById(id) || {}).val
   if (!confirm('「' + name + '」さんを「' + AU.role + '」で追加します。\n\n質問：' + q + '\n答え：' + a + '\n\nよろしいですか？')) return;
   err(''); busy(true, '追加しています…'); let r;
   try { r = await call('addUser', { name, role: AU.role, q, a }); }
-  catch(e){ busy(false); return err('追加できませんでした。' + (/この操作はできません/.test(String(e && e.message || e)) ? 'Google 側の更新（デプロイ）がまだです' : String(e && e.message || e))); }
+  catch(e){ /* 通信が切れても、Google 側では追加できていることがある → 一覧を読み直して確かめる */
+    if (netErr(e)) { try { const L = await call('listUsers'), u = ((L && L.users) || []).find(x => auN(x.name) === auN(name)); if (u) r = { ok: true, name: u.name, role: u.role }; } catch(x){} }
+    if (!r) { busy(false); return err('追加できませんでした。' + (/この操作はできません/.test(String(e && e.message || e)) ? 'Google 側の更新（デプロイ）がまだです' : String(e && e.message || e))); } }
   busy(false); if (!r || !r.ok) return err(r && r.msg || '追加できませんでした');
   ['auName', 'auQ', 'auA'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
   if (done) { done.innerHTML = `<b>「${esc(r.name)}」さんを追加しました（${esc(r.role)}）</b><small>ログインは、名前「${esc(r.name)}」→ 質問に答える、です。答えは本人に伝えてください</small>`; done.classList.remove('hidden'); try { done.scrollIntoView({ block: 'nearest' }); } catch(e){} }
