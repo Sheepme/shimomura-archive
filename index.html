@@ -2227,6 +2227,13 @@ button.ulrow{cursor:pointer}
 .bkpg.on{box-shadow:0 0 0 3px var(--ink)}
 .bkpg small{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);color:#fff;font-size:11px;padding:3px 5px;text-align:left}
 .bkpg em{position:absolute;top:5px;right:5px;background:#2E7D4F;color:#fff;font-style:normal;font-size:10.5px;border-radius:6px;padding:1px 6px}
+.pvedit{display:flex;flex-direction:column;gap:4px;margin:8px 0 4px}
+.pvedit.hidden{display:none}
+.pvedit .act{margin:0}
+.pvedit small{color:var(--sub);font-size:12px}
+.pvs .pvsi{position:relative;border:0;padding:0;background:none;cursor:pointer}
+.pvs .pvsi span{position:absolute;right:3px;bottom:3px;background:rgba(0,0,0,.6);color:#fff;font-size:10.5px;border-radius:999px;padding:1px 6px}
+.pvs .pvsi.ed span{background:var(--acc)}
 .pltools{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 10px}
 .pltools button{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer}
 .pltools button[data-plseq]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
@@ -2585,7 +2592,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '9c20db5bce', APP_URL = location.origin + location.pathname;
+const BUILD = '00cc8c4421', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6887,7 +6894,7 @@ function bindPhoto(onReady){
     if (!add) list = [];
     busy(true, '写真を準備しています…');
     try {
-      for (let i = 0; i < fs.length; i++) { if (fs.length > 1) busy(true, '写真を準備しています（' + (i+1) + '/' + fs.length + '）'); const d = await shrink(fs[i]); list.push({b64:d, mime:PMIME}); }
+      for (let i = 0; i < fs.length; i++) { if (fs.length > 1) busy(true, '写真を準備しています（' + (i+1) + '/' + fs.length + '）'); const d = await shrink(fs[i]); list.push({b64:d, mime:PMIME, file: fs[i]}); }
       const one = list.length===1;
       $('#pv').classList.toggle('hidden', !one); $('#pvs').classList.toggle('hidden', one);
       if (one) $('#pv').src = 'data:' + list[0].mime + ';base64,' + list[0].b64;
@@ -7561,7 +7568,7 @@ function crUseAI(c0, r){ const prev = CR; CR = c0;
     if (art && !c0.moved) { crSetN(c0.n, { top: [art[0], art[1]], bot: [art[3], art[2]] }); c0.dirty = true; if (c0.img) c0.snap = crSnap() ? 1 : -1; else c0.snapLater = true; }
     if (!c0.chtMoved) { c0.cht = r && r.chart ? r.chart.map(p => T(p)) : null; c0.col = false; }
     crColorCalc(); c0.aiDone = !!(r && r.art); if (c0.aiDone && !c0.moved) c0.mode = 'pv'; } finally { CR = prev; } }
-async function crAI(){ const c0 = CR; if (!c0 || c0.ai || c0.cp) return; c0.ai = true; crUI();
+async function crAI(){ const c0 = CR; if (!c0 || c0.ai || c0.cp) return; if (c0.local) return toast('保存する前の写真では、自動で探す機能は使えません'); c0.ai = true; crUI();
   try { let r = null;
     for (let t = 1; ; t++) { try { r = await call('detectCrop', c0.orig['ファイルID']); break; } catch(e){ if (!(e && e.net) || t >= 3) throw e; await new Promise(z => setTimeout(z, 1500 * t)); } }
     if (CR !== c0 || c0.aiSkip) return;
@@ -7575,9 +7582,10 @@ const CR_P0 = { top: [[.06, .06], [.94, .06]], bot: [[.06, .94], [.94, .94]] };
 const CR_NS = [[1, 'ふつう'], [2, '二曲'], [4, '四曲'], [6, '六曲'], [8, '八曲'], ['k', '観音開き']];
 async function openCrop(p, to, opt){
   const fresh = !!(opt && opt.fresh && canEdit() && pbPhOf(p) && workOf(to)); /* 画集のスキャンしたページから、作品 to の写真を新しく切り出す（10/8 開発 v13） */
-  if ((!fresh && !crCan(p)) || $('#crop')) return;
+  const local = opt && opt.local && canEdit() ? opt.local : null; /* 保存する前の写真（端末のファイル）を編集：Google には送らず、できた画像を onDone に返す（10/8 本人） */
+  if ((!fresh && !local && !crCan(p)) || $('#crop')) return;
   const again = !fresh && !!(opt && opt.again); /* すでに切り出した写真から、もう1枚（パネルの1枚ずつなど）。元の写真から新しく切り出し、前の写真はそのまま（10/8 本人「画集と同じ仕様で」） */
-  const dest = String(fresh ? to : S.cur), t = fresh || again ? { orig: p, corr: null, info: null } : crTargets(p), fb = /^PB-/.test(String(t.orig['作品番号'] || '')) && !/^PB-/.test(dest) && !!workOf(dest); /* fb：画集のページから切り出した作品の写真（直し直しも） */
+  const dest = String(fresh || local ? to : S.cur), t = fresh || again || local ? { orig: p, corr: null, info: null } : crTargets(p), fb = /^PB-/.test(String(t.orig['作品番号'] || '')) && !/^PB-/.test(dest) && !!workOf(dest); /* fb：画集のページから切り出した作品の写真（直し直しも） */
   const book = !fb && /^PB-/.test(dest), w = (!book && workOf(dest)) || {}, hh = parseFloat(w['高さcm']), ww = parseFloat(w['幅cm']);
   const kind = fb ? '表' : again ? '部分' : t.info ? t.info.kind : (t.orig['種類'] && t.orig['種類'] !== '記録写真' ? t.orig['種類'] : '表');
   CR = { no: dest, orig: t.orig, corr: t.corr, kind, led: hh > 0 && ww > 0 && !pnN(w) ? { h: hh, w: ww } : null, n: 1, top: null, bot: null,
@@ -7587,6 +7595,7 @@ async function openCrop(p, to, opt){
   if (t.info) { CR.n = t.info.n; CR.kan = !!t.info.kan; CR.top = t.info.top.map(a => a.slice()); CR.bot = t.info.bot.map(a => a.slice()); } else if (!book && isKannon(w)) crSetN(3, CR_P0, true); else crSetN(1, CR_P0, false);
   CR.book = book; if (!CR.led) CR.ratio = 'auto';
   if (again) { CR.again = true; CR.led = null; CR.ratio = 'auto'; CR.szDone = true; }
+  if (local) { CR.local = local; CR.szDone = true; }
   if (!t.corr) CR.preIds = new Set(S.photos.filter(x => x['作品番号'] === dest && (crInfo(x) || {}).orig === t.orig['写真ID']).map(x => x['写真ID']));
   CR.fb = fb; CR.fbMain = !!(opt && opt.main); CR.fbExtra = (opt && opt.extra) || []; CR.fbBack = fresh && !(opt && opt.back === 'w') ? t.orig['写真ID'] : ''; CR.fbW = fresh && !!(opt && opt.back === 'w'); if (fb) CR.szDone = true; /* 画集の写真で「台帳のサイズは額込みか」は判定しない */
   if (!CR.kan && !CR_NS.some(x => x[0] === CR.n)) CR_NS.push([CR.n, CR.n + '曲']);
@@ -7701,6 +7710,8 @@ async function openCrop(p, to, opt){
   try { CR.ro = new ResizeObserver(() => crLayout()); CR.ro.observe(st); } catch(e){ addEventListener('resize', crLayout); }
   /* 表示用の写真（1600px）を先に出し、元のファイル（保存に使う）は裏で読む。前の補正がなければ、AI で角とカラーチップを自動で探す */
   const c0 = CR, fid = t.orig['ファイルID'];
+  if (c0.local) { const u = URL.createObjectURL(c0.local.file); c0.fullP = loadImg(u).catch(() => null); c0.fullP.then(im => { if (CR !== c0) return; if (!im) { cropClose(); return alert('この写真は編集できませんでした'); } c0.full = im; crSetImg(im); });
+    toast('四隅を合わせてください（「角をリセット」で4か所タップして囲むこともできます）'); return; } /* 端末の写真：AI（ドライブのファイルを読む）は使わない */
   const pre = !t.info && acPreAI(t.orig['写真ID']); /* 自動補正で「確認が必要」になった写真は、そのとき AI が見つけた角を使う（AI を待たない） */
   if (c0.again) toast('切り出す所の四隅を合わせてください（「角をリセット」で4か所タップして囲むこともできます）'); else if (pre && !c0.cp) { crUseAI(c0, pre); toast('自動補正のときに見つけた角を使いました'); } else if (!t.info && !c0.cp && !c0.book) crAI(); /* 転載した写真（©）は AI に送らない。本の写真も（額・カラーチップを探す AI なので） */
   c0.fullP = call('getOriginal', fid).then(o => o && o.b64 ? loadImg('data:' + o.mime + ';base64,' + o.b64) : null).catch(() => null);
@@ -7994,6 +8005,12 @@ const crBusy = t => { const o = $('#crop .cr-saving b'); if (o) o.textContent = 
 const crPh = id => S.photos.find(x => x['写真ID'] === id) || {};
 /* 写真の絵の形と台帳のサイズが明らかに違う（15%より大きい）ときは、保存の前に確かめる（10/5 本人）。
    入れかえ／額を含む（額のサイズに移す）／正しいサイズを入れる／このまま／もどる。選んだ台帳の直しは、写真を保存したあとで送る */
+function crKeepAsk(c0){ if (!c0 || $('#crop .cr-ask')) return; const box = document.createElement('div'); box.className = 'cr-ask cr-keep';
+  box.innerHTML = '<b>元の写真はどうしますか？</b>' + (c0.local
+    ? '<button type="button" data-ck="over" class="pri">編集したあとの画像だけ保存<small>編集する前の写真は保存しません</small></button><button type="button" data-ck="keep">元の写真も記録用に残す<small>元の写真は「記録写真」として残り、あとで四隅を直し直せます</small></button>'
+    : '<button type="button" data-ck="keep" class="pri">記録用に残す<small>元の写真は「記録写真」として残り、あとで四隅を直し直せます（今までどおり）</small></button><button type="button" data-ck="over">元の写真に上書き<small>補正した写真だけになります（前のファイルはドライブには残ります）</small></button>')
+    + '<button type="button" data-ck="" class="sub">もどる（角を直す）</button>';
+  $('#crop').appendChild(box); box.onclick = e => { const b = e.target.closest('[data-ck]'); if (!b) return; box.remove(); if (!b.dataset.ck) return; c0.keep = b.dataset.ck; cropSave(); }; }
 function crRatioAsk(){ const c0 = CR; if (!c0 || !c0.led || !c0.img || $('#crop .cr-ask')) return !!$('#crop .cr-ask');
   const a = crAutoNow(), lr = c0.led.w / c0.led.h; if (Math.abs(Math.log(lr / a)) <= Math.log(1.15)) return false;
   const w = workOf(c0.no) || {}, swapFit = Math.abs(Math.log(1 / lr / a)) <= Math.log(1.15), fmt = r => r >= 1 ? '縦1：横' + r.toFixed(2) : '縦' + (1 / r).toFixed(2) + '：横1';
@@ -8023,7 +8040,9 @@ async function cropSave(){ const c0 = CR; if (!c0 || c0.saving || !c0.img) retur
     if (szKind(w) === 'unk') try { const j = szJudge(c0.img, [c0.top[0], c0.top[1], c0.bot[1], c0.bot[0]], crK(), c0.led);
       if (j.res === 'frame') { c0.ledPatch = szPatch('frame', w); c0.led = null; c0.ratio = 'auto'; c0.ratioOk = true; toast('台帳のサイズは額込みと判定し、額のサイズに移します（絵だけは約 H' + j.est.h + '×W' + j.est.w + ' cm）'); }
       else if (j.res === 'art' && !c0.ledPatch) c0.ledPatch = szPatch('art', w); } catch(e){} } /* 台帳のサイズが額込みか、写真から判定（10/6 本人） */
-  if (!c0.ratioOk && crRatioAsk()) return; c0.saving = true; c0.aiSkip = true;
+  if (!c0.ratioOk && crRatioAsk()) return;
+  if (c0.keep == null && (c0.local ? !c0.local.noKeep : !c0.corr && !c0.fb && !c0.again && !c0.book && c0.orig['種類'] !== '記録写真')) return crKeepAsk(c0); /* 元の写真を「記録用に残す」か「上書き」か（10/9 本人） */
+  c0.saving = true; c0.aiSkip = true;
   const sb = $('#crop .cr-save'), hint = $('#crop .cr-hint'), h0 = hint ? hint.textContent : '';
   /* 保存中は、補正の画面の上を全部ぼかして、まん中にくるくると今していること（10/6 本人） */
   const say = t => { const el = CR === c0 && $('#crop'); if (!el) return busy(true, t); let o = el.querySelector('.cr-saving');
@@ -8043,12 +8062,18 @@ async function cropSave(){ const c0 = CR; if (!c0 || c0.saving || !c0.img) retur
     const src = sg.getImageData(0, 0, sc.width, sc.height); sc.width = sc.height = 1;
     const [W, H] = crSize(c0.top, c0.bot, src.width, src.height, r, 3200, 8e6);
     const oc = document.createElement('canvas'); oc.width = W; oc.height = H; oc.getContext('2d').putImageData((() => { const im = crWarp(src.data, src.width, src.height, c0.top, c0.bot, crK(), W, H, crCut(c0.n, c0.kan)); crTone(im.data, crUseT()); return im; })(), 0, 0);
-    const b64 = oc.toDataURL('image/jpeg', 0.94).split(',')[1]; const seeds = crSeeds(oc); oc.width = oc.height = 1;
+    const b64 = oc.toDataURL('image/jpeg', 0.94).split(',')[1];
+    const seeds = c0.local ? null : crSeeds(oc); oc.width = oc.height = 1;
     const shape = c0.kan ? '観音開き 上 ' + crPts(c0.top) + ' 下 ' + crPts(c0.bot) : c0.n > 1 ? '屏風 ' + c0.n + '曲 上 ' + crPts(c0.top) + ' 下 ' + crPts(c0.bot) : '四隅 ' + crPts(crQuad(c0.top, c0.bot, 0));
     const crm = '補正：元の写真 ' + c0.orig['写真ID'] + '｜' + shape + (c0.rot ? '｜回転 ' + c0.rot : '')
       + '｜ふくらみ ' + c0.v + '｜明るさ ' + (c0.bri || 0) + '%｜比率 ' + (c0.ratio === 'led' && c0.led ? '台帳' : '写真') + (c0.ratio !== 'led' && c0.st ? '｜縦横 ' + (c0.st > 0 ? '+' : '') + c0.st + '%' : '') + '｜色 ' + (c0.col && c0.cht && c0.T ? 'チップ ' + crPts(c0.cht) + (crPct(c0.cs) < 1 ? '｜色の強さ ' + c0.cs + '%' : '') : 'なし' + (c0.cht ? '｜チップ位置 ' + crPts(c0.cht) : ''))
       + (c0.wp ? '｜白 ' + crPts([c0.wp]) + ' ' + c0.ws + '%' : '') + '｜元の種類 ' + c0.kind;
     const memo = (/^【仮】/.test(c0.orig['メモ'] || '') ? '【仮】' : '') + (c0.cp ? copyCrMemo(c0.cp, crm) : crm); /* 転載した写真は、補正した写真にも同じ転載元（©）を付ける */
+    if (c0.local) { if (CR === c0) cropClose(); if (c0.ledPatch) quickWorkSave([{ no: c0.no, patch: c0.ledPatch }], '台帳のサイズを直しました'); c0.local.onDone(b64, { keep: c0.keep === 'keep', crm }); return; } /* 保存する前の編集：画像（と補正の記録）を返す */
+    if (c0.keep === 'over') { const oid = c0.orig['写真ID'], f0 = c0.orig['ファイルID']; say('元の写真に上書きしています…'); /* 上書き：同じ写真の行の画像を差しかえる（前のファイルはドライブに残る）。記録写真は作らない */
+      const d = await crCall('replacePhoto', [oid, b64, 'image/jpeg', c0.orig['種類'] || c0.kind, null], () => !!crPh(oid)['ファイルID'] && crPh(oid)['ファイルID'] !== f0); if (d) setData(d); else setData(await call('getData'));
+      crSeed(oid, seeds); if (c0.ledPatch) quickWorkSave([{ no: c0.no, patch: c0.ledPatch }], '台帳のサイズを直しました');
+      if (CR === c0) cropClose(); crAfter(c0.no, oid); toast('元の写真に上書きしました'); return; }
     say('保存しています…'); let pid, ledDone = false;
     const oid = c0.orig['写真ID'], cid0 = c0.corr ? c0.corr['写真ID'] : '', f0 = cid0 ? (crPh(cid0)['ファイルID'] || c0.corr['ファイルID']) : '';
     const wasMain = !cid0 && ((photoBy[c0.no] || [])[0] || {})['写真ID'] === oid; /* 裏で読み直すと写真の行が作り直されるので、ID でくらべる */
@@ -9046,9 +9071,20 @@ function sheetPhoto(no, replaceId){
     <div id="pcopy" style="${old && copyOf(old) ? '' : 'display:none'}">${copyFields(old && copyOf(old))}</div>
     <div id="pfam" style="${old && copyOf(old) ? 'display:none' : ''}">${F('あとで、きれいな写真に差し替える？', pick('ptmp', ['はい（仮の写真）','いいえ'], 'いいえ'))}
     ${F('メモ（あれば）', inp('pm', old && !copyOf(old) ? String(old['メモ']||'').replace(/^【仮】/, '') : ''))}</div>
+    <div id="pvEditRow" class="pvedit hidden"><button type="button" class="act" id="pvEdit">✂ 保存する前に編集（切り抜き・補正）</button><small>編集すると、編集したあとの画像だけを保存します（元の写真は保存しません）</small></div>
     ${BTNS('写真を保存')}`);
   let data = null, list = [];
-  bindPhoto((d, cam, l, src) => { data = d; list = l || []; if (cam) setPick('ptmp', 'はい（仮の写真）');
+  /* 保存する前に編集（10/8 本人）：元のファイル（縮める前）から切り抜き・補正 → 編集したあとの画像だけを保存する。何枚か選んだときは、写真を押して1枚ずつ */
+  const pvDraw = () => { const one = list.length === 1, row = $('#pvEditRow'); if (!row) return; row.classList.toggle('hidden', !list.length); if (!list.length) return;
+    $('#pvEdit').textContent = one ? (list[0].edited ? '✂ もう一度編集する' : '✂ 保存する前に編集（切り抜き・補正）') : '写真を押すと、その1枚を編集できます';
+    $('#pvEdit').disabled = !one; if (one) $('#pv').src = 'data:' + list[0].mime + ';base64,' + list[0].b64;
+    else { $('#pvs').innerHTML = list.map((x, i) => `<button type="button" class="pvsi${x.edited ? ' ed' : ''}" data-pve="${i}"><img src="data:${x.mime};base64,${x.b64}" alt=""><span>${x.edited ? '編集済み' : '✂'}</span></button>`).join('') + `<span class="pvn">${list.length}枚</span>`; } };
+  const pvEdit = i => { const x = list[i]; if (!x || !x.file) return toast('この写真は編集できません');
+    openCrop({ '写真ID': '', 'ファイルID': '', '作品番号': String(no), '種類': val('pk') || '表', 'メモ': '' }, no, { local: { file: x.file, noKeep: !!old, onDone: (b64, info) => { if (!x.edited) { x.b64o = x.b64; x.mimeo = x.mime; } x.b64 = b64; x.mime = 'image/jpeg'; x.edited = true; x.keep = !!(info && info.keep); x.crm = info && info.crm; PMIME = 'image/jpeg'; data = list[list.length - 1].b64; pvDraw();
+      toast(x.keep ? '編集しました。「写真を保存」で、元の写真（記録用）と編集したあとの画像を保存します' : '編集しました。「写真を保存」で、編集したあとの画像だけを保存します'); } } }); };
+  $('#pvEdit').onclick = () => pvEdit(0);
+  $('#pvs').addEventListener('click', e => { const b = e.target.closest('[data-pve]'); if (b) pvEdit(+b.dataset.pve); });
+  bindPhoto((d, cam, l, src) => { data = d; list = l || []; setTimeout(pvDraw, 0); if (cam) setPick('ptmp', 'はい（仮の写真）');
     if (src) { setPick('pwho', '転載・美術館など'); $('#pcopy').style.display = ''; $('#pfam').style.display = 'none';
       const g = srcGuess(src.u, src.site, srcCtx(no)); if ($('#cmu')) { $('#cmu').value = g; if (g) $('#cmu').dataset.auto = '1'; } if ($('#curl')) $('#curl').value = src.u || '';
       toast(g ? (src.paste ? 'コピーした画像' : 'URLから入れた画像') + 'なので「© ' + g + '」を付けます（名前は直せます）' : src.paste ? 'コピーした画像です。転載元のURLと名前を入れてください（自分で撮った写真なら「家族が撮った」に戻してください）' : 'URLから入れた画像です。転載元の名前を入れてください'); } });
@@ -9061,9 +9097,10 @@ function sheetPhoto(no, replaceId){
     const cmu = val('cmu') || (val('curl') ? srcGuess(val('curl'), '', srcCtx(no)) : '');
     if (isCopy && !cmu) return alert('© に出す名前（転載元・撮影した美術館など）を入れてください');
     const memo = isCopy ? copyMemo(cmu, val('curl'), val('chide') === COPY_SHOW[1]) : (val('ptmp').indexOf('はい')===0 ? '【仮】' : '') + val('pm');
-    if (!old && list.length > 1) return savePhotos(no, list, val('pk'), memo);
+    if (!old && list.some(x => x.keep)) return savePhotosKeep(no, list.slice(), val('pk'), memo, isCopy ? { mu: cmu, u: val('curl'), hide: val('chide') === COPY_SHOW[1], n: '' } : null);
+    if (!old && list.length > 1) return savePhotos(no, list.map(x => ({ b64: x.b64, mime: x.mime })), val('pk'), memo);
     if (old) save('replacePhoto', [old['写真ID'], data, PMIME, val('pk'), memo], '写真を差し替えました');
-    else { const kd = val('pk'); bgRun(no, note => callRetryN(note, 'addPhoto', no, data, PMIME, kd, memo)); }
+    else { const kd = val('pk'), mm = list[0] && list[0].edited ? 'image/jpeg' : PMIME; bgRun(no, note => callRetryN(note, 'addPhoto', no, data, mm, kd, memo)); }
   };
 }
 let PMIME = 'image/jpeg';
@@ -9089,6 +9126,17 @@ async function savePhotos(no, list, kind, memo){
       const r = await callRetryN(note, 'addPhotos', no, list.slice(i, i+3), kind, memo); n += (r && r.n) || 0; dup += (r && r.dup) || 0; }
     return { n: n, dup: dup }; });
 }
+/* 保存する前に編集して「元の写真も記録用に残す」を選んだ写真：元の写真を入れてから、編集したあとの画像を「補正した写真」として入れる（元は記録写真になる）。ほかの写真はそのまま */
+async function savePhotosKeep(no, list, kind, memo, cp){
+  return bgRun(no, async note => { let r = null, k = 0;
+    for (const x of list) { note('写真を保存しています（' + (++k) + '/' + list.length + '枚）…');
+      if (!x.keep) { r = await callRetryN(note, 'addPhoto', no, x.b64, x.mime, kind, memo); continue; }
+      const before = new Set((S.photos || []).filter(p => p['作品番号'] === no).map(p => p['写真ID']));
+      r = await callRetryN(note, 'addPhoto', no, x.b64o, x.mimeo || 'image/jpeg', kind, memo); const d = r && r.photos ? r : await call('getData'); if (d && d.photos) setData(d);
+      const np = (S.photos || []).filter(p => p['作品番号'] === no && !before.has(p['写真ID'])).pop(); if (!np) continue;
+      const crm = String(x.crm || '').replace('補正：元の写真 ｜', '補正：元の写真 ' + np['写真ID'] + '｜'), m2 = (/^【仮】/.test(memo) ? '【仮】' : '') + (cp ? copyCrMemo(cp, crm) : crm);
+      r = await callRetryN(note, 'saveCrop', { no, oid: np['写真ID'], cid: '', b64: x.b64, mime: 'image/jpeg', kind, memo: m2, main: !!np['メイン'], led: null }); }
+    return r && r.works ? r : null; }); }
 function shrink(file){ /* 長い辺を1800pxに縮めてJPEGに（透明な部分があるPNGはPNGのまま） */
   return new Promise((ok, ng) => {
     const r = new FileReader();
@@ -9599,7 +9647,7 @@ document.addEventListener('click', e => {
   if (e.target.closest && e.target.closest('#confirm')) return;
   const sh = $('#sheet');
   if (!sh.classList.contains('hidden') && !e.target.closest('#sheetbox')) {
-    if (e.target.closest('.docview, .noteview, #viewer, #loading, #toast, #itemTip, #top, .appbar, #drawer, #mepop, #updBar')) return; /* サイドメニュー・名前の吹き出しも使える */ // 写真の拡大・上のバー（戻る・パンくず）は使える
+    if (e.target.closest('.docview, .noteview, #viewer, #loading, #toast, #itemTip, #top, .appbar, #drawer, #mepop, #updBar, #crop')) return; /* 写真を保存する前の編集（切り抜き・補正）も */ /* サイドメニュー・名前の吹き出しも使える */ // 写真の拡大・上のバー（戻る・パンくず）は使える
     e.preventDefault(); e.stopPropagation(); return; } // 画面のほかの所を押しても閉じない
   const ie = document.querySelector('#page dd.iedit');
   if (ie && !ie.contains(e.target)) {
