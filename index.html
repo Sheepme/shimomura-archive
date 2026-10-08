@@ -2176,7 +2176,8 @@ button.ulrow{cursor:pointer}
 .vbkw{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;font-size:12px;color:var(--sub)}
 .vbkw span{align-self:center}.vbkw button{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:4px 10px;font-size:12px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .scmain{display:flex;align-items:center;gap:8px;font-size:15px;white-space:nowrap}
-.pqgrab,.pqgrab *{cursor:grabbing!important;user-select:none!important}.scmain input{width:20px;height:20px}
+.pqgrab,.pqgrab *{cursor:grabbing!important;user-select:none!important}
+#crop .cr-hint.cr-placeh{color:#7FD4FF;font-weight:600}#crop.crplace .cr-nudge{visibility:hidden}.scmain input{width:20px;height:20px}
 .cover.pbtop{max-width:min(640px,100%)}
 .pbph .pbsl{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:var(--wash);opacity:0;transition:opacity .9s ease;z-index:1;pointer-events:none}
 .pbph .pbsl.on{opacity:1}.pbph .wm{transition:opacity .9s}.pbph.pbon .wm{opacity:0}
@@ -2481,7 +2482,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '648c6d2896', APP_URL = location.origin + location.pathname;
+const BUILD = 'b010d62ee1', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3560,6 +3561,12 @@ const pbPhOf = p => !!p && /^PB-/.test(String(p['作品番号'] || '')) && !!p['
 const pbPhLab = p => scanNo(p) ? scanNo(p) + '枚目' : p['種類'] === '表紙' ? '表紙' : '中のページ';
 const pbScans = id => (S.photos || []).filter(p => p['作品番号'] === id && p['種類'] === SCAN_K).sort((a, b) => scanNo(a) - scanNo(b) || String(a['写真ID']).localeCompare(String(b['写真ID'])));
 const scanCuts = pid => (S.photos || []).filter(x => !/^PB-/.test(String(x['作品番号'] || '')) && (crInfo(x) || {}).orig === pid);
+/* 画集から切り出した作品には、そのページの画像も作品の写真の最後に出す（10/8 本人）。画像も行も増やさず、切り出した写真のメモ（元の写真 ID）からページを引くだけ。ページを消せば自然に消える */
+const pgRefs = no => { const own = photoBy[no] || [], fids = new Set(own.map(x => x['ファイルID'])), seen = new Set(), R = [];
+  own.forEach(x => { const o = (crInfo(x) || {}).orig; if (!o || seen.has(o)) return; seen.add(o); const P = (S.photos || []).find(y => y['写真ID'] === o);
+    if (P && pbPhOf(P) && !fids.has(P['ファイルID'])) { fids.add(P['ファイルID']); R.push(P); } }); return R; };
+const wPh = no => (photoBy[no] || []).concat(/^PB-/.test(String(no || '')) ? [] : pgRefs(no));
+const isPgRef = p => !!p && !!S.cur && pbPhOf(p) && p['作品番号'] !== S.cur && !/^PB-/.test(String(S.cur));
 const pbLab = id => String((pbById[id] || {})['タイトル'] || id).trim();
 /* 資料のページのいちばん上でめくる写真：表紙 → スキャンしたページ → 中のページ（表紙と同じファイルは1回だけ）（10/8 本人「中面があればトップ画像から左右に送る」） */
 const pbTop = id => { const x = pbById[id] || {}, cv = coverPh(x), cf = String(x['表紙写真ファイルID'] || ''), L = (cv ? [cv] : []).concat(pbScans(id), pbInner(id));
@@ -6223,7 +6230,7 @@ function openWork(no, keepScroll, restoreSc){
   if (!OWC) { const cv = SCR.find(e => e.classList && e.classList.contains('cmpv')); if (cv && cv._did) return openWorkFromCmp(no, cv._did); } /* 見比べ画面から（検索などで）作品を開いた時も、右から重ねて開き、戻ると見比べに戻る */ if (S.user && canEdit()) prefetchWorkPdfs(no);
   const ot = isOtNo(no), NO = ot ? no : 'No. ' + no; // その他の作品（Y001など）は本作と同じページで、クイズ・インタビューなしで表示
   const pg = $('#page');
-  const ph = photoBy[no] || [];
+  const ph = wPh(no);
   const evAll = (eventBy[no]||[]).slice().sort((a,b)=> dateKey(a['日付'])-dateKey(b['日付']) || (a['種類']==='制作'?-1:0));
   const ev = evAll.filter(e => e['種類']!=='エピソード'), epi = evAll.filter(e => e['種類']==='エピソード');
   const QK = {'作品名':'作品名','サイズ':'サイズ','制作年':'制作年','画材':'画材','種別':'種別','シリーズ':'シリーズ'};
@@ -6232,7 +6239,7 @@ function openWork(no, keepScroll, restoreSc){
   const html = `
     <div class="pagehead"><button class="back" id="back">← もどる</button><span class="no">${esc(NO)}${(OLDS[no] || []).length ? `<small class="oldno">旧番号 ${esc(OLDS[no].join('・'))}</small>` : ''}</span></div>
     <div class="pagebody"><div class="media">
-      ${ph.length ? `<div class="gallery ${ph.length>1?'many':''}">${ph.map((p,i)=>`<a href="#" data-view="${i}">${thImg(p['ファイルID'],1200)}${wm(p)}<span class="kind">${esc(p['種類'])}${/^【仮】/.test(p['メモ']||'') ? '・仮の写真' : ''}</span></a>`).join('')}</div>`
+      ${ph.length ? `<div class="gallery ${ph.length>1?'many':''}">${ph.map((p,i)=>`<a href="#" data-view="${i}"${pbPhOf(p) ? ' class="pgref"' : ''}>${thImg(p['ファイルID'],1200)}${wm(p)}<span class="kind">${pbPhOf(p) ? '画集のページ' : esc(p['種類'])}${/^【仮】/.test(p['メモ']||'') ? '・仮の写真' : ''}</span></a>`).join('')}</div>`
                   : `<div class="nophoto">まだ写真がありません${canEdit()?'<br><button class="act main" style="margin-top:12px" data-act="photo">写真を追加</button>':''}</div>`}
       ${ph.length>1?`<div class="dots">${ph.map((p,i)=>`<span class="${i?'':'on'}" data-dot="${i}"></span>`).join('')}</div>`:''}
       ${creditHTML(ph)}
@@ -6806,7 +6813,7 @@ function pbNudge(){ let done = false; try { done = localStorage.getItem('smr_pbs
 
 /* ---------- 写真の拡大表示 ---------- */
 let V = {list:[], i:0};
-function openViewer(i){ openViewerL(photoBy[S.cur]||[], i, ''); }
+function openViewer(i){ openViewerL(wPh(S.cur), i, ''); }
 /* 写真の一覧を渡して開く。mode：'scan'＝画集のスキャンしたページだけ、'pbin'＝本の表紙と中のページ（スキャンは入れない）（10/8 開発 v13） */
 const vList = no => V.mode === 'scan' ? pbScans(no) : V.mode === 'pbtop' ? pbTop(no) : V.mode === 'pbin' ? (photoBy[no] || []).filter(p => p['種類'] !== SCAN_K) : (photoBy[no] || []);
 function openViewerL(L, i, mode){ V.list = L; V.i = i; V.mode = mode || ''; document.body.classList.add('vopen'); showV(); if ($('#viewer').classList.contains('hidden')) { hpush('v'); $('#viewer').classList.remove('hidden'); scrPush($('#viewer')); } }
@@ -6822,7 +6829,7 @@ function showV(){ const p = V.list[V.i]; if (!p) return;
   if (TH[k]) { $('#vimg').src = TH[k]; vSpin(false); }
   else { if (lo) { $('#vimg').src = TH[lo + '_' + p['ファイルID']]; $('#vimg').classList.add('lowres'); } vSpin(true); // 大きい写真が届くまで、小さい写真＋読み込み中のマーク
     call('getThumbs', [p['ファイルID']], 1600).then(m => { if (m[p['ファイルID']]) { TH[k] = m[p['ファイルID']]; if (V.list[V.i] === p) { $('#vimg').src = TH[k]; $('#vimg').classList.remove('lowres'); vSpin(false); } } }).catch(() => { if (V.list[V.i] === p) vSpin(false); }); }
-  $('#vcount').textContent = (V.i+1) + ' / ' + V.list.length + '　' + (p['種類']||'') + (crInfo(p) ? '・補正' : '') + (/^【仮】/.test(p['メモ']||'') ? '・仮' : '') + (copyOf(p) && copyOf(p).n ? '・' + copyOf(p).mu + ' ' + copyOf(p).n : '');
+  const ref = isPgRef(p); $('#vcount').textContent = (V.i+1) + ' / ' + V.list.length + '　' + (ref ? '画集のページ・' + pbLab(p['作品番号']) + ' ' + pbPhLab(p) : p['種類']||'') + (crInfo(p) ? '・補正' : '') + (/^【仮】/.test(p['メモ']||'') ? '・仮' : '') + (copyOf(p) && copyOf(p).n ? '・' + copyOf(p).mu + ' ' + copyOf(p).n : '');
   $('#vcredit').innerHTML = creditHTML([p]); $('#vwm').innerHTML = wm(p).replace(/<\/?span[^>]*>/g, ''); vBk(p);
   const isW = S.cur && workOf(S.cur), isMain = V.i===0; $('#vmain').classList.toggle('hidden', !canEdit() || !isW || V.list.length < 2 || !p['写真ID']); $('#vmain').textContent = isMain ? '★ メイン画像' : '☆ メイン画像にする'; $('#vmain').disabled = isMain;
   $('#vcopy').classList.toggle('hidden', !canEdit() || !p['写真ID']); $('#vcopy').textContent = copyOf(p) ? '© 著作物（' + copyOf(p).mu + '）' : '© 著作物の設定';
@@ -6833,6 +6840,7 @@ function showV(){ const p = V.list[V.i]; if (!p) return;
     $('#vorig').textContent = '読み込み中…'; vSpin(true);
     call('getThumbs', [id], 3200).then(m => { if (!m[id]) throw new Error('empty'); TH[k2] = m[id]; if (V.list[V.i] === p) { $('#vimg').src = m[id]; $('#vorig').textContent = '高画質で表示中'; vSpin(false); } })
       .catch(() => { vSpin(false); $('#vorig').textContent = '高画質で見る'; toast('高画質の写真を読み込めませんでした'); }); };
+  if (ref) ['#vmain', '#vcopy', '#vedit', '#vrep', '#vdel', '#vrot', '#vcrop', '#vdrv'].forEach(k => $(k).classList.add('hidden')); /* 画集のページ（参照）は作品の写真ではないので、ここでは消したり直したりしない */
   $('#vprev').style.visibility = V.i>0?'visible':'hidden'; $('#vnext').style.visibility = V.i<V.list.length-1?'visible':'hidden'; }
 $('#vclose').onclick = () => closeViewer();
 $('#vedit').onclick = e => { e.stopPropagation(); $('#vmenu').classList.remove('rot'); $('#vmenu').classList.toggle('open'); }; // 編集のボタンは鉛筆にまとめる
@@ -7252,7 +7260,7 @@ async function openCrop(p, to, opt){
       <div class="cr-row cr-rc"><span>色</span><div class="cr-seg sm"><button type="button" data-crc="1">チップで合わせる</button><button type="button" data-crc="0">合わせない</button></div></div>
       <div class="cr-row cr-rr"><span>縦横の比率</span><div class="cr-seg sm"><button type="button" data-crr="led"${CR.led ? '' : ' class="hidden"'}>台帳のサイズ</button><button type="button" data-crr="auto">写真から計算</button></div></div>
       <p class="cr-note"></p>
-      <div class="cr-links"><button type="button" data-crai>✨ 自動で探し直す</button><button type="button" data-crreset>角を最初の位置にもどす</button><button type="button" data-crcht>カラーチップの位置を指定</button>${CR.corr ? '<button type="button" data-crundo>' + (CR.fb ? 'この写真を作品から外す' : '補正をやめて元の写真にもどす') + '</button>' : ''}</div>
+      <div class="cr-links"><button type="button" data-crai>✨ 自動で探し直す</button><button type="button" data-crreset>角をリセット（4か所タップで囲む）</button><button type="button" data-crcht>カラーチップの位置を指定</button>${CR.corr ? '<button type="button" data-crundo>' + (CR.fb ? 'この写真を作品から外す' : '補正をやめて元の写真にもどす') + '</button>' : ''}</div>
       </div>
     </div>`;
   let more = false; try { more = localStorage.getItem('smr_crmore') === '1'; CR.vis = localStorage.getItem('smr_crvis') === '1'; } catch(e){} el.classList.toggle('crmore', more); el.classList.toggle('crbook', !!CR.book); /* .more はアプリの「もっと見る」のボタンと同じ名前になるので使わない（10/6） */
@@ -7291,7 +7299,7 @@ async function openCrop(p, to, opt){
   /* 「白」：効いていないとき → 押すと白いところを選ぶ（もう一度押すとやめる）。効いているとき（オン）→ 押すとオフ（10/6 本人） */
   el.querySelector('.cr-wpb').onclick = () => { if (CR.wpick) CR.wpick = false; else if (CR.wp) { CR.wp = null; CR.dirty = true; toast('白の基準をオフにしました'); } else { CR.wpick = true; CR.pin = null; crLoupeOff(); }
     crUI(); crDraw(); crNote(); crLayout(); };
-  el.querySelector('[data-crreset]').onclick = () => { if (CR.Z) CR.Z.s = 1; crSetN(CR.n, CR_P0); CR.v = 0; $('#crK').value = 0; $('#crKv').textContent = '0'; CR.dirty = true; crDraw(); crNote(); crPreview(); };
+  el.querySelector('[data-crreset]').onclick = () => { CR.v = 0; $('#crK').value = 0; $('#crKv').textContent = '0'; CR.dirty = true; crPlaceStart(); };
   if (el.querySelector('[data-crundo]')) el.querySelector('[data-crundo]').onclick = cropUndo;
   el.querySelectorAll('[data-crc]').forEach(b => b.onclick = () => { if (b.dataset.crc === '1' && !CR.cht) return; CR.col = b.dataset.crc === '1'; CR.dirty = true; crUI(); crDraw(); crNote(); crPreview(); });
   el.querySelector('[data-crai]').onclick = () => crAI();
@@ -7308,6 +7316,7 @@ async function openCrop(p, to, opt){
     PT.set(e.pointerId, { x, y }); try { st.setPointerCapture(e.pointerId); } catch(x){}
     if (PT.size >= 2) { e.preventDefault(); CR.pk = null; if (PT.size === 2) pinchStart(); return; }
     if (CR.wpick) { e.preventDefault(); CR.pk = { id: e.pointerId, cx: e.clientX, cy: e.clientY }; if (Z0.s > 1) CR.pan = { id: e.pointerId, x, y, cx: Z0.cx, cy: Z0.cy }; return; }
+    if (CR.place && !pv) { e.preventDefault(); CR.plk = { id: e.pointerId, cx: e.clientX, cy: e.clientY }; if (Z0.s > 1) CR.pan = { id: e.pointerId, x, y, cx: Z0.cx, cy: Z0.cy }; return; } /* 4か所タップで囲む：指を離したところに角を打つ（拡大中はなぞると動かせる） */
     if (pv) { const now = Date.now(); if (Z0.s > 1 && now - (CR.tap0 || 0) < 320) { CR.tap0 = 0; Z0.s = 1; crRedraw(); return; } CR.tap0 = now; /* 仕上がりの画面：2回タップで全体、拡大中はなぞって動かす */
       if (Z0.s > 1) { e.preventDefault(); CR.pan = { id: e.pointerId, x, y, cx: Z0.cx, cy: Z0.cy }; } return; } /* 白を指定：指を離したところ（拡大中はなぞると動かせる） */
     let best = null, bd = CR.n > 3 ? 40 : 56; ['top', 'bot'].concat(crChtOn() ? ['cht'] : []).forEach(a => CR[a].forEach(([qx, qy], i) => { const d = Math.hypot(CR.L.ox + qx * CR.L.w - x, CR.L.oy + qy * CR.L.h - y); if (d < bd) { bd = d; best = { a, i }; } }));
@@ -7326,6 +7335,7 @@ async function openCrop(p, to, opt){
   /* 丸をタップすると拡大鏡を出したままにする（もう一度タップで閉じる。10/6 本人）。出したまま動かしたら、その丸の拡大鏡のまま */
   const up = e => { if (e && e.pointerId != null) PT.delete(e.pointerId); if (!CR) return;
     if (CR.pk && e && e.pointerId === CR.pk.id) { const k = CR.pk; CR.pk = null; if (!CR.pz && Math.hypot(e.clientX - k.cx, e.clientY - k.cy) < 8) { CR.pan = null; const p = crPickAt(e); if (p) return crSetWp(p); } }
+    if (CR.plk && e && e.pointerId === CR.plk.id) { const k = CR.plk; CR.plk = null; if (!CR.pz && e.type !== 'pointercancel' && Math.hypot(e.clientX - k.cx, e.clientY - k.cy) < 8) { CR.pan = null; const r = st.getBoundingClientRect(); return crPlaceAdd(e.clientX - r.left, e.clientY - r.top); } }
     if (CR.pz) { if (PT.size < 2) CR.pz = null; return; } if (CR.pan) { if (!e || e.pointerId === CR.pan.id) CR.pan = null; return; }
     if (!CR.drag) return; const d = CR.drag, g = CR.g, live = !!(g && g.live); if (d.a === 'cht' && live) { crColorCalc(); crUI(); crPreview(); } CR.drag = null; CR.g = null;
     if (!live) CR.pin = CR.pin && CR.pin.a === d.a && CR.pin.i === d.i ? null : d; else if (CR.pin) CR.pin = d;
@@ -7436,7 +7446,23 @@ function crEdges(T){ const iw = CR.img.naturalWidth, ih = CR.img.naturalHeight, 
   for (let i = 1; i < n; i++) { const f = []; seg(CR.top[i], CR.bot[i], f); const [ex, ey] = crD(...U(CR.bot[i]), cam); f.push(T(ex / iw, ey / ih)); folds.push(f); }
   return { o, folds }; }
 const crPath = P => 'M' + P.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L');
+/* 角をリセット：角の丸を消し、絵の角を4か所タップすると、その4点で囲む（打つ順はどこからでもよい。左上・右上・右下・左下に並べ直す）。屏風などは、上下の辺を同じ間隔に分ける（10/8 本人） */
+function crPlaceStart(){ if (!CR) return; CR.place = []; CR.plk = null; CR.drag = null; CR.g = null; CR.pin = null; crLoupeOff(); if (CR.mode !== 'edit') { CR.mode = 'edit'; crUI(); crLayout(); }
+  const el = $('#crop'); if (el && el.classList.contains('crmore') && matchMedia('(max-width:899px)').matches) { el.classList.remove('crmore'); crUI(); crLayout(); } /* スマホは設定をたたんで絵を大きく（設定の開き具合は覚えたまま） */
+  crDraw(); crHint(); }
+function crPlaceAdd(x, y){ const L = CR.L; if (!CR.place || !L) return; CR.place.push([Math.min(1, Math.max(0, (x - L.ox) / L.w)), Math.min(1, Math.max(0, (y - L.oy) / L.h))]);
+  if (CR.place.length < 4) { crDraw(); crHint(); return; }
+  const P = CR.place, c = [P.reduce((a, p) => a + p[0], 0) / 4, P.reduce((a, p) => a + p[1], 0) / 4], Q = P.slice().sort((a, b) => Math.atan2(a[1] - c[1], a[0] - c[0]) - Math.atan2(b[1] - c[1], b[0] - c[0])); /* 画面では時計回りの順 */
+  let k = 0; Q.forEach((p, i) => { if (p[0] + p[1] < Q[k][0] + Q[k][1]) k = i; }); const [tl, tr, br, bl] = [0, 1, 2, 3].map(i => Q[(k + i) % 4]), n = CR.n, lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+  CR.top = Array.from({ length: n + 1 }, (_, i) => lerp(tl, tr, i / n)); CR.bot = Array.from({ length: n + 1 }, (_, i) => lerp(bl, br, i / n));
+  CR.place = null; CR.moved = true; CR.dirty = true; CR.sel = { a: 'top', i: 0 }; crDraw(); crHint(); crNote(); if (typeof crNudgeLab === 'function') crNudgeLab(); toast('4か所で囲みました。丸を動かして直せます'); }
+function crHint(){ const h = $('#crop .cr-hint'); if (!h || !CR) return; if (CR.place) { const k = 4 - CR.place.length; h.textContent = '絵の角を4か所タップしてください（あと ' + k + ' か所）。どの角から打ってもかまいません。拡大してから打つと正確です'; h.classList.add('cr-placeh'); $('#crop').classList.add('crplace'); return; }
+  h.classList.remove('cr-placeh'); $('#crop').classList.remove('crplace'); crUI(); }
 function crDraw(){ const svg = $('#crop .cr-svg'); if (!svg || !CR || !CR.L || CR.mode !== 'edit') return; const L = CR.L;
+  if (CR.place) { const P = CR.place.map(([x, y]) => [L.ox + x * L.w, L.oy + y * L.h]), ln = P.length > 1 ? 'M' + P.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L') : ''; svg.setAttribute('viewBox', `0 0 ${L.sw} ${L.sh}`); /* 4か所タップで囲む：打った点と、つないだ線 */
+    svg.innerHTML = `<path d="M-4 -4H${L.sw + 4}V${L.sh + 4}H-4Z" fill="rgba(0,0,0,.12)"/>` + (ln ? `<path d="${ln}" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="3.2"/><path d="${ln}" fill="none" stroke="#1CB0F6" stroke-width="1.6"/>` : '')
+      + (P.length === 3 ? `<path d="M${P[2][0].toFixed(1)} ${P[2][1].toFixed(1)}L${P[0][0].toFixed(1)} ${P[0][1].toFixed(1)}" fill="none" stroke="#1CB0F6" stroke-width="1.4" stroke-dasharray="5 4" opacity=".7"/>` : '')
+      + P.map(([X, Y], i) => `<circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="9" fill="#1CB0F6" stroke="#fff" stroke-width="2.5"/><text x="${X.toFixed(1)}" y="${(Y + 4).toFixed(1)}" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">${i + 1}</text>`).join(''); return; }
   const T = (x, y) => [L.ox + x * L.w, L.oy + y * L.h], E = crEdges(T), d = crPath(E.o) + 'Z', fd = E.folds.map(crPath).join(''), r = CR.n > 3 ? 12 : 16;
   svg.setAttribute('viewBox', `0 0 ${L.sw} ${L.sh}`);
   svg.innerHTML = `<path d="M-4 -4H${L.sw + 4}V${L.sh + 4}H-4Z ${d}" fill="rgba(0,0,0,${CR.vis ? .18 : .32})" fill-rule="evenodd"/><path d="${d}${fd}" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="3.2"/><path d="${d}" fill="none" stroke="#1CB0F6" stroke-width="1.6"/>`
@@ -7640,7 +7666,7 @@ function crRatioAsk(){ const c0 = CR; if (!c0 || !c0.led || !c0.img || $('#crop 
     if (k === 'newok') { const h = parseFloat(box.querySelector('#craH').value), ww = parseFloat(box.querySelector('#craW').value); if (!(h > 0 && ww > 0)) return alert('高さと幅を数字で入れてください');
       return go({ '高さcm': String(h), '幅cm': String(ww), 'サイズの確認': '作品のみ' }, { h, w: ww }); } };
   return true; }
-async function cropSave(){ const c0 = CR; if (!c0 || c0.saving || !c0.img) return; if (!c0.ratioOk && !c0.szDone && c0.led && c0.n === 1) { c0.szDone = true; const w = workOf(c0.no) || {};
+async function cropSave(){ const c0 = CR; if (!c0 || c0.saving || !c0.img) return; if (c0.place) return toast('絵の角を4か所タップしてください（あと ' + (4 - c0.place.length) + ' か所）'); if (!c0.ratioOk && !c0.szDone && c0.led && c0.n === 1) { c0.szDone = true; const w = workOf(c0.no) || {};
     if (szKind(w) === 'unk') try { const j = szJudge(c0.img, [c0.top[0], c0.top[1], c0.bot[1], c0.bot[0]], crK(), c0.led);
       if (j.res === 'frame') { c0.ledPatch = szPatch('frame', w); c0.led = null; c0.ratio = 'auto'; c0.ratioOk = true; toast('台帳のサイズは額込みと判定し、額のサイズに移します（絵だけは約 H' + j.est.h + '×W' + j.est.w + ' cm）'); }
       else if (j.res === 'art' && !c0.ledPatch) c0.ledPatch = szPatch('art', w); } catch(e){} } /* 台帳のサイズが額込みか、写真から判定（10/6 本人） */
