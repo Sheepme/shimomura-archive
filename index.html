@@ -2422,7 +2422,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '06f70cf5c1', APP_URL = location.origin + location.pathname;
+const BUILD = '7e68311eb0', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -10758,7 +10758,7 @@ function exvBuild(root, L, start){
     const port = W / H < 1, kz = z => 2 * z * TN / H, kmin = kz(0.55), kmax = kz(14), mx = port ? 22 : 24, my = port ? 280 : 200; stops.length = 0; specs.length = 0; zoomed = false;
     /* 入口：写真を壁に大きく貼る（ポスター。高さ 2m、横長は幅 2.8m まで、まん中の高さ 1.62m）。金箔のサインは左下（高さは写真の 6 割の 90% まで、左と下を写真の高さの 4.5% あける）。写真がないときは金箔の名前だけ */
     const PHe = EN.pid ? Math.min(2.0, 2.8 / enAr) : 1.3, PWe = EN.pid ? PHe * enAr : 0, ye = 1.62; let SWe, SHe2, TWm, THm, eyS = ye;
-    if (EN.pid) { const gs = PHe * 0.045; SWe = 0.63 * Math.min(PWe * 0.32, PHe * 0.6 * enGm.ar); /* 14:32 本人「サインを70%に」（前の 0.9 × 0.7） */ SHe2 = SWe / enGm.ar; TWm = PWe; THm = PHe; enSg.position.set(gs + SWe / 2, ye - PHe / 2 + gs + SHe2 / 2, 0.0026); if (port) eyS = ye - PHe * 0.06; }
+    if (EN.pid) { const gs = PHe * 0.045; SWe = 0.63 * Math.min(PWe * 0.32, PHe * 0.6 * enGm.ar); /* 14:32 本人「サインを70%に」（前の 0.9 × 0.7） */ SHe2 = SWe / enGm.ar; TWm = PWe; THm = PHe; enSg.position.set(PHe * 0.022 + SWe / 2, ye - PHe / 2 + gs + SHe2 / 2, 0.0026); /* 14:33 本人「もっと左に。縮小は左下を中心に」：左のすき間は写真の高さの 2.2%、下は 4.5%（左下のすみを基準に大きさを変える） */ if (port) eyS = ye - PHe * 0.06; }
     else { SWe = Math.min(0.5, 1.0 * enGm.ar); SHe2 = SWe / enGm.ar; TWm = SWe; THm = SHe2; enSg.position.set(SWe / 2, ye, 0.0016); }
     enPh.scale.set(Math.max(PWe, 0.001), PHe, 1); enPh.position.set(PWe / 2, ye, 0.0018); enSg.scale.set(SWe, SHe2, 1);
     const kt = Math.max((TWm + 0.3) / (W - 2 * mx), (THm + 0.4) / (H - my)); stops.push({ x: TWm / 2, y: eyS, z: kt * H / (2 * TN) }); addSpec(TWm / 2, ye, TWm, THm, 0);
