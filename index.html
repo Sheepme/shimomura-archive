@@ -2422,7 +2422,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd36a41ebb7', APP_URL = location.origin + location.pathname;
+const BUILD = 'd693644e56', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -10852,21 +10852,25 @@ function exvBuild(root, L, start){
       g.m.forEach(j => warm(items[j])); pendT = g.name + '　' + g.n + '点'; pendL = exvLocTxt(g.m.map(j => items[j].d.w)); if (!mv) tIn();
       ovI = ci; const id = walk(g.ov, () => { tIn(); holdT = setTimeout(() => { if (tid !== id) return; tOut(); setCnt(); walk(T, () => { ovI = 0; tIn(); autoNext(); }); }, (EXV && EXV.holdMs) || 1800); }, v); }
     else walk(T, tIn, v); };
-  const zoomBy = k => { st.z *= k; cl(); zoomed = st.z < stops[ci].z * 0.9; draw(); };
+  const zoomBy = k => { st.z *= k; cl(); zoomed = st.z < stops[ci].z * 0.9; zT = null; draw(); };
 
   /* タップ：作品・キャプションは近づく（もう一度でもどる）、壁は次の作品へ（左端は前へ） */
   const ray = new T3.Raycaster(), v2 = new T3.Vector2(), wp = new T3.Plane(new T3.Vector3(0, 0, 1), 0), hit = new T3.Vector3();
   const capL = () => { const a = []; items.forEach(it => { a.push({ it, m: it.capM, no: it.d.grp ? it.d.grp.reg[0].no : null }); (it.xc || []).forEach(c => a.push({ it, m: c.m, no: c.sl.no })); }); return a; }; /* キャプションの一覧（組はパーツごと） */
   /* タップ（10/8 13:51 本人）：作品＝作品全体が画面いっぱいに（もう一度で戻る）・キャプション＝読みやすい大きさに・「作品ページへ」＝そのまま作品ページ・壁や床＝左半分は前の作品、右半分は次の作品。好きなところを大きくするのは2本指 */
+  let zT = null; /* いま寄っているもの：'art'（作品）・'cap'（キャプション）・null（2本指など）。寄っているときに同じものを押すと戻る、ちがうものを押すとそちらへ（14:12 本人「拡大中にキャプションをクリック→キャプションにズーム」） */
+  const artBox = it => { const bx = new T3.Box3(), tb = new T3.Box3(); it.g.updateMatrixWorld(true); it.g.traverse(o => { if (!o.isMesh || o.raycast !== T3.Mesh.prototype.raycast) return; for (let p = o; p; p = p.parent) if (!p.visible) return; tb.setFromObject(o); bx.union(tb); }); return bx.isEmpty() ? null : bx; }; /* 見えている作品の面だけの大きさ（影・印は入れない） */
   const tapZoom = e => { const b = el.getBoundingClientRect(), sx = (e.clientX - b.left) / b.width; v2.set(sx * 2 - 1, -(e.clientY - b.top) / b.height * 2 + 1); ray.setFromCamera(v2, cam); const onWall = !!ray.ray.intersectPlane(wp, hit);
     if (onWall && PHm * 0.3 / (2 * st.z * TN / H) >= 12) { const lc = capL().find(c => c.m.visible && Math.abs(hit.x - c.m.position.x) < PWm / 2 && hit.y > c.m.position.y - PHm / 2 && hit.y < c.m.position.y - PHm / 2 + PHm * 0.3), lk = lc && lc.it;
       if (lk) { const cur = items[ci - 1], lk2 = lk.d.tri && cur && cur.d.tri === lk.d.tri ? cur : lk; exvToWork(lc.no || lk2.d.no, items.indexOf(lk2) + 1); return; } } /* 組は、そのキャプションのパーツの作品へ */ /* 三面は、いま前を向いている面の作品へ */ /* キャプションの下の「作品ページへ」 */
-    if (zoomed) { go(nearIdx()); return; } if (!onWall) return;
-    const mg = Math.max(0.06, 26 * 2 * st.z * TN / H), c = capL().find(q => q.m.visible && Math.abs(hit.x - q.m.position.x) < PWm / 2 + mg && Math.abs(hit.y - q.m.position.y) < PHm / 2 + mg);
-    if (c) { zoomed = true; tw({ x: c.m.position.x, y: c.m.position.y, z: Math.max(zmin(), (PWm / Math.min(W * 0.6, 420)) * H / (2 * TN)) }, 850); return; } /* キャプションは画面の幅の 6 割（420px まで）＝作品ほどは寄らない */
+    const mg = Math.max(0.06, 26 * 2 * st.z * TN / H), c = onWall ? capL().find(q => q.m.visible && Math.abs(hit.x - q.m.position.x) < PWm / 2 + mg && Math.abs(hit.y - q.m.position.y) < PHm / 2 + mg) : null;
+    if (c) { if (zoomed && zT === 'cap') { go(nearIdx()); return; } zoomed = true; zT = 'cap'; tw({ x: c.m.position.x, y: c.m.position.y, z: Math.max(zmin(), (PWm / Math.min(W * 0.6, 420)) * H / (2 * TN)) }, 850); return; } /* キャプションは画面の幅の 6 割（420px まで）＝作品ほどは寄らない */
     const near = items.slice(Math.max(0, ci - 3), ci + 3), ph = ray.intersectObjects(near.map(q => q.g), true)[0];
     if (ph) { let o = ph.object, it = null; while (o && !it) { it = near.find(q => q.g === o) || null; o = o.parent; } it = it || items[ci - 1];
-      if (it) { const k = Math.max((it.wm || 1) * 1.04 / W, (it.hm || 1) * 1.04 / H); zoomed = true; tw({ x: it.g.position.x, y: it.cyW != null ? it.cyW : it.g.position.y, z: Math.max(zmin(), k * H / (2 * TN)) }, 850); return; } } /* 作品全体がちょうど画面に入る大きさ */
+      if (it) { if (zoomed && zT === 'art') { go(nearIdx()); return; } const bx = artBox(it); let cx = it.g.position.x, cy = it.cyW != null ? it.cyW : it.g.position.y, aw = it.wm || 1, ah = it.hm || 1;
+        if (bx) { cx = (bx.min.x + bx.max.x) / 2; cy = (bx.min.y + bx.max.y) / 2; aw = bx.max.x - bx.min.x; ah = bx.max.y - bx.min.y; }
+        const k = Math.max(aw * 1.12 / W, ah * 1.16 / H); zoomed = true; zT = 'art'; tw({ x: cx, y: cy, z: Math.max(zmin(), k * H / (2 * TN)) }, 850); return; } } /* 作品全体が画面のまん中に、まわりに少しすき間を残して入る大きさ（14:12 本人） */
+    if (zoomed) { go(nearIdx()); return; }
     step(sx < 0.5 ? -1 : 1); };
 
   const P = new Map(); let moved = 0, drag = 0, vel = 0, lastT = 0, pinch = false, tD = null, tV = 0; /* tD：三面の前で指を動かしている（横に動かすと回る） */
