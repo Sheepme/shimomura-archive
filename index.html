@@ -2175,7 +2175,8 @@ button.ulrow{cursor:pointer}
 .vbk .vbkgo{border:0;background:var(--accent,#c0603a);color:#fff;font-size:14px;padding:8px 16px;border-radius:999px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.18)}
 .vbkw{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;font-size:12px;color:var(--sub)}
 .vbkw span{align-self:center}.vbkw button{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:4px 10px;font-size:12px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.scmain{display:flex;align-items:center;gap:8px;font-size:15px;white-space:nowrap}.scmain input{width:20px;height:20px}
+.scmain{display:flex;align-items:center;gap:8px;font-size:15px;white-space:nowrap}
+.pqgrab,.pqgrab *{cursor:grabbing!important;user-select:none!important}.scmain input{width:20px;height:20px}
 .cover.pbtop{max-width:min(640px,100%)}
 .pbph .pbsl{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:var(--wash);opacity:0;transition:opacity .9s ease;z-index:1;pointer-events:none}
 .pbph .pbsl.on{opacity:1}.pbph .wm{transition:opacity .9s}.pbph.pbon .wm{opacity:0}
@@ -2193,9 +2194,9 @@ button.ulrow{cursor:pointer}
 .pbph .pbpg{position:absolute;right:6px;bottom:6px;z-index:2;display:inline-flex;align-items:center;gap:3px;font-size:11.5px;line-height:1;padding:4px 7px 4px 6px;border-radius:999px;background:rgba(0,0,0,.55);color:#fff;letter-spacing:0;pointer-events:none}
 .pbph .pbpg .booki{width:13px;height:13px}
 .scdoc{position:relative;background:var(--wash)}
-.scimg{position:absolute;inset:0;overflow:hidden;display:flex;align-items:center;justify-content:center;touch-action:pan-x pan-y}
-.scimg img{width:100%;height:auto;max-height:100%;object-fit:contain;display:block;user-select:none;-webkit-user-select:none}
-.scimg.zoomed{overflow:auto;display:block}.scimg.zoomed img{max-height:none;max-width:none;height:auto;margin:0 auto}
+.scimg{position:absolute;inset:0;overflow:hidden;touch-action:none;cursor:zoom-in}
+.scimg img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;display:block;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;will-change:transform}
+.scimg.pzon,.viewer.pzon #vimg,#qclb.pzon img{cursor:grab}.scimg.pzgrab,.viewer.pzgrab #vimg,#qclb.pzgrab img{cursor:grabbing}
 .sczb{position:absolute;right:10px;bottom:10px;display:flex;gap:4px;z-index:2}
 .sczb button{min-width:38px;height:34px;border-radius:999px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font-size:14px;padding:0 10px;cursor:pointer}
 .sccap{position:absolute;left:10px;bottom:12px;font-size:12px;color:var(--sub);background:var(--paper);padding:3px 9px;border-radius:999px;z-index:2;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -2480,7 +2481,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'a54331af20', APP_URL = location.origin + location.pathname;
+const BUILD = '648c6d2896', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3195,11 +3196,12 @@ const QCW = 1200;
 const QCZM = '<i class="qc-zm" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4L20.5 20.5M7.6 10.5h5.8"/><path class="zp" d="M10.5 7.6v5.8"/></svg></i>';
 function qcLightbox(btn){ const im = btn && btn.querySelector('img'); if (!im) return; const id = im.dataset.tid || '', wmk = btn.querySelector('.wm');
   let el = $('#qclb'); if (el) el.remove(); el = document.createElement('div'); el.id = 'qclb'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', '写真を大きく表示');
-  el.innerHTML = `<div class="qclb-f"><img alt="">${wmk ? wmk.outerHTML : ''}</div><button type="button" class="qclb-x" aria-label="閉じる">${QCSVG.x}</button><p class="qclb-h">もう一度タップで閉じる</p>`;
+  el.innerHTML = `<div class="qclb-f"><img alt="">${wmk ? wmk.outerHTML : ''}</div><button type="button" class="qclb-x" aria-label="閉じる">${QCSVG.x}</button><p class="qclb-h">タップで閉じる・2回タップや指2本で拡大</p>`;
   const big = el.querySelector('img'); big.src = (id && (TH['3200_' + id] || TH['1600_' + id])) || im.src;
   document.body.appendChild(el); requestAnimationFrame(() => el.classList.add('on'));
   const close = () => { el.classList.remove('on'); setTimeout(() => el.remove(), 200); document.removeEventListener('keydown', esc1, true); };
-  const esc1 = e => { if (e.key === 'Escape') close(); }; document.addEventListener('keydown', esc1, true); el.onclick = close;
+  const esc1 = e => { if (e.key === 'Escape') close(); }; document.addEventListener('keydown', esc1, true);
+  const pz = pzMake(el, big, { tap: () => { if (pz.Z.s === 1) close(); } }); el.querySelector('.qclb-x').onclick = close; /* 拡大・移動はほかのプレビューと同じ。拡大していないときのタップで閉じる */
   if (id && !TH['1600_' + id] && !TH['3200_' + id]) { const i = new Image(); i.dataset.tid = id; i.dataset.w = '1600'; i.onload = () => { if (big.isConnected) big.src = i.src; }; queueThumb(i); } } /* もっとくっきりした写真が届いたら差しかえる */
 /* カードのいちばん下の段：どの問題でも同じ（左に「とばす」か「もどる」、右に声で答えるボタン） */
 /* 間違えたときのために、いちばん最後の答えは、すぐには送らずに持っておく。
@@ -3578,7 +3580,6 @@ function vBk(p){ const el = $('#vbk'); if (!el) return; const sc = pbPhOf(p) && 
   el.innerHTML = (canEdit() ? '<button type="button" class="vbkgo" data-vbkgo="1">✂ 作品の写真にする</button>' : '')
     + (cuts.length ? '<div class="vbkw"><span>このページの作品</span>' + cuts.map(x => { const w = workOf(x['作品番号']) || {}; return `<button type="button" data-vbkw="${esc(x['作品番号'])}">${esc(nol(x['作品番号']))} ${esc(w['作品名'] || '無題')}</button>`; }).join('') + '</div>' : ''); }
 /* どの作品の写真にするか選ぶ → 切り抜きの画面へ。書類と作品の見比べと同じ形：ページ（上／左）を拡大して見ながら、作品（下／右）を探す（10/8 本人） */
-const SCZ = [1, 1.5, 2, 3, 4];
 function scanPick(p){ if (!canEdit() || !pbPhOf(p)) return; const id = p['作品番号'], pid = p['写真ID'], fid = p['ファイルID'];
   const el = document.createElement('div'); el.className = 'noteview cmpv scpv'; el._reopen = () => scanPick(p);
   el.innerHTML = `<div class="cmpin"><button type="button" class="cmpback" aria-label="戻る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
@@ -3589,22 +3590,13 @@ function scanPick(p){ if (!canEdit() || !pbPhOf(p)) return; const id = p['作品
       <div class="scbar"><label class="scmain"><input type="checkbox"> メイン画像にする</label><button type="button" class="act main scgo" disabled>作品を選んでください</button></div><div class="scov hidden"></div></div></div>`;
   document.body.appendChild(el); hpush('n'); scrPush(el); document.body.classList.add('cmpon');
   const mo = new MutationObserver(() => { if (!el.isConnected) { mo.disconnect(); if (!document.querySelector('.noteview.cmpv')) document.body.classList.remove('cmpon'); pinDrawer(); } }); mo.observe(document.body, { childList: true }); pinDrawer();
-  /* ページの画像：開く大きさ（1600）→ 拡大したら高画質（3200）。指2本・2回タップ・＋－で拡大 */
-  const box = el.querySelector('.scimg'), im = box.querySelector('img'); let z = 1, hi = false;
+  /* ページの画像：開く大きさ（1600）→ 1.4倍より大きくしたら高画質（3200）。拡大・移動はほかのプレビューと同じ（pzMake）、＋－・全体のボタンも */
+  const box = el.querySelector('.scimg'), im = box.querySelector('img'); let hi = false, q32 = false;
   const src = w => TH[w + '_' + fid]; im.src = src(3200) || src(1600) || src(800) || src(400) || '';
   const get = w => call('getThumbs', [fid], w).then(m => { if (m && m[fid]) { TH[w + '_' + fid] = m[fid]; if (w === 3200 || !hi) im.src = m[fid]; if (w === 3200) hi = true; } }).catch(() => {});
   if (!src(1600) && !src(3200)) get(1600);
-  const zoom = (nz, cx, cy) => { nz = Math.max(1, Math.min(4, nz)); const r = box.getBoundingClientRect(), ar = (im.naturalWidth / im.naturalHeight) || 1, fw = Math.min(r.width, r.height * ar), px = cx == null ? r.width / 2 : cx - r.left, py = cy == null ? r.height / 2 : cy - r.top;
-    let cw, ch, ox, oy; if (z > 1) { cw = im.offsetWidth; ch = im.offsetHeight; ox = im.offsetLeft - box.scrollLeft; oy = im.offsetTop - box.scrollTop; } else { cw = fw; ch = fw / ar; ox = (r.width - cw) / 2; oy = (r.height - ch) / 2; }
-    const fx = Math.max(0, Math.min(1, (px - ox) / Math.max(1, cw))), fy = Math.max(0, Math.min(1, (py - oy) / Math.max(1, ch))); z = nz; box.classList.toggle('zoomed', z > 1); im.style.width = z > 1 ? Math.round(fw * z) + 'px' : '';
-    if (z > 1) { box.scrollLeft = im.offsetLeft + fx * fw * z - px; box.scrollTop = im.offsetTop + fy * fw * z / ar - py; } if (z > 1.4 && !hi && !src(3200)) get(3200); };
-  el.querySelector('.sczb').onclick = e => { const b = e.target.closest('[data-scz]'); if (!b) return; const d = +b.dataset.scz; if (!d) return zoom(1);
-    const k = SCZ.findIndex(v => v >= z - .01); zoom(SCZ[Math.max(0, Math.min(SCZ.length - 1, (k < 0 ? SCZ.length - 1 : k) + d))]); };
-  let tap = 0, pin = null; box.addEventListener('dblclick', e => zoom(z > 1 ? 1 : 2.5, e.clientX, e.clientY));
-  box.addEventListener('touchstart', e => { if (e.touches.length === 2) { const [a, b] = e.touches; pin = { d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), z }; }
-    else if (e.touches.length === 1) { const t = Date.now(); if (t - tap < 300) { e.preventDefault(); zoom(z > 1 ? 1 : 2.5, e.touches[0].clientX, e.touches[0].clientY); tap = 0; } else tap = t; } }, { passive: false });
-  box.addEventListener('touchmove', e => { if (pin && e.touches.length === 2) { e.preventDefault(); const [a, b] = e.touches; zoom(pin.z * Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) / pin.d, (a.clientX + b.clientX) / 2, (a.clientY + b.clientY) / 2); } }, { passive: false });
-  box.addEventListener('touchend', e => { if (e.touches.length < 2) pin = null; });
+  const pz = pzMake(box, im, { onZoom: z => { if (z > 1.4 && !q32 && !src(3200)) { q32 = true; get(3200); } } });
+  el.querySelector('.sczb').onclick = e => { const b = e.target.closest('[data-scz]'); if (!b) return; const d = +b.dataset.scz; if (!d) return pz.reset(); pz.zoomBy(d > 0 ? 1.6 : 1 / 1.6); };
   /* 作品の一覧：この画集の作品が先。番号・名前・年・場所で探す */
   const q = el.querySelector('.wpq'), L = el.querySelector('.wplist'), gb = el.querySelector('.scgo'), cb = el.querySelector('.scmain input'); let SEL = '', F = '';
   const cut = new Set(scanCuts(pid).map(x => x['作品番号'])), inb = new Set(S.events.filter(e => e['資料ID'] === id).map(e => String(e['作品番号'])));
@@ -6845,31 +6837,49 @@ function showV(){ const p = V.list[V.i]; if (!p) return;
 $('#vclose').onclick = () => closeViewer();
 $('#vedit').onclick = e => { e.stopPropagation(); $('#vmenu').classList.remove('rot'); $('#vmenu').classList.toggle('open'); }; // 編集のボタンは鉛筆にまとめる
 $('#viewer').addEventListener('click', e => { if (!e.target.closest('#vedit') && (!e.target.closest('#vmenu') || e.target.closest('#vmenu button:not(.vrotgo):not(.vrotbk)'))) setTimeout(() => $('#vmenu').classList.remove('open', 'rot'), 0); });
-/* 写真の拡大画面：指2本で拡大・縮小、拡大中は指1本で動かす、2回タップで拡大／元に戻す、拡大していないときは左右にスワイプで前後の写真 */
-const VZ = { s: 1, x: 0, y: 0 };
-function vzApply(){ const im = $('#vimg'); im.style.transform = VZ.s === 1 ? '' : `translate(${VZ.x}px,${VZ.y}px) scale(${VZ.s})`; im.classList.toggle('zoomed', VZ.s > 1); }
+/* ---------- 写真のプレビューの拡大・移動：どの画面も同じ動き（写真の拡大画面・画集のページの見比べ・カードの写真）（10/8 本人「プレビュー画面は全てジェスチャに対応して、動作を統一」） ----------
+   指：2本でつまむ・広げる（指のまん中を中心に）、拡大中は1本でなぞって移動、2回タップで拡大（タップした所を中心に）／全体にもどす。拡大していないとき左右にスワイプ＝前後（opt.swipe）
+   マウス・トラックパッド：ホイール・ピンチで拡大・縮小（マウスの位置を中心に）、拡大中はドラッグで移動、ダブルクリックで拡大／全体。1〜6倍。絵が枠から離れすぎないよう端で止める */
+function pzMake(box, el, opt){ opt = opt || {}; const Z = opt.state || { s: 1, x: 0, y: 0 }, MAX = opt.max || 6, P = new Map(); let g = null, last = null, tapT = 0, gs = null;
+  const geo = () => { const ow = el.offsetWidth, oh = el.offsetHeight, nw = el.naturalWidth || ow, nh = el.naturalHeight || oh, ar = (nw / nh) || 1, cw = Math.min(ow, oh * ar), ch = cw / ar; let ox = 0, oy = 0, n = el;
+    while (n && n !== box) { ox += n.offsetLeft; oy += n.offsetTop; n = n.offsetParent; } return { ox, oy, cx: (ow - cw) / 2, cy: (oh - ch) / 2, cw, ch, bw: box.clientWidth, bh: box.clientHeight }; };
+  const clamp = () => { const G = geo(), s = Z.s; [['x', G.ox, G.cx, G.cw, G.bw], ['y', G.oy, G.cy, G.ch, G.bh]].forEach(([a, o, c0, len, b]) => { const L = len * s;
+    if (L <= b) Z[a] = (c0 + len / 2) * (1 - s); else Z[a] = Math.min(-o - s * c0, Math.max(b - o - s * (c0 + len), Z[a])); }); }; /* 枠より小さい向きはまん中のまま、大きい向きは端が枠の中に入りこまない */
+  const apply = () => { if (Z.s <= 1.001) { Z.s = 1; Z.x = 0; Z.y = 0; } else clamp(); el.style.transformOrigin = '0 0'; el.style.transform = Z.s === 1 ? '' : `translate(${Z.x}px,${Z.y}px) scale(${Z.s})`;
+    el.classList.toggle('zoomed', Z.s > 1); box.classList.toggle('pzon', Z.s > 1); if (opt.onZoom) opt.onZoom(Z.s); };
+  const zoomAt = (ns, px, py) => { const r = box.getBoundingClientRect(), G = geo(), bx = px - r.left, by = py - r.top, lx = (bx - G.ox - Z.x) / Z.s, ly = (by - G.oy - Z.y) / Z.s;
+    ns = Math.max(1, Math.min(MAX, ns)); Z.s = ns; Z.x = bx - G.ox - lx * ns; Z.y = by - G.oy - ly * ns; el.style.transition = 'none'; apply(); };
+  const near = (a, b) => Math.hypot(a.x - b.x, a.y - b.y), mid = () => { const [a, b] = [...P.values()]; return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, d: near(a, b) || 1 }; };
+  box.style.touchAction = 'none';
+  box.addEventListener('pointerdown', e => { if (e.button > 0 || (e.target.closest && e.target.closest('button,a,input,textarea,select,label')) || (opt.skip && opt.skip(e))) return;
+    P.set(e.pointerId, { x: e.clientX, y: e.clientY }); try { box.setPointerCapture(e.pointerId); } catch(x){} el.style.transition = 'none';
+    if (P.size === 2) { const m = mid(), r = box.getBoundingClientRect(), G = geo(); g = { k: 'pinch', d0: m.d, s0: Z.s, lx: (m.x - r.left - G.ox - Z.x) / Z.s, ly: (m.y - r.top - G.oy - Z.y) / Z.s }; clearTimeout(tapT); last = null; return; }
+    if (P.size === 1) { g = { k: 'one', x0: e.clientX, y0: e.clientY, tx: Z.x, ty: Z.y, moved: false }; if (Z.s > 1) box.classList.add('pzgrab'); } });
+  box.addEventListener('pointermove', e => { if (!P.has(e.pointerId) || !g) return; P.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (g.k === 'pinch' && P.size >= 2) { const m = mid(), r = box.getBoundingClientRect(), G = geo(), ns = Math.max(1, Math.min(MAX, g.s0 * m.d / g.d0)); Z.s = ns; Z.x = m.x - r.left - G.ox - g.lx * ns; Z.y = m.y - r.top - G.oy - g.ly * ns; apply(); return; }
+    if (g.k === 'one') { const dx = e.clientX - g.x0, dy = e.clientY - g.y0; if (Math.abs(dx) + Math.abs(dy) > 6) g.moved = true; if (Z.s > 1 && g.moved) { Z.x = g.tx + dx; Z.y = g.ty + dy; apply(); } } });
+  const up = e => { if (!P.has(e.pointerId)) return; P.delete(e.pointerId); box.classList.remove('pzgrab'); if (!g) return;
+    if (g.k === 'pinch') { if (P.size === 1) { const [a] = [...P.values()]; g = { k: 'one', x0: a.x, y0: a.y, tx: Z.x, ty: Z.y, moved: true }; } else g = null; if (Z.s < 1.05) { Z.s = 1; apply(); } return; }
+    const o = g; g = null; if (e.type === 'pointercancel') return; const dx = e.clientX - o.x0, dy = e.clientY - o.y0;
+    if (o.moved) { if (Z.s === 1 && opt.swipe && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) opt.swipe(dx < 0 ? 1 : -1); return; }
+    const now = Date.now(), pt = { x: e.clientX, y: e.clientY };
+    if (last && now - last.t < 320 && near(last, pt) < 40) { clearTimeout(tapT); last = null; if (Z.s > 1) { Z.s = 1; el.style.transition = ''; apply(); } else zoomAt(opt.dz || 2.5, pt.x, pt.y); return; } /* 2回タップ・ダブルクリック */
+    last = { t: now, x: pt.x, y: pt.y }; clearTimeout(tapT); if (opt.tap) { const tg = e.target; tapT = setTimeout(() => { last = null; opt.tap(tg); }, 330); } };
+  box.addEventListener('pointerup', up); box.addEventListener('pointercancel', up);
+  box.addEventListener('wheel', e => { e.preventDefault(); const d = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * 400 : e.deltaY;
+    if (!e.ctrlKey && Z.s > 1 && Math.abs(e.deltaX) > Math.abs(e.deltaY)) { Z.x -= e.deltaX; apply(); return; } /* 横向きのスクロールは、拡大中なら横に動かす */
+    zoomAt(Z.s * Math.exp(-Math.max(-100, Math.min(100, d)) * (e.ctrlKey ? 0.012 : 0.003)), e.clientX, e.clientY); }, { passive: false }); /* マウスのホイール1目盛り（100）で約1.35倍 */
+  box.addEventListener('gesturestart', e => { e.preventDefault(); gs = { s0: Z.s }; }); box.addEventListener('gesturechange', e => { e.preventDefault(); if (gs) zoomAt(gs.s0 * e.scale, e.clientX, e.clientY); }); box.addEventListener('gestureend', e => { e.preventDefault(); gs = null; }); /* Mac の Safari のトラックパッド */
+  const ctr = () => { const r = box.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
+  return { Z, apply, zoomAt, reset: () => { Z.s = 1; el.style.transition = ''; apply(); }, zoomBy: k => zoomAt(Z.s * k, ...ctr()), toggle: () => { if (Z.s > 1) { Z.s = 1; apply(); } else zoomAt(opt.dz || 2.5, ...ctr()); } }; }
+/* 写真の拡大画面（pzMake）：拡大していないときは左右にスワイプで前後の写真。画面の端（24px）は「戻る・進む」のスワイプに使う。1.4倍より大きくしたら高画質（3200px）を読む */
+const VZ = { s: 1, x: 0, y: 0 }; let VPZ = null;
+function vzApply(){ if (VPZ) VPZ.apply(); }
 function vzReset(){ VZ.s = 1; VZ.x = 0; VZ.y = 0; vzApply(); }
-function vzToggle(){ if (VZ.s > 1) vzReset(); else { VZ.s = 2.5; vzApply(); } }
-(function(){ const v = $('#viewer'); let st = null, lastTap = 0;
-  const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
-  v.addEventListener('touchstart', e => { if (e.target.closest('button') || (e.touches.length === 1 && (e.touches[0].clientX <= 24 || e.touches[0].clientX >= innerWidth - 24) && VZ.s === 1)) { st = null; return; } /* 画面の端は「戻る・進む」のスワイプに使う */ const t = e.touches;
-    if (t.length === 2) st = { m: 'pinch', d0: dist(t) || 1, s0: VZ.s, x0: VZ.x, y0: VZ.y };
-    else if (t.length === 1) st = { m: 'pan', px: t[0].clientX, py: t[0].clientY, x0: VZ.x, y0: VZ.y, dx: 0, dy: 0, moved: false }; }, {passive: true});
-  v.addEventListener('touchmove', e => { if (!st) return; e.preventDefault(); const t = e.touches;
-    if (st.m === 'pinch' && t.length === 2) { VZ.s = Math.min(6, Math.max(1, st.s0 * dist(t) / st.d0)); const k = VZ.s / st.s0; VZ.x = st.x0 * k; VZ.y = st.y0 * k; vzApply(); }
-    else if (st.m === 'pan' && t.length === 1) { st.dx = t[0].clientX - st.px; st.dy = t[0].clientY - st.py; if (Math.abs(st.dx) + Math.abs(st.dy) > 8) st.moved = true;
-      if (VZ.s > 1) { VZ.x = st.x0 + st.dx; VZ.y = st.y0 + st.dy; vzApply(); } } }, {passive: false});
-  v.addEventListener('touchend', e => { if (!st) return;
-    if (st.m === 'pan' && !e.touches.length) {
-      if (!st.moved && e.target.id === 'vimg') { const n = Date.now(); if (n - lastTap < 320) { vzToggle(); lastTap = 0; } else lastTap = n; }
-      else if (st.moved && VZ.s === 1 && Math.abs(st.dx) > 60 && Math.abs(st.dx) > Math.abs(st.dy) * 1.5) { if (st.dx < 0 && V.i < V.list.length - 1) { V.i++; showV(); } else if (st.dx > 0 && V.i > 0) { V.i--; showV(); } } }
-    if (VZ.s < 1.05) vzReset();
-    st = e.touches.length === 1 ? { m: 'pan', px: e.touches[0].clientX, py: e.touches[0].clientY, x0: VZ.x, y0: VZ.y, dx: 0, dy: 0, moved: true } : null; });
-  v.addEventListener('wheel', e => { e.preventDefault(); VZ.s = Math.min(6, Math.max(1, VZ.s * (e.deltaY < 0 ? 1.12 : 0.89))); if (VZ.s < 1.02) vzReset(); else vzApply(); }, {passive: false});
-  let md = null; v.addEventListener('mousedown', e => { if (VZ.s > 1 && e.target.id === 'vimg') { md = { px: e.clientX, py: e.clientY, x0: VZ.x, y0: VZ.y }; e.preventDefault(); } });
-  addEventListener('mousemove', e => { if (!md) return; VZ.x = md.x0 + e.clientX - md.px; VZ.y = md.y0 + e.clientY - md.py; vzApply(); }); addEventListener('mouseup', () => { md = null; });
-  v.addEventListener('dblclick', e => { if (e.target.id === 'vimg') vzToggle(); });
-})();
+function vzToggle(){ if (VPZ) VPZ.toggle(); }
+VPZ = pzMake($('#viewer'), $('#vimg'), { state: VZ, skip: e => e.pointerType === 'touch' && VZ.s === 1 && (e.clientX <= 24 || e.clientX >= innerWidth - 24) || !!(e.target.closest && e.target.closest('#vmenu,.vbar,.vbk')),
+  swipe: d => { const n = V.i + d; if (n >= 0 && n < V.list.length) { V.i = n; showV(); } },
+  onZoom: s => { const p = V.list[V.i]; if (s > 1.4 && p && p['ファイルID'] && !TH['3200_' + p['ファイルID']] && V.hiAsk !== p['ファイルID']) { V.hiAsk = p['ファイルID']; const b = $('#vorig'); if (b && b.onclick) b.onclick(); } } });
 function vSpin(on){ let el = $('#vspin'); if (!el) { el = document.createElement('div'); el.id = 'vspin'; el.innerHTML = '<span class="ldspin"></span><small>読み込み中</small>'; $('#viewer').appendChild(el); } el.classList.toggle('hidden', !on); }
 $('#vmain').onclick = () => { const p = V.list[V.i], no = S.cur; if (!p || !canEdit()) return;
   S.photos.forEach(x => { if (x['作品番号']===no) x['メイン'] = x===p ? 'メイン' : ''; }); index();
@@ -9410,6 +9420,14 @@ async function pdfMount(host, fid, title, page, hint){
     box.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); e.stopPropagation(); if (pin || gs) return; if (!wp) wp = wpStart(e.clientX, e.clientY); if (!wp) return;
       const d = Math.max(-30, Math.min(30, e.deltaMode ? e.deltaY * 16 : e.deltaY)); wpSet(wp.k * Math.exp(-d * .01)); clearTimeout(host._wt); host._wt = setTimeout(wpEnd, 220); }, { passive: false });
     box.addEventListener('gesturestart', e => { e.preventDefault(); e.stopPropagation(); if (pin) return; if (!wp) wp = wpStart(e.clientX, e.clientY); if (wp) gs = { k0: wp.k }; });
+    /* マウス：ダブルクリックで拡大（その場所を中心に）／全体、はみ出しているときはドラッグで動かす（ほかのプレビューと同じ。10/8 本人） */
+    box.addEventListener('dblclick', e => { if (box.classList.contains('pqsel') || (e.target.closest && e.target.closest('button,a,input,textarea,select'))) return; e.preventDefault(); zoomTo(z > 1.1 ? 1 : 2.2, e.clientX, e.clientY); });
+    let dg = null; box.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse' || e.button !== 0 || box.classList.contains('pqsel') || (e.target.closest && e.target.closest('button,a,input,textarea,select'))) return;
+      if (box.scrollWidth <= box.clientWidth + 1 && box.scrollHeight <= box.clientHeight + 1) return; dg = { id: e.pointerId, x: e.clientX, y: e.clientY, sl: box.scrollLeft, st: box.scrollTop, m: false }; });
+    box.addEventListener('pointermove', e => { if (!dg || e.pointerId !== dg.id) return; const dx = e.clientX - dg.x, dy = e.clientY - dg.y; if (!dg.m) { if (Math.abs(dx) + Math.abs(dy) < 5) return; dg.m = true; try { box.setPointerCapture(dg.id); } catch(x){} box.classList.add('pqgrab'); }
+      box.scrollLeft = dg.sl - dx; box.scrollTop = dg.st - dy; e.preventDefault(); });
+    const dgEnd = () => { if (!dg) return; if (dg.m) { box._dragged = Date.now(); box.classList.remove('pqgrab'); } dg = null; }; box.addEventListener('pointerup', dgEnd); box.addEventListener('pointercancel', dgEnd);
+    box.addEventListener('click', e => { if (box._dragged && Date.now() - box._dragged < 300) { e.stopPropagation(); e.preventDefault(); box._dragged = 0; } }, true); /* ドラッグのあとのクリックは押したことにしない */
     box.addEventListener('gesturechange', e => { e.preventDefault(); e.stopPropagation(); if (gs && wp) wpSet(gs.k0 * e.scale); });
     box.addEventListener('gestureend', e => { e.preventDefault(); e.stopPropagation(); if (!gs) return; gs = null; wpEnd(); });
     let mark = null; /* 位置の印（ページが描き直されても付け直す） */
