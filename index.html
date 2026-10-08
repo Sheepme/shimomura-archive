@@ -2245,7 +2245,7 @@ button.ulrow{cursor:pointer}
 #crop.crpick .cr-stage{cursor:crosshair}#crop .cr-hint.cr-pk{color:#fff;font-weight:700}
 #crop .cr-grid{display:none!important}
 /* 拡大・縮小のボタン（角の画面の右上。10/6 本人） */
-.cr-zg{position:absolute;right:8px;top:8px;z-index:4;display:flex;align-items:center;gap:6px}.cr-zg.hidden{display:none}.cr-zg .cr-z1{position:static}
+.cr-zg{position:absolute;right:8px;top:50%;transform:translateY(-50%);z-index:4;display:flex;flex-direction:column;align-items:flex-end;gap:8px}.cr-zg.hidden{display:none}.cr-zg .cr-z1{position:static;order:3}.cr-zg [data-crz="1"]{order:1}.cr-zg [data-crz="-1"]{order:2} /* 拡大・縮小は右のまん中に縦に（角の丸は四隅・上下の辺にあり、右の辺のまん中にはないので重ならない。10/8 本人「拡大縮小ボタンと角の丸が重なって選択しにくい」） */
 .cr-zb{width:38px;height:38px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font:inherit;font-size:21px;font-weight:700;line-height:1;padding:0;cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none}.cr-zb:disabled{opacity:.35;cursor:default}
 /* 微調整の矢印：ホームベース形の4つで十字の形（ゲーム機の十字キーのように、とがった先をまん中に向ける。10/7 本人） */
 #crop .cr-pad{--c:46px;--g:2px;position:relative;display:block;flex:none;width:calc(var(--c) * 3);height:calc(var(--c) * 3)}
@@ -2422,7 +2422,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'f2f4917f5e', APP_URL = location.origin + location.pathname;
+const BUILD = 'b35bcb7e8c', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
