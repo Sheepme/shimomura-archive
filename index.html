@@ -2654,7 +2654,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'f2e598cbeb', APP_URL = location.origin + location.pathname;
+const BUILD = '5c4323d619', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5194,6 +5194,12 @@ const DF_OLD = {'廣':'広','圖':'図','澤':'沢','邊':'辺','邉':'辺','櫻
 const dfKanjiNum = m => { const D = {'〇':0,'零':0,'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9}; let n = 0, cur = 0; for (const c of m) { if (c === '十') { n += (cur || 1) * 10; cur = 0; } else if (c in D) cur = cur * 10 + D[c]; } return String(n + cur); };
 const dfNameKey = v => String(v || '').normalize('NFKC').toLowerCase().replace(/[（(]\s*の?一部\s*[)）]|の一部/g, '').replace(/./g, c => DF_OLD[c] || c)
   .replace(/[〇零一二三四五六七八九十]+(?=[回号点枚曲面部年月日階\s]|$)/g, dfKanjiNum).replace(/(\d)f/g, '$1階').replace(/[\s"'“”‘’「」『』〈〉《》<>【】\[\]()（）・、。,.\-－ー―~〜]/g, '');
+/* 台帳がもう書類と同じ値になっている（あとで図録などに合わせて直した）ものは、確認に出さない（10/10 開発 v17） */
+const dfNow = x => { if (!x || x.r || x.loc || x.t !== 'w' || !x.f || x.f === '所在') return false; const w = workOf(x.id); if (!w) return false;
+  const a = String(w[x.f] || '').normalize('NFKC'), b = String(x.doc || '').normalize('NFKC'); if (!a || !b) return false;
+  if (/cm$/.test(x.f)) { const p = parseFloat(a.replace(/[^\d.]/g, '')), q = parseFloat(b.replace(/[^\d.]/g, '')); return p > 0 && Math.abs(p - q) < 0.05; }
+  if (x.f === '制作年') { const y = v => (v.match(/(1[89]\d\d|20\d\d)/) || [])[1]; return !!y(a) && y(a) === y(b); }
+  return a.replace(/\s/g, '') === b.replace(/\s/g, ''); };
 const dfMinor = x => { if (!x || x.r || x.loc || x.f === '所在') return false; const a = String(x.cur || ''), b = String(x.doc || '');
   if (/cm$/.test(x.f || '')) { const p = dfNum(a), q = dfNum(b); return p > 0 && q > 0 && (Math.abs(p - q) <= 1 || Math.abs(p - q) / Math.max(p, q) <= 0.02); } /* 1cm か 2% 以内（測り方・表装の差） */
   if (x.f === '作品名' || x.f === '名称') { const k = dfNameKey(a); return !!k && k === dfNameKey(b); }
@@ -5206,7 +5212,7 @@ const dfSwap = (X, x) => { if (!/^(高さcm|幅cm)$/.test(x.f || '') || x.t !== 
   return near(get('高さcm'), dfNum(w['幅cm'])) && near(get('幅cm'), dfNum(w['高さcm'])); };
 const DOC_BOILER = /^(自動で登録（内容を確認）|紐付け作品を確認(（台帳で見つからない作品：[^）]*）)?)$/;
 const docRes = d => { let r; try { r = JSON.parse(d['読取結果']||'{}'); } catch(e){ return {}; }
-  (r['食い違い'] || []).forEach((x, i, X) => { if (dfMinor(x)) x.r = 'minor'; else if (!x.r && dfSwap(X, x)) x.r = 'swap'; });
+  (r['食い違い'] || []).forEach((x, i, X) => { if (dfMinor(x)) x.r = 'minor'; else if (!x.r && dfNow(x)) x.r = 'now'; else if (!x.r && dfSwap(X, x)) x.r = 'swap'; });
   if (r['要確認']) { const parts = String(r['要確認']).split('・'), nf = [];
     parts.forEach(t => { const m = t.match(/台帳で見つからない作品：([^）]*)）/); if (m) m[1].split('、').filter(Boolean).forEach(n => nf.push({ '作品名': n })); });
     if (!(r['台帳にない作品'] || []).length && nf.length) r['台帳にない作品'] = nf;
@@ -5271,7 +5277,7 @@ function evHighlight(btn){ const e = (S.events || []).find(x => x['出来事ID']
 function dfCard(d, x, i, inWork){ const did = esc(d['書類ID']), w = x.t === 'w' && workOf(x.id);
   const th = w && !inWork ? `<span class="dfwth">${(photoBy[x.id]||[]).length ? thumbHTML(x.id, 200) : '<span class="dfwnp">写真なし</span>'}</span>` : '';
   const ttl = inWork ? esc(x.f) : esc(x.name) + '：' + esc(x.f), src = inWork ? `<small class="dfsrcs">📄 ${esc(docTitle(d))}</small>` : '';
-  if (x.r) return `<div class="dfx dfsumr" data-did="${did}">${th}<span class="dfsumt"><b>${ttl}</b>${src}<small>${({doc:'✓ 書類に合わせて直しました', ledger:'✓ 台帳のまま（書類の誤りとして記録）', same:'✓ 同じもの（表記ゆれ）' + (x.auto ? '：自動で判定' : ''), swap:'✓ 縦と横が逆なだけ（自動で判定）', minor:'✓ 小さな違い（測り方・書き方の違いだけ。確認しなくてよい）', alias:'✓ 作品の別名として登録', other:'✓ どちらも違う（「' + esc(x.val || '') + '」に直しました）', neither:'✓ どちらも違う（正しい内容はわからない・要確認）'})[x.r] || '✓ 確認済み'}</small></span></div>`;
+  if (x.r) return `<div class="dfx dfsumr" data-did="${did}">${th}<span class="dfsumt"><b>${ttl}</b>${src}<small>${({doc:'✓ 書類に合わせて直しました', ledger:'✓ 台帳のまま（書類の誤りとして記録）', same:'✓ 同じもの（表記ゆれ）' + (x.auto ? '：自動で判定' : ''), swap:'✓ 縦と横が逆なだけ（自動で判定）', minor:'✓ 小さな違い（測り方・書き方の違いだけ。確認しなくてよい）', now:'✓ 台帳はもう書類と同じ値です', alias:'✓ 作品の別名として登録', other:'✓ どちらも違う（「' + esc(x.val || '') + '」に直しました）', neither:'✓ どちらも違う（正しい内容はわからない・要確認）'})[x.r] || '✓ 確認済み'}</small></span></div>`;
   return `<button type="button" class="dfx dfsum" data-did="${did}" data-dfopen="${did}|${i}">${th}<span class="dfsumt"><b>${ttl}</b>${src}<span class="dfvs"><span><small>台帳</small>${esc(x.cur || '（空）')}</span><i>⇄</i><span><small>書類</small>${esc(x.doc)}</span></span></span><em class="dfgo">📑 見比べる ›</em></button>`; }
 /* 食い違いのボタン（書類の画面・作品ページ共通）：押されたボタンから書類と項目を決める */
 function dfDone(did, msg){ return x => { setData(x); busy(false); render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
