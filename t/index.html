@@ -2183,13 +2183,13 @@ button.ulrow{cursor:pointer}
 @media (max-width:520px){.pbsc{height:96px}}
 /* 画集のスキャンしたページ：章ごと（10/9 開発 v15） */
 .pbsx{margin:8px 0 14px}
-.pbsxbar{display:flex;align-items:center;gap:10px;margin:0 -8px 10px;padding:8px;position:sticky;top:calc(var(--tb,0px) + var(--cap,0px) + var(--edge,0px) + 54px);z-index:3;background:var(--glass);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-radius:10px}
+.pbsxbar{display:flex;align-items:center;gap:10px;margin:0 -8px 10px;padding:8px;position:sticky;top:0;z-index:3;background:var(--glass);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-radius:10px}
 .pbtoc{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1 1 auto;min-width:0;padding:2px 0;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}
 .pbtoc::-webkit-scrollbar{display:none}
 .pbtoc button{flex:0 0 auto;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer;white-space:nowrap}
 .pbtoc button small{margin-left:6px;color:var(--sub);font-size:11.5px}
 .pbsxv{flex:0 0 auto}
-.pbsec{scroll-margin-top:calc(var(--tb,0px) + var(--cap,0px) + var(--edge,0px) + 112px);margin:0 0 16px}
+.pbsec{margin:0 0 16px}
 .pbsech{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 10px;margin:0 0 6px}
 .pbsech b{font-size:14.5px;font-weight:600}
 .pbsech span{font-size:12.5px;color:var(--sub)}
@@ -2202,7 +2202,7 @@ button.ulrow{cursor:pointer}
 .pbrmv.prev{left:-6px}.pbrmv.next{right:-6px}
 @media (hover:hover){.pbrw:hover .pbrmv.can{opacity:.92;pointer-events:auto}}
 .pbsx.all .pbrmv{display:none}
-@media (max-width:520px){.pbsxbar{flex-wrap:wrap}.pbsxv{order:-1}.pbtoc{flex-basis:100%}.pbsec{scroll-margin-top:calc(var(--tb,0px) + var(--cap,0px) + var(--edge,0px) + 150px)}}
+@media (max-width:520px){.pbsxbar{flex-wrap:wrap}.pbsxv{order:-1;margin-left:auto}.pbtoc{flex-basis:100%}}
 .pbrngw{max-width:min(640px,100%);margin:8px auto 0;padding:0 8%;box-sizing:border-box}
 .pbrng{width:100%;accent-color:var(--ink);margin:0}
 .grid.fold>.tilewrap:nth-child(n+25){display:none}
@@ -2635,7 +2635,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd7eca71db7', APP_URL = location.origin + location.pathname;
+const BUILD = '4a2268b400', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3778,6 +3778,10 @@ function pbScanHTML(id){ const P = pbScans(id); if (!P.length) return '';
     <div class="scf pbsxv">${[['sec', '章ごと'], ['all', 'すべて']].map(([k, t]) => `<button type="button" data-pbsxv="${k}" class="${(k === 'all') === all ? 'on' : ''}">${t}</button>`).join('')}</div></div>
     ${G.map((g, i) => `<section class="pbsec" data-pbsec="${i}"><div class="pbsech"><b>${esc(g.t)}</b><span>${pbRange(g)}・${g.P.length}枚${g.nw ? '・作品 ' + g.nw + '点' : ''}${g.np ? '・照合待ち ' + g.np + '枚' : ''}</span>${g.doc ? `<button type="button" class="golink" data-doc="${esc(g.doc)}">書類を開く ›</button>` : ''}</div>
       <div class="pbrw"><div class="pbrow">${g.P.map(tile).join('')}</div><button type="button" class="pbrmv prev" data-pbrmv="-1" aria-label="前へ">‹</button><button type="button" class="pbrmv next" data-pbrmv="1" aria-label="次へ">›</button></div></section>`).join('')}</div>`; }
+/* 目次から章へ：上に残る目次の下に、章の名前が来るように */
+const pbJump = (x, sc) => { let g = sc.parentElement; while (g && g !== document.body && !/(auto|scroll)/.test(getComputedStyle(g).overflowY)) g = g.parentElement;
+  const bar = x.querySelector('.pbsxbar'), top = g && g !== document.body ? g.getBoundingClientRect().top + parseFloat(getComputedStyle(g).paddingTop) : 0, d = sc.getBoundingClientRect().top - (top + bar.offsetHeight + 10);
+  (g && g !== document.body ? g : window).scrollBy({ top: d, behavior: 'smooth' }); };
 /* 章の横の並びの ‹ ›：その向きにまだ続きがあるときだけ出す（マウスのとき） */
 const pbRowArw = w => { const r = w.querySelector('.pbrow'); if (!r) return; const a = r.scrollLeft > 4, b = r.scrollLeft + r.clientWidth < r.scrollWidth - 4;
   w.querySelector('.pbrmv.prev').classList.toggle('can', a); w.querySelector('.pbrmv.next').classList.toggle('can', b); };
@@ -4174,7 +4178,7 @@ document.addEventListener('click', e => {
   const a = e.target.closest('[data-pbpages]'); if (a) return sheetPbPages(a.dataset.pbpages);
   const b = e.target.closest('[data-pbin]'); if (b) { const [id, pid] = b.dataset.pbin.split('|'); S.cur = id; const L = (photoBy[id] || []).filter(p => p['種類'] !== SCAN_K); openViewerL(L, Math.max(0, L.findIndex(p => p['写真ID'] === pid)), 'pbin'); }
   const pt = e.target.closest('[data-pbtop]'); if (pt) { e.preventDefault(); const [id, i] = pt.dataset.pbtop.split('|'); if (V.prevCur === undefined) V.prevCur = S.cur; S.cur = id; return openViewerL(pbTop(id), +i, 'pbtop'); }
-  const pj = e.target.closest('[data-pbjump]'); if (pj) { const x = pj.closest('.pbsx'), sc = x && x.querySelector(`[data-pbsec="${pj.dataset.pbjump}"]`); if (sc) sc.scrollIntoView({ block: 'start', behavior: 'smooth' }); return; }
+  const pj = e.target.closest('[data-pbjump]'); if (pj) { const x = pj.closest('.pbsx'), sc = x && x.querySelector(`[data-pbsec="${pj.dataset.pbjump}"]`); if (sc) pbJump(x, sc); return; }
   const pv = e.target.closest('[data-pbsxv]'); if (pv) { const x = pv.closest('.pbsx'), all = pv.dataset.pbsxv === 'all'; x.classList.toggle('all', all); x.querySelectorAll('[data-pbsxv]').forEach(b => b.classList.toggle('on', b === pv)); try { localStorage.setItem('smr_pbsxv', all ? 'all' : 'sec'); } catch(e){} hydrate(x); return; }
   const rv = e.target.closest('[data-pbrmv]'); if (rv) { const r = rv.parentNode.querySelector('.pbrow'); r.scrollBy({ left: Math.max(120, r.clientWidth * .85) * +rv.dataset.pbrmv, behavior: 'smooth' }); return; }
   const fm = e.target.closest('[data-gunfold]'); if (fm) { const gr = fm.previousElementSibling; if (gr) { gr.classList.remove('fold'); hydrate(gr); } fm.remove(); return; }
