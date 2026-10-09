@@ -2654,7 +2654,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '920fdd1fe8', APP_URL = location.origin + location.pathname;
+const BUILD = '650bdc3d95', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -12028,7 +12028,7 @@ function exvBuild(root, L, start){
       yrDy.k = W + 'x' + H; return yrDy.v = (W < H ? -20 : 0) + Math.max(-30, Math.min(30, v || 0)); }; /* 縦長の画面は年を 20px 上げている（yrPos） */
     const frame = (it, tight) => { const h = it.h, w = it.W || it.w, cy = it.d.b ? h / 2 : it.yc != null ? it.yc : CY, fw = FW * (tight ? 1.15 : 1), fh = FH * (tight ? 1.15 : 1);
       const cxo = it.d.b ? CAPX + 0.25 : CAPX, nc = 1 + (it.xc ? it.xc.length : 0), sep = !!(it.xc && it.d.grp && it.d.grp.sep), cR = Math.min(nc, 4), cW = Math.ceil(nc / cR) * PWm + (Math.ceil(nc / cR) - 1) * 0.03, cpr = Math.max(1, Math.floor((Math.max(w, PWm) + 0.03) / (PWm + 0.03))), cH = sep ? PHm : Math.ceil(nc / cpr) * PHm + (Math.ceil(nc / cpr) - 1) * 0.025; /* キャプションのかたまり（組はパーツの数だけ。横は4段ずつの列、下は作品の幅で折り返す） */ /* 床に立てる作品は手前にあるので、キャプションを少し右に離す（かくれないように） */
-      const k0 = Math.max(w / (fw * W), h / (fh * H), kz(0.25)), belowOk = !it.d.b && cy - h / 2 - CAPG - cH >= 0.55, rightFits = kk => (w / 2 + cxo + cW + 0.03) / kk <= W / 2 - 12;
+      const k0 = Math.max(w / (fw * W), h / (fh * H), kz(0.25)), belowOk = !it.d.b && cy - h / 2 - CAPG - cH >= (sep ? 0.15 : 0.55), /* 組（作品ごと）は、背の高い作品でも下に（床から15cm まで） */ rightFits = kk => (w / 2 + cxo + cW + 0.03) / kk <= W / 2 - 12;
       /* キャプションを横に置く場合と、下（作品の右下）に置く場合の大きさをくらべる。スマホの縦はいつも下。横長の画面は、横に置いても作品がひどく小さくならなければ横（10/6 本人「スマホ表示になってる」） */
       const kS = Math.max(rightFits(k0) ? k0 : (w / 2 + cxo + cW + 0.03) / (W / 2 - 12), k0, (h / 2) / (H / 2 - 90)), fcB = cy - (CAPG + cH) * 0.3;
       const kB = belowOk ? Math.max(k0, Math.max(w, 2 * PWm - w) / (0.92 * W), (cy + h / 2 - fcB) / (H / 2 - 70), (fcB - (cy - h / 2 - CAPG - cH)) / (H / 2 - 110)) : Infinity;
