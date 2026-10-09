@@ -2654,7 +2654,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '86c2bdec29', APP_URL = location.origin + location.pathname;
+const BUILD = 'c37ce7f688', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -4004,8 +4004,11 @@ function pnForm(no){ if (!canEdit()) return; const w = workOf(no); if (!w) retur
   let SEL = sp0 && sp0.ids.length ? sp0.ids.filter(id => L.some(p => p['写真ID'] === id)) : [];
   if (!SEL.length) { const c = L.filter(p => p['種類'] !== '記録写真' && !isJoin(p)), n0 = pnN(w); if (n0 && c.length > 1 && n0 % c.length === 0) SEL = c.map(p => p['写真ID']); }
   const v = d => esc(String(d == null ? '' : d)), dm = dimMain(w);
+  const jp = (photoBy[no] || [])[0], jg = !!(jp && joinGap(jp)), jpc = jg ? ((/すき間\s*([\d.]+)%/.exec(String(jp['メモ'] || '')) || [])[1] || '') : '', jsg = jg ? joinSeg(jp) : null, jw = +dm['幅cm'] || 0;
+  const jcm = jsg && jw > 0 ? Math.round(jsg.slice(1).reduce((a, x, i) => a + x[0] - jsg[i][1], 0) / (jsg.length - 1) * jw * 10) / 10 : 0; /* いまのすき間（台帳の幅から） */
   openSheet(`<h3>展示ビューの設定</h3><p class="hint">展示ビューでの見せ方だけを決めます。画像は作りません（写真を横に並べた画像を作るのは「組み写真をつくる」）。</p>
     <div class="pnsec"><b class="pnst">設置の高さ</b>${scr ? '<p class="pnh">屏風・観音開きは床に立てて置くので、高さの指定は使いません。</p>' : `<div class="pnr"><b>床から作品の下の端まで</b><span class="iesz"><input data-pn="yb" inputmode="decimal" value="${v(yb0)}" placeholder="自動"><span>cm</span></span><small class="pnyh"></small></div>`}</div>
+    ${jg ? `<div class="pnsec"><b class="pnst">組み写真のすき間</b><div class="pnr"><b>写真と写真のあいだ</b><span class="iesz"><input data-pn="sg" inputmode="decimal" value="${v(exvSegG(w))}" placeholder="自動"><span>cm</span></span><small>空のとき：組み写真をつくったときのすき間（写真の高さの ${esc(jpc)}%）のまま${jcm ? '。いまは約 ' + jcm + ' cm' : ''}</small></div></div>` : ''}
     <div class="pnsec"><label class="pnsw"><input type="checkbox" data-pn="on"${pnN(w) ? ' checked' : ''}><span><b class="pnst">パネル・襖・面など</b><small>同じ大きさの板が何枚かで1つの作品のとき。台帳は「1枚の大きさ × 枚数」になり、展示ビューでは段に分けて並べられます</small></span></label>
     <div class="pnbody">${!pnN(w) && (w['高さcm'] || w['幅cm']) ? '<p class="pnh">いまの台帳のサイズ（H ' + esc(w['高さcm'] || '?') + ' × W ' + esc(w['幅cm'] || '?') + '）が全体の大きさなら、1枚の大きさに直してください。</p>' : ''}
     <div class="pnf"><div class="pnr"><b>1枚の大きさ</b><span class="iesz"><span>H</span><input data-pn="h" inputmode="decimal" value="${v(w['高さcm'])}" placeholder="高さ"><span>×</span><span>W</span><input data-pn="w" inputmode="decimal" value="${v(w['幅cm'])}" placeholder="幅"><span>cm</span></span></div>
@@ -4017,9 +4020,9 @@ function pnForm(no){ if (!canEdit()) return; const w = workOf(no); if (!w) retur
     <div class="pnpvw"><small class="pnmsg"></small><div class="pnpv"></div></div></div></div>
     <div class="btns"><button type="button" data-close>やめる</button>${exvSetSum(w) ? '<button type="button" class="pnclr">設定を全部消す</button>' : ''}<button type="button" class="main pngo">保存</button></div>`);
   const sh = $('#sheet'), val = k => String((sh.querySelector('[data-pn="' + k + '"]') || {}).value || '').normalize('NFKC').trim(), num = k => parseFloat(val(k).replace(/[^\d.]/g, '')), onEl = sh.querySelector('[data-pn="on"]'); hydrate(sh);
-  const read = () => { const on = onEl.checked, h = num('h'), wd = num('w'), n = Math.round(num('n')) || 0, c0 = Math.round(num('c')) || 0, cols = Math.max(1, Math.min(n || 1, c0 || n || 1)), gap = Math.max(0, num('g') || 0), vgap = Math.max(0, isNaN(num('vg')) ? 20 : num('vg')), yb = scr || val('yb') === '' ? null : num('yb');
-    return { on, h, wd, n, cols, rows: n ? Math.ceil(n / cols) : 0, gap, vgap, ids: SEL.slice(), yb }; };
-  const check = r => r.yb != null && (isNaN(r.yb) || r.yb > 400) ? '設置の高さは 0〜400 cm で入れてください' : !r.on ? '' : !(r.h > 0 && r.wd > 0) ? '1枚の高さと幅を入れてください' : !(r.n >= 2) ? '枚数は2枚以上にしてください（1枚の作品なら、パネルのチェックを外してください）' : r.n > 60 ? '枚数は60枚までです' : r.ids.length && r.n % r.ids.length ? 'パネル' + r.n + '枚を、写真' + r.ids.length + '枚に同じ数ずつ分けられません' : '';
+  const read = () => { const on = onEl.checked, h = num('h'), wd = num('w'), n = Math.round(num('n')) || 0, c0 = Math.round(num('c')) || 0, cols = Math.max(1, Math.min(n || 1, c0 || n || 1)), gap = Math.max(0, num('g') || 0), vgap = Math.max(0, isNaN(num('vg')) ? 20 : num('vg')), yb = scr || val('yb') === '' ? null : num('yb'), sg = !jg || val('sg') === '' ? null : num('sg');
+    return { on, h, wd, n, cols, rows: n ? Math.ceil(n / cols) : 0, gap, vgap, ids: SEL.slice(), yb, sg }; };
+  const check = r => r.yb != null && (isNaN(r.yb) || r.yb > 400) ? '設置の高さは 0〜400 cm で入れてください' : r.sg != null && (isNaN(r.sg) || r.sg > 200) ? '組み写真のすき間は 0〜200 cm で入れてください' : !r.on ? '' : !(r.h > 0 && r.wd > 0) ? '1枚の高さと幅を入れてください' : !(r.n >= 2) ? '枚数は2枚以上にしてください（1枚の作品なら、パネルのチェックを外してください）' : r.n > 60 ? '枚数は60枚までです' : r.ids.length && r.n % r.ids.length ? 'パネル' + r.n + '枚を、写真' + r.ids.length + '枚に同じ数ずつ分けられません' : '';
   const draw = () => { const r = read(), msg = check(r), pv = sh.querySelector('.pnpv'), H = r.on && r.n >= 2 && r.h > 0 ? r.rows * r.h + (r.rows - 1) * r.vgap : +dm['高さcm'] || 0;
     sh.querySelector('.pnbody').classList.toggle('hidden', !r.on);
     const yh = sh.querySelector('.pnyh'); if (yh) yh.textContent = H > 0 ? (r.yb != null && !isNaN(r.yb) ? '作品の上の端は床から ' + Math.round(r.yb + H) + ' cm' : '空のとき：床から約 ' + Math.max(0, Math.round(145 - H / 2)) + ' cm（絵のまん中が目の高さ 145 cm）') : '空のとき：絵のまん中が目の高さ（145 cm）';
@@ -4039,11 +4042,11 @@ function pnForm(no){ if (!canEdit()) return; const w = workOf(no); if (!w) retur
       if (!('枚数' in w2) || !('展示の形' in w2)) { alert('Google 側の更新（「枚数」「展示の形」の列）がまだのため、展示ビューの設定を保存できませんでした。デプロイのあとで、もう一度保存してください。'); return; }
       closeSheet(); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); toast(ok); }
     catch(x){ busy(false); alert('保存できませんでした。\n' + (x.message || x)); } };
-  sh.querySelector('.pngo').onclick = () => { const r = read(); if (check(r)) return; const pan = r.on && r.n >= 2, patch = { '展示の形': exvSetTxt(pan ? r : null, r.yb) };
+  sh.querySelector('.pngo').onclick = () => { const r = read(); if (check(r)) return; const pan = r.on && r.n >= 2, patch = { '展示の形': exvSetTxt(pan ? r : null, r.yb, r.sg) };
     if (pan) Object.assign(patch, { '高さcm': String(r.h), '幅cm': String(r.wd), '枚数': String(r.n) }); else if (pnN(w)) patch['枚数'] = '';
-    const sum = [pan ? 'H ' + r.h + ' × W ' + r.wd + ' cm × ' + r.n + '枚' + (r.rows > 1 ? '（' + r.cols + '枚ずつ' + r.rows + '段）' : '') : '', r.yb != null ? '床から ' + r.yb + ' cm' : ''].filter(Boolean).join('・');
+    const sum = [pan ? 'H ' + r.h + ' × W ' + r.wd + ' cm × ' + r.n + '枚' + (r.rows > 1 ? '（' + r.cols + '枚ずつ' + r.rows + '段）' : '') : '', r.yb != null ? '床から ' + r.yb + ' cm' : '', r.sg != null ? '組み写真のすき間 ' + r.sg + ' cm' : ''].filter(Boolean).join('・');
     save(patch, sum ? '展示ビューの設定：' + sum : '展示ビューの設定を消しました'); };
-  const clr = sh.querySelector('.pnclr'); if (clr) clr.onclick = () => { if (!confirm('展示ビューの設定（設置の高さ・パネル）を全部消しますか？\n台帳の高さ・幅はそのまま残ります。')) return; save(Object.assign({ '展示の形': '' }, pnN(w) ? { '枚数': '' } : {}), '展示ビューの設定を消しました'); };
+  const clr = sh.querySelector('.pnclr'); if (clr) clr.onclick = () => { if (!confirm('展示ビューの設定（設置の高さ・パネル・組み写真のすき間）を全部消しますか？\n台帳の高さ・幅はそのまま残ります。')) return; save(Object.assign({ '展示の形': '' }, pnN(w) ? { '枚数': '' } : {}), '展示ビューの設定を消しました'); };
   draw(); }
 /* 写真の並べ替え：長押しせずにそのままドラッグ（指・マウス）、または ‹ › で1つずつ。1枚目がメイン画像（10/8 本人） */
 function phOrder(no){ if (!canEdit()) return; const L0 = (photoBy[no] || []).slice(); if (L0.length < 2) return toast('写真が2枚以上あるときに使えます'); let L = L0.map(p => p['写真ID']);
@@ -6030,8 +6033,10 @@ const pnSpec = w => { const n = pnN(w); if (!n) return null; const t = String((w
   return { n, cols, rows: Math.ceil(n / cols), gap: num(/すき間\s*([\d.]+)/, 0), vgap: num(/段間\s*([\d.]+)/, 20), ids }; };
 const pnTxt = sp => '1段' + sp.cols + '枚｜すき間' + (+sp.gap || 0) + '｜段間' + (+sp.vgap || 0) + (sp.ids && sp.ids.length ? '｜写真 ' + sp.ids.join(',') : '');
 const exvYb = w => { const m = /床から\s*([\d.]+)/.exec(String((w || {})['展示の形'] || '').normalize('NFKC')); return m ? Math.max(0, Math.min(400, +m[1])) : null; }; /* 展示ビューで、床から作品の下の端まで（cm） */
-const exvSetTxt = (sp, yb) => [sp ? '1段' + sp.cols + '枚｜すき間' + (+sp.gap || 0) + '｜段間' + (+sp.vgap || 0) + (sp.ids && sp.ids.length ? '｜写真 ' + sp.ids.join(',') : '') : '', yb != null && yb !== '' && !isNaN(+yb) ? '床から' + (+yb) : ''].filter(Boolean).join('｜');
-const exvSetSum = w => { const sp = pnSpec(w), yb = exvYb(w), a = []; if (sp) a.push(sp.n + '枚' + (sp.rows > 1 ? '・' + sp.cols + '枚×' + sp.rows + '段' : '')); if (yb != null) a.push('床から' + yb + 'cm'); return a.join('・'); };
+/* 組み写真のすき間（cm）：「展示の形」の「写真のすき間 5」。なければ組み写真をつくったときのすき間（写真の高さの◯%）のまま（10/10 本人「自分で決めたい」） */
+const exvSegG = w => { const m = /写真のすき間\s*([\d.]+)/.exec(String((w || {})['展示の形'] || '').normalize('NFKC')); return m ? Math.max(0, Math.min(200, +m[1])) : null; };
+const exvSetTxt = (sp, yb, sg) => [sp ? '1段' + sp.cols + '枚｜すき間' + (+sp.gap || 0) + '｜段間' + (+sp.vgap || 0) + (sp.ids && sp.ids.length ? '｜写真 ' + sp.ids.join(',') : '') : '', yb != null && yb !== '' && !isNaN(+yb) ? '床から' + (+yb) : '', sg != null && sg !== '' && !isNaN(+sg) ? '写真のすき間' + (+sg) : ''].filter(Boolean).join('｜');
+const exvSetSum = w => { const sp = pnSpec(w), yb = exvYb(w), a = []; if (sp) a.push(sp.n + '枚' + (sp.rows > 1 ? '・' + sp.cols + '枚×' + sp.rows + '段' : '')); if (yb != null) a.push('床から' + yb + 'cm'); const sg = exvSegG(w); if (sg != null) a.push('すき間' + sg + 'cm'); return a.join('・'); };
 const pnLayTxt = w => { const sp = pnSpec(w); return sp && sp.rows > 1 ? '展示ビューは ' + sp.cols + '枚ずつ' + sp.rows + '段' : ''; };
 const dimTxt = (w, long, unit) => (w['幅cm']||w['高さcm']||w['奥行きcm']) ? `H ${w['高さcm']||'?'} × W ${w['幅cm']||'?'}${w['奥行きcm'] ? ' × D ' + w['奥行きcm'] : ''}${long ? ' cm' : unit || ''}${pnN(w) ? ' × ' + pnN(w) + '枚' : ''}` : ''; /* 標準の「縦×横」（高さ × 幅） */
 /* 作品ページのサイズの行：作品のみと分かっていれば（作品のみ）、額のサイズがあれば「額 高さ × 幅」も */
@@ -11333,6 +11338,10 @@ async function exvSegDetect(L){ const need = L.filter(d => d.segNeed && !d.seg);
       const a = x.getImageData(0, 0, W, H).data, op = []; for (let i = 0; i < W; i++) { let o = 0; for (let j = 0; j < H; j += Math.max(1, H >> 5)) if (a[(j * W + i) * 4 + 3] > 24) { o = 1; break; } op.push(o); }
       const R = []; let st = -1; op.forEach((o, i) => { if (o && st < 0) st = i; if ((!o || i === W - 1) && st >= 0) { const e = o ? i + 1 : i; if (e - st >= W * 0.02) R.push([st / W, e / W]); st = -1; } });
       JSEG[d.id] = R.length > 1 ? R : null; d.seg = JSEG[d.id]; } catch(e){} })); }
+/* 組み写真のすき間を「展示ビューの設定」で決めたとき：写真ごとの幅（台帳か推定の幅から）はそのままに、あいだを決めた cm にして並べ直す。d.seg＝並べる位置、d.segT＝写真の中の位置 */
+function exvSegGap(L){ L.forEach(d => { const G = d.seg && d.seg.length > 1 && d.wd > 0 ? exvSegG(d.w) : null; if (G == null) return;
+  const pw = d.seg.map(([a, b]) => (b - a) * d.wd), W2 = pw.reduce((a, x) => a + x, 0) + G * (pw.length - 1); if (!(W2 > 0)) return; let x = 0;
+  d.segT = d.seg; d.seg = pw.map(p => { const r = [x / W2, (x + p) / W2]; x += p + G; return r; }); d.wd = W2; }); }
 async function exvEstimate(L){ await exvSegDetect(L).catch(() => {});
   const med = a => { a.sort((x, y) => x - y); return a.length ? a[a.length >> 1] : 0; };
   const A = med(L.filter(x => !x.est && !x.b).map(x => x.h * x.wd)) || 6000, Ab = med(L.filter(x => !x.est && x.b).map(x => x.h * x.wd)) || 170 * 360;
@@ -11452,7 +11461,7 @@ function exvLocTxt(ws){ const a = ws.map(w => String((w && (w['所在区分'] ==
   const C = {}; a.forEach(x => { if (!/^(不明|わからない)$/.test(x)) C[x] = (C[x] || 0) + 1; }); const k = Object.keys(C).sort((p, q) => C[q] - C[p])[0]; return k ? k + 'など' : '場所不明'; }
 const exvLocOf = d => exvLocTxt(d.grp ? d.grp.reg.map(x => x.w) : d.tri ? d.tri.nos.map(grpW).filter(Boolean) : [d.w]);
 const exvHas = (d, no) => String(d.no) === String(no) || !!(d.nos && d.nos.includes(String(no))); /* 組はどのパーツの番号でも */
-const exvSig = L => L.map(d => [d.no, d.id, (d.yb != null ? 'y' + d.yb + '/' : '') + (d.seg ? 's' + d.seg.length + '/' : '') + (d.set ? d.set.ids.join(',') + '/' + (d.set.cols || '') + '/' + (d.set.per || '') + '/' + (d.set.gap || 0) + '/' + (d.set.vgap || 0) : ''), d.grp ? d.grp.name + '#' + d.grp.slots.map(x => [x.no, x.id, x.h, x.wd].join(':')).join(',') : '', d.slay ? d.slay.cols + '/' + d.slay.gap + '/' + d.slay.vgap + '/' + d.slay.list.join(',') : '', d.h, d.wd, d.y, d.s, d.b ? 1 : 0, d.k ? 1 : 0, d.frame ? 1 : 0, d.w['作品名'], d.w['制作年'], d.w['画材'], d.w['仕立て'], d.w['所在'], d.cp ? d.cp.mu : ''].join('|')).join('\n');
+const exvSig = L => L.map(d => [d.no, d.id, (d.yb != null ? 'y' + d.yb + '/' : '') + (d.seg ? 's' + d.seg.length + '/' + (exvSegG(d.w) == null ? '' : exvSegG(d.w)) + '/' : '') + (d.set ? d.set.ids.join(',') + '/' + (d.set.cols || '') + '/' + (d.set.per || '') + '/' + (d.set.gap || 0) + '/' + (d.set.vgap || 0) : ''), d.grp ? d.grp.name + '#' + d.grp.slots.map(x => [x.no, x.id, x.h, x.wd].join(':')).join(',') : '', d.slay ? d.slay.cols + '/' + d.slay.gap + '/' + d.slay.vgap + '/' + d.slay.list.join(',') : '', d.h, d.wd, d.y, d.s, d.b ? 1 : 0, d.k ? 1 : 0, d.frame ? 1 : 0, d.w['作品名'], d.w['制作年'], d.w['画材'], d.w['仕立て'], d.w['所在'], d.cp ? d.cp.mu : ''].join('|')).join('\n');
 function exvSync(){ if (!EXV || !EXV.sig || !EXV.curNo || EXV.syncT) return; let L; try { L = exvWorks(); } catch(e){ return; } if (!L.length || exvSig(L) === EXV.sig) return;
   const go = () => { if (!EXV || !EXV.curNo) return; EXV.syncT = 0; if (EXV.busy()) { EXV.syncT = setTimeout(go, 1500); return; } /* 動いている・さわっている間は待つ */
     const no = EXV.curNo(), c = EXV.close, st = no != null && L.some(d => exvHas(d, no)) ? String(no) : 0; try { c(); } catch(e){} exvOpen(st, true); }; /* 履歴は増やさない */
@@ -11574,7 +11583,7 @@ async function exvOpen(start, noPush, set){
   EXV = { root, close: () => { try { de.style.backgroundColor = bgp[0]; document.body.style.backgroundColor = bgp[1]; } catch(e){} try { if ((document.fullscreenElement || document.webkitFullscreenElement) === root) (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch(e){} { const t = document.getElementById('toast'); if (t && root.contains(t)) document.body.appendChild(t); } root.remove(); document.body.classList.remove('exvopen'); EXV = null; EXVSET = null; try { syncThemeColor(); } catch(e){} } };
   root.querySelector('.xcl').onclick = () => exvClose(false);
   if (!noPush) hpush('exv');
-  try { await exvLib(); let L = exvWorks(); if (typeof start === 'string' && exvFOn() && !L.some(d => exvHas(d, start))) { EXVF = exvF0(); L = exvWorks(); } if (!L.length) throw new Error('写真のある作品がありません'); if (EXV && EXV.root === root) EXV.sig = exvSig(L); const EP = exvEntPrep(typeof start === 'string' || +start > 0).catch(() => null); await exvEstimate(L); EXVENT = await EP; if (!EXV || EXV.root !== root) return; exvBuild(root, L, typeof start === 'string' ? Math.max(0, L.findIndex(d => exvHas(d, start)) + 1) : (+start || 0)); }
+  try { await exvLib(); let L = exvWorks(); if (typeof start === 'string' && exvFOn() && !L.some(d => exvHas(d, start))) { EXVF = exvF0(); L = exvWorks(); } if (!L.length) throw new Error('写真のある作品がありません'); if (EXV && EXV.root === root) EXV.sig = exvSig(L); const EP = exvEntPrep(typeof start === 'string' || +start > 0).catch(() => null); await exvEstimate(L); exvSegGap(L); EXVENT = await EP; if (!EXV || EXV.root !== root) return; exvBuild(root, L, typeof start === 'string' ? Math.max(0, L.findIndex(d => exvHas(d, start)) + 1) : (+start || 0)); }
   catch(e){ const wt = root.querySelector('.xwait'); if (wt) wt.textContent = (e && e.message) || '展示ビューを開けませんでした'; }
 }
 /* 作品ページへ：展示ビューを閉じ（履歴の「展示ビュー」はそのまま作品ページの分に）、作品ページを開く。作品ページを閉じると、同じ作品から展示ビューにもどる（closeWork の 'exv'） */
@@ -11716,7 +11725,7 @@ function exvBuild(root, L, start){
       Object.assign(it, { W: 2 * R, zc, rot, tr: 3 * d.wd / d.h, wm: 3 * d.wd / 100, ao, aoMk: () => mkTex(sh0) }); }
     else if (d.fu) { /* 襖（10/9 本人）：屏風と同じ位置（壁から EXZB）に、床にまっすぐ立てる。枠なしのシンプルな板（0:50「枠をつけず、シンプルなパネルに」）。何枚か（枚数）や、すき間のある組み写真は分けて立てる */
       const SG = d.set && d.set.pan ? Array.from({ length: d.set.n }, (_, j) => [j / d.set.n, (j + 1) / d.set.n]) : d.seg || [[0, 1]], dep = 0.024, zb = EXZB;
-      SG.forEach(([a, b], j) => { const t = j ? base.clone() : base; if (j) { t.needsUpdate = true; it.tx.push(t); } t.repeat.set(b - a, 1); t.offset.set(a, 0);
+      SG.forEach(([a, b], j) => { const t = j ? base.clone() : base; if (j) { t.needsUpdate = true; it.tx.push(t); } const [ta, tb] = d.segT && !(d.set && d.set.pan) ? d.segT[j] : [a, b]; t.repeat.set(tb - ta, 1); t.offset.set(ta, 0);
         const pw = (b - a) * w, pn = new T3.Mesh(new T3.BoxGeometry(pw, h, dep), [side, side, side, side, artM(t), side]); pn.position.set(-w / 2 + (a + b) / 2 * w, h / 2 + 0.004, zb + dep / 2); pn.castShadow = true; pn.receiveShadow = true; g.add(pn);
         if (j === 0) it.cpH = { o: pn, x: -pw / 2, y: -h / 2, z: dep / 2 }; });
       const ao = new T3.Mesh(new T3.PlaneGeometry(w + 0.3, 0.34), new T3.MeshBasicMaterial({ transparent: true, opacity: 0.34, depthWrite: false })); ao.rotation.x = -Math.PI / 2; ao.position.set(0, 0.002, zb); ao.visible = false; ao.raycast = () => {}; g.add(ao);
@@ -11753,7 +11762,7 @@ function exvBuild(root, L, start){
       Object.assign(it, { W: W2, ao, aoMk: () => softShadow(W2, dd + 0.04, 0.15) }); }
     else { /* 厚みと壁からの浮きは作品の大きさで（小さい作品は薄く・近く、大きい作品は厚く・浮く → 影の出方が変わる） */
       const sF = Math.sqrt(w * h), dep = Math.min(0.05, Math.max(0.022, 0.018 + 0.02 * sF)), off = -0.003; /* どの大きさも壁にくっつける（10/6 本人）：裏を壁に少しめりこませて、際から光がもれないように */
-      if (d.seg) d.seg.forEach(([a, b], j) => { const t = j ? base.clone() : base; if (j) { t.needsUpdate = true; it.tx.push(t); } t.repeat.set(b - a, 1); t.offset.set(a, 0); /* すき間のある組み写真は、写真ごとに分けて掛ける（10/9 本人） */
+      if (d.seg) d.seg.forEach(([a, b], j) => { const t = j ? base.clone() : base; if (j) { t.needsUpdate = true; it.tx.push(t); } const [ta, tb] = d.segT && !(d.set && d.set.pan) ? d.segT[j] : [a, b]; t.repeat.set(tb - ta, 1); t.offset.set(ta, 0); /* すき間のある組み写真は、写真ごとに分けて掛ける（10/9 本人） */
         const pn = new T3.Mesh(new T3.BoxGeometry((b - a) * w, h, dep), [side, side, side, side, artM(t), side]); pn.position.set(-w / 2 + (a + b) / 2 * w, 0, off + dep / 2); pn.castShadow = true; g.add(pn); });
       else { const pn = new T3.Mesh(new T3.BoxGeometry(w, h, dep), [side, side, side, side, artM(base), side]); pn.position.z = off + dep / 2; pn.castShadow = true; g.add(pn); } it.cpH = { o: g, x: -w / 2 + (d.seg ? d.seg[0][0] * w : 0), y: -h / 2, z: off + dep };
       const m = 0.03 + 0.06 * sF, bl = 0.008 + 0.025 * sF, ao = new T3.Mesh(new T3.PlaneGeometry(w + 2 * m, h + 2 * m), new T3.MeshBasicMaterial({ transparent: true, opacity: Math.min(0.32, 0.18 + 0.1 * sF), depthWrite: false })); ao.position.set(0, -0.004 - 0.008 * sF, 0.0012); ao.visible = false; ao.raycast = () => {}; g.add(ao);
