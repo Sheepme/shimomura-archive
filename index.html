@@ -2181,6 +2181,33 @@ button.ulrow{cursor:pointer}
 .pbsc .pbscn{position:absolute;left:5px;bottom:4px;font-size:11px;line-height:1;padding:3px 6px;border-radius:999px;background:rgba(0,0,0,.55);color:#fff}
 .pbsc .pbscw{position:absolute;right:5px;top:4px;font-size:11px;line-height:1;padding:3px 6px;border-radius:999px;background:var(--paper);color:var(--ink);border:1px solid var(--line)}
 @media (max-width:520px){.pbsc{height:96px}}
+/* 画集のスキャンしたページ：章ごと（10/9 開発 v15） */
+.pbsx{margin:8px 0 14px}
+.pbsxbar{display:flex;align-items:center;gap:10px;margin:0 -8px 10px;padding:8px;position:sticky;top:0;z-index:3;background:var(--glass);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-radius:10px}
+.pbtoc{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1 1 auto;min-width:0;padding:2px 0;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}
+.pbtoc::-webkit-scrollbar{display:none}
+.pbtoc button{flex:0 0 auto;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer;white-space:nowrap}
+.pbtoc button small{margin-left:6px;color:var(--sub);font-size:11.5px}
+.pbtoc button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}.pbtoc button.on small{color:inherit;opacity:.75}
+.pbsxv{flex:0 0 auto}
+.pbsec{margin:0 0 16px}
+.pbsech{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 10px;margin:0 0 6px}
+.pbsech b{font-size:14.5px;font-weight:600}
+.pbsech span{font-size:12.5px;color:var(--sub)}
+.pbsech .golink{margin:0 0 0 auto;font-size:13px}
+.pbrw{position:relative}
+.pbrow{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x proximity;overscroll-behavior-x:contain;scrollbar-width:thin;padding-bottom:6px}
+.pbrow .pbsc{scroll-snap-align:start}
+.pbsx.all .pbrow{flex-wrap:wrap;overflow:visible;padding-bottom:0}
+.pbrmv{position:absolute;top:calc(50% - 3px);transform:translateY(-50%);width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--paper);color:var(--ink);font-size:20px;line-height:1;padding:0 0 2px;z-index:2;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .15s}
+.pbrmv.prev{left:-6px}.pbrmv.next{right:-6px}
+@media (hover:hover){.pbrw:hover .pbrmv.can{opacity:.92;pointer-events:auto}}
+.pbsx.all .pbrmv{display:none}
+@media (max-width:520px){.pbsxbar{gap:6px;padding:6px 8px}.pbsxv{gap:4px}.pbsxv button,.pbtoc button{padding:5px 10px;font-size:12.5px}}
+.pbrngw{max-width:min(640px,100%);margin:8px auto 0;padding:0 8%;box-sizing:border-box}
+.pbrng{width:100%;accent-color:var(--ink);margin:0}
+.grid.fold>.tilewrap:nth-child(n+25){display:none}
+.act.gunfold{display:block;margin:10px auto 4px}
 #viewer.vscan.viewer{padding-top:calc(var(--tb,0px) + var(--cap,0px) + var(--edge,0px) + 128px)}
 .vbk{position:absolute;top:calc(var(--tb,0px) + var(--cap,0px) + var(--edge,0px) + 72px);left:50%;transform:translateX(-50%);z-index:5;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 8px;width:max-content;max-width:calc(100% - 150px)}
 .vbk .vbkgo{border:0;background:var(--accent,#c0603a);color:#fff;font-size:14px;padding:8px 16px;border-radius:999px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.18)}
@@ -2609,7 +2636,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '9a33da1b01', APP_URL = location.origin + location.pathname;
+const BUILD = '5595101bce', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3722,7 +3749,52 @@ const pbTop = id => { const x = pbById[id] || {}, cv = coverPh(x), cf = String(x
 document.addEventListener('scroll', e => { const g = e.target; if (!g || !g.classList || !g.classList.contains('pbgal')) return; const b = g.closest('.pbtop'); if (!b) return;
   const n = g.children.length, i = Math.max(0, Math.min(n - 1, Math.round(g.scrollLeft / pbStep(g)))), c = b.querySelector('.pbcnt'), pv = b.querySelector('.pbmv.prev'), nx = b.querySelector('.pbmv.next');
   if (c) c.textContent = (i + 1) + ' / ' + n; if (pv) pv.disabled = i <= 0; if (nx) nx.disabled = i >= n - 1;
+  const rw = b.nextElementSibling, rg = rw && rw.classList.contains('pbrngw') && rw.querySelector('.pbrng'); if (rg && document.activeElement !== rg) rg.value = i + 1;
   if (i > 0 && !g._nudge) try { localStorage.setItem('smr_pbswiped', '1'); } catch(e){} }, true);
+/* 画集のスキャンしたページを章（まとまり）に分ける（10/9 開発 v15 本人「大量にスキャンした画集のページが、多すぎると見づらい」）
+   ・この資料の書類で、要約が「スキャンの n〜m 枚目。…」のもの → その範囲（名前は書類の題の「：」より後ろ）
+   ・作品を切り出したページ（作品の写真に入れたページも）が続くところ → 「作品の図版」（あいだの2枚までの空きはつなぐ）
+   ・ほか → 「そのほかのページ」。新しい表や列は作らない（書類と写真のメモから分かる） */
+const PBSEC_RE = /スキャンの\s*(\d+)\s*[〜~～\-－–]\s*(\d+)\s*枚目/;
+let PBSEC_C = null;
+function pbSecs(id){ const C = PBSEC_C; if (C && C.id === id && C.p === S.photos && C.d === S.docs && C.w === S.works && C.o === S.others) return C.v;
+  const P = pbScans(id), R = (S.docs || []).filter(d => d['状態'] === '登録済み' && String(docRes(d)['資料ID'] || '').split(',').includes(id)).map(d => { const r = docRes(d), m = PBSEC_RE.exec(String(r['要約'] || '') + ' ' + String(r['掲載内容'] || ''));
+      if (!m) return null; const t0 = docTitle(d), t = t0.replace(/^[^：:]*[：:]\s*/, '') || t0; return { a: +m[1], b: +m[2], t, doc: d['書類ID'] }; }).filter(x => x && x.a <= x.b).sort((x, y) => x.a - y.a);
+  const PL = {}; (S.photos || []).forEach(x => { if (x['作品番号'] !== id || x['種類'] !== '図版') return; const m = /｜ページ\s*([^｜\s]+)/.exec(String(x['メモ'] || '')); if (m) PL[m[1]] = (PL[m[1]] || 0) + 1; }); /* 図版の照合がまだの図版も、そのページを「作品の図版」に */
+  const key = p => { const n = scanNo(p), r = R.find(x => n >= x.a && n <= x.b); return r ? 'd' + r.doc : pageWorks(p['写真ID']).length || PL[p['写真ID']] ? 'w' : 'o'; };
+  const G = []; P.forEach(p => { const k = key(p), g = G[G.length - 1]; if (g && g.k === k) g.P.push(p); else G.push({ k, P: [p] }); });
+  for (let i = G.length - 2; i >= 1; i--) if (G[i].k === 'o' && G[i].P.length <= 2 && G[i - 1].k === 'w' && G[i + 1].k === 'w') { G[i - 1].P.push(...G[i].P, ...G[i + 1].P); G.splice(i, 2); }
+  const v = G.map(g => { const r = g.k[0] === 'd' ? R.find(x => 'd' + x.doc === g.k) : null;
+    return { k: g.k, P: g.P, a: scanNo(g.P[0]), b: scanNo(g.P[g.P.length - 1]), t: r ? r.t : g.k === 'w' ? '作品の図版' : 'そのほかのページ', doc: r ? r.doc : '', nw: g.k === 'w' ? new Set(g.P.flatMap(p => pageWorks(p['写真ID']))).size : 0, np: g.k === 'w' ? g.P.reduce((a, p) => a + (PL[p['写真ID']] || 0), 0) : 0 }; });
+  PBSEC_C = { id, p: S.photos, d: S.docs, w: S.works, o: S.others, v }; return v; }
+const pbSecOf = p => scanOf(p) ? pbSecs(p['作品番号']).find(g => g.P.includes(p)) : null;
+const pbRange = g => g.a === g.b ? g.a + '枚目' : g.a + '〜' + g.b + '枚目';
+/* 資料のページの「スキャンしたページ」：少ないとき（16枚まで）・章が1つのときは前と同じ並べ方。多いときは章ごとに横に並べ、上の目次で章へとぶ。「すべて」で全部を折り返して見る */
+function pbScanHTML(id){ const P = pbScans(id); if (!P.length) return '';
+  const tile = ph => { const n = pageWorks(ph['写真ID']).length, k = scanNo(ph) || (P.indexOf(ph) + 1); return `<button type="button" class="pbsc" data-pbscan="${esc(id)}|${esc(ph['写真ID'])}" aria-label="${k}枚目を開く">${thImg(ph['ファイルID'], 400)}<span class="pbscn">${k}</span>${n ? `<span class="pbscw">${n}点</span>` : ''}</button>`; };
+  const G = pbSecs(id), head = `<h3 class="sec">スキャンしたページ ${P.length}枚</h3>`;
+  if (P.length <= 16 || G.length < 2) return head + `<div class="pbscan">${P.map(tile).join('')}</div>`;
+  let all = false; try { all = localStorage.getItem('smr_pbsxv') === 'all'; } catch(e){}
+  return head + `<div class="pbsx${all ? ' all' : ''}"><div class="pbsxbar"><div class="pbtoc">${G.map((g, i) => `<button type="button" data-pbjump="${i}">${esc(g.t)}<small>${g.a === g.b ? g.a : g.a + '–' + g.b}</small></button>`).join('')}</div>
+    <div class="scf pbsxv">${[['sec', '章ごと'], ['all', 'すべて']].map(([k, t]) => `<button type="button" data-pbsxv="${k}" class="${(k === 'all') === all ? 'on' : ''}">${t}</button>`).join('')}</div></div>
+    ${G.map((g, i) => `<section class="pbsec" data-pbsec="${i}"><div class="pbsech"><b>${esc(g.t)}</b><span>${pbRange(g)}・${g.P.length}枚${g.nw ? '・作品 ' + g.nw + '点' : ''}${g.np ? '・照合待ち ' + g.np + '枚' : ''}</span>${g.doc ? `<button type="button" class="golink" data-doc="${esc(g.doc)}">書類を開く ›</button>` : ''}</div>
+      <div class="pbrw"><div class="pbrow">${g.P.map(tile).join('')}</div><button type="button" class="pbrmv prev" data-pbrmv="-1" aria-label="前へ">‹</button><button type="button" class="pbrmv next" data-pbrmv="1" aria-label="次へ">›</button></div></section>`).join('')}</div>`; }
+/* 目次から章へ：上に残る目次の下に、章の名前が来るように */
+const pbJump = (x, sc) => { let g = sc.parentElement; while (g && g !== document.body && !/(auto|scroll)/.test(getComputedStyle(g).overflowY)) g = g.parentElement;
+  const bar = x.querySelector('.pbsxbar'), top = g && g !== document.body ? g.getBoundingClientRect().top + parseFloat(getComputedStyle(g).paddingTop) : 0, d = sc.getBoundingClientRect().top - (top + bar.offsetHeight + 10);
+  (g && g !== document.body ? g : window).scrollBy({ top: d, behavior: 'smooth' }); };
+/* 章の横の並びの ‹ ›：その向きにまだ続きがあるときだけ出す（マウスのとき） */
+const pbRowArw = w => { const r = w.querySelector('.pbrow'); if (!r) return; const a = r.scrollLeft > 4, b = r.scrollLeft + r.clientWidth < r.scrollWidth - 4;
+  w.querySelector('.pbrmv.prev').classList.toggle('can', a); w.querySelector('.pbrmv.next').classList.toggle('can', b); };
+document.addEventListener('pointerover', e => { const w = e.target.closest && e.target.closest('.pbrw'); if (w) pbRowArw(w); });
+document.addEventListener('scroll', e => { const r = e.target; if (r && r.classList && r.classList.contains('pbrow')) return pbRowArw(r.parentNode);
+  if (PBSPY) return; PBSPY = requestAnimationFrame(() => { PBSPY = 0; document.querySelectorAll('.pbsx').forEach(x => { if (!x.offsetParent) return; const bar = x.querySelector('.pbsxbar'), lim = bar.getBoundingClientRect().bottom + 24; let k = 0;
+    x.querySelectorAll('.pbsec').forEach((sc, i) => { if (sc.getBoundingClientRect().top <= lim) k = i; }); const toc = x.querySelector('.pbtoc'), c = toc.children[k]; if (!c || c.classList.contains('on')) return;
+    [...toc.children].forEach(b => b.classList.toggle('on', b === c)); if (c.offsetLeft < toc.scrollLeft || c.offsetLeft + c.offsetWidth > toc.scrollLeft + toc.clientWidth) toc.scrollTo({ left: c.offsetLeft - 16, behavior: 'smooth' }); }); }); }, true); /* 目次の、いま見ている章に印 */
+let PBSPY = 0;
+/* いちばん上のめくりのつまみ（ページが多いとき） */
+document.addEventListener('input', e => { const rg = e.target; if (!rg.classList || !rg.classList.contains('pbrng')) return; const w = rg.closest('.pbrngw'), b = w && w.previousElementSibling, g = b && b.querySelector('.pbgal'); if (!g) return;
+  g.scrollTo({ left: pbStep(g) * (+rg.value - 1), behavior: 'auto' }); });
 const pbStep = g => { const a = g.children[0], b = g.children[1]; return Math.max(1, a && b ? b.offsetLeft - a.offsetLeft : g.clientWidth); }; /* 1ページ分の横の長さ（次のページの端を見せているので、幅より少し短い） */
 const BOOKI = '<svg class="booki" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6.5C10.2 5.2 7.6 4.6 4 4.8v13c3.6-.2 6.2.4 8 1.7 1.8-1.3 4.4-1.9 8-1.7v-13c-3.6-.2-6.2.4-8 1.7zM12 6.5v13"/></svg>';
 const scanCp = p => ({ mu: pbLab(p['作品番号']), u: p['作品番号'] + '/' + p['写真ID'], hide: false, n: pbPhLab(p) });
@@ -4111,6 +4183,10 @@ document.addEventListener('click', e => {
   const a = e.target.closest('[data-pbpages]'); if (a) return sheetPbPages(a.dataset.pbpages);
   const b = e.target.closest('[data-pbin]'); if (b) { const [id, pid] = b.dataset.pbin.split('|'); S.cur = id; const L = (photoBy[id] || []).filter(p => p['種類'] !== SCAN_K); openViewerL(L, Math.max(0, L.findIndex(p => p['写真ID'] === pid)), 'pbin'); }
   const pt = e.target.closest('[data-pbtop]'); if (pt) { e.preventDefault(); const [id, i] = pt.dataset.pbtop.split('|'); if (V.prevCur === undefined) V.prevCur = S.cur; S.cur = id; return openViewerL(pbTop(id), +i, 'pbtop'); }
+  const pj = e.target.closest('[data-pbjump]'); if (pj) { const x = pj.closest('.pbsx'), sc = x && x.querySelector(`[data-pbsec="${pj.dataset.pbjump}"]`); if (sc) pbJump(x, sc); return; }
+  const pv = e.target.closest('[data-pbsxv]'); if (pv) { const x = pv.closest('.pbsx'), all = pv.dataset.pbsxv === 'all'; x.classList.toggle('all', all); x.querySelectorAll('[data-pbsxv]').forEach(b => b.classList.toggle('on', b === pv)); try { localStorage.setItem('smr_pbsxv', all ? 'all' : 'sec'); } catch(e){} hydrate(x); return; }
+  const rv = e.target.closest('[data-pbrmv]'); if (rv) { const r = rv.parentNode.querySelector('.pbrow'); r.scrollBy({ left: Math.max(120, r.clientWidth * .85) * +rv.dataset.pbrmv, behavior: 'smooth' }); return; }
+  const fm = e.target.closest('[data-gunfold]'); if (fm) { const gr = fm.previousElementSibling; if (gr) { gr.classList.remove('fold'); hydrate(gr); } fm.remove(); return; }
   const mv = e.target.closest('[data-pbmv]'); if (mv) { const g = mv.closest('.pbtop').querySelector('.pbgal'); g.scrollBy({ left: pbStep(g) * +mv.dataset.pbmv, behavior: 'smooth' }); return; }
   const sc = e.target.closest('[data-pbscan]'); if (sc) { e.preventDefault(); const [id, pid] = sc.dataset.pbscan.split('|'); return bkOpen(id, pid); }
   const pf = e.target.closest('[data-pbpdf]'); if (pf) return sheetPbPdf(pf.dataset.pbpdf);
@@ -6870,11 +6946,13 @@ function drawPbList(){
 /* ---------- 作品のひも付け（展覧会の出品・画集の掲載） ---------- */
 function linkedGrid(kind, id){
   const field = kind==='ex' ? '展覧会ID' : '資料ID', seen = {};
-  const list = S.events.filter(e => e[field]===id && !seen[e['作品番号']] && (seen[e['作品番号']] = 1));
+  let list = S.events.filter(e => e[field]===id && !seen[e['作品番号']] && (seen[e['作品番号']] = 1));
+  if (kind === 'pb') { const ky = e => { const m = /No\.?\s*(M-)?(\d+)/.exec(String(e['内容'] || '')); return m ? (m[1] ? 1e4 : 0) + +m[2] : 1e9; }; list = list.map((e, i) => ({ e, i, k: ky(e) })).sort((a, b) => a.k - b.k || a.i - b.i).map(x => x.e); } /* 画集は図版 No. の順に（10/9 開発 v15） */
+  const fold = kind === 'pb' && list.length > 30;
   const add = '';
   if (!list.length) return add + '<p class="muted">まだ作品のひも付けがありません</p>';
-  return add + '<div class="grid">' + list.map(e => { const no = e['作品番号'], w = workOf(no) || {};
-    return `<div class="tilewrap"><button class="tile" data-no="${esc(no)}"><div class="ph">${thumbHTML(no,400)}</div><div class="cap"><div class="no">${isOtNo(no) ? '' : 'No. '}${esc(no)}</div><div class="tt">${w['作品名']?esc(w['作品名']):'<span class="untitled">無題</span>'}</div><div class="yr">${esc(kind==='pb' && e['内容'] ? e['内容'] : (w['制作年']||''))}</div></div></button>${canEdit() ? `<button class="unl" data-unlink="${kind}|${esc(e['出来事ID'])}" aria-label="ひも付けを外す">×</button>` : ''}</div>`; }).join('') + '</div>';
+  return add + '<div class="grid' + (fold ? ' fold' : '') + '">' + list.map(e => { const no = e['作品番号'], w = workOf(no) || {};
+    return `<div class="tilewrap"><button class="tile" data-no="${esc(no)}"><div class="ph">${thumbHTML(no,400)}</div><div class="cap"><div class="no">${isOtNo(no) ? '' : 'No. '}${esc(no)}</div><div class="tt">${w['作品名']?esc(w['作品名']):'<span class="untitled">無題</span>'}</div><div class="yr">${esc(kind==='pb' && e['内容'] ? e['内容'] : (w['制作年']||''))}</div></div></button>${canEdit() ? `<button class="unl" data-unlink="${kind}|${esc(e['出来事ID'])}" aria-label="ひも付けを外す">×</button>` : ''}</div>`; }).join('') + '</div>' + (fold ? `<button type="button" class="act gunfold" data-gunfold="1">残りの ${list.length - 24}点も表示する（全${list.length}点）</button>` : '');
 }
 function sheetLink(kind, id){
   const isEx = kind==='ex', field = isEx ? '展覧会ID' : '資料ID', x = isEx ? exById[id] : pbById[id]; if (!x) return;
@@ -7172,9 +7250,9 @@ function openPb(id, keepScroll, restoreSc){
     <div class="pagebody one"><div class="eyebrow">${esc(x['種類']||'出版物')}</div>
     <h2 class="title">${esc(x['タイトル']||'（書名未入力）')}</h2>
     <div class="tombstone">${esc([fmtDate(x['発行年月']), x['発行元'], x['著者・編者']].filter(Boolean).join('　|　'))}</div>
-    ${(T => T.length > 1 ? `<div class="cover pbtop"><div class="pbgal">${T.map((p, i) => `<a href="#" data-pbtop="${esc(id)}|${i}" aria-label="${i + 1}枚目を大きく見る">${thImg(p['ファイルID'], 800)}${wm(p)}</a>`).join('')}</div>${canEdit() && cover ? `<button type="button" class="cvpen" data-cvedit="${esc(id)}" aria-label="表紙を直す">${PEN}</button>` : ''}<button type="button" class="pbmv prev" data-pbmv="-1" aria-label="前のページ" disabled>‹</button><button type="button" class="pbmv next" data-pbmv="1" aria-label="次のページ">›</button><span class="pbcnt">1 / ${T.length}</span></div><p class="pbhint">${BOOKI}<span>${matchMedia('(hover:none)').matches ? '左右にスワイプして' : '‹ › を押して'}ページをめくれます（全${T.length}枚）</span></p>${creditHTML([coverPh(x)].filter(Boolean))}`
+    ${(T => T.length > 1 ? `<div class="cover pbtop"><div class="pbgal">${T.map((p, i) => `<a href="#" data-pbtop="${esc(id)}|${i}" aria-label="${i + 1}枚目を大きく見る">${thImg(p['ファイルID'], 800)}${wm(p)}</a>`).join('')}</div>${canEdit() && cover ? `<button type="button" class="cvpen" data-cvedit="${esc(id)}" aria-label="表紙を直す">${PEN}</button>` : ''}<button type="button" class="pbmv prev" data-pbmv="-1" aria-label="前のページ" disabled>‹</button><button type="button" class="pbmv next" data-pbmv="1" aria-label="次のページ">›</button><span class="pbcnt">1 / ${T.length}</span></div>${T.length > 12 ? `<div class="pbrngw"><input type="range" class="pbrng" min="1" max="${T.length}" value="1" step="1" aria-label="ページを選ぶ"></div>` : ''}<p class="pbhint">${BOOKI}<span>${matchMedia('(hover:none)').matches ? '左右にスワイプして' : '‹ › を押して'}ページをめくれます（全${T.length}枚）</span></p>${creditHTML([coverPh(x)].filter(Boolean))}`
       : cover ? `<div class="cover">${thImg(x['表紙写真ファイルID'], 800)}${wm(coverPh(x))}${canEdit() ? `<button type="button" class="cvpen" data-cvedit="${esc(id)}" aria-label="表紙を直す">${PEN}</button>` : ''}</div>${creditHTML([coverPh(x)].filter(Boolean))}` : '')(pbTop(id))}
-    ${(P => P.length ? `<h3 class="sec">スキャンしたページ ${P.length}枚</h3><div class="pbscan">${P.map((ph, i) => { const n = new Set(scanCuts(ph['写真ID']).map(x => x['作品番号'])).size; return `<button type="button" class="pbsc" data-pbscan="${esc(id)}|${esc(ph['写真ID'])}" aria-label="${i + 1}枚目を開く">${thImg(ph['ファイルID'], 400)}<span class="pbscn">${i + 1}</span>${n ? `<span class="pbscw">${n}点</span>` : ''}</button>`; }).join('')}</div>` : '')(pbScans(id))}
+    ${pbScanHTML(id)}
     ${(P => P.length ? `<h3 class="sec">中のページ ${P.length}枚</h3><div class="pbin">${P.map(ph => `<button type="button" class="pbinp" data-pbin="${esc(id)}|${esc(ph['写真ID'])}">${thImg(ph['ファイルID'], 400)}</button>`).join('')}</div>` : '')(pbInner(id))}
     <h3 class="sec">掲載作品 ${new Set(nos).size}点</h3>${linkedGrid('pb', id)}${docLinks('資料ID', id)}${memosFor(id)}
     <h3 class="sec">資料の情報</h3>
@@ -7209,7 +7287,7 @@ function showV(){ const p = V.list[V.i]; if (!p) return;
   if (TH[k]) { $('#vimg').src = TH[k]; vSpin(false); }
   else { if (lo) { $('#vimg').src = TH[lo + '_' + p['ファイルID']]; $('#vimg').classList.add('lowres'); } vSpin(true); // 大きい写真が届くまで、小さい写真＋読み込み中のマーク
     call('getThumbs', [p['ファイルID']], 1600).then(m => { if (m[p['ファイルID']]) { TH[k] = m[p['ファイルID']]; if (V.list[V.i] === p) { $('#vimg').src = TH[k]; $('#vimg').classList.remove('lowres'); vSpin(false); } } }).catch(() => { if (V.list[V.i] === p) vSpin(false); }); }
-  const ref = isPgRef(p); $('#vcount').textContent = (V.i+1) + ' / ' + V.list.length + '　' + (ref ? '画集のページ・' + pbLab(p['作品番号']) + ' ' + pbPhLab(p) : (p['種類']||'') + (isJoin(p) ? '・組み写真' : '')) + (crInfo(p) ? '・補正' : '') + (/^【仮】/.test(p['メモ']||'') ? '・仮' : '') + (copyOf(p) && copyOf(p).n ? '・' + copyOf(p).mu + ' ' + copyOf(p).n : '');
+  const ref = isPgRef(p); $('#vcount').textContent = (V.i+1) + ' / ' + V.list.length + '　' + (ref ? '画集のページ・' + pbLab(p['作品番号']) + ' ' + pbPhLab(p) : (p['種類']||'') + (isJoin(p) ? '・組み写真' : '') + (V.mode === 'scan' && pbSecOf(p) && pbSecs(p['作品番号']).length > 1 ? '・' + pbSecOf(p).t : '')) + (crInfo(p) ? '・補正' : '') + (/^【仮】/.test(p['メモ']||'') ? '・仮' : '') + (copyOf(p) && copyOf(p).n ? '・' + copyOf(p).mu + ' ' + copyOf(p).n : '');
   $('#vcredit').innerHTML = creditHTML([p]); $('#vwm').innerHTML = wm(p).replace(/<\/?span[^>]*>/g, ''); vBk(p);
   const isW = S.cur && workOf(S.cur), isMain = V.i===0; $('#vmain').classList.toggle('hidden', !canEdit() || !isW || V.list.length < 2 || !p['写真ID']); $('#vmain').textContent = isMain ? '★ メイン画像' : '☆ メイン画像にする'; $('#vmain').disabled = isMain;
   $('#vcopy').classList.toggle('hidden', !canEdit() || !p['写真ID']); $('#vcopy').textContent = copyOf(p) ? '© 著作物（' + copyOf(p).mu + '）' : '© 著作物の設定';
