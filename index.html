@@ -2654,7 +2654,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '3c202619a0', APP_URL = location.origin + location.pathname;
+const BUILD = 'c153fdf8c8', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -11158,9 +11158,12 @@ function grpSlots(list){ const sl = list.map(no => { no = String(no || '').trim(
     return { no, w, id: p ? p['ファイルID'] : '', cp: p ? copyOf(p) : null, h: +dm['高さcm'] || 0, wd: +dm['幅cm'] || 0 }; });
   const md = a => { a = a.filter(v => v > 0).sort((x, y) => x - y); return a.length ? a[a.length >> 1] : 0; }, mh = md(sl.map(x => x.h)) || 100, mw = md(sl.map(x => x.wd)) || 70;
   sl.forEach(x => { x.est = !(x.h > 0 && x.wd > 0); if (!(x.h > 0)) x.h = mh; if (!(x.wd > 0)) x.wd = mw; }); return sl; }
-/* 完成形の小さなプレビュー（すき間なしで横に。高さのちがうパーツは上下のまん中をそろえる） */
-function grpPrevHTML(sl, o){ o = o || {}; const W = sl.reduce((a, x) => a + x.wd, 0) || 1, Hm = Math.max(1, ...sl.map(x => x.h));
-  return `<div class="gpv${o.edit ? ' ed' : ''}" style="--gar:${(W / Hm).toFixed(4)}">${sl.map((x, j) => `<div class="gpp${x.no ? '' : ' miss'}${o.cur && o.cur === x.no ? ' cur' : ''}${o.sel === j ? ' sel' : ''}" data-gj="${j}"${!o.edit && x.no ? ` data-gpw="${esc(x.no)}"` : ''} style="width:${(x.wd / W * 100).toFixed(3)}%;aspect-ratio:${(x.wd / x.h).toFixed(4)}">${x.id ? thImg0(x.id, 400) : `<span>${x.no ? 'No.' + esc(x.no) + '<br>写真なし' : '台帳に<br>ない'}</span>`}<i>${j + 1}</i></div>`).join('')}</div>`; }
+/* パーツのすき間（cm）：シート「組」の「並べ方」に「すき間 N」。なければ 0（くっつける。10/7 本人）。10/10 本人「組みの編集もすき間を決めたい」 */
+const grpGap = g => { const m = /すき間\s*([\d.]+)/.exec(String((g && g['並べ方']) || '').normalize('NFKC')); return m ? Math.max(0, Math.min(200, +m[1])) : 0; };
+const grpHow = (how, gap) => [String(how || '').normalize('NFKC').replace(/すき間\s*[\d.]+/g, '').replace(/^[｜|\s]+|[｜|\s]+$/g, ''), gap > 0 ? 'すき間 ' + gap : ''].filter(Boolean).join('｜');
+/* 完成形の小さなプレビュー（横に並べる。すき間は o.gap cm。高さのちがうパーツは上下のまん中をそろえる） */
+function grpPrevHTML(sl, o){ o = o || {}; const gp = Math.max(0, +o.gap || 0), W = (sl.reduce((a, x) => a + x.wd, 0) + gp * Math.max(0, sl.length - 1)) || 1, Hm = Math.max(1, ...sl.map(x => x.h));
+  return `<div class="gpv${o.edit ? ' ed' : ''}" style="--gar:${(W / Hm).toFixed(4)}">${sl.map((x, j) => `<div class="gpp${x.no ? '' : ' miss'}${o.cur && o.cur === x.no ? ' cur' : ''}${o.sel === j ? ' sel' : ''}" data-gj="${j}"${!o.edit && x.no ? ` data-gpw="${esc(x.no)}"` : ''} style="width:${(x.wd / W * 100).toFixed(3)}%;aspect-ratio:${(x.wd / x.h).toFixed(4)}${j && gp ? ';margin-left:' + (gp / W * 100).toFixed(3) + '%' : ''}">${x.id ? thImg0(x.id, 400) : `<span>${x.no ? 'No.' + esc(x.no) + '<br>写真なし' : '台帳に<br>ない'}</span>`}<i>${j + 1}</i></div>`).join('')}</div>`; }
 /* 新しく組を作るとき：名前の A・B・C、①②、(1)(2) から、となりのパーツを集めて並べてみる（とちゅうの抜けは空き） */
 function grpGuess(no){ const w = grpW(no), m = w && grpSuf(w['作品名']); if (!m) return null;
   const idx = x => { x = String(x).normalize('NFKC').trim().replace(/^その/, '').replace(/[()（）]/g, ''); if (/^[A-Za-z]$/.test(x)) return x.toUpperCase().charCodeAt(0) - 64; const k = '一二三四五六七八九十'.indexOf(x); if (k >= 0) return k + 1; return +x || 0; };
@@ -11173,24 +11176,25 @@ let GE = null, GU = null; /* GE：組の編集中、GU：さっきの変更（�
 const grpUndoBtn = (no, cls) => GU && GU.from === String(no) && Date.now() - GU.t < 180000 ? `<button type="button" class="${cls}" data-gpundo="${esc(no)}">↩ さっきの組の変更をもどす</button>` : '';
 /* 作品ページの欄（組に入っている作品だけ） */
 function grpSecHTML(no){ const g = grpOf(no); if (!g) return ''; const sl = grpSlots(grpL(g)), reg = sl.filter(x => x.w).length;
-  return `<h3 class="sec">組（パーツ）</h3><div class="gpsec">${grpPrevHTML(sl, { cur: String(no) })}<p class="hint">${esc(grpName(g))}：全${sl.length}パーツ（台帳にあるもの ${reg}点${sl.length > reg ? '・台帳にないもの ' + (sl.length - reg) + '点' : ''}）。パーツを押すと、その作品のページへ。展示ビューでは、くっつけて1つの作品にします。</p>
+  return `<h3 class="sec">組（パーツ）</h3><div class="gpsec">${grpPrevHTML(sl, { cur: String(no), gap: grpGap(g) })}<p class="hint">${esc(grpName(g))}：全${sl.length}パーツ（台帳にあるもの ${reg}点${sl.length > reg ? '・台帳にないもの ' + (sl.length - reg) + '点' : ''}）。パーツを押すと、その作品のページへ。展示ビューでは、くっつけて1つの作品にします。</p>
     ${canEdit() ? `<div class="gpbt"><button type="button" class="shfam" data-grped="${esc(g['組ID'])}" data-gpfrom="${esc(no)}">組を編集</button>${grpUndoBtn(no, 'shfam')}</div>` : ''}</div>`; }
 function grpRefresh(no){ if (S.pcur && S.pcur.t === 'w' && String(S.pcur.id) === String(no)) openWork(no, true); }
 function grpEdit(id, from){ const g = id ? (S.groups || []).find(x => x['組ID'] === id) : null, gs = g ? null : grpGuess(from);
-  GE = { id: g ? g['組ID'] : '', from: String(from || ''), name: g ? String(g['作品名'] || '') : gs ? gs.name : grpBase((grpW(from) || {})['作品名']), list: g ? grpL(g) : gs ? gs.list : [String(from), ''], sel: -1, prev: g ? Object.assign({}, g) : null, guess: !!gs };
+  GE = { id: g ? g['組ID'] : '', from: String(from || ''), name: g ? String(g['作品名'] || '') : gs ? gs.name : grpBase((grpW(from) || {})['作品名']), list: g ? grpL(g) : gs ? gs.list : [String(from), ''], sel: -1, prev: g ? Object.assign({}, g) : null, guess: !!gs, gap: grpGap(g) };
   openSheet('<div id="gped" class="gped"></div>'); grpDraw(); }
 function grpDraw(){ const el = $('#gped'); if (!el || !GE) return; const sl = grpSlots(GE.list), n = GE.list.length, j = GE.sel, x = sl[j], mv = `<button type="button" data-gpmv="-1" ${j > 0 ? '' : 'disabled'}>← 左へ</button><button type="button" data-gpmv="1" ${j < n - 1 ? '' : 'disabled'}>右へ →</button>`;
   el.innerHTML = `<h3>${GE.id ? '組（パーツ）を編集' : 'パーツを組にする'}</h3>
     ${GE.guess ? '<p class="hint">名前の A・B・C や ①② から、パーツを並べてみました。ちがうところは直してください。</p>' : '<p class="hint">大きな作品のパーツが、別々の作品として台帳に入っているときに使います。</p>'}
     <label class="gpnm"><span>全体の作品名</span><input id="gpName" value="${esc(GE.name)}" placeholder="作品名"></label>
     <div class="gpn"><span>全パーツ数</span><button type="button" data-gpn="-1" aria-label="減らす">−</button><b>${n}</b><button type="button" data-gpn="1" aria-label="増やす">＋</button></div>
-    <div class="gpwrap">${grpPrevHTML(sl, { edit: 1, sel: j })}</div>
+    <div class="gpn"><span>パーツのすき間</span><button type="button" data-gpg="-1" aria-label="せまく" ${GE.gap > 0 ? '' : 'disabled'}>−</button><b>${GE.gap ? GE.gap + ' cm' : 'なし'}</b><button type="button" data-gpg="1" aria-label="ひろく">＋</button></div>
+    <div class="gpwrap">${grpPrevHTML(sl, { edit: 1, sel: j, gap: GE.gap })}</div>
     <p class="hint">パーツを左右に動かすと、順番を入れかえられます。押すと、そのパーツを選べます。</p>
     ${j >= 0 && j < n ? (x.no ? `<div class="gpslot"><b>${j + 1}番目：No.${esc(x.no)} ${esc((x.w && x.w['作品名']) || '')}</b><div class="gpsb">${mv}<button type="button" data-gpout>外す（空きにする）</button></div></div>`
       : `<div class="gpslot"><b>${j + 1}番目：台帳にないパーツ（空き）</b><input id="gpQ" placeholder="入れる作品を、番号か名前で探す" autocomplete="off"><div id="gpRes" class="gpres"></div><div class="gpsb">${mv}</div></div>`) : ''}
     <div class="btns"><button type="button" class="primary" data-gpsave>保存</button><button type="button" data-close>やめる</button>${GE.id ? '<button type="button" class="danger" data-gpdel>組を解く</button>' : ''}</div>`;
   hydrate(el); const q = $('#gpQ'); if (q) q.oninput = () => grpFind(q.value); const ni = $('#gpName'); if (ni) ni.oninput = () => { GE.name = ni.value; }; }
-function grpDrawPrev(){ const w = document.querySelector('#gped .gpwrap'); if (!w || !GE) return; w.innerHTML = grpPrevHTML(grpSlots(GE.list), { edit: 1, sel: GE.sel }); hydrate(w); }
+function grpDrawPrev(){ const w = document.querySelector('#gped .gpwrap'); if (!w || !GE) return; w.innerHTML = grpPrevHTML(grpSlots(GE.list), { edit: 1, sel: GE.sel, gap: GE.gap }); hydrate(w); }
 function grpFind(q){ const out = $('#gpRes'); if (!out || !GE) return; q = String(q || '').normalize('NFKC').trim().toLowerCase(); if (!q) { out.innerHTML = ''; return; } const qn = q.replace(/^no\.?\s*/, '');
   const inL = new Set(GE.list.filter(Boolean)), L = (S.works || []).filter(w => { const no = String(w['作品番号']), g = grpOf(no); if (inL.has(no) || (g && g['組ID'] !== GE.id)) return false; return no.toLowerCase().includes(qn) || String(w['作品名'] || '').normalize('NFKC').toLowerCase().includes(q); }).slice(0, 12);
   out.innerHTML = L.length ? L.map(w => { const no = String(w['作品番号']), p = (photoBy[no] || [])[0]; return `<button type="button" data-gpput="${esc(no)}">${p ? thImg0(p['ファイルID'], 400) : '<span class="nph"></span>'}<span><b>No.${esc(no)}</b> ${esc(w['作品名'] || '無題')}<small>${esc([w['制作年'], szShort(w, ' cm')].filter(Boolean).join('・'))}</small></span></button>`; }).join('') : '<p class="hint">見つかりません（ほかの組に入っている作品は出ません）</p>'; hydrate(out); }
@@ -11198,7 +11202,7 @@ async function grpSave(del){ if (!GE) return; const name = String((($('#gpName')
   if (!del && !list.some(Boolean)) return alert('台帳の作品を1つ以上入れてください');
   if (del && !confirm('この組を解きますか？（パーツの作品は、そのまま台帳に残ります）')) return;
   busy(true, del ? '組を解いています…' : '組を保存しています…');
-  try { const r = await call('saveGroup', del ? { id: GE.id } : { id: GE.id, name, list, how: GE.prev ? GE.prev['並べ方'] || '' : '', memo: GE.prev ? GE.prev['メモ'] || '' : '' }, del ? 1 : 0);
+  try { const r = await call('saveGroup', del ? { id: GE.id } : { id: GE.id, name, list, how: grpHow(GE.prev ? GE.prev['並べ方'] : '', GE.gap || 0), memo: GE.prev ? GE.prev['メモ'] || '' : '' }, del ? 1 : 0);
     if (!r || !Array.isArray(r.groups)) throw new Error('Google 側の更新（デプロイ）がまだかもしれません');
     S.groups = r.groups; GU = { id: del ? GE.id : r.id, prev: GE.prev, from: GE.from, t: Date.now() }; const from = GE.from; GE = null; closeSheet(); toast(del ? '組を解きました' : '組を保存しました'); grpRefresh(from); try { exvSync(); } catch(e){} }
   catch(e){ alert('保存できませんでした（' + (e && e.message || e) + '）'); }
@@ -11226,6 +11230,7 @@ document.addEventListener('click', e => { const t = e.target; if (!t || !t.close
   const ud = t.closest('[data-gpundo]'); if (ud) { grpUndo(ud.dataset.gpundo); return; }
   const gw = t.closest('[data-gpw]'); if (gw && !t.closest('#gped')) { const no = gw.dataset.gpw; if (!(S.pcur && S.pcur.t === 'w' && String(S.pcur.id) === no)) openWork(no); return; }
   if (!GE || !t.closest('#gped')) return;
+  const gg = t.closest('[data-gpg]'); if (gg) { const d = +gg.dataset.gpg, g0 = GE.gap || 0; GE.gap = Math.max(0, Math.min(200, d > 0 ? g0 + (g0 < 10 ? 1 : 5) : g0 - (g0 <= 10 ? 1 : 5))); grpDraw(); return; } /* 10cm までは 1cm ずつ、そのあとは 5cm ずつ */
   const nb = t.closest('[data-gpn]'); if (nb) { if (+nb.dataset.gpn > 0) { if (GE.list.length >= 30) return toast('30パーツまでです'); GE.list.push(''); }
     else { if (GE.list.length <= 2) return toast('2パーツより少なくはできません'); const last = GE.list[GE.list.length - 1]; if (last) return toast('いちばん右（No.' + last + '）を外してから減らしてください'); GE.list.pop(); if (GE.sel >= GE.list.length) GE.sel = -1; } grpDraw(); return; }
   const mb = t.closest('[data-gpmv]'); if (mb) { const j = GE.sel, k = j + +mb.dataset.gpmv; if (j < 0 || k < 0 || k >= GE.list.length) return; const v = GE.list[j]; GE.list[j] = GE.list[k]; GE.list[k] = v; GE.sel = k; grpDraw(); return; }
@@ -11307,9 +11312,9 @@ function exvWorks(noF){ const L = [], keep = noF ? null : exvKeep();
     L.push({ no, w, id: set && set.pan ? set.ids[0] : id, set, yb: exvYb(w), seg: sg, segNeed: !set && !!p && joinGap(p) && !sg, y: yearOf(w['制作年']), s: String(w['シリーズ'] || '').trim(), h, wd, est: !(h > 0 && wd > 0), frame: szKind(w) === 'frame', b: isScreenW(w) || isKannon(w) || fu, k: isKannon(w), fu, cp: copyOf(p) }); }); /* 転載した写真（©）も出す（10/6 本人）。キャプションに © */
   /* 組（パーツ）：すき間なしで横にくっつけた1つの作品。台帳にない・写真のないパーツも、となりと同じくらいの大きさで入れて完成形に（10/7 本人） */
   (S.groups || []).forEach(g => { const sl = grpSlots(grpL(g)), reg = sl.filter(x => x.w); if (!reg.length || sl.length < 2) return; if (keep && !reg.some(x => keep.has(String(x.no)))) return;
-    let X = 0; const xs = sl.map(x => { const v = X; X += x.wd; return v; }), H = Math.max(...sl.map(x => x.h)), w0 = reg[0].w, p0 = sl.find(x => x.id);
+    const gg = grpGap(g); let X = 0; const xs = sl.map((x, j) => { const v = X + (j ? gg : 0); X = v + x.wd; return v; }), H = Math.max(...sl.map(x => x.h)), w0 = reg[0].w, p0 = sl.find(x => x.id);
     reg.forEach(x => { x.pd = { no: x.no, w: x.w, h: x.h, wd: x.wd, est: x.est, frame: szKind(x.w) === 'frame', cp: x.cp }; });
-    L.push({ no: reg[0].no, nos: reg.map(x => String(x.no)), w: Object.assign({}, w0, { '作品名': grpName(g) }), id: p0 ? p0.id : '', grp: { gid: g['組ID'], name: grpName(g), slots: sl, reg, x: xs, W: X, H }, set: null,
+    L.push({ no: reg[0].no, nos: reg.map(x => String(x.no)), w: Object.assign({}, w0, { '作品名': grpName(g) }), id: p0 ? p0.id : '', grp: { gid: g['組ID'], name: grpName(g), slots: sl, reg, x: xs, W: X, H, gap: gg }, set: null,
       y: Math.min(...reg.map(x => yearOf(x.w['制作年']))), s: String(w0['シリーズ'] || '').trim(), h: H, wd: X, est: false, frame: false, b: false, k: false, cp: null }); });
   const gy = {}; L.forEach(d => { if (d.s) gy[d.s] = Math.min(gy[d.s] == null ? 99999 : gy[d.s], d.y); }); /* シリーズは、いちばん古い作品の年のところにまとめる */
   const SL = {}; (S.slays || []).forEach(r => { const nm = String(r['シリーズ'] || '').trim(); if (nm) SL[nm] = slayCfg(r); }); /* シリーズの並べ方（並び順・列数・すき間） */
@@ -11463,7 +11468,7 @@ function exvLocTxt(ws){ const a = ws.map(w => String((w && (w['所在区分'] ==
   const C = {}; a.forEach(x => { if (!/^(不明|わからない)$/.test(x)) C[x] = (C[x] || 0) + 1; }); const k = Object.keys(C).sort((p, q) => C[q] - C[p])[0]; return k ? k + 'など' : '場所不明'; }
 const exvLocOf = d => exvLocTxt(d.grp ? d.grp.reg.map(x => x.w) : d.tri ? d.tri.nos.map(grpW).filter(Boolean) : [d.w]);
 const exvHas = (d, no) => String(d.no) === String(no) || !!(d.nos && d.nos.includes(String(no))); /* 組はどのパーツの番号でも */
-const exvSig = L => L.map(d => [d.no, d.id, (d.yb != null ? 'y' + d.yb + '/' : '') + (d.seg ? 's' + d.seg.length + '/' + (exvSegG(d.w) == null ? '' : exvSegG(d.w)) + '/' : '') + (d.set ? d.set.ids.join(',') + '/' + (d.set.cols || '') + '/' + (d.set.per || '') + '/' + (d.set.gap || 0) + '/' + (d.set.vgap || 0) : ''), d.grp ? d.grp.name + '#' + d.grp.slots.map(x => [x.no, x.id, x.h, x.wd].join(':')).join(',') : '', d.slay ? d.slay.cols + '/' + d.slay.gap + '/' + d.slay.vgap + '/' + (d.slay.hand ? 'h/' : '') + d.slay.list.join(',') : '', d.h, d.wd, d.y, d.s, d.b ? 1 : 0, d.k ? 1 : 0, d.frame ? 1 : 0, d.w['作品名'], d.w['制作年'], d.w['画材'], d.w['仕立て'], d.w['所在'], d.cp ? d.cp.mu : ''].join('|')).join('\n');
+const exvSig = L => L.map(d => [d.no, d.id, (d.yb != null ? 'y' + d.yb + '/' : '') + (d.seg ? 's' + d.seg.length + '/' + (exvSegG(d.w) == null ? '' : exvSegG(d.w)) + '/' : '') + (d.set ? d.set.ids.join(',') + '/' + (d.set.cols || '') + '/' + (d.set.per || '') + '/' + (d.set.gap || 0) + '/' + (d.set.vgap || 0) : ''), d.grp ? d.grp.name + '#' + (d.grp.gap || 0) + '#' + d.grp.slots.map(x => [x.no, x.id, x.h, x.wd].join(':')).join(',') : '', d.slay ? d.slay.cols + '/' + d.slay.gap + '/' + d.slay.vgap + '/' + (d.slay.hand ? 'h/' : '') + d.slay.list.join(',') : '', d.h, d.wd, d.y, d.s, d.b ? 1 : 0, d.k ? 1 : 0, d.frame ? 1 : 0, d.w['作品名'], d.w['制作年'], d.w['画材'], d.w['仕立て'], d.w['所在'], d.cp ? d.cp.mu : ''].join('|')).join('\n');
 function exvSync(){ if (!EXV || !EXV.sig || !EXV.curNo || EXV.syncT) return; let L; try { L = exvWorks(); } catch(e){ return; } if (!L.length || exvSig(L) === EXV.sig) return;
   const go = () => { if (!EXV || !EXV.curNo) return; EXV.syncT = 0; if (EXV.busy()) { EXV.syncT = setTimeout(go, 1500); return; } /* 動いている・さわっている間は待つ */
     const no = EXV.curNo(), c = EXV.close, st = no != null && L.some(d => exvHas(d, no)) ? String(no) : 0; try { c(); } catch(e){} exvOpen(st, true); }; /* 履歴は増やさない */
