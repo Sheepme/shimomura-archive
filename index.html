@@ -2654,7 +2654,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '0b37c55b56', APP_URL = location.origin + location.pathname;
+const BUILD = '86c2bdec29', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -11098,8 +11098,6 @@ function exvYearBig(v){ let s = String(v || '').trim().replace(/[０-９]/g, c =
     return y + (/頃|ごろ|位|ころ/.test(p) ? '’s' : /代/.test(p) ? 's' : ''); }).filter(Boolean);
   return out.join('\n-\n'); }
 const exvYearTxt = w => { const s = String(w['制作年'] || '').trim(); return /^\d{4}$/.test(s) ? s + '年' : s; };
-/* 何面で1組か：補足・画材・仕立て・作品名メモに「4面」「四面」などがあれば（10/7 本人：No.579《騒》は横長の4面） */
-function exvSetN(w){ const t = ['補足', '画材', '仕立て', '作品名メモ'].map(k => String(w[k] || '')).join(' ').normalize('NFKC'), m = /([2-9二三四五六七八九])\s*面(?!積|談|会|白|倒|識|前|子|目|接)/.exec(t); if (!m) return 0; return /\d/.test(m[1]) ? +m[1] : '二三四五六七八九'.indexOf(m[1]) + 2; }
 /* 観音開き（仕立て・画材・作品名のどれかに「観音開き」）。屏風と同じく床に立てて置く */
 const isFusuma = w => /襖/.test(String((w || {})['仕立て'] || '').normalize('NFKC'));
 const isKannon = w => /観音開/.test(['仕立て', '画材', '作品名', '種別'].map(k => String(w[k] || '')).join(' ').normalize('NFKC'));
@@ -11293,14 +11291,13 @@ function exvWorks(noF){ const L = [], keep = noF ? null : exvKeep();
   const GIN = new Set(); (S.groups || []).forEach(g => grpL(g).forEach(x => { if (x) GIN.add(x); })); /* 組のパーツは、下で1つの作品にまとめる */
   (EXVSET ? (S.works || []).concat((S.others || []).filter(w => keep && keep.has(String(w['作品番号'])))) : (S.works || [])).forEach(w => { const no = w['作品番号'], p = (photoBy[no] || [])[0], id = p && p['ファイルID']; /* 画集・展覧会ごとのときは、その他の作品（版画など）も */
     if (GIN.has(String(no)) || !id || (keep && !keep.has(String(no))) || /廃棄|統合済み/.test(String(w['所在'] || '') + ' ' + String(w['状態'] || ''))) return;
-    const d = dimMain(w), h0 = +d['高さcm'] || 0, wd0 = +d['幅cm'] || 0, sn = exvSetN(w), pl = (photoBy[no] || []).filter(x => x['ファイルID'] && x['種類'] !== '記録写真');
-    const fc = pl.slice(0, 1).concat(pl.slice(1).filter(x => x['種類'] === '部分')); /* 面ごとの写真は、1枚目（表）と「部分」の写真だけ。図録・館・家の全体の写真が何枚もあっても面に分けない（10/10 本人：No.338 祭が2枚に分かれて出た） */
+    const d = dimMain(w), h0 = +d['高さcm'] || 0, wd0 = +d['幅cm'] || 0;
     const pn = pnSpec(w), pnIds = pn && pn.ids.length ? pn.ids.map(i => ((photoBy[no] || []).find(x => x['写真ID'] === i) || {})['ファイルID']) : [], pnOk = pn && h0 > 0 && wd0 > 0 && (!pnIds.length || (pnIds.every(Boolean) && pn.n % pnIds.length === 0));
-    const set = pnOk ? { n: pn.n, ids: pnIds.length ? pnIds : [id], per: pn.n / (pnIds.length || 1), cols: pn.cols, gap: pn.gap, vgap: pn.vgap, pw: wd0, ph: h0, pan: true } : sn > 1 && fc.length >= sn && h0 > 0 && wd0 > 0 ? { n: sn, ids: fc.slice(0, sn).map(x => x['ファイルID']), pw: wd0, ph: h0, dir: wd0 >= h0 ? 'v' : 'h', gap: 24 } : null; /* 何面かで1組（台帳のサイズは1面ぶん）：横長の面は縦に、縦長の面は横に並べる。写真は面ごとに1枚（はじめの n 枚）。すき間 24cm（10/7 本人：6 → 12 → 24cm） */
+    const set = pnOk ? { n: pn.n, ids: pnIds.length ? pnIds : [id], per: pn.n / (pnIds.length || 1), cols: pn.cols, gap: pn.gap, vgap: pn.vgap, pw: wd0, ph: h0, pan: true } : null; /* 何面かで1組は「展示ビューの設定」（枚数・展示の形）で決める。前は補足などの「◯面」を読んで自動で分けていた（10/10 本人：No.338 祭が2枚に分かれたため、自動はやめた） */
     const fu = isFusuma(w); if (fu && set && set.pan) { set.cols = set.n; set.gap = 0; set.vgap = 0; } /* 襖は1列に、すき間なしで並べて立てる */
-    const h = set && set.pan ? Math.ceil(set.n / set.cols) * h0 + (Math.ceil(set.n / set.cols) - 1) * set.vgap : set && set.dir === 'v' ? sn * h0 + (sn - 1) * set.gap : h0, wd = set && set.pan ? set.cols * wd0 + (set.cols - 1) * set.gap : set && set.dir === 'h' ? sn * wd0 + (sn - 1) * set.gap : wd0;
+    const h = set && set.pan ? Math.ceil(set.n / set.cols) * h0 + (Math.ceil(set.n / set.cols) - 1) * set.vgap : h0, wd = set && set.pan ? set.cols * wd0 + (set.cols - 1) * set.gap : wd0;
     const sg = !set && p && joinGap(p) ? joinSeg(p) : null;
-    L.push({ no, w, id: set && set.pan ? set.ids[0] : id, set, sc: !set && sn > 1 && h0 > 0 && wd0 > 0 ? { n: sn, h0, wd0 } : null, yb: exvYb(w), seg: sg, segNeed: !set && !!p && joinGap(p) && !sg, y: yearOf(w['制作年']), s: String(w['シリーズ'] || '').trim(), h, wd, est: !(h > 0 && wd > 0), frame: szKind(w) === 'frame', b: isScreenW(w) || isKannon(w) || fu, k: isKannon(w), fu, cp: copyOf(p) }); }); /* 転載した写真（©）も出す（10/6 本人）。キャプションに © */
+    L.push({ no, w, id: set && set.pan ? set.ids[0] : id, set, yb: exvYb(w), seg: sg, segNeed: !set && !!p && joinGap(p) && !sg, y: yearOf(w['制作年']), s: String(w['シリーズ'] || '').trim(), h, wd, est: !(h > 0 && wd > 0), frame: szKind(w) === 'frame', b: isScreenW(w) || isKannon(w) || fu, k: isKannon(w), fu, cp: copyOf(p) }); }); /* 転載した写真（©）も出す（10/6 本人）。キャプションに © */
   /* 組（パーツ）：すき間なしで横にくっつけた1つの作品。台帳にない・写真のないパーツも、となりと同じくらいの大きさで入れて完成形に（10/7 本人） */
   (S.groups || []).forEach(g => { const sl = grpSlots(grpL(g)), reg = sl.filter(x => x.w); if (!reg.length || sl.length < 2) return; if (keep && !reg.some(x => keep.has(String(x.no)))) return;
     let X = 0; const xs = sl.map(x => { const v = X; X += x.wd; return v; }), H = Math.max(...sl.map(x => x.h)), w0 = reg[0].w, p0 = sl.find(x => x.id);
@@ -11336,18 +11333,7 @@ async function exvSegDetect(L){ const need = L.filter(d => d.segNeed && !d.seg);
       const a = x.getImageData(0, 0, W, H).data, op = []; for (let i = 0; i < W; i++) { let o = 0; for (let j = 0; j < H; j += Math.max(1, H >> 5)) if (a[(j * W + i) * 4 + 3] > 24) { o = 1; break; } op.push(o); }
       const R = []; let st = -1; op.forEach((o, i) => { if (o && st < 0) st = i; if ((!o || i === W - 1) && st >= 0) { const e = o ? i + 1 : i; if (e - st >= W * 0.02) R.push([st / W, e / W]); st = -1; } });
       JSEG[d.id] = R.length > 1 ? R : null; d.seg = JSEG[d.id]; } catch(e){} })); }
-/* 「◯面」と書いてある作品で、面ごとの写真（表＋部分）がそろっていないとき：写真の形から、台帳のサイズが全体か1面ぶんかを決める。
-   候補：台帳のまま・横にn面・縦にn面（縦横を入れかえたものも）の中で、写真の縦横の比にいちばん近いもの。比が8%以上ちがえば幅を写真に合わせる（10/10 本人 No.338 祭） */
-async function exvSetSize(L){ const need = L.filter(d => d.sc && d.id && !d.est); if (!need.length) return;
-  const k = d => TH['400_' + d.id] || TH['800_' + d.id] || TH['200_' + d.id]; let saved = {}; try { saved = await thGet([].concat(...need.map(d => ['400_' + d.id, '200_' + d.id]))); } catch(e){}
-  const miss = need.filter(d => !k(d) && !saved['400_' + d.id] && !saved['200_' + d.id]); let got = {};
-  if (miss.length) { try { got = await Promise.race([call('getThumbs', miss.map(d => d.id), 400), new Promise(r => setTimeout(() => r(null), 6000))]) || {}; } catch(e){} }
-  await Promise.all(need.map(d => new Promise(ok => { const src = k(d) || saved['400_' + d.id] || saved['200_' + d.id] || got[d.id]; if (!src) return ok();
-    const im = new Image(), t = setTimeout(ok, 2500); im.onload = () => { clearTimeout(t); if (im.naturalWidth && im.naturalHeight) d.r = im.naturalWidth / im.naturalHeight; ok(); }; im.onerror = () => { clearTimeout(t); ok(); }; im.src = src; })));
-  need.forEach(d => { if (!d.r) return; const { n, h0, wd0 } = d.sc, lr = Math.log(d.r);
-    const c = [[h0, wd0], [h0, n * wd0], [n * h0, wd0], [wd0, n * h0], [n * wd0, h0]].map(([h, w]) => ({ h, w, e: Math.abs(lr - Math.log(w / h)) })).sort((a, b) => a.e - b.e)[0];
-    d.h = c.h; d.wd = c.e < 0.08 ? c.w : Math.round(c.h * d.r); }); }
-async function exvEstimate(L){ await exvSegDetect(L).catch(() => {}); await exvSetSize(L).catch(() => {});
+async function exvEstimate(L){ await exvSegDetect(L).catch(() => {});
   const med = a => { a.sort((x, y) => x - y); return a.length ? a[a.length >> 1] : 0; };
   const A = med(L.filter(x => !x.est && !x.b).map(x => x.h * x.wd)) || 6000, Ab = med(L.filter(x => !x.est && x.b).map(x => x.h * x.wd)) || 170 * 360;
   const need = L.filter(x => x.est); if (!need.length) return;
