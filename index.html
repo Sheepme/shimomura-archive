@@ -2636,7 +2636,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'f4cd48ddcc', APP_URL = location.origin + location.pathname;
+const BUILD = 'ca8d4cfd3d', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3201,7 +3201,7 @@ function navOn(){ const nv = S.view;
   setTitle(TT[nv] || '作品目録');
   document.querySelectorAll('#dwNav button').forEach(b => b.classList.toggle('on', b.dataset.v===nv));
   let sq = null; try { sq = SQ[nv]; } catch(e){}
-  document.querySelectorAll('.cblbl').forEach(x => { x.textContent = ({ex:'展覧会検索', pb:'画集・資料検索'})[nv] || '作品検索'; }); /* 検索ボタンの文字：展覧会のページでは「展覧会検索」 */
+  document.querySelectorAll('.cblbl').forEach(x => { x.textContent = ({ex:'展覧会検索', pb:'画集・資料検索', chrono:'年表検索'})[nv] || '作品検索'; }); /* 検索ボタンの文字：展覧会のページでは「展覧会検索」 */
   const fi = $('#fsq'); if (fi && document.activeElement !== fi) { fi.placeholder = sq ? sq[1] : '作品を探す'; fi.value = sq ? (S[sq[0]] || '') : ''; $('#fsqClose').classList.toggle('hidden', !fi.value); } }
 /* ---------- メニュー（左から出る）。パソコンの広い画面では左にずっと出しておく ---------- */
 let dwFold = false; try { dwFold = localStorage.getItem('smr_dw') === '0'; } catch(e){}
@@ -7108,14 +7108,20 @@ function chronoItemHTML(it){
   const v = it.o, nos = [...new Set(v.nos)];
   return `<li>${meta(mdate(v.d), v.t.replace('（種別不明）',''))}<span class="ct">${PRM(v.pl)}${esc(v.pl||'相手先不明')}</span><div class="wl2">${nos.map(no => { const w = workOf(no); return `<button class="wchip" data-no="${esc(no)}">${esc(nol(no))}${w && w['作品名'] ? ' ' + esc(w['作品名']) : ''}</button>`; }).join('')}</div></li>`;
 }
+/* 年表のしぼりこみ：年（1965・196→1960年代・昭和40・平成2・42歳）なら、その年の出来事を全部。ほかは出来事の名前・会場・相手先・作品名に含まれるもの */
+const chronoTxt = it => { if (it.k === 'ex') { const x = it.o; return [x['名称'], x['会場'], x['都市'], x['種類'], x['主催']].join(' '); } if (it.k === 'pb') { const x = it.o; return [x['タイトル'], x['発行元'], x['種類'], x['著者・編者']].join(' '); }
+  if (it.k === 'make') return '制作 ' + it.list.map(w => [w['作品名'], w['作品番号']].join(' ')).join(' '); const v = it.o || it; return [v.t, v.pl].concat((v.nos || []).map(no => ((workOf(no) || {})['作品名'] || '') + ' ' + no)).join(' '); };
+function chronoFilter(Y){ const q0 = String(S.cq || '').normalize('NFKC').trim(); if (!q0) return Y; const q = q0.toLowerCase(); let ym = null, m;
+  if ((m = /^(\d{3,4})年?代?$/.exec(q))) ym = y => y.startsWith(m[1]); else if ((m = /^昭和(\d{1,2})年?$/.exec(q))) ym = y => +y === 1925 + +m[1]; else if ((m = /^平成(\d{1,2})年?$/.exec(q))) ym = y => +y === 1988 + +m[1]; else if ((m = /^(\d{1,3})歳$/.exec(q))) ym = y => +y === BORN + +m[1];
+  const out = {}; Object.keys(Y).forEach(y => { const L = ym ? (ym(y) ? Y[y] : []) : Y[y].filter(it => chronoTxt(it).normalize('NFKC').toLowerCase().includes(q)); if (L.length) out[y] = L; }); return out; }
 function renderChrono(){
-  const Y = chronoItems();
+  const Y = chronoFilter(chronoItems());
   const years = Object.keys(Y).filter(y => y!=='年不明').sort();
   const decs = [...new Set(years.map(y => y.slice(0,3) + '0'))];
   $('#chronobar').innerHTML = `<div class="chips">${CF.map(([k,l]) => `<button class="chip ${S.cf===k?'on':''}" data-cf="${k}">${l}</button>`).join('')}<button class="chip ${S.cmain?'on':''}" data-cmain="1">${S.cmain?'✓ ':''}主要だけ</button></div>
     <div class="decs">${decs.map(d => `<button data-dec="${d}">${d}年代</button>`).join('')}${Y['年不明']?'<button data-dec="x">年不明</button>':''}</div>`;
   if (Y['年不明']) years.push('年不明');
-  let html = `<div class="chead"><h2>年表</h2><p class="csub">展覧会 ${S.exhibits.length}件・画集など ${S.pubs.length}件・作品 ${S.works.length}点</p></div>`;
+  let html = `<div class="chead"><h2>年表</h2><p class="csub">${S.cq ? '「' + esc(S.cq) + '」でしぼりこみ中・' + Object.values(Y).reduce((a, L) => a + L.length, 0) + '件' : `展覧会 ${S.exhibits.length}件・画集など ${S.pubs.length}件・作品 ${S.works.length}点`}</p></div>`;
   // 年表は見るためのページ（追加は展覧会・画集のページから）
   html += years.map(y => `<section class="cy" id="y${y==='年不明'?'x':y}"><div class="cyh"><span class="cyp"><h3 class="cyy">${y}</h3>${ageTag(y)}</span></div><ul class="ce">${Y[y].sort((a,b) => a.s-b.s).map(chronoItemHTML).join('')}</ul></section>`).join('');
   if (!years.length) html += '<p class="muted" style="text-align:center;padding:40px 0">該当する記録がありません</p>';
@@ -9751,7 +9757,7 @@ async function ask(q){
 function hidePop(){ $('#fmPop').classList.add('hidden'); }
 function closeOverlays(){ for (let n = 0; n < 12 && SCR.length; n++) { const top = SCR.pop(); if (top.id === 'sheet') { top.classList.add('hidden'); $('#sheetbox').innerHTML = ''; $('#sheetbox').classList.remove('split'); S.sheetDoc = null; } else if (top.id === 'viewer') top.classList.add('hidden'); else top.remove(); } scrHead(); }
 function closeAllPages(){ NAVN++; S.sheetRet = null; if (S.pcur && !$('#page').classList.contains('hidden')) VST.page = { pcur: Object.assign({}, S.pcur), stack: (S.stack || []).slice() }; if (SCR.length) closeOverlays(); /* 書類・見比べなど重ねた画面も閉じる（メニューから移動したとき） */ S.stack = []; if (!$('#page').classList.contains('hidden')) closeWork(); }
-const SQ = {album:['q','作品名・番号・年・美術館名で探す'], list:['q','作品名・番号・年・美術館名で探す'], ex:['xq','展覧会名・会場・年で探す'], pb:['pq','書名・発行元・年で探す'], ot:['oq','名前・年・場所で探す']};
+const SQ = {album:['q','作品名・番号・年・美術館名で探す'], list:['q','作品名・番号・年・美術館名で探す'], ex:['xq','展覧会名・会場・年で探す'], pb:['pq','書名・発行元・年で探す'], ot:['oq','名前・年・場所で探す'], chrono:['cq','出来事・年・場所で探す']}; /* 年表：出来事の名前・会場・年（1965・昭和40・42歳も）でしぼる（10/9 開発 v15） */
 function openSearch(){
   hidePop(); closeAllPages();
   const box = $('#fmSearch');
@@ -9765,7 +9771,7 @@ let fsqT; $('#fsq').addEventListener('input', e => { const v = e.target.value;
   clearTimeout(fsqT); fsqT = setTimeout(() => {
   const s = SQ[S.view]; if (!s) return; S[s[0]] = v;
   if (s[0]==='q'){ $('#q').value = v; S.limit = 60; render(); }
-  else if (S.view==='ex') drawExList(); else if (S.view==='pb') drawPbList(); else if (S.view==='ot') drawOtList();
+  else if (S.view==='ex') drawExList(); else if (S.view==='pb') drawPbList(); else if (S.view==='ot') drawOtList(); else if (S.view==='chrono') renderChrono();
 }, 250); });
 $('#fsq').addEventListener('keydown', e => { if (e.key==='Enter' && !e.isComposing) e.target.blur(); });
 /* 下の検索欄：押したら、そのページで探す（探せないページなら作品アルバムに移る） */
@@ -11409,7 +11415,7 @@ const exvSvgMask = (t, Hpx) => { let sv = null; try { sv = new DOMParser().parse
    押しこんだような縁（左上の縁の内側にうすい影、右下の縁の内側にかすかな光）をつける。b＝凹凸（縁だけなだらかに高さが変わる＝動くと縁が光る） */
 const exvGold = m => { const W = m.c.width, H = m.c.height; let sd = 20261008; const rnd = () => (sd = (sd * 1103515245 + 12345) % 2147483648) / 2147483648;
   const mk = () => { const c = document.createElement('canvas'); c.width = W; c.height = H; return [c, c.getContext('2d')]; }, [g, x] = mk(), [b, y] = mk(), u = Math.max(1, Math.min(W, H) / 200);
-  const gr = x.createLinearGradient(0, 0, W * 0.7, H); gr.addColorStop(0, '#d6bd86'); gr.addColorStop(0.45, '#c6a668'); gr.addColorStop(1, '#b8975c'); x.fillStyle = gr; x.fillRect(0, 0, W, H);
+  const gr = x.createLinearGradient(0, 0, W * 0.7, H); gr.addColorStop(0, '#c4ad7c'); gr.addColorStop(0.5, '#b39a66'); gr.addColorStop(1, '#a58b57'); /* 鈍い金（10/9 開発 v15 本人「鈍い金の箔押し・箔は一枚」） */ x.fillStyle = gr; x.fillRect(0, 0, W, H);
   for (let i = 0, n = Math.round(W * H / 70); i < n; i++) { x.fillStyle = rnd() < 0.5 ? 'rgba(255,248,226,0.06)' : 'rgba(86,62,24,0.06)'; x.fillRect(rnd() * W, rnd() * H, 1.3, 1.3); } /* ごく細かいざらつき（箔の地） */
   x.globalCompositeOperation = 'destination-in'; x.drawImage(m.c, 0, 0);
   const [iv, ix] = mk(); ix.fillStyle = '#000'; ix.fillRect(0, 0, W, H); ix.globalCompositeOperation = 'destination-out'; ix.drawImage(m.c, 0, 0); /* 型の外側 */
@@ -11417,7 +11423,7 @@ const exvGold = m => { const W = m.c.width, H = m.c.height; let sd = 20261008; c
   inner('rgba(64,44,12,0.5)', 1.4 * u, 1.6 * u, 2.4 * u); inner('rgba(255,246,220,0.32)', -1.1 * u, -1.2 * u, 1.8 * u);
   y.fillStyle = '#000'; y.fillRect(0, 0, W, H); y.save(); y.shadowColor = '#fff'; y.shadowBlur = 2.2 * u; y.shadowOffsetX = W * 3; y.drawImage(m.c, -W * 3, 0); y.restore();
   x.globalCompositeOperation = 'source-over'; return { g, b }; };
-async function exvEntPrep(local){ let F = EXVSET && EXVSET.cover ? [EXVSET.cover] : exvFaces(); if (EXVSET && EXVSET.cover) local = false; /* 画集ごとのときは、入口の写真を画集の表紙に */
+async function exvEntPrep(local){ let F = EXVSET && EXVSET.kind === 'ex' ? [] : EXVSET && EXVSET.cover ? [EXVSET.cover] : exvFaces(); if (EXVSET && EXVSET.cover) local = false; /* 画集ごとのときは、入口の写真を画集の表紙に。展覧会ごとのときは写真なし（看板パネル） */
   if (local && F.length > 1) { try { const sv = await thGet(F.map(id => '1200_' + id)), C = F.filter(id => /^data:/.test(TH['1200_' + id] || sv['1200_' + id] || '')); if (C.length) F = C; } catch(e){} } /* 作品から開いたとき（入口はすぐには見えない）は、端末に覚えてある顔写真から選ぶ（取り寄せを待たない・作品の写真の取り寄せとぶつからない）（10/9 開発 v15） */
   const E = { pid: F.length ? F[Math.floor(Math.random() * F.length)] : '', ph: null, lo: 0, sg: null };
   const ph = (async () => { if (!E.pid) return; let src = await exvThumb(E.pid, 1200, 1200), lo = 0; /* 待つのは 1.2 秒まで（間に合わなければ小さい写真で始めて、あとで差しかえる）（10/9 本人「最初の表示までかなり時間」） */ if (!src) { src = TH['400_' + E.pid] || TH['200_' + E.pid] || ''; lo = 1; } if (!/^data:/.test(src)) return;
@@ -11428,7 +11434,28 @@ async function exvEntPrep(local){ let F = EXVSET && EXVSET.cover ? [EXVSET.cover
       svg = await Promise.race([gp, new Promise(ok => setTimeout(() => ok(''), 1500))]) || ''; } catch(e){}
     if (svg) { const m = exvSvgMask(svg, 1600); if (m) { E.sg = m; return; } }
     const src = await exvThumb(S.sign, 1600, 1000); if (!src) return; /* 待つのは短く（間に合わなければ名前の文字で） */ try { const ink = exvInk(await loadImg(src)); if (ink.c.height >= 100) E.sg = ink; } catch(e){} })(); /* 小さすぎる画像（SVG をドライブの縮小版で読んだときなど）は使わない */
-  await Promise.all([ph, sg]); return E; }
+  const ex = (async () => { if (!EXVSET || EXVSET.kind !== 'ex') return; const x = exById[EXVSET.id] || {}, cat = pbById[x['図録の資料ID']] || S.pubs.find(p => p['関連展覧会ID'] === EXVSET.id && /図録|目録/.test(String(p['種類'] || '') + String(p['タイトル'] || ''))),
+      cid = cat && cat['表紙写真ファイルID'] && S.photos.some(p => p['ファイルID'] === cat['表紙写真ファイルID']) ? cat['表紙写真ファイルID'] : '';
+    E.ex = { title: EXVSET.title, kind: String(x['種類'] || ''), sub: [fmtDate(x['開始日'], x['終了日']), [x['会場'], x['都市']].filter(Boolean).join('・')].filter(Boolean), pr: /パンリアル/.test(EXVSET.title + ' ' + String(x['主催'] || '')), cid, cv: null, logo: null };
+    await Promise.all([cid ? exvThumb(cid, 800, 1500).then(src => src ? loadImg(src) : null).then(im => { E.ex.cv = im; }).catch(() => {}) : null, E.ex.pr ? loadImg(prmSrc()).then(im => { E.ex.logo = im; }).catch(() => {}) : null]); })();
+  await Promise.all([ph, sg, ex]); return E; }
+/* パンリアルのロゴ（画面の .prm と同じ形）を画像に */
+const prmSrc = () => { const e = document.createElement('i'); e.className = 'prm'; e.style.position = 'absolute'; e.style.left = '-99px'; document.body.appendChild(e); const cs = getComputedStyle(e), u = cs.webkitMaskImage || cs.maskImage || ''; e.remove(); const m = /url\(["']?([^"')]+)["']?\)/.exec(u); return m ? m[1] : ''; };
+/* 看板パネルの絵：左に（ロゴ）展覧会名・会期・会場、右に図録の表紙 */
+const exvPanel = ex => { const H0 = 1200, cvAr = ex.cv ? (ex.cv.naturalWidth || 1) / (ex.cv.naturalHeight || 1) : 0, ch = Math.round(H0 * 0.7), cw = ex.cv ? Math.round(ch * cvAr) : 0, pad = 120, W0 = Math.round(Math.max(1650, 1250 + (ex.cv ? cw + 150 : 0)));
+  const c = document.createElement('canvas'); c.width = W0; c.height = H0; const x = c.getContext('2d'); x.fillStyle = '#f3f0ea'; x.fillRect(0, 0, W0, H0);
+  let sd = 9; for (let i = 0, n = Math.round(W0 * H0 / 90); i < n; i++) { sd = (sd * 1103515245 + 12345) % 2147483648; const r1 = sd / 2147483648; sd = (sd * 1103515245 + 12345) % 2147483648; const r2 = sd / 2147483648; x.fillStyle = r1 < 0.5 ? 'rgba(255,255,255,0.05)' : 'rgba(90,80,64,0.018)'; x.fillRect(r2 * W0, ((r1 * 9973) % 1) * H0, 1, 1); } /* 紙のざらつき */
+  const tw = W0 - pad * 2 - (ex.cv ? cw + 130 : 0); let ty = pad + 30;
+  if (ex.logo) { const L = 170, d = document.createElement('canvas'); d.width = d.height = L; const dx = d.getContext('2d'); dx.drawImage(ex.logo, 0, 0, L, L); dx.globalCompositeOperation = 'source-in'; dx.fillStyle = '#2c2723'; dx.fillRect(0, 0, L, L); x.drawImage(d, pad, ty); ty += L + 70; }
+  const MIN = '"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP",serif', GO = '"Hiragino Sans","Noto Sans JP",sans-serif';
+  const wrap = (t, fs) => { x.font = '500 ' + fs + 'px ' + MIN; const L = []; let cur = ''; [...String(t)].forEach(ch0 => { if (x.measureText(cur + ch0).width > tw && cur) { L.push(cur); cur = ch0.trim() ? ch0 : ''; } else cur += ch0; }); if (cur) L.push(cur); return L; };
+  let fs = 118, L = wrap(ex.title, fs); while (L.length > (ex.logo ? 2 : 3) && fs > 60) { fs -= 8; L = wrap(ex.title, fs); }
+  if (!ex.logo) ty = Math.max(ty, (H0 - (L.length * fs * 1.3 + ex.sub.length * 62 + 40)) / 2 - 40); /* ロゴがないときは、縦のまん中あたりに */
+  x.fillStyle = '#25211d'; x.textBaseline = 'top'; x.font = '500 ' + fs + 'px ' + MIN; L.forEach((ln, i) => x.fillText(ln, pad, ty + i * fs * 1.3)); ty += L.length * fs * 1.3 + 46;
+  x.fillStyle = '#6a645b'; x.font = '400 46px ' + GO; ex.sub.forEach((ln, i) => { let t = ln; while (x.measureText(t).width > tw && t.length > 2) t = t.slice(0, -2) + '…'; x.fillText(t, pad, ty + i * 62); });
+  if (ex.cv) { const cx = W0 - pad - cw, cy = Math.round((H0 - ch) / 2) - 30; x.save(); x.shadowColor = 'rgba(40,32,24,0.28)'; x.shadowBlur = 24; x.shadowOffsetY = 10; x.fillStyle = '#fff'; x.fillRect(cx, cy, cw, ch); x.restore(); x.drawImage(ex.cv, cx, cy, cw, ch);
+    x.fillStyle = '#8a8378'; x.font = '400 34px ' + GO; x.textBaseline = 'top'; x.fillText('図録', cx, cy + ch + 26); }
+  return { c, ar: W0 / H0 }; };
 /* 名前のメニュー（管理者）「展示ビューのサイン」：PNG・JPEG を選ぶ → 線だけを取り出した見本を見せて登録。ドライブ「写真/メニューの顔写真」に「サイン_日時.png」で入る（ドライブに直接、名前に「サイン」を入れて置いてもよい） */
 function signPick(){ const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/svg+xml,.svg,image/png,image/jpeg,image/webp'; inp.style.display = 'none'; document.body.appendChild(inp);
   inp.onchange = async () => { const f = inp.files && inp.files[0]; inp.remove(); if (!f) return; let m = null, send = null;
@@ -11533,8 +11560,8 @@ function exvBuild(root, L, start){
   const pick = (pool, kind) => { const near = []; specs.forEach((s, i) => { if (s.k === kind && Math.abs(s.x - st.x) < 30) near.push([Math.abs(s.x - st.x), i]); }); const use = near.sort((a, b) => a[0] - b[0]).slice(0, pool.length).map(a => a[1]);
     pool.forEach(l => { if (!use.includes(l.si)) { l.si = -1; l.intensity = 0; } });
     use.forEach(si => { if (pool.some(l => l.si === si)) return; const l = pool.find(l => l.si < 0), s = specs[si]; l.si = si; l.position.set(s.lx, s.ly, s.lz); l.target.position.set(s.tx, s.ty, 0); l.target.updateMatrixWorld(); l.angle = s.a; l.penumbra = s.pen; l.intensity = s.I; l.color.copy(s.c); }); };
-  const pickLights = () => { pick(LK, 'k'); pick(LFL, 'f'); const sm = v => v <= 0 ? 0 : v >= 1 ? 1 : v * v * (3 - 2 * v), eS = sm(ELF / 0.55), eA = sm((ELF - 0.4) / 0.6); /* 入口の電気：スポットが先に（0〜55%）、全体はあとから（40〜100%） */ const fS = (0.16 + 0.84 * LF) * eS; LS.forEach(l => { if (l.si >= 0) l.intensity = specs[l.si].I * fS; }); HEMI.intensity = 0.5 * (0.42 + 0.58 * LF) * (0.1 + 0.9 * eA); if (ENL.m) ENL.m.envMapIntensity = 1.3 * (0.03 + 0.97 * (0.5 * eS + 0.5 * eA)) * (0.35 + 0.65 * LF);
-    if (ENL.g) { ENL.g.r.material.opacity = 0.12 * (0.5 * eS + 0.5 * eA) * (0.3 + 0.7 * LF); const mp = ENL.g.r.material.map; if (mp) mp.offset.x = (st.x - ENL.g.x) / Math.max(0.3, ENL.g.w) * 0.55 + (st.z - 1) * 0.04; } /* ガラスの映り込み：見る位置で横にすべる */ const vz = st.z + 0.5, vy = 1.9; VL.position.set(st.x + 0.3, st.y + vy, vz); VL.target.position.set(st.x, st.y - 0.1, 0); VL.target.updateMatrixWorld();
+  const pickLights = () => { pick(LK, 'k'); pick(LFL, 'f'); const sm = v => v <= 0 ? 0 : v >= 1 ? 1 : v * v * (3 - 2 * v), eS = sm(ELF / 0.55), eA = sm((ELF - 0.4) / 0.6); /* 入口の電気：スポットが先に（0〜55%）、全体はあとから（40〜100%） */ const fS = (0.16 + 0.84 * LF) * eS; LS.forEach(l => { if (l.si >= 0) l.intensity = specs[l.si].I * fS; }); HEMI.intensity = 0.5 * (0.42 + 0.58 * LF) * (0.1 + 0.9 * eA); if (ENL.m) ENL.m.envMapIntensity = 0.85 * (0.03 + 0.97 * (0.5 * eS + 0.5 * eA)) * (0.35 + 0.65 * LF);
+ const vz = st.z + 0.5, vy = 1.9; VL.position.set(st.x + 0.3, st.y + vy, vz); VL.target.position.set(st.x, st.y - 0.1, 0); VL.target.updateMatrixWorld();
     VL.intensity = 0.12 * (0.3 + 0.7 * LF) * eA; VL.angle = Math.min(1.1, Math.max(0.3, Math.atan(st.z * TN * Math.max(1, cam.aspect) * 1.5 / Math.hypot(vy, vz)))); };
 
   /* 壁・床 */
@@ -11667,24 +11694,14 @@ function exvBuild(root, L, start){
       [-4.2, -2.1, -0.7, 0.6, 1.9, 3.6].forEach((px, i) => pan(0.5 + (i % 3) * 0.35, 4.6, px, 0.6, 5.9, 0, Math.PI, i % 2 ? '#fff6e6' : '#ffe9c4')); /* 見る人の後ろ（映り込む側）に明るい帯：横に動くと、帯が順に光る */
       pan(10, 1.4, 0, 3.4, 2, Math.PI / 2, 0, '#fffaf0'); pan(12, 3, 0, -3.4, 0, -Math.PI / 2, 0, '#2b2622');
       const pm = new T3.PMREMGenerator(r), rt = pm.fromScene(es, 0.02); pm.dispose(); return rt.texture; } catch(e){ return null; } })();
-  const enGM = new T3.MeshStandardMaterial({ map: mkTex(enGd.g), bumpMap: mkTex(enGd.b, false), bumpScale: 0.0009, transparent: true, metalness: 1, roughness: 0.2, envMap: enEnv, envMapIntensity: 1.3, depthWrite: false }); ENL.m = enEnv ? enGM : null;
+  const enGM = new T3.MeshStandardMaterial({ map: mkTex(enGd.g), bumpMap: mkTex(enGd.b, false), bumpScale: 0.0009, transparent: true, metalness: 0.85, roughness: 0.42, envMap: enEnv, envMapIntensity: 0.85, depthWrite: false }); ENL.m = enEnv ? enGM : null; /* つやを抑えた箔押し */
   const enSg = new T3.Mesh(new T3.PlaneGeometry(1, 1), enGM); enSg.raycast = () => {}; sc.add(enSg);
-  /* ショーウィンドウ（10/9 開発 v15 本人「凹みを小さな写真用のショーウィンドウのように。壁と同じ面にガラス、ガラスの左下にステンシルでサイン」）：
-     凹みの口（壁と同じ面）にガラス（うすい色・縁・見る位置で横にすべる映り込みの帯）。サインはガラスの左下に白いステンシル（つやなし・塗りのむら）、奥の面にうすい影。写真がないときは前と同じ金箔の名前 */
-  const glTex = (w, h) => { const W0 = 1024, H0 = Math.max(64, Math.round(W0 * h / w)), [c, x] = cvs(W0, H0); x.fillStyle = 'rgba(236,243,241,0.07)'; x.fillRect(0, 0, W0, H0);
-    const e = Math.max(2, Math.round(W0 * 0.003)); x.strokeStyle = 'rgba(140,162,156,0.6)'; x.lineWidth = e; x.strokeRect(e / 2, e / 2, W0 - e, H0 - e); return mkTex(c); };
-  const glRt = (() => { const [c, x] = cvs(512, 64); x.fillStyle = '#000'; x.fillRect(0, 0, 512, 64);
-    [[0.16, 0.07, 0.5], [0.27, 0.025, 0.32], [0.63, 0.11, 0.36], [0.8, 0.02, 0.22]].forEach(([q, w, a]) => { const g = x.createLinearGradient(0, 0, 512, 0); g.addColorStop(Math.max(0, q - w), 'rgba(255,255,255,0)'); g.addColorStop(q, 'rgba(255,255,255,' + a + ')'); g.addColorStop(Math.min(1, q + w), 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 512, 64); });
-    const t = mkTex(c, false); t.wrapS = t.wrapT = T3.RepeatWrapping; t.center.set(0.5, 0.5); t.rotation = -0.42; return t; })();
-  const enStC = (() => { const s0 = enGm.c, [c, x] = cvs(s0.width, s0.height); x.drawImage(s0, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = '#f7f5f0'; x.fillRect(0, 0, c.width, c.height); x.globalCompositeOperation = 'source-over';
-    try { const d = x.getImageData(0, 0, c.width, c.height), q = d.data; let sd = 20261009; for (let i = 3; i < q.length; i += 4) { sd = (sd * 1103515245 + 12345) % 2147483648; q[i] = Math.round(q[i] * (0.84 + 0.16 * sd / 2147483648)); } x.putImageData(d, 0, 0); } catch(e){} return c; })(); /* 塗りのむらを少し */
-  const enShC = (() => { const s0 = enGm.c, pd = Math.round(Math.max(s0.width, s0.height) * 0.05), W1 = s0.width + 2 * pd, H1 = s0.height + 2 * pd, k = 0.12, [a, ax] = cvs(Math.max(2, Math.round(W1 * k)), Math.max(2, Math.round(H1 * k)));
-    ax.drawImage(s0, pd * k, pd * k, s0.width * k, s0.height * k); const [c, x] = cvs(W1, H1); x.imageSmoothingQuality = 'high'; x.drawImage(a, 0, 0, W1, H1); x.globalCompositeOperation = 'source-in'; x.fillStyle = '#2b2723'; x.fillRect(0, 0, W1, H1); return { c, kx: W1 / s0.width, ky: H1 / s0.height }; })(); /* 縮めてから広げて、ぼかす（どの端末でも同じに） */
-  const enGl = new T3.Mesh(new T3.PlaneGeometry(1, 1), new T3.MeshStandardMaterial({ color: '#ffffff', transparent: true, roughness: 0.08, metalness: 0, depthWrite: false })); enGl.raycast = () => {}; sc.add(enGl);
-  const enGr = new T3.Mesh(new T3.PlaneGeometry(1, 1), new T3.MeshBasicMaterial({ map: glRt, transparent: true, blending: T3.AdditiveBlending, depthWrite: false, opacity: 0 })); enGr.raycast = () => {}; sc.add(enGr);
-  const enSt = new T3.Mesh(new T3.PlaneGeometry(1, 1), new T3.MeshStandardMaterial({ map: mkTex(enStC), transparent: true, roughness: 0.92, metalness: 0, depthWrite: false })); enSt.raycast = () => {}; sc.add(enSt);
-  const enSs = new T3.Mesh(new T3.PlaneGeometry(1, 1), new T3.MeshBasicMaterial({ map: mkTex(enShC.c), transparent: true, opacity: 0.22, depthWrite: false })); enSs.raycast = () => {}; sc.add(enSs);
-  ENL.g = { r: enGr, x: 0, w: 1 }; const enWin = on => { enSg.visible = !on; [enGl, enGr, enSt, enSs].forEach(m => { m.visible = on; }); };
+  /* 展覧会の看板パネル（10/9 開発 v15 本人「展覧会の場合は、展覧会の入り口にあるようなシンプルな看板パネルに展覧会名。作品目録があればそれを表示。パンリアル展の場合はロゴ」）：
+     壁から少し浮かせた白い板（厚み 2.5cm）。左に（パンリアル展はロゴ）展覧会名・会期・会場、右に図録の表紙。下村良之介の名前は板の左下に鈍い金の箔押し */
+  const pnF = new T3.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, dithering: true }), pnS = new T3.MeshStandardMaterial({ color: '#e8e4dc', roughness: 0.9 });
+  const enPx = new T3.Mesh(new T3.BoxGeometry(1, 1, 1), [pnS, pnS, pnS, pnS, pnF, pnS]); enPx.castShadow = true; enPx.receiveShadow = true; enPx.raycast = () => {}; enPx.visible = false; sc.add(enPx);
+  let enPxAr = 1.6; const enPxDraw = () => { if (!EN.ex) return; const P = exvPanel(EN.ex); if (pnF.map) pnF.map.dispose(); pnF.map = mkTex(P.c); pnF.needsUpdate = true; const ch = Math.abs(P.ar - enPxAr) > 0.01; enPxAr = P.ar; return ch; }; enPxDraw();
+  if (EN.ex && EN.ex.cid && !EN.ex.cv) exvThumb(EN.ex.cid, 800, 40000).then(src => src ? loadImg(src) : null).then(im => { if (!im || dead) return; EN.ex.cv = im; if (enPxDraw() && ci === 0) layout(); redraw(); }).catch(() => {}); /* 図録の表紙が間に合わなかったとき */
   /* 入口の凹み（14:52 本人「白い壁に凹みがあり、そこに写真が収まってる」）：奥の面・天井・床・左右の5枚。上の縁の影は、スポットの影（くっきりした灰色の帯になる）ではなく、やわらかいグラデーションを描いて重ねる（nSh） */
   const ND = 0.07, nM = new T3.MeshStandardMaterial({ color: '#f9f8f5', roughness: 0.96, dithering: true }), nG = new T3.Group(); sc.add(nG);
   const nP = [0, 1, 2, 3, 4].map(() => { const m = new T3.Mesh(new T3.PlaneGeometry(1, 1), nM); m.receiveShadow = true; m.raycast = () => {}; nG.add(m); return m; });
@@ -11876,15 +11893,14 @@ function exvBuild(root, L, start){
     /* 14:52 本人「白い壁に凹み。サイズはそんなに大きくなく、一枚目の作品に静かに繋がる」：写真は高さ 66cm（横長は幅 95cm まで）、まわりに 7.5cm の余白をとった凹み（奥行き 7cm）。
        凹みのまん中は作品と同じ高さ（CY）なので、一枚目へは横にすべるだけ。画面では小さめ（横長の画面は高さの 44%、縦長は幅の 60%）に、白い壁を広く見せる。一枚目はぎりぎり画面の外 */
     const ye = CY; let SWe, SHe2, TWm, THm, eyS = ye, kt;
-    if (EN.pid) { const PHe = Math.min(0.66, 0.95 / enAr), PWe = PHe * enAr, mg = 0.075, NW = PWe + 2 * mg, NH = PHe + 2 * mg, gs = PHe * 0.045;
-      SWe = 0.63 * Math.min(PWe * 0.32, PHe * 0.6 * enGm.ar); /* 14:32 本人「サインを70%に」 */ SHe2 = SWe / enGm.ar; TWm = NW; THm = NH;
-      enPh.scale.set(PWe, PHe, 1); enPh.position.set(NW / 2, ye, -ND + 0.0018); enSg.position.set(mg + PHe * 0.022 + SWe / 2, ye - PHe / 2 + gs + SHe2 / 2, -ND + 0.0026); /* 14:33 本人「もっと左に。縮小は左下を中心に」：写真の左下のすみから、左は写真の高さの 2.2%、下は 4.5% */
-      enWin(true); if (enGl.material.map) enGl.material.map.dispose(); enGl.material.map = glTex(NW, NH); enGl.material.needsUpdate = true; enGl.scale.set(NW, NH, 1); enGl.position.set(NW / 2, ye, 0.0006);
-      enGr.scale.set(NW, NH, 1); enGr.position.set(NW / 2, ye, 0.0009); ENL.g.x = NW / 2; ENL.g.w = NW; glRt.repeat.set(1, NH / NW);
-      { const gm = NH * 0.05, sx = gm + SWe / 2, sy = ye - NH / 2 + gm + SHe2 / 2; enSt.scale.set(SWe, SHe2, 1); enSt.position.set(sx, sy, 0.0014); /* ガラスの左下（縁から凹みの高さの 5%） */
-        enSs.scale.set(SWe * enShC.kx, SHe2 * enShC.ky, 1); enSs.position.set(sx + ND * 0.1, sy - ND * 0.28, -ND + 0.0028); } /* 影は奥の面に、少し下へ（上からの明かり） */
-      niche(NW, NH, ye); kt = Math.max(NW / ((port ? 0.6 : 0.3) * W), NH / ((port ? 0.36 : 0.44) * H)); if (port) eyS = ye - NH * 0.04; }
-    else { SWe = Math.min(0.5, 1.0 * enGm.ar); SHe2 = SWe / enGm.ar; TWm = SWe; THm = SHe2; enSg.position.set(SWe / 2, ye, 0.0016); enWin(false); niche(0); kt = Math.max((TWm + 0.3) / (W - 2 * mx), (THm + 0.4) / (H - my)); }
+    if (EN.ex) { const PHp = 0.92, PWp = Math.min(2.7, PHp * enPxAr), dep = 0.025; enPh.visible = false; enPx.visible = true; enPx.scale.set(PWp, PHp, dep); enPx.position.set(PWp / 2, ye, dep / 2 + 0.001); /* 展覧会：看板パネル */
+      SWe = Math.min(PWp * 0.14, PHp * 0.24 * enGm.ar); SHe2 = SWe / enGm.ar; enSg.position.set(PHp * 0.07 + SWe / 2, ye - PHp / 2 + PHp * 0.07 + SHe2 / 2, dep + 0.0016); TWm = PWp; THm = PHp;
+      niche(0); kt = Math.max(PWp / ((port ? 0.86 : 0.5) * W), PHp / ((port ? 0.4 : 0.52) * H)); if (port) eyS = ye - PHp * 0.04; }
+    else if (EN.pid) { const PHe = Math.min(0.66, 0.95 / enAr), PWe = PHe * enAr, gs = PHe * 0.045; enPx.visible = false; /* 写真は壁に貼るだけ（10/9 開発 v15 本人「ガラスのハイライトが嘘っぽいのでやめて、シンプルに壁に貼るだけに」） */
+      SWe = 0.63 * Math.min(PWe * 0.32, PHe * 0.6 * enGm.ar); SHe2 = SWe / enGm.ar; TWm = PWe; THm = PHe;
+      enPh.scale.set(PWe, PHe, 1); enPh.position.set(PWe / 2, ye, 0.0012); enSg.position.set(PHe * 0.022 + SWe / 2, ye - PHe / 2 + gs + SHe2 / 2, 0.002); /* 金の箔押しは写真の左下 */
+      niche(0); kt = Math.max(PWe / ((port ? 0.6 : 0.3) * W), PHe / ((port ? 0.36 : 0.44) * H)); if (port) eyS = ye - PHe * 0.04; }
+    else { enPx.visible = false; SWe = Math.min(0.5, 1.0 * enGm.ar); SHe2 = SWe / enGm.ar; TWm = SWe; THm = SHe2; enSg.position.set(SWe / 2, ye, 0.0016); niche(0); kt = Math.max((TWm + 0.3) / (W - 2 * mx), (THm + 0.4) / (H - my)); }
     enSg.scale.set(SWe, SHe2, 1);
     stops.push({ x: TWm / 2, y: eyS, z: kt * H / (2 * TN) }); addSpec(TWm / 2, ye, TWm, THm, 0);
     let x = TWm + 1.5;
