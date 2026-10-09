@@ -2636,7 +2636,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'ca8d4cfd3d', APP_URL = location.origin + location.pathname;
+const BUILD = 'a031d94a7a', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -11536,7 +11536,7 @@ function exvBuild(root, L, start){
     return mkTex(c); };
 
   const r = new T3.WebGLRenderer({ antialias: true });
-  const PRH = Math.min(2, window.devicePixelRatio || 1), PRL = Math.min(PRH, 1.25); let PRC = PRH, settle = 0;
+  const PRH = Math.min(3, window.devicePixelRatio || 1), PRL = Math.min(PRH, 1.25); /* 止まったら画面の細かさのまま描く（iPhone は 3。前は 2 までで、写真の画面よりぼけて見えた。10/9 開発 v15） */ let PRC = PRH, settle = 0;
   r.setPixelRatio(PRH); r.shadowMap.enabled = true; r.shadowMap.type = T3.PCFSoftShadowMap; r.outputEncoding = T3.sRGBEncoding;
   const el = r.domElement; stage.appendChild(el);
   const sc = new T3.Scene(); sc.background = new T3.Color('#d9d6d0');
@@ -11874,7 +11874,7 @@ function exvBuild(root, L, start){
   const eyeAt = y => y >= 1.2 ? EYE : Math.max(1.1, EYE - (1.2 - y) * 0.75); /* 床に置いた作品（屏風）は目の高さを少し下げて、正面に近く見る（10/6 本人） */
   /* いま止まって見ている作品だけ、画面に写る大きさに合わせて細かい写真（1600・3200）に描き直す。ほかは 800 のまま（読み込みの速さはそのまま）（10/8 本人「展示ビューの画質が劣化して見える」） */
   const HDL = []; let hdT = 0;
-  const hdLv = it => { if (it.d.grp || it.gh || it.d.tri || !it.d.id) return 0; if (it.d.set) return it.d.set.pan ? 3200 : 1600; const px = Math.max(it.W || it.w, it.h) * H / (2 * st.z * TN) * PRH; return px > 1700 ? 3200 : px > 820 ? 1600 : 0; };
+  const hdLv = it => { if (it.d.grp || it.gh || it.d.tri || !it.d.id) return 0; if (it.d.set) return it.d.set.pan ? 3200 : 1600; const px = Math.max(it.W || it.w, it.h) * H / (2 * st.z * TN) * PRH; return px > 1500 ? 3200 : 1600; }; /* 止まって見ている作品は、近づく前から 1600 を読んでおく（近づいてから読むと、届くまで 800 のぼけた絵だった。10/9 開発 v15 本人「高解像度で見たときの方が解像度が高い」） */
   const hdUp = it => { if (!it || dead || !it.req || !it.hi) return; const lv = hdLv(it); if (!lv || (it.hd || 0) >= lv || it.hdAsk === lv) return; const id = it.d.id, tok = it.im, key = lv + '_' + id; it.hdAsk = lv;
     const go = v => { const im = new Image(); im.onload = () => { it.hdAsk = 0; if (it.im !== tok || !it.req || dead) return; it.hd = lv; it.hdMx = Math.min(4096, lv); const mx = Math.max(im.naturalWidth, im.naturalHeight); if (mx < lv * 0.97) it.srcMax = mx; /* 元の画像がこれより小さい＝これがいちばん細かい */ paintX(it, im, lv); redraw(); }; im.onerror = () => { it.hdAsk = 0; }; im.src = v; };
     if (TH[key] && /^data:/.test(TH[key])) return go(TH[key]);
