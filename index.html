@@ -2636,7 +2636,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '5595101bce', APP_URL = location.origin + location.pathname;
+const BUILD = '528c0d9c91', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2664,10 +2664,12 @@ function call(fn, ...args){ if (fn === 'getData' && !args.length) { if (!GD_) GD
   if (fn === 'getThumbs' && fpOn()) return fpThumbs(false, args, false); if (fn === 'getOriginal' && fpOn()) return fpOrig(args); /* 写真は、できれば Mac のフォルダ・ドライブから直接（10/6 開発 v6） */
   return callQ(false, fn, args); }
 function callLow(fn, ...args){ if (fn === 'getThumbs' && fpOn()) return fpThumbs(true, args, false); return callQ(true, fn, args); }
-function callQ(low, fn, args){
+/* いま見ているものの写真（展示ビューで止まっている作品など）は、写真の取り寄せの順番待ち（同時に2本まで）を飛ばす（10/9 開発 v15） */
+function callHi(fn, ...args){ if (fn === 'getThumbs' && fpOn()) return fpThumbs(false, args, false); return callQ(false, fn, args, true); }
+function callQ(low, fn, args, hi){
   if (!NO_TOKEN.includes(fn)) args.unshift(S.token || '');
   const one = fn === 'getThumbs' && Array.isArray(args[1]) && args[1].length === 1 && +args[2] >= 1200; /* 大きい写真を1枚だけ（補正画面・写真の拡大など、いま見たいもの）は待たせない */
-  const ln = !one && (fn === 'getThumbs' || fn === 'getDocThumbs') ? THLANE : null;
+  const ln = !one && !hi && (fn === 'getThumbs' || fn === 'getDocThumbs') ? THLANE : null;
   const go = () => { CALLS.n++; const done = () => { CALLS.n = Math.max(0, CALLS.n - 1); if (ln) { const nx = ln.q.shift() || ln.lq.shift(); if (nx) nx(); else ln.n = Math.max(0, ln.n - 1); } };
     return new Promise((ok, ng) => google.script.run.withSuccessHandler(v => { done(); ok(v); }).withFailureHandler(e => { done(); ng(e); })[fn](...args)); };
   if (!ln) return go();
@@ -3168,7 +3170,7 @@ async function flushThumbs(){
   [...q.keys()].forEach(k => { if (saved[k]) return thSet(q, k, saved[k]); const [w, ...r] = k.split('_'); (byW[w] = byW[w] || []).push(r.join('_')); });
   Object.keys(byW).forEach(w => { for (let i = 0; i < byW[w].length; i += 24) {
     const ids = byW[w].slice(i, i + 24);
-    (fpOn() ? fpThumbs(false, [ids, +w], true) : call('getThumbs', ids, +w)).then(map => { const keep = {}; ids.forEach(id => { const k = w+'_'+id, v = map[id];
+    (fpOn() ? fpThumbs(!!EXV, [ids, +w], true) : EXV ? callLow('getThumbs', ids, +w) : call('getThumbs', ids, +w)).then(map => { /* 展示ビューを開いているあいだは、後ろの画面の写真を後回しに（10/9 開発 v15） */ const keep = {}; ids.forEach(id => { const k = w+'_'+id, v = map[id];
         if (v && !/^data:/.test(v)) (q.get(k)||[]).forEach(el => { el.src = v; lowOff(el); }); /* ドライブの表示だけの写真（保存しない） */
         else if (v) { thSet(q, k, v); keep[k] = v; } else (q.get(k)||[]).forEach(el => el.replaceWith(document.createTextNode('写真を表示できません'))); }); thPut(keep); })
       .catch(() => ids.forEach(id => (q.get(w+'_'+id)||[]).forEach(el => el.alt = '写真を表示できません')));
@@ -11339,7 +11341,9 @@ const exvGold = m => { const W = m.c.width, H = m.c.height; let sd = 20261008; c
   inner('rgba(64,44,12,0.5)', 1.4 * u, 1.6 * u, 2.4 * u); inner('rgba(255,246,220,0.32)', -1.1 * u, -1.2 * u, 1.8 * u);
   y.fillStyle = '#000'; y.fillRect(0, 0, W, H); y.save(); y.shadowColor = '#fff'; y.shadowBlur = 2.2 * u; y.shadowOffsetX = W * 3; y.drawImage(m.c, -W * 3, 0); y.restore();
   x.globalCompositeOperation = 'source-over'; return { g, b }; };
-async function exvEntPrep(){ const F = exvFaces(), E = { pid: F.length ? F[Math.floor(Math.random() * F.length)] : '', ph: null, lo: 0, sg: null };
+async function exvEntPrep(local){ let F = exvFaces();
+  if (local && F.length > 1) { try { const sv = await thGet(F.map(id => '1200_' + id)), C = F.filter(id => /^data:/.test(TH['1200_' + id] || sv['1200_' + id] || '')); if (C.length) F = C; } catch(e){} } /* 作品から開いたとき（入口はすぐには見えない）は、端末に覚えてある顔写真から選ぶ（取り寄せを待たない・作品の写真の取り寄せとぶつからない）（10/9 開発 v15） */
+  const E = { pid: F.length ? F[Math.floor(Math.random() * F.length)] : '', ph: null, lo: 0, sg: null };
   const ph = (async () => { if (!E.pid) return; let src = await exvThumb(E.pid, 1200, 1200), lo = 0; /* 待つのは 1.2 秒まで（間に合わなければ小さい写真で始めて、あとで差しかえる）（10/9 本人「最初の表示までかなり時間」） */ if (!src) { src = TH['400_' + E.pid] || TH['200_' + E.pid] || ''; lo = 1; } if (!/^data:/.test(src)) return;
     try { const im = await loadImg(src); E.ph = { c: exvImgCv(im, 1600), ar: (im.naturalWidth || 1) / (im.naturalHeight || 1) }; E.lo = lo; } catch(e){} })();
   const sg = (async () => { if (!S.sign) return; let svg = ''; const k = 'svg_' + S.sign; /* SVG なら線のデータを読む（端末に覚えておく）。画像なら写真と同じく読み、線だけ取り出す */
@@ -11371,7 +11375,7 @@ async function exvOpen(start, noPush){
   EXV = { root, close: () => { try { de.style.backgroundColor = bgp[0]; document.body.style.backgroundColor = bgp[1]; } catch(e){} try { if ((document.fullscreenElement || document.webkitFullscreenElement) === root) (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch(e){} { const t = document.getElementById('toast'); if (t && root.contains(t)) document.body.appendChild(t); } root.remove(); document.body.classList.remove('exvopen'); EXV = null; try { syncThemeColor(); } catch(e){} } };
   root.querySelector('.xcl').onclick = () => exvClose(false);
   if (!noPush) hpush('exv');
-  try { await exvLib(); let L = exvWorks(); if (typeof start === 'string' && exvFOn() && !L.some(d => exvHas(d, start))) { EXVF = exvF0(); L = exvWorks(); } if (!L.length) throw new Error('写真のある作品がありません'); if (EXV && EXV.root === root) EXV.sig = exvSig(L); const EP = exvEntPrep().catch(() => null); await exvEstimate(L); EXVENT = await EP; if (!EXV || EXV.root !== root) return; exvBuild(root, L, typeof start === 'string' ? Math.max(0, L.findIndex(d => exvHas(d, start)) + 1) : (+start || 0)); }
+  try { await exvLib(); let L = exvWorks(); if (typeof start === 'string' && exvFOn() && !L.some(d => exvHas(d, start))) { EXVF = exvF0(); L = exvWorks(); } if (!L.length) throw new Error('写真のある作品がありません'); if (EXV && EXV.root === root) EXV.sig = exvSig(L); const EP = exvEntPrep(typeof start === 'string' || +start > 0).catch(() => null); await exvEstimate(L); EXVENT = await EP; if (!EXV || EXV.root !== root) return; exvBuild(root, L, typeof start === 'string' ? Math.max(0, L.findIndex(d => exvHas(d, start)) + 1) : (+start || 0)); }
   catch(e){ const wt = root.querySelector('.xwait'); if (wt) wt.textContent = (e && e.message) || '展示ビューを開けませんでした'; }
 }
 /* 作品ページへ：展示ビューを閉じ（履歴の「展示ビュー」はそのまま作品ページの分に）、作品ページを開く。作品ページを閉じると、同じ作品から展示ビューにもどる（closeWork の 'exv'） */
@@ -11680,12 +11684,16 @@ function exvBuild(root, L, start){
     if (it.tries > D.length) { if (!it.pt) { it.fail = 1; ldDraw(it, 0); redraw(); } return; } const ms = D[it.tries - 1];
     setTimeout(() => { if (EXV && it.req && !it.hi) { PQ.set(it.d.id, it); clearTimeout(PQT); PQT = setTimeout(pull, 40); } }, ms); };
   /* 読み込みは同時に2組まで。組を作るのは送る直前（そのとき見ている作品に近い順）にする。つまみで速く動いたとき、通り過ぎた作品の分が先に並んで、止まった作品が待たされていた（10/8 本人「スライダで移動した後、読み込みが終わらない」） */
-  let PB = 0;
-  const pull = async () => { if (PB >= 2) return; const cur = ci - 1, dist = it => Math.abs(items.indexOf(it) - (ci - 1)); [...PQ.entries()].forEach(([id, it]) => { if (!it.req) PQ.delete(id); });
-    const all = [...PQ.entries()].sort((a, b) => dist(a[1]) - dist(b[1])); /* いま見ている作品から先に */
-    const batch = all.slice(0, 6); batch.forEach(([id]) => PQ.delete(id)); if (!batch.length) return; PB++;
+  let PB = 0; const PF = new Set();
+  const pull = async () => { const dist = it => Math.abs(items.indexOf(it) - (ci - 1)); [...PQ.entries()].forEach(([id, it]) => { if (!it.req) PQ.delete(id); });
+    let all = [...PQ.entries()].sort((a, b) => dist(a[1]) - dist(b[1])); /* いま見ている作品から先に */
+    /* いちばん近い作品（いま見ている作品。入口では1点目）は、ほかの5点を待たずに1点だけで、写真の順番待ちも飛ばして取り寄せる（10/9 開発 v15 本人「表示されてる作品を最優先に」） */
+    const top = all[0]; if (top && dist(top[1]) <= 1 && !PF.has(top[0])) { PQ.delete(top[0]); PF.add(top[0]); all = all.slice(1);
+      pull1([top], true).catch(() => {}).finally(() => { PF.delete(top[0]); if (PQ.size) { clearTimeout(PQT); PQT = setTimeout(pull, 20); } }); }
+    if (PB >= 2) return;
+    const batch = all.slice(0, all[0] && dist(all[0][1]) <= 2 ? 3 : 6); batch.forEach(([id]) => PQ.delete(id)); if (!batch.length) return; PB++; /* 両どなりは小さい組で（早く届く） */
     try { await pull1(batch); } finally { PB--; if (PQ.size) { clearTimeout(PQT); PQT = setTimeout(pull, 20); } } };
-  const pull1 = async batch => { const dist = it => Math.abs(items.indexOf(it) - (ci - 1));
+  const pull1 = async (batch, pri) => { const dist = it => Math.abs(items.indexOf(it) - (ci - 1)), gt = pri ? callHi : call;
     const ids = batch.map(([id]) => id), out = {}, need = [], PQ0 = Object.fromEntries(batch);
     ids.forEach(id => { const v = TH['800_' + id]; if (v && /^data:/.test(v)) out[id] = v; else need.push(id); });
     const tmo = (p, ms) => Promise.race([p, new Promise(r => setTimeout(() => r(null), ms))]);
@@ -11694,13 +11702,13 @@ function exvBuild(root, L, start){
       /* まず 400px（端末の控え → Google のサムネのシート。どちらも速い）で絵を出し、そのあと 800px に差しかえる（10/7 本人） */
       const loP = (id, v) => { const it = PQ0[id], tok = it && it.im; if (!it || !it.req || it.hi || it.lo) return; const im = new Image(); im.onload = () => { if (it.im === tok && it.req && !it.hi) { it.lo = 1; paintX(it, im, 400); } }; im.src = v; };
       const ask = []; rest.forEach(id => { const v = TH['400_' + id] || sv['400_' + id]; if (v && /^data:/.test(v)) { TH['400_' + id] = v; loP(id, v); } else if (PQ0[id].req && !PQ0[id].lo) ask.push(id); });
-      if (ask.length) { try { const m = await tmo(call('getThumbs', ask, 400, null, 1), 20000), kl = {}; ask.forEach(id => { const v = m && m[id]; if (v && /^data:/.test(v)) { TH['400_' + id] = v; kl['400_' + id] = v; loP(id, v); } }); if (Object.keys(kl).length) thPut(kl); } catch(e){} }
+      if (ask.length) { try { const m = await tmo(gt('getThumbs', ask, 400, null, 1), 20000), kl = {}; ask.forEach(id => { const v = m && m[id]; if (v && /^data:/.test(v)) { TH['400_' + id] = v; kl['400_' + id] = v; loP(id, v); } }); if (Object.keys(kl).length) thPut(kl); } catch(e){} }
       rest = rest.filter(id => PQ0[id].req); /* 遠ざかった作品の 800px は頼まない */
       rest = rest.filter(id => { if (dist(PQ0[id]) <= 2) return true; PQ.set(id, PQ0[id]); return false; }); /* 800px は、いま見ている作品のまわり（前後2点）を先に。ほかは並び直して、あとで */
       const take = (m, keep) => { rest = rest.filter(id => { const v = m && m[id]; if (v && /^data:/.test(v)) { out[id] = v; TH['800_' + id] = v; keep['800_' + id] = v; return false; } return true; }); };
       const keep = {};
       if (rest.length && fpOn()) { try { take(await tmo(fpThumbs(false, [rest, 800], false), 8000), keep); } catch(e){} } /* Mac・ドライブから速く読む設定：3Dに貼れる data: だけ使う */
-      if (rest.length) { try { take(await tmo(call('getThumbs', rest, 800, null, 1), 30000), keep); } catch(e){} } /* 残りは Google から */
+      if (rest.length) { try { take(await tmo(gt('getThumbs', rest, 800, null, 1), 30000), keep); } catch(e){} } /* 残りは Google から */
       if (Object.keys(keep).length) thPut(keep); }
     batch.forEach(([id, it]) => { const v = out[id]; if (!it.req) return; if (!v) return retry(it); const tok = it.im, im = new Image();
       im.onload = () => { if (it.im === tok && it.req) { it.hi = 1; it.tries = 0; paintX(it, im, 800); if (items.indexOf(it) === nearIdx() - 1) hdKick(); } }; im.onerror = () => { delete TH['800_' + id]; retry(it); }; im.src = v; }); };
