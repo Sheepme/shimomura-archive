@@ -2595,13 +2595,18 @@ body.exvopen #toast:not(.hidden){z-index:9600!important} /* 展示ビューの�
 .abedit.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .abedit.hidden{display:none!important}
 .abedit.abcancel{background:transparent;margin-left:4px}
-#abTitle .abedt{font-weight:700;color:#7a5a00}
-body.edmhd header#top,body.edmhd header#top .brand.appbar{background:#fff4c7!important}
-body.edmhd header#top{box-shadow:inset 0 -1px 0 #f0d77a}
+#abTitle .abedt{font-weight:700}
+body.edmhd header#top,body.edmhd header#top .brand.appbar{background:#4f46e5!important}
+body.edmhd header#top{box-shadow:none}
 body.edmhd header#top #btnMenu#btnMenu{visibility:hidden!important;pointer-events:none}
-html[data-theme=dark] body.edmhd header#top,html[data-theme=dark] body.edmhd header#top .brand.appbar{background:#3a3218!important}
-html[data-theme=dark] body.edmhd header#top{box-shadow:inset 0 -1px 0 #6b5a22}
-html[data-theme=dark] #abTitle .abedt{color:#f3e3a6}
+body.edmhd #abTitle .abedt{color:#fff}
+body.edmhd .abedit.abcancel{background:#4f46e5;color:#fff;border-color:#a5b4fc}
+body.edmhd .abedit.on{background:#fff;color:#3730a3;border-color:#fff}
+html[data-theme=dark] body.edmhd header#top,html[data-theme=dark] body.edmhd header#top .brand.appbar{background:#312e81!important}
+html[data-theme=dark] body.edmhd #abTitle .abedt{color:#e0e7ff}
+html[data-theme=dark] body.edmhd .abedit.abcancel{background:#312e81;color:#e0e7ff;border-color:#6366f1}
+html[data-theme=dark] body.edmhd .abedit.on{background:#e0e7ff;color:#312e81;border-color:#e0e7ff}
+
 body:not(.edm) #page .pen,body:not(.edm) #page .cvpen,body:not(.edm) #page .unl,body:not(.edm) #page .edonly{display:none!important}
 body:not(.edm) #page dl.info dt.emp,body:not(.edm) #page dl.info dd.empty{display:none}
 body.edm #page .vonly{display:none!important}
@@ -2775,7 +2780,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'fc2300d425', APP_URL = location.origin + location.pathname;
+const BUILD = '5d20e0a9da', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
