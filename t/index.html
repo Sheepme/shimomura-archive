@@ -2685,6 +2685,18 @@ details.dvmore{margin:6px 0 4px}
 details.dvmore>summary{cursor:pointer;padding:12px 2px;color:var(--sub);font-size:14.5px;list-style:none}
 details.dvmore>summary::-webkit-details-marker{display:none}
 details.dvmore>summary::after{content:' ▾'}details.dvmore[open]>summary::after{content:' ▴'}
+.hglk{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:2px 0 6px}
+.hglk button{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 4px 12px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:14px;font-weight:600;cursor:pointer}
+.hglki svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+details.hgmf.hg-card{padding:0!important}
+details.hgmf>summary.hgmfs{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;cursor:pointer;list-style:none;font-size:16px;font-weight:600}
+details.hgmf>summary.hgmfs::-webkit-details-marker{display:none}
+details.hgmf>summary.hgmfs small{color:var(--sub);font-weight:500;margin-left:4px}
+details.hgmf>summary.hgmfs::after{content:'›';color:var(--sub);font-size:20px;transition:transform .2s}
+details.hgmf[open]>summary.hgmfs::after{transform:rotate(90deg)}
+details.hgmf[open]{padding-bottom:12px}
+details.hgmf .mmhd{padding:0 16px}details.hgmf .mmhd h2{display:none}details.hgmf .mmhd{justify-content:flex-end}
+details.hgmf .mmlist,details.hgmf .mmempty,details.hgmf .mmdone{margin-left:16px;margin-right:16px}
 .evv .evpn{font-size:13px;color:var(--sub);white-space:nowrap}
 </style>
 </head>
@@ -2755,7 +2767,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '02969f29f2', APP_URL = location.origin + location.pathname;
+const BUILD = 'f38345d0c0', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5064,7 +5076,11 @@ function renderHome(){
     <section class="hg-card">${ed ? `<div><div class="hg-ttl">今日の10作品</div><div class="hg-sub">保管場所の確認から・5分ほど。ボタンでも声でも答えられます</div></div>
       <button type="button" class="hg-go" data-hg10="1">${PLAY}はじめる</button>${S.user && S.user.role === '管理' && !isEasy() && canEdit() ? '<button type="button" class="hg-link hg-test" data-hgtest="1">練習する（答えは保存しません）</button>' : isViewer() ? '<span class="hg-link" style="cursor:default">閲覧モード：答えは保存しません</span>' : ''}` : ''}
       <button type="button" class="${ed ? 'hg-btn2' : 'hg-go'}" data-ivgo="1">インタビュー</button></section>
-    ${canEdit() ? `<section class="hg-card hg-memo">${memoHTML()}</section>` : ''}
+    <section class="hg-sec hglook"><h2 class="hg-h2">見る</h2><div class="hglk">${[['album', '作品', ico('works')], ['ex', '展覧会', ico('ex')], ['pb', '画集・資料', ico('pb')], ['chrono', '年表', ico('chrono')], ['exv', '展示ビュー', typeof EXVIC !== 'undefined' ? EXVIC : ''], ...(typeof canDocs === 'function' && canDocs() ? [['doc', '書類', ico('doc')]] : [])].map(([v, t, ic]) => `<button type="button" data-hglook="${v}"><span class="hglki">${ic}</span><span>${t}</span></button>`).join('')}</div></section>
+    ${canEdit() ? memoFold() : ''}
+    ${ed ? `<section class="hg-sec"><h2 class="hg-h2">やること</h2>
+      ${row('data-bsgo="noloc"', '#1CB0F6', IC.loc, '場所がわからない', nLc)}${row('data-bsgo="noname"', '#CE82FF', NAMEIC, '作品名がない', nNm)}${row('data-bsgo="nophoto"', '#FF4B4B', IC.photo, '写真がない', nPh)}${row('data-hgdiff="1"', '#2B70C9', IC.doc, '書類と台帳の違い', nDf)}${(S.finds || []).length ? row('data-hgfind="1"', '#FF9600', FDIC, '調べで見つかった記録', qcFindLeft().left) : ''}${(n => n ? row('data-hgask="1"', '#E05A9E', ASKIC, 'お母さんに聞きたいこと', n) : '')(qcAskLeft().left)}${(S.finds || []).length && S.user && S.user.role === '管理' && !isEasy() ? (n => n ? row('data-hgfindb="1"', '#FF9600', FDIC, '調べの記録：まとめて確認（管理者）', n) : '')((S.finds || []).filter(f => fdOpen(f) && fdReg(f)).length) : ''}${S.user && S.user.role === '管理' && !isEasy() ? (s => s.n.todo + s.n.review ? row('data-hgac="1"', '#1CB0F6', IC.photo, AC.run ? '写真の自動補正（実行中 ' + Math.min(AC.n + 1, AC.N) + '/' + AC.N + '）' : '写真の自動補正（管理者）', s.n.todo + s.n.review) : '')(acState()) : ''}${S.user && S.user.role === '管理' && !isEasy() ? (s => s.n.todo + s.n.unsure ? row('data-hgsz="1"', '#FF9600', IC.photo, SZ.run ? 'サイズの額込み判定（実行中 ' + SZ.n + '/' + SZ.N + '）' : 'サイズの額込み判定（管理者）', s.n.todo + s.n.unsure) : '')(szState()) : ''}${(n => n ? row('data-hglit="1"', '#58A700', LTIC, '展覧会・本のこと', n) : '')(ltLeft().left)}${(n => n ? row('data-hgpbph="1"', '#FF4B4B', IC.photo, '家にある本の写真', n) : '')(pbPhLeft())}${S.user && S.user.role === '管理' && !isEasy() ? (n => n ? row('data-hglitb="1"', '#58A700', LTIC, '展覧会・本：1件ずつ確かめる（管理者）', n) : '')(ltbLeft().left) : ''}
+      <details class="hg-more"><summary>そのほかの作業</summary><div class="todos">${todo.map(card).join('')}</div></details></section>` : ''}
     <section class="hg-sec"><h2 class="hg-h2">作品図鑑</h2>
       <div class="hg-numrow"><span class="hg-num">${nDone}</span><span class="hg-of">/ ${N}点 そろった</span></div>
       <div class="hg-bar"><i style="width:${Math.round(nDone / Math.max(N, 1) * 1000) / 10}%"></i></div>
@@ -5075,14 +5091,13 @@ function renderHome(){
       ${M.length ? `<div class="hg-grid">${P.map(tile).join('')}</div>` : '<p class="hg-note">ぜんぶそろいました！</p>'}
       <p class="hg-note">ここには、まだ足りないものがある作品だけを出しています。番号の下に、足りないものを出しています。押すとその作品のページを開きます。</p>
       <button type="button" class="hg-link" data-v="works">すべての作品を見る</button></section>
-    ${ed ? `<section class="hg-sec"><h2 class="hg-h2">ひとつずつ片付ける</h2>
-      ${row('data-bsgo="noloc"', '#1CB0F6', IC.loc, '場所がわからない', nLc)}${row('data-bsgo="noname"', '#CE82FF', NAMEIC, '作品名がない', nNm)}${row('data-bsgo="nophoto"', '#FF4B4B', IC.photo, '写真がない', nPh)}${row('data-hgdiff="1"', '#2B70C9', IC.doc, '書類と台帳の違い', nDf)}${(S.finds || []).length ? row('data-hgfind="1"', '#FF9600', FDIC, '調べで見つかった記録', qcFindLeft().left) : ''}${(n => n ? row('data-hgask="1"', '#E05A9E', ASKIC, 'お母さんに聞きたいこと', n) : '')(qcAskLeft().left)}${(S.finds || []).length && S.user && S.user.role === '管理' && !isEasy() ? (n => n ? row('data-hgfindb="1"', '#FF9600', FDIC, '調べの記録：まとめて確認（管理者）', n) : '')((S.finds || []).filter(f => fdOpen(f) && fdReg(f)).length) : ''}${S.user && S.user.role === '管理' && !isEasy() ? (s => s.n.todo + s.n.review ? row('data-hgac="1"', '#1CB0F6', IC.photo, AC.run ? '写真の自動補正（実行中 ' + Math.min(AC.n + 1, AC.N) + '/' + AC.N + '）' : '写真の自動補正（管理者）', s.n.todo + s.n.review) : '')(acState()) : ''}${S.user && S.user.role === '管理' && !isEasy() ? (s => s.n.todo + s.n.unsure ? row('data-hgsz="1"', '#FF9600', IC.photo, SZ.run ? 'サイズの額込み判定（実行中 ' + SZ.n + '/' + SZ.N + '）' : 'サイズの額込み判定（管理者）', s.n.todo + s.n.unsure) : '')(szState()) : ''}${(n => n ? row('data-hglit="1"', '#58A700', LTIC, '展覧会・本のこと', n) : '')(ltLeft().left)}${(n => n ? row('data-hgpbph="1"', '#FF4B4B', IC.photo, '家にある本の写真', n) : '')(pbPhLeft())}${S.user && S.user.role === '管理' && !isEasy() ? (n => n ? row('data-hglitb="1"', '#58A700', LTIC, '展覧会・本：1件ずつ確かめる（管理者）', n) : '')(ltbLeft().left) : ''}
-      <details class="hg-more"><summary>そのほかの作業</summary><div class="todos">${todo.map(card).join('')}</div></details></section>` : ''}
+
     <button class="tourlink" data-v="help">使い方を見る</button></div><aside class="dash">${dashHTML()}</aside></div>`;
   hydrate($('#main'));
   window.scrollTo(0, 0);
   if (!renderHome.bound) { renderHome.bound = 1;
     document.addEventListener('click', e => { if (S.view !== 'home') return;
+      { const lk = e.target.closest('[data-hglook]'); if (lk) { const b = document.querySelector('#dwNav button[data-v="' + lk.dataset.hglook + '"]'); if (b) b.click(); return; } }
       if (e.target.closest('[data-hg10]')) return startCards();
       if (e.target.closest('[data-hgtest]')) return startCards(true);
       if (e.target.closest('[data-hgdiff]')) return startCards(false, 'diff');
@@ -11087,6 +11102,10 @@ document.addEventListener('input', e => { const el = e.target; if (!el.matches |
 /* 展覧会・画集・作品のページに、つながっているメモを出す */
 function memosFor(id){ if (!canEdit()) return ''; const L = (S.memos||[]).filter(m => !m['確認済み'] && (memoRel(m).includes(String(id)) || String(m['作品番号']||'').split(',').some(n => noSet(id).includes(n))));
   return L.length ? `<h3 class="sec">お母さんへの確認メモ（${L.length}件）</h3><div class="mmlist">${L.map(memoCard).join('')}</div>` : ''; }
+/* ホームの確認メモ（10/10 開発 v19）：ふだんは1行にたたむ。確認する人（直美さん）で、まだのメモがあれば開いておく */
+function memoFold(){ const open = (S.memos || []).filter(m => !m['確認済み']), me = S.user && S.user.name === (S.memoChecker || MEMO_CHECKER_N);
+  return `<details class="hg-card hg-memo hgmf"${me && open.length ? ' open' : ''}><summary class="hgmfs"><span>お母さんへの確認メモ <small>${open.length ? open.length + '件' : 'なし'}</small></span></summary>${memoHTML()}</details>`; }
+const MEMO_CHECKER_N = '直美';
 function memoHTML(){
   if (!canEdit()) return '';
   const M = (S.memos||[]).slice().sort((a, b) => String(b['作成日時']).localeCompare(String(a['作成日時'])));
