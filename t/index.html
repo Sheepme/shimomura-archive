@@ -2694,6 +2694,11 @@ html[data-theme=dark] .evv .evdband{background:#3a3218;border-color:#6b5a22;colo
 .pbtj small{display:block;font-size:12.5px;color:var(--sub);margin-top:2px}
 .pbtj i{font-style:normal;color:var(--sub);font-size:18px}
 .pbtd{flex:none;font-size:13px}
+.dcgalw{margin:12px 0 4px}
+.dcgal .pbgal > a{display:flex;align-items:center;justify-content:center;background:#fff}
+.dcgal .pbgal > a img{max-height:62vh;width:auto;max-width:100%;object-fit:contain;background:#fff}
+.dcgal .pbgal > a.dcld{min-height:220px;background:var(--wash)}
+.dcgal .pbmv[hidden],.dcgal .pbcnt[hidden]{display:none}
 details.dvmore{margin:6px 0 4px}
 details.dvmore>summary{cursor:pointer;padding:12px 2px;color:var(--sub);font-size:14.5px;list-style:none}
 details.dvmore>summary::-webkit-details-marker{display:none}
@@ -2780,7 +2785,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '5d20e0a9da', APP_URL = location.origin + location.pathname;
+const BUILD = '5c7e4fb1a7', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3989,7 +3994,7 @@ document.addEventListener('scroll', e => { const r = e.target; if (r && r.classL
 let PBSPY = 0;
 /* いちばん上のめくりのつまみ（ページが多いとき） */
 document.addEventListener('input', e => { const rg = e.target; if (!rg.classList || !rg.classList.contains('pbrng')) return; const w = rg.closest('.pbrngw'), b = w && w.previousElementSibling, g = b && b.querySelector('.pbgal'); if (!g) return;
-  pbzReset(); g.scrollTo({ left: pbStep(g) * (+rg.value - 1), behavior: 'auto' }); });
+  pbzReset(); g._nstop = 1; g._nudge = 0; g.scrollTo({ left: pbStep(g) * (+rg.value - 1), behavior: 'auto' }); });
 /* 画集・書籍のいちばん上のめくりも、書類のプレビューと同じく指2本で拡大（1〜5倍。10/10 開発 v18 本人）。拡大中は1本指で動かす（めくらない・押しても大きな画面を開かない）。
    指2本で元の大きさにもどすか、つまみ・‹ › でめくると元にもどる。パソコンは Ctrl＋ホイール（トラックパッドのピンチ）で拡大、ドラッグで動かす。拡大したら細かい写真（1600）に差しかえる */
 let PBZ = null, PBZT = 0, pbzG = null;
@@ -4416,7 +4421,7 @@ document.addEventListener('click', e => {
   const pv = e.target.closest('[data-pbsxv]'); if (pv) { const x = pv.closest('.pbsx'), all = pv.dataset.pbsxv === 'all'; x.classList.toggle('all', all); x.querySelectorAll('[data-pbsxv]').forEach(b => b.classList.toggle('on', b === pv)); try { localStorage.setItem('smr_pbsxv', all ? 'all' : 'sec'); } catch(e){} hydrate(x); return; }
   const rv = e.target.closest('[data-pbrmv]'); if (rv) { const r = rv.parentNode.querySelector('.pbrow'); r.scrollBy({ left: Math.max(120, r.clientWidth * .85) * +rv.dataset.pbrmv, behavior: 'smooth' }); return; }
   const fm = e.target.closest('[data-gunfold]'); if (fm) { const gr = fm.previousElementSibling; if (gr) { gr.classList.remove('fold'); hydrate(gr); } fm.remove(); return; }
-  const mv = e.target.closest('[data-pbmv]'); if (mv) { pbzReset(); const g = mv.closest('.pbtop').querySelector('.pbgal'); g.scrollBy({ left: pbStep(g) * +mv.dataset.pbmv, behavior: 'smooth' }); return; }
+  const mv = e.target.closest('[data-pbmv]'); if (mv) { pbzReset(); const g = mv.closest('.pbtop').querySelector('.pbgal'); g._nstop = 1; g._nudge = 0; g.scrollBy({ left: pbStep(g) * +mv.dataset.pbmv, behavior: 'smooth' }); return; }
   const sc = e.target.closest('[data-pbscan]'); if (sc) { e.preventDefault(); const [id, pid] = sc.dataset.pbscan.split('|'); return bkOpen(id, pid); }
   const pf = e.target.closest('[data-pbpdf]'); if (pf) return sheetPbPdf(pf.dataset.pbpdf);
   const pq = e.target.closest('[data-pbplate]'); if (pq) return plOpen(pq.dataset.pbplate);
@@ -6867,10 +6872,36 @@ function pgPrev(host, fid, opt){ opt = opt || {}; const c = document.createEleme
     if (Z.s < 1.05) zReset(); st = null; });
   ['gesturestart', 'gesturechange'].forEach(k => sq.addEventListener(k, e => e.preventDefault()));
   go(opt.page || 1, true); return { go: k => go(k, true), el: c }; }
-function docTopPreview(d){ const r = docRes(d), box = $('#sheetbox'); if (!r.PDF || !box || box.querySelector('.dtopv')) return;
+function docTopPreview(d){ const r = docRes(d), box = $('#sheetbox'); if (!box || box.querySelector('.dtopv, .dcgalw') || !docPages(d).length) return;
   box.querySelectorAll('#dvImgs,#dvImgsBox').forEach(x => x.remove());
   box.querySelectorAll('.dpages.rv').forEach(x => { const h = x.nextElementSibling; if (h && h.classList.contains('hint') && /大きく見られます/.test(h.textContent)) h.remove(); x.remove(); }); /* 上に大きいプレビューがあるので、下の小さなページ一覧は出さない */
-  pgPrev(c => { const h = box.querySelector('h3.dttl'); if (h) h.after(c); else box.prepend(c); }, docPdfFid(d)); }
+  const c = docGal(d), h = box.querySelector('h3.dttl'); if (h) h.after(c); else box.prepend(c); }
+/* 書類のページのめくり（10/10 開発 v19 本人「書類詳細のページプレビューも画集と同じ仕様」）：画集のいちばん上と同じ部品（.pbtop .pbgal・‹ ›・n / N・つまみ・指2本で拡大）。
+   PDF はページを画像にして並べる（見えているページだけ描く。ページ画像があればそれを使う：pdfDocOf）。写真の書類は写真をそのまま。押すと大きく（PDF は bigView、写真は docView） */
+function docGal(d){ const r = docRes(d), pg = docPages(d), pdf = !!r.PDF, did = d['書類ID'], fid = pdf ? docPdfFid(d) : '';
+  const el = document.createElement('div'); el.className = 'dcgalw';
+  const tm = matchMedia('(hover:none)').matches;
+  el.innerHTML = `<div class="cover pbtop dcgal"><div class="pbgal"></div><button type="button" class="pbmv prev" data-pbmv="-1" aria-label="前のページ" disabled>‹</button><button type="button" class="pbmv next" data-pbmv="1" aria-label="次のページ">›</button><span class="pbcnt">1 / 1</span></div><div class="pbrngw" hidden><input type="range" class="pbrng" min="1" max="1" value="1" step="1" aria-label="ページを選ぶ"></div><p class="pbhint">${BOOKI}<span>${tm ? '左右にスワイプして' : '‹ › を押して'}ページをめくれます（${tm ? '指2本' : 'Ctrl＋ホイール'}で拡大・押すと大きく）</span></p>`;
+  const g = el.querySelector('.pbgal'), cnt = el.querySelector('.pbcnt'), rw = el.querySelector('.pbrngw'), rg = el.querySelector('.pbrng'), nx = el.querySelector('.pbmv.next');
+  const setN = N => { cnt.textContent = '1 / ' + N; rg.max = N; rw.hidden = N < 2; nx.disabled = N < 2; el.querySelectorAll('.pbmv').forEach(b => b.hidden = N < 2); cnt.hidden = N < 2; };
+  if (!pdf) { g.innerHTML = pg.map((f, i) => `<a href="#" data-dcpg="${esc(did)}|${i + 1}" data-dcf="${esc(f)}" aria-label="${i + 1}枚目を大きく見る">${docImg(f, 800)}</a>`).join(''); setN(pg.length); setTimeout(() => hydrateDocs(g), 0); return el; }
+  g.innerHTML = '<a href="#" class="dcld" aria-hidden="true"><span class="ldwrap"><span class="ldspin"></span>書類を開いています…</span></a>';
+  (async () => { try { const doc = await pdfDocOf(fid); if (!el.isConnected) return; const N = doc.numPages, dpr = Math.min(2, window.devicePixelRatio || 1);
+      const P = []; for (let i = 1; i <= N; i++) { const p = await doc.getPage(i); P.push(p); }
+      g.innerHTML = P.map((p, i) => { const v = p.getViewport({ scale: 1 }); return `<a href="#" data-dcpg="${esc(did)}|${i + 1}" data-dcpdf="${esc(fid)}" aria-label="${i + 1}ページ目を大きく見る"><img alt="" style="aspect-ratio:${v.width}/${v.height}"></a>`; }).join(''); setN(N);
+      const done = new Set(), draw = async i => { if (done.has(i)) return; done.add(i); try { const p = P[i], v0 = p.getViewport({ scale: 1 }), W = Math.max(320, g.clientWidth || 360), vp = p.getViewport({ scale: W / v0.width * dpr * 1.25 });
+          const cv = document.createElement('canvas'); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height); await p.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
+          const im = g.children[i] && g.children[i].querySelector('img'); if (im) im.src = cv.toDataURL('image/jpeg', .86); } catch(e){ done.delete(i); } };
+      const io = new IntersectionObserver(es => es.forEach(x => { if (x.isIntersecting) { const i = [...g.children].indexOf(x.target); draw(i); if (i + 1 < N) draw(i + 1); } }), { root: g, rootMargin: '0px 60% 0px 60%' });
+      [...g.children].forEach(a => io.observe(a)); draw(0); }
+    catch(e){ if (el.isConnected) g.innerHTML = '<a href="#" class="dcld" aria-hidden="true"><span class="hint" style="padding:16px">書類を読み込めませんでした</span></a>'; } })();
+  return el; }
+/* 書類のめくりのページを押すと大きく（拡大中・拡大した直後は開かない） */
+document.addEventListener('click', e => { const a = e.target.closest && e.target.closest('[data-dcpg]'); if (!a) return; e.preventDefault(); e.stopPropagation();
+  if (a.classList.contains('pbzon') || (typeof PBZT !== 'undefined' && Date.now() - PBZT < 400)) return;
+  const [did, n] = a.dataset.dcpg.split('|'), d = docById(did); if (!d) return;
+  if (a.dataset.dcpdf) return bigView(a.dataset.dcpdf, docTitle(d), +n || 1);
+  if (a.dataset.dcf) return docView(a.dataset.dcf); }, true);
 /* スマホの書類画面（案A）：書類を全面に、来歴・目次などは下から引き出すシートに（地図アプリと同じ形）。
    シートは「少し・半分・全部」の3段。行を押すとシートは半分になり、上の書類がそのページに切り替わって光る。押した行はシートの中に選ばれたまま残る */
 const DOCSHEET_A = false;
@@ -7550,13 +7581,11 @@ function openEx(id, keepScroll, restoreSc){
 }
 /* 画集・資料のページの上（10/10 開発 v19 本人）：表紙と「ページを見る（N枚）」と目次。ページは写真の画面（つまみは下）でめくる。
    前の「いちばん上のめくり」「スキャンしたページの格子」「中のページ」は、同じページを3か所で見せていたのでやめた */
-function pbPagesHTML(id, x, cover){ const T = pbTop(id); if (!T.length) return '';
-  const cv = T[0], G = pbScans(id).length ? pbSecs(id) : [], nw = new Set(worksByPb[id] || []).size;
-  const at = p => Math.max(0, T.findIndex(q => q['写真ID'] === p['写真ID']));
-  return `<div class="pbhead"><div class="pbcv"><button type="button" class="pbcvb" data-pbtop="${esc(id)}|0" aria-label="表紙を大きく見る">${thImg(cv['ファイルID'], 400)}${wm(cv)}</button>${canEdit() && cover ? `<button type="button" class="cvpen" data-cvedit="${esc(id)}" aria-label="表紙を直す">${PEN}</button>` : ''}</div>
-    <div class="pbstat">${T.length > 1 ? `<span>ページ ${T.length}枚</span>` : ''}${G.length > 1 ? `<span>章 ${G.length}</span>` : ''}${nw ? `<span>掲載作品 ${nw}点</span>` : ''}</div></div>${creditHTML([coverPh(x)].filter(Boolean))}
-    ${T.length > 1 ? `<button type="button" class="act main pbopen" data-pbtop="${esc(id)}|${T.length > 1 && cover ? 1 : 0}">📖 ページを見る（${T.length}枚）</button>` : ''}
-    ${G.length > 1 ? `<h3 class="sec">目次</h3><div class="pbtoc2">${G.map(g => `<div class="pbtr"><button type="button" class="pbtj" data-pbtop="${esc(id)}|${at(g.P[0])}"><span>${esc(g.t)}<small>${pbRange(g)}${g.nw ? '・作品 ' + g.nw + '点' : ''}</small></span><i aria-hidden="true">›</i></button>${g.doc ? `<button type="button" class="golink pbtd" data-doc="${esc(g.doc)}">書類 ›</button>` : ''}</div>`).join('')}</div>` : ''}`; }
+function pbPagesHTML(id, x, cover){ const T = pbTop(id); if (T.length < 2) return ''; /* 画集・資料の目次（10/10 開発 v19）：押すと上のめくりがその章のはじめのページへ */
+  const G = pbScans(id).length ? pbSecs(id) : [], at = p => Math.max(0, T.findIndex(q => q['写真ID'] === p['写真ID']));
+  return G.length > 1 ? `<h3 class="sec">目次</h3><div class="pbtoc2">${G.map(g => `<div class="pbtr"><button type="button" class="pbtj" data-pbgo="${at(g.P[0])}"><span>${esc(g.t)}<small>${pbRange(g)}${g.nw ? '・作品 ' + g.nw + '点' : ''}</small></span><i aria-hidden="true">›</i></button>${g.doc ? `<button type="button" class="golink pbtd" data-doc="${esc(g.doc)}">書類 ›</button>` : ''}</div>`).join('')}</div>` : ''; }
+document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-pbgo]'); if (!b) return; const g = document.querySelector('#page .pbtop .pbgal'); if (!g) return;
+  e.preventDefault(); try { pbzReset(); } catch(x){} g._nstop = 1; g._nudge = 0; g.scrollTo({ left: pbStep(g) * +b.dataset.pbgo, behavior: 'smooth' }); const t = g.closest('.pbtop'), sc = t && t.closest('#page'); if (t && sc) sc.scrollTo({ top: Math.max(0, t.offsetTop - 70), behavior: 'smooth' }); });
 function openPb(id, keepScroll, restoreSc){
   const x = pbById[id]; if (!x) return;
   const nos = worksByPb[id] || [], ex = exById[x['関連展覧会ID']];
@@ -7565,11 +7594,11 @@ function openPb(id, keepScroll, restoreSc){
     <div class="pagebody one"><div class="eyebrow">${esc(x['種類']||'出版物')}</div>
     <h2 class="title">${esc(x['タイトル']||'（書名未入力）')}</h2>
     <div class="tombstone">${esc([fmtDate(x['発行年月']), x['発行元'], x['著者・編者']].filter(Boolean).join('　|　'))}</div>
+    ${(T => T.length > 1 ? `<div class="cover pbtop"><div class="pbgal">${T.map((p, i) => `<a href="#" data-pbtop="${esc(id)}|${i}" data-fid="${esc(p['ファイルID'])}" aria-label="${i + 1}枚目を大きく見る">${thImg(p['ファイルID'], 800)}${wm(p)}</a>`).join('')}</div>${canEdit() && cover ? `<button type="button" class="cvpen" data-cvedit="${esc(id)}" aria-label="表紙を直す">${PEN}</button>` : ''}<button type="button" class="pbmv prev" data-pbmv="-1" aria-label="前のページ" disabled>‹</button><button type="button" class="pbmv next" data-pbmv="1" aria-label="次のページ">›</button><span class="pbcnt">1 / ${T.length}</span></div><div class="pbrngw"><input type="range" class="pbrng" min="1" max="${T.length}" value="1" step="1" aria-label="ページを選ぶ"></div><p class="pbhint">${BOOKI}<span>${matchMedia('(hover:none)').matches ? '左右にスワイプして' : '‹ › を押して'}ページをめくれます（全${T.length}枚・${matchMedia('(hover:none)').matches ? '指2本' : 'Ctrl＋ホイール'}で拡大）</span></p>${creditHTML([coverPh(x)].filter(Boolean))}`
+      : cover ? `<div class="cover">${thImg(x['表紙写真ファイルID'], 800)}${wm(coverPh(x))}${canEdit() ? `<button type="button" class="cvpen" data-cvedit="${esc(id)}" aria-label="表紙を直す">${PEN}</button>` : ''}</div>${creditHTML([coverPh(x)].filter(Boolean))}` : '')(pbTop(id))}
     ${pbPagesHTML(id, x, cover)}
     ${(V => V ? `<dl class="info vonly pbinfo">${V}</dl>` : '')([dd2('掲載内容', esc(x['掲載内容'])), dd2('家にある冊数', x['家にある冊数'] ? esc(x['家にある冊数']) + '冊' : ''), ex ? dd2('関連する展覧会', `<button class="golink" data-ex="${esc(ex['展覧会ID'])}">${PRM(ex['名称'])}${esc(ex['名称'])} ›</button>`) : '', dd2('メモ', escU(x['メモ'])), srcDD(x)].join(''))}
     ${canEdit() ? `<div class="edonly"><h3 class="sec">資料の情報</h3>${recInfo('pb', id, x)}</div>` : ''}
-    ${(T => false ? `<div class="cover pbtop"><div class="pbgal">${T.map((p, i) => `<a href="#" data-pbtop="${esc(id)}|${i}" data-fid="${esc(p['ファイルID'])}" aria-label="${i + 1}枚目を大きく見る">${thImg(p['ファイルID'], 800)}${wm(p)}</a>`).join('')}</div>${canEdit() && cover ? `<button type="button" class="cvpen" data-cvedit="${esc(id)}" aria-label="表紙を直す">${PEN}</button>` : ''}<button type="button" class="pbmv prev" data-pbmv="-1" aria-label="前のページ" disabled>‹</button><button type="button" class="pbmv next" data-pbmv="1" aria-label="次のページ">›</button><span class="pbcnt">1 / ${T.length}</span></div><div class="pbrngw"><input type="range" class="pbrng" min="1" max="${T.length}" value="1" step="1" aria-label="ページを選ぶ"></div><p class="pbhint">${BOOKI}<span>${matchMedia('(hover:none)').matches ? '左右にスワイプして' : '‹ › を押して'}ページをめくれます（全${T.length}枚・${matchMedia('(hover:none)').matches ? '指2本' : 'Ctrl＋ホイール'}で拡大）</span></p>${creditHTML([coverPh(x)].filter(Boolean))}`
-      : '')(pbTop(id))}
     <h3 class="sec">掲載作品 ${new Set(nos).size}点</h3>${exvSetBtn('pb', id)}${linkedGrid('pb', id)}${docLinks('資料ID', id)}${memosFor(id)}
     ${canEdit() && !isEasy() ? `<div class="edonly"><h3 class="sec">記録を更新する</h3><div class="actions bottomacts one">${(n => n ? `<button class="act main" data-pbplate="${esc(id)}">📖 図版の照合（あと${n}点）</button>` : '')(plGroups(id).length + plChecks(id).length)}<button class="act main" data-link="pb|${esc(id)}">＋ 掲載作品をひも付け</button><button class="act" data-cover="${esc(id)}">${cover ? '表紙の写真を差し替える' : '表紙の写真を登録（カメラ・写真）'}</button><button class="act" data-pbpages="${esc(id)}">＋ 中のページの写真を撮る</button><button class="act" data-pbpdf="${esc(id)}">＋ スキャンした PDF からページを入れる</button><button class="act" data-mmadd="1">📝 お母さんへの確認メモを書く</button>${delBtn('pb', id, 'この資料')}</div></div>` : ''}${histBlock(id, x['登録日時'], x['登録者'])}</div>`;
   showPage({t:'pb', id}, html, keepScroll, restoreSc); pbNudge();
