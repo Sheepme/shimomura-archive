@@ -2654,7 +2654,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'ab4689fb08', APP_URL = location.origin + location.pathname;
+const BUILD = 'eff3a9db6a', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3222,7 +3222,7 @@ function navOn(){ const nv = S.view;
   setTitle(TT[nv] || '作品目録');
   document.querySelectorAll('#dwNav button').forEach(b => b.classList.toggle('on', b.dataset.v===nv));
   let sq = null; try { sq = SQ[nv]; } catch(e){}
-  document.querySelectorAll('.cblbl').forEach(x => { x.textContent = ({ex:'展覧会検索', pb:'画集・資料検索', chrono:'年表検索'})[nv] || '作品検索'; }); /* 検索ボタンの文字：展覧会のページでは「展覧会検索」 */
+  document.querySelectorAll('.cblbl').forEach(x => { x.textContent = ({ex:'展覧会検索', pb:'画集・資料検索', chrono:'年表検索', doc:'書類を検索'})[nv] || '作品検索'; }); /* 検索ボタンの文字：展覧会のページでは「展覧会検索」 */
   const fi = $('#fsq'); if (fi && document.activeElement !== fi) { fi.placeholder = sq ? sq[1] : '作品を探す'; fi.value = sq ? (S[sq[0]] || '') : ''; $('#fsqClose').classList.toggle('hidden', !fi.value); } }
 /* ---------- メニュー（左から出る）。パソコンの広い画面では左にずっと出しておく ---------- */
 let dwFold = false; try { dwFold = localStorage.getItem('smr_dw') === '0'; } catch(e){}
@@ -5756,7 +5756,7 @@ function renderDocFiles(){
   const title = k ? `「${esc(q)}」の検索結果` : esc(path.length ? path[path.length - 1] : '資料ファイル');
   const tool = `<div class="ftool"><span class="fnav"><button type="button" data-dfh="back" ${(S.dback||[]).length ? '' : 'disabled'} aria-label="戻る">‹</button><button type="button" data-dfh="fwd" ${(S.dfwd||[]).length ? '' : 'disabled'} aria-label="進む">›</button></span>
     ${path.length ? '<button type="button" class="fup" data-dfup="1" aria-label="ひとつ上へ">‹</button>' : ''}<span class="ftitle">${title}</span><span class="fvw"><button type="button" data-dfv="list" class="${icon ? '' : 'on'}" aria-label="リスト">☰</button><button type="button" data-dfv="icon" class="${icon ? 'on' : ''}" aria-label="アイコン">▦</button></span>
-    <input id="dfq" class="fsearch" type="search" placeholder="🔍 ${path.length ? 'このフォルダ内を' : '名前で'}検索" value="${esc(q)}" enterkeyhint="search"></div>`;
+    </div>`;
   const body = !items.length ? `<p class="fempty">${k ? '見つかりませんでした。中身の文字から探すときは「登録の作業・全文検索」へ。' : '資料はまだありません'}</p>`
     : icon ? `<div class="fgrid">${items.map(tile).join('')}</div>`
     : (path.length && path[0] !== DF_NONE ? `<button type="button" class="fspinerow" data-spine="${esc(path.join('/'))}">📦 このフォルダの背表紙を見る</button>` : '') + `<div class="fhead"><button type="button" data-dfs="name">名前${ar('name')}</button><button type="button" data-dfs="date">日付${ar('date')}</button><button type="button" data-dfs="kind">種類${ar('kind')}</button><span>数</span><span></span></div><div class="frows">${items.map(row).join('')}</div>`;
@@ -5764,7 +5764,7 @@ function renderDocFiles(){
     ${path.length && path[0] !== DF_NONE ? `<button type="button" class="fspine" data-spine="${esc(path.join('/'))}">📦 背表紙</button>` : ''}<span class="fcount">${items.length}項目</span></div>`;
   $('#main').innerHTML = `<div class="docs fwrap"><div class="chead"><h2>書類</h2><p class="csub">実物のバインダーと同じ並びで、スキャンした資料を見られます</p></div>${work}<div class="fnd ${icon ? 'ficon' : ''}">${side}<section class="fmain">${tool}${body}${pbar}</section></div></div>`;
   hydrateDocs($('#main')); hydrate($('#main')); hydrate($('#main'));
-  const inp = $('#dfq'); inp.oninput = () => { S.dfq = inp.value; clearTimeout(inp._t); inp._t = setTimeout(() => { const pos = inp.selectionStart; renderDocFiles(); const n = $('#dfq'); n.focus(); try { n.setSelectionRange(pos, pos); } catch(e){} }, 250); };
+  
 }
 function renderDocs(){ setTimeout(sameChk, 500);
   if (S.dmode !== 'list' || !canEdit()) return renderDocFiles(); /* 閲覧は資料ファイル（見るだけ）だけ */
@@ -9867,7 +9867,7 @@ async function ask(q){
 function hidePop(){ $('#fmPop').classList.add('hidden'); }
 function closeOverlays(){ for (let n = 0; n < 12 && SCR.length; n++) { const top = SCR.pop(); if (top.id === 'sheet') { top.classList.add('hidden'); $('#sheetbox').innerHTML = ''; $('#sheetbox').classList.remove('split'); S.sheetDoc = null; } else if (top.id === 'viewer') top.classList.add('hidden'); else top.remove(); } scrHead(); }
 function closeAllPages(){ NAVN++; S.sheetRet = null; if (S.pcur && !$('#page').classList.contains('hidden')) VST.page = { pcur: Object.assign({}, S.pcur), stack: (S.stack || []).slice() }; if (SCR.length) closeOverlays(); /* 書類・見比べなど重ねた画面も閉じる（メニューから移動したとき） */ S.stack = []; if (!$('#page').classList.contains('hidden')) closeWork(); }
-const SQ = {album:['q','作品名・番号・年・美術館名で探す'], list:['q','作品名・番号・年・美術館名で探す'], ex:['xq','展覧会名・会場・年で探す'], pb:['pq','書名・発行元・年で探す'], ot:['oq','名前・年・場所で探す'], chrono:['cq','出来事・年・場所で探す']}; /* 年表：出来事の名前・会場・年（1965・昭和40・42歳も）でしぼる（10/9 開発 v15） */
+const SQ = {album:['q','作品名・番号・年・美術館名で探す'], list:['q','作品名・番号・年・美術館名で探す'], ex:['xq','展覧会名・会場・年で探す'], pb:['pq','書名・発行元・年で探す'], ot:['oq','名前・年・場所で探す'], chrono:['cq','出来事・年・場所で探す'], doc:['dfq','書類・フォルダの名前で探す']}; /* 書類：資料ファイルの名前でしぼる。前はページの中に検索欄があり、iPhone では1文字しか入らなかった（打つたびにページを描き直して変換が切れていた）ので、下の検索ボタンに移した（10/10 開発 v18 本人） */ /* 年表：出来事の名前・会場・年（1965・昭和40・42歳も）でしぼる（10/9 開発 v15） */
 function openSearch(){
   hidePop(); closeAllPages();
   const box = $('#fmSearch');
@@ -9881,7 +9881,7 @@ let fsqT; $('#fsq').addEventListener('input', e => { const v = e.target.value;
   clearTimeout(fsqT); fsqT = setTimeout(() => {
   const s = SQ[S.view]; if (!s) return; S[s[0]] = v;
   if (s[0]==='q'){ $('#q').value = v; S.limit = 60; render(); }
-  else if (S.view==='ex') drawExList(); else if (S.view==='pb') drawPbList(); else if (S.view==='ot') drawOtList(); else if (S.view==='chrono') renderChrono();
+  else if (S.view==='ex') drawExList(); else if (S.view==='pb') drawPbList(); else if (S.view==='ot') drawOtList(); else if (S.view==='chrono') renderChrono(); else if (S.view==='doc') { if (v) S.dmode = ''; renderDocs(); }
 }, 250); });
 $('#fsq').addEventListener('keydown', e => { if (e.key==='Enter' && !e.isComposing) e.target.blur(); });
 /* 下の検索欄：押したら、そのページで探す（探せないページなら作品アルバムに移る） */
