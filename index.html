@@ -1518,6 +1518,7 @@ html body #main section.cy .cage{font-size:12px!important;color:var(--sub)!impor
 .pqv.pqimg .pqp img:not([src]){aspect-ratio:3/4;background:var(--wash)} /* 読み込む前もだいたいの高さ（見えている所だけ読み込む・位置がずれにくい） */
 .pqv .pqrngw{flex:0 0 auto}
 @media (min-width:900px){
+ .pagebody.pb2 .textcol .grid{grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:32px 18px} /* 掲載作品は1段階小さく（220px → 135px） */
  .pagebody.pb2 > .media.pbmedia{position:sticky;top:var(--cst,84px);height:var(--ch,calc(100vh - 110px));border:1px solid var(--line);border-radius:10px;overflow:hidden}
  #page .pagebody > .media.evon{position:sticky!important;top:var(--cst,84px);height:var(--ch,calc(100vh - 110px))}
  #page .pagebody > .media.evon > :not(.evv){display:none!important}
@@ -2807,7 +2808,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'ad6d17c6df', APP_URL = location.origin + location.pathname;
+const BUILD = '8a9f958dc9', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
