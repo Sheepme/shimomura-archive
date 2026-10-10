@@ -2594,6 +2594,14 @@ body.exvopen #toast:not(.hidden){z-index:9600!important} /* 展示ビューの�
 .abedit{flex:none;margin:0 2px 0 8px;padding:6px 16px;border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--ink);font-size:15px;font-weight:700;line-height:1.3;cursor:pointer;white-space:nowrap}
 .abedit.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .abedit.hidden{display:none!important}
+.abedit.abcancel{background:transparent;margin-left:4px}
+#abTitle .abedt{font-weight:700;color:#7a5a00}
+body.edmhd header#top,body.edmhd header#top .brand.appbar{background:#fff4c7!important}
+body.edmhd header#top{box-shadow:inset 0 -1px 0 #f0d77a}
+body.edmhd header#top #btnMenu#btnMenu{visibility:hidden!important;pointer-events:none}
+html[data-theme=dark] body.edmhd header#top,html[data-theme=dark] body.edmhd header#top .brand.appbar{background:#3a3218!important}
+html[data-theme=dark] body.edmhd header#top{box-shadow:inset 0 -1px 0 #6b5a22}
+html[data-theme=dark] #abTitle .abedt{color:#f3e3a6}
 body:not(.edm) #page .pen,body:not(.edm) #page .cvpen,body:not(.edm) #page .unl,body:not(.edm) #page .edonly{display:none!important}
 body:not(.edm) #page dl.info dt.emp,body:not(.edm) #page dl.info dd.empty{display:none}
 body.edm #page .vonly{display:none!important}
@@ -2708,7 +2716,7 @@ details.hgmf .mmlist,details.hgmf .mmempty,details.hgmf .mmdone{margin-left:16px
     <button type="button" class="abtn abmenu" id="btnMenu" aria-label="メニューを開く"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
     <button type="button" class="abtn" id="btnBack" aria-label="ひとつ前の画面にもどる"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
     <h1 id="abTitle">ホーム</h1>
-    <button type="button" class="abedit hidden" id="abEdit">編集</button><div class="brandr"><div class="userbox" id="userbox"></div></div>
+    <button type="button" class="abedit abcancel hidden" id="abCancel">やめる</button><button type="button" class="abedit hidden" id="abEdit">編集</button><div class="brandr"><div class="userbox" id="userbox"></div></div>
   </div>
   <div id="finder">
     <div class="search"><input id="q" type="search" placeholder="作品名・番号・年・美術館名で探す" enterkeyhint="search"></div>
@@ -2767,7 +2775,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'f38345d0c0', APP_URL = location.origin + location.pathname;
+const BUILD = 'fc2300d425', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3004,6 +3012,7 @@ function abBackName(){
 function abV19(){ const h = $('#abTitle'); if (!h || h.className.indexOf('st-') === 0) { edBtnSync(); return; }
   const top = SCR[SCR.length - 1];
   if (top && top.classList && top.classList.contains('bigv')) { edBtnSync(); return; } /* 大きく見る画面は、いままでどおりファイル名 */
+  if (EDM && !SCR.length && !$('#page').classList.contains('hidden')) { h.innerHTML = '<span class="abedt">✎ 編集中</span>'; edBtnSync(); return; } /* 編集中は見出しを「編集中」に（10/10 開発 v19 本人） */
   const nm = abBackName();
   if (nm) h.innerHTML = `<span class="abbk" role="button" tabindex="0" aria-label="${esc(nm)}にもどる">${esc(nm)}</span>`;
   else if (S.view !== 'home') { const cur = h.querySelector('.crumb.cur'), cn = h.querySelector('.abcn'), cps = [...h.querySelectorAll('.crumb.cp')].filter(c => !c.classList.contains('chome')), up = cps.length ? cps[cps.length - 1] : null;
@@ -3012,7 +3021,8 @@ function abV19(){ const h = $('#abTitle'); if (!h || h.className.indexOf('st-') 
   edBtnSync(); }
 function edBtnSync(){ const b = $('#abEdit'); if (!b) return; const pgOpen = !$('#page').classList.contains('hidden') && S.pcur;
   const on = !!(pgOpen && !SCR.length && ['w', 'ot', 'ex', 'pb'].includes(S.pcur.t) && canEdit());
-  b.classList.toggle('hidden', !on); b.textContent = EDM ? '完了' : '編集'; b.classList.toggle('on', !!EDM); }
+  b.classList.toggle('hidden', !on); b.textContent = EDM ? '完了' : '編集'; b.classList.toggle('on', !!EDM);
+  const c = $('#abCancel'); if (c) c.classList.toggle('hidden', !(on && EDM)); document.body.classList.toggle('edmhd', !!(on && EDM)); }
 /* パンくず：入りきれば文字で → 入らなければアイコンで → それでも入らなければ「… › ひとつ前のアイコン › 名前」 */
 function abFit(){ const h = document.getElementById('abTitle'); if (!h) return; h.classList.remove('bcI', 'bcD');
   if (!h.querySelector('.cp') || !h.clientWidth) return;
@@ -9050,10 +9060,8 @@ const IE_AREA = {w9:1, w10:1, w12:1};
    場所・できごと・写真などは、いままでどおり鉛筆や道具から（編集モードのときだけ出る） ---------- */
 let EDM = null;
 const edmSame = st => !!(EDM && st && EDM.t === st.t && String(EDM.id) === String(st.id));
-function edmToggle(){ if (EDM) return edmDone(); if (!S.pcur || !canEdit()) return; EDM = { t: S.pcur.t, id: S.pcur.id }; document.body.classList.add('edm'); edmForm(); edBtnSync(); }
+function edmToggle(){ if (EDM) return edmDone(); if (!S.pcur || !canEdit()) return; EDM = { t: S.pcur.t, id: S.pcur.id }; document.body.classList.add('edm'); edmForm(); abRender(); }
 function edmForm(){ const pg = $('#page'); if (!EDM || !pg) return; inlineCancel();
-  const host = pg.querySelector('.textcol') || pg.querySelector('.pagebody');
-  if (host && !host.querySelector('.edband')) host.insertAdjacentHTML('afterbegin', '<div class="edband"><span class="edbi" aria-hidden="true">✎</span><span><b>編集中</b>　終わったら右上の「完了」</span><button type="button" class="edcancel">やめる</button></div>');
   if (EDM.t === 'w' || EDM.t === 'ot') { const no = EDM.id, w = workOf(no), ot = isOtNo(no); if (!w) return;
     pg.querySelectorAll('dl.info .pen[data-fill]').forEach(b => { const f = b.dataset.fill, dd = b.closest('dd'); if (!dd || !IE[f] || (f === 'w7' && ot)) return;
       dd.innerHTML = ieBody(f, w, no, true); dd.classList.add('iedit', 'ief'); dd.classList.remove('empty'); dd.dataset.f = f; ieWire(dd); edmTouch(dd); }); }
@@ -9073,7 +9081,7 @@ function edmPatch(){ const pg = $('#page'), p = {}; if (!EDM || !pg) return p;
   return p; }
 const edmDirty = () => !!EDM && Object.keys(edmPatch()).length > 0;
 const edmAsk = () => !edmDirty() || confirm('直した内容は、まだ保存されていません。保存せずに移りますか？');
-function edmEnd(){ EDM = null; document.body.classList.remove('edm'); edBtnSync(); }
+function edmEnd(){ EDM = null; document.body.classList.remove('edm'); try { abRender(); } catch(e){ edBtnSync(); } }
 function edmReopen(t, id){ ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[t](id, true); }
 function edmDone(){ if (!EDM) return; const { t, id } = EDM, patch = edmPatch(); const el = document.activeElement; if (el && el.blur) el.blur();
   edmEnd();
@@ -9099,7 +9107,7 @@ document.addEventListener('keydown', e => { if (!EDM || e.key !== 'Enter' || e.i
   if (nx) { nx.focus(); if (nx.select && nx.tagName === 'INPUT') nx.select(); } else i.blur(); }, true);
 document.addEventListener('click', e => { const t = e.target;
   if (t.closest && t.closest('#abEdit')) { e.preventDefault(); edmToggle(); return; }
-  if (t.closest && t.closest('.edcancel')) { e.preventDefault(); edmCancel(); return; } });
+  if (t.closest && (t.closest('.edcancel') || t.closest('#abCancel'))) { e.preventDefault(); edmCancel(); return; } });
 /* ---------- 編集モードの「出典」（10/10 開発 v19 本人「編集前に根拠を確認してから修正できる」） ----------
    各項目の下に灰色の小さな1行。出どころは ①書類の読み取り（食い違い・補完。位置 at があれば赤のマーカー）②作品の変更の記録（srcOf）。
    「旧リストのまま」や分からないものは出さない。書類があれば「書類で見る ›」で、その箇所を開く */
