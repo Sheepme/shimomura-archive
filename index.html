@@ -2725,8 +2725,8 @@ html[data-theme=dark] .evv .evdband{background:#3a3218;border-color:#6b5a22;colo
 .pbtj i{font-style:normal;color:var(--sub);font-size:18px}
 .pbtd{flex:none;font-size:13px}
 .dcgalw{margin:12px 0 4px}
-.dcgal .pbgal > a{display:flex;align-items:center;justify-content:center;background:#fff}
-.dcgal .pbgal > a img{max-height:100%;width:auto;max-width:100%;object-fit:contain;background:#fff}
+.dcgal .pbgal > a{display:flex;align-items:center;justify-content:center;background:transparent;box-shadow:none}
+.dcgal .pbgal > a img{max-height:100%;width:auto;max-width:100%;object-fit:contain;background:transparent;box-shadow:0 1px 4px rgba(0,0,0,.18)}
 .dcgal .pbgal > a.dcld{min-height:220px;background:var(--wash)}
 .dcgal .pbmv[hidden],.dcgal .pbcnt[hidden]{display:none}
 details.dvmore{margin:6px 0 4px}
@@ -2815,7 +2815,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'cc5b0e1d4e', APP_URL = location.origin + location.pathname;
+const BUILD = 'd2b10bdc84', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
