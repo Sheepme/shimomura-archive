@@ -2222,7 +2222,9 @@ button.ulrow{cursor:pointer}
 @media (hover:hover){.pbrw:hover .pbrmv.can{opacity:.92;pointer-events:auto}}
 .pbsx.all .pbrmv{display:none}
 @media (max-width:520px){.pbsxbar{gap:6px;padding:6px 8px}.pbsxv{gap:4px}.pbsxv button,.pbtoc button{padding:5px 10px;font-size:12.5px}}
-.pbrngw{max-width:min(640px,100%);margin:8px auto 0;padding:0 8%;box-sizing:border-box} .pbgal a{overflow:hidden} .pbgal a img{transition:transform .08s linear;will-change:transform} .pbgal.pbzoom{overflow:hidden!important;touch-action:none} .pbgal a.pbzon{cursor:grab} .dtprng,.pqrngw{padding:6px 12px 2px;box-sizing:border-box} .dtprng input,.pqrngw input{width:100%;margin:0;accent-color:var(--ink)} .pqrngw[hidden],.dtprng[hidden]{display:none} .dsvrng{position:sticky;top:0;z-index:2;background:var(--bg);padding:6px 12px}
+.pbrngw{max-width:min(640px,100%);margin:8px auto 0;padding:0 8%;box-sizing:border-box} .pbgal a{overflow:hidden} .pbgal a img{transition:transform .08s linear;will-change:transform} .pbgal.pbzoom{overflow:hidden!important;touch-action:none} .pbgal a.pbzon{cursor:grab}
+.pbgal > a.pbzon{overflow:visible;z-index:1;background:transparent!important;box-shadow:none!important}
+.pbgal.pbzoom > a:not(.pbzon){visibility:hidden} .dtprng,.pqrngw{padding:6px 12px 2px;box-sizing:border-box} .dtprng input,.pqrngw input{width:100%;margin:0;accent-color:var(--ink)} .pqrngw[hidden],.dtprng[hidden]{display:none} .dsvrng{position:sticky;top:0;z-index:2;background:var(--bg);padding:6px 12px}
 .pbrng{width:100%;accent-color:var(--ink);margin:0}
 .grid.fold>.tilewrap:nth-child(n+25){display:none}
 .act.gunfold{display:block;margin:10px auto 4px}
@@ -2237,10 +2239,10 @@ button.ulrow{cursor:pointer}
 .cover.pbtop{max-width:min(640px,100%)}
 .pbph .pbsl{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:var(--wash);opacity:0;transition:opacity .9s ease;z-index:1;pointer-events:none}
 .pbph .pbsl.on{opacity:1}.pbph .wm{transition:opacity .9s}.pbph.pbon .wm{opacity:0}
-.pbgal{display:flex;gap:10px;padding:0 8%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
+.pbgal{display:flex;gap:10px;padding:10px 8%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
 .pbgal::-webkit-scrollbar{display:none}
 .pbgal a{flex:0 0 100%;scroll-snap-align:center;height:min(78vw,440px);display:flex;align-items:center;justify-content:center;position:relative;cursor:zoom-in;padding:10px;box-sizing:border-box;background:var(--paper);border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
-.cover.pbtop{padding:10px 0}
+.cover.pbtop{padding:0}
 .pbgal img{max-width:100%;max-height:100%;width:auto!important;height:auto;object-fit:contain;display:block}
 .pbtop .pbmv{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--paper);opacity:.92;color:var(--ink);font-size:22px;line-height:1;padding:0 0 2px;z-index:2;cursor:pointer}
 .pbtop .pbmv.prev{left:8px}.pbtop .pbmv.next{right:8px}.pbtop .pbmv:disabled{opacity:0;pointer-events:none}
@@ -2785,7 +2787,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '5c7e4fb1a7', APP_URL = location.origin + location.pathname;
+const BUILD = '32777da3a8', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3999,12 +4001,17 @@ document.addEventListener('input', e => { const rg = e.target; if (!rg.classList
    指2本で元の大きさにもどすか、つまみ・‹ › でめくると元にもどる。パソコンは Ctrl＋ホイール（トラックパッドのピンチ）で拡大、ドラッグで動かす。拡大したら細かい写真（1600）に差しかえる */
 let PBZ = null, PBZT = 0, pbzG = null;
 const pbzApply = z => { const on = z.s > 1.001; z.img.style.transform = on ? `translate(${z.x}px,${z.y}px) scale(${z.s})` : ''; z.a.classList.toggle('pbzon', on); const g = z.a.parentNode; if (g && g.classList) g.classList.toggle('pbzoom', on); };
-const pbzClamp = z => { const mx = Math.max(0, (z.s - 1) * z.img.offsetWidth / 2), my = Math.max(0, (z.s - 1) * z.img.offsetHeight / 2); z.x = Math.max(-mx, Math.min(mx, z.x)); z.y = Math.max(-my, Math.min(my, z.y)); };
+const pbzClamp = z => { const g = z.a.parentNode, im = z.img; if (!g || !g.getBoundingClientRect) return; const G = g.getBoundingClientRect(), A = z.a.getBoundingClientRect();
+  const rg = (c, w, V) => { const h = w * z.s / 2, p = V - h - c, q = h - c; return [Math.min(p, q), Math.max(p, q)]; };
+  const [x0, x1] = rg(A.left - G.left + im.offsetLeft + im.offsetWidth / 2, im.offsetWidth, G.width), [y0, y1] = rg(A.top - G.top + im.offsetTop + im.offsetHeight / 2, im.offsetHeight, G.height);
+  z.x = Math.max(x0, Math.min(x1, z.x)); z.y = Math.max(y0, Math.min(y1, z.y)); };
+/* 拡大中は、写真の外（グレーの所）をさわっても、その写真を動かす */
+const pbzA = t => { const a = t && t.closest && t.closest('.pbgal > a'); if (a) return a; return PBZ && PBZ.s > 1.001 && t && t.closest && t.closest('.pbgal') === PBZ.a.parentNode ? PBZ.a : null; };
 function pbzReset(){ if (!PBZ) return; const z = PBZ; PBZ = null; z.s = 1; z.x = z.y = 0; pbzApply(z); }
 const pbzOf = a => { if (PBZ && PBZ.a === a) return PBZ; pbzReset(); const img = a.querySelector('img'); if (!img) return null; PBZ = { a, img, s: 1, x: 0, y: 0 }; return PBZ; };
 const pbzHi = z => { if (z.hi || z.s < 1.4) return; z.hi = 1; const fid = z.a.dataset.fid; if (!fid) return; const hi = new Image(); hi.dataset.tid = fid; hi.dataset.w = '1600'; hi.onload = () => { if (z.img.isConnected && hi.naturalWidth >= z.img.naturalWidth) z.img.src = hi.src; }; queueThumb(hi); };
 const pbzDist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY) || 1;
-document.addEventListener('touchstart', e => { const a = e.target.closest && e.target.closest('.pbgal > a'); if (!a) { pbzG = null; return; } const t = e.touches;
+document.addEventListener('touchstart', e => { const a = pbzA(e.target); if (!a) { pbzG = null; return; } const t = e.touches;
   if (t.length === 2) { const z = pbzOf(a); if (!z) return; e.preventDefault(); pbzG = { m: 'p', d0: pbzDist(t), s0: z.s, x0: z.x, y0: z.y }; }
   else if (t.length === 1 && PBZ && PBZ.a === a && PBZ.s > 1.001) pbzG = { m: 'm', px: t[0].clientX, py: t[0].clientY, x0: PBZ.x, y0: PBZ.y };
   else pbzG = null; }, { passive: false });
@@ -4014,10 +4021,10 @@ document.addEventListener('touchmove', e => { const g = pbzG, z = PBZ; if (!g ||
 document.addEventListener('touchend', e => { if (!pbzG) return; PBZT = Date.now(); const t = e.touches;
   if (!t.length) { pbzG = null; if (PBZ && PBZ.s < 1.05) pbzReset(); }
   else if (t.length === 1 && PBZ && PBZ.s > 1.001) pbzG = { m: 'm', px: t[0].clientX, py: t[0].clientY, x0: PBZ.x, y0: PBZ.y }; }, { passive: true });
-document.addEventListener('wheel', e => { if (!e.ctrlKey) return; const a = e.target.closest && e.target.closest('.pbgal > a'); if (!a) return; const z = pbzOf(a); if (!z) return; e.preventDefault();
+document.addEventListener('wheel', e => { if (!e.ctrlKey) return; const a = pbzA(e.target); if (!a) return; const z = pbzOf(a); if (!z) return; e.preventDefault();
   const d = Math.max(-30, Math.min(30, e.deltaMode ? e.deltaY * 16 : e.deltaY)); z.s = Math.max(1, Math.min(5, z.s * Math.exp(-d * .01))); pbzClamp(z); pbzApply(z); pbzHi(z); if (z.s < 1.02) pbzReset(); }, { passive: false });
 let pbzD = null;
-document.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse' || !PBZ || PBZ.s <= 1.001 || !(e.target.closest && e.target.closest('.pbgal > a') === PBZ.a)) return; pbzD = { x: e.clientX, y: e.clientY, x0: PBZ.x, y0: PBZ.y }; e.preventDefault(); });
+document.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse' || !PBZ || PBZ.s <= 1.001 || pbzA(e.target) !== PBZ.a) return; pbzD = { x: e.clientX, y: e.clientY, x0: PBZ.x, y0: PBZ.y }; e.preventDefault(); });
 document.addEventListener('pointermove', e => { if (!pbzD || !PBZ) return; PBZ.x = pbzD.x0 + e.clientX - pbzD.x; PBZ.y = pbzD.y0 + e.clientY - pbzD.y; pbzClamp(PBZ); pbzApply(PBZ); });
 document.addEventListener('pointerup', () => { if (pbzD) { pbzD = null; PBZT = Date.now(); } });
 const pbStep = g => { const a = g.children[0], b = g.children[1]; return Math.max(1, a && b ? b.offsetLeft - a.offsetLeft : g.clientWidth); }; /* 1ページ分の横の長さ（次のページの端を見せているので、幅より少し短い） */
