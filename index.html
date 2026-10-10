@@ -2654,7 +2654,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '637d4e9db3', APP_URL = location.origin + location.pathname;
+const BUILD = 'b32164ba29', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3403,6 +3403,8 @@ function qcBack(){ const h = QC && QC.hold; if (!h || QC.i !== h.i + 1) return; 
   stopMic(true); sayStop(); QC.i = h.i; QC.step = ''; QC.heard = ''; QC.pend = null; QC.pn = null; QC.draft = ''; QC.dr = ''; qcDraw(); toast('前の問題にもどりました（答えは取り消しました）'); }
 const qcBackBtn = () => QC && QC.hold && QC.i === QC.hold.i + 1 ? `<button type="button" class="qc-bk" data-qc="back1" aria-label="前の問題にもどる（答えを取り消す）"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7 4 12l5 5M4.5 12H15a5 5 0 0 1 0 10h-2"/></svg><span>もどる</span></button>` : '';
 document.addEventListener('visibilitychange', () => { if (document.hidden) qcFlush(); });
+/* 外出先など電波の弱いところでも開けるように、アプリの画面を端末に控える（sw.js。ネットを先に見て、届かないときだけ控え）。公開しているアプリの場所だけ（10/10 開発 v18 本人「母が外出先で『ページを開けません』になる」） */
+try { if ('serviceWorker' in navigator && /^\/shimomura-archive\/(index\.html)?$/.test(location.pathname)) addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); }); } catch(e){}
 function qcFoot(m, back){ return `<div class="qc-microw"><button type="button" class="qc-skip" data-qa="${back ? 'back' : 'skip'}">${back ? 'もどる' : 'とばす'}</button>${m || ''}</div>`; }
 function qcPrefetch(nos){ const seen = new Set(); nos.forEach(no => { const p = no && (photoBy[no] || [])[0], id = p && p['ファイルID'];
     if (!id || seen.has(id) || seen.size >= 10 || TH[QCW + '_' + id]) return; seen.add(id); const i = new Image(); i.dataset.tid = id; i.dataset.w = String(QCW); queueThumb(i); }); }
