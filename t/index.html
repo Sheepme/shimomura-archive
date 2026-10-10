@@ -2660,6 +2660,31 @@ html[data-theme=dark] .evv .evdband{background:#3a3218;border-color:#6b5a22;colo
 .evv.evdraw .evbad{display:none}
 .evv .evdbtns .evdok{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .evv .evdbtns .evdok:disabled{opacity:.4}
+.pqrngw{background:var(--bg);border-top:1px solid var(--line);padding:8px 12px calc(8px + env(safe-area-inset-bottom))}
+.dsvrng{top:auto!important;bottom:0;border-top:1px solid var(--line)}
+.dtprng{padding:8px 12px 2px}
+.vrngw{position:absolute;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom));padding:0 22px;z-index:4}
+.vrngw input{width:100%;margin:0;accent-color:var(--ink)}
+#viewer.vhasr{padding-bottom:150px}
+#viewer.vhasr .vbar{bottom:54px}
+#viewer.vhasr #vorig{bottom:104px}
+.pbhead{display:flex;align-items:flex-end;gap:14px;margin:14px 0 8px}
+.pbcv{position:relative;flex:none;width:132px}
+.pbcvb{display:block;width:100%;padding:0;border:0;background:none;cursor:zoom-in}
+.pbcvb img{display:block;width:100%;height:auto;border-radius:6px;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+.pbcv .cvpen{position:absolute;top:6px;right:6px}
+.pbstat{display:flex;flex-direction:column;gap:2px;font-size:14px;color:var(--sub);line-height:1.6}
+.act.pbopen{display:flex;align-items:center;justify-content:center;width:100%;margin:10px 0 4px;font-weight:700}
+.pbtoc2{border-top:1px solid var(--line);margin:4px 0 10px}
+.pbtr{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line)}
+.pbtj{flex:1;display:flex;justify-content:space-between;align-items:center;padding:13px 2px;border:0;background:none;font-size:16px;color:var(--ink);text-align:left;cursor:pointer}
+.pbtj small{display:block;font-size:12.5px;color:var(--sub);margin-top:2px}
+.pbtj i{font-style:normal;color:var(--sub);font-size:18px}
+.pbtd{flex:none;font-size:13px}
+details.dvmore{margin:6px 0 4px}
+details.dvmore>summary{cursor:pointer;padding:12px 2px;color:var(--sub);font-size:14.5px;list-style:none}
+details.dvmore>summary::-webkit-details-marker{display:none}
+details.dvmore>summary::after{content:' ▾'}details.dvmore[open]>summary::after{content:' ▴'}
 .evv .evpn{font-size:13px;color:var(--sub);white-space:nowrap}
 </style>
 </head>
@@ -2710,7 +2735,7 @@ html[data-theme=dark] .evv .evdband{background:#3a3218;border-color:#6b5a22;colo
 <div id="page" class="page hidden"></div>
 <div id="sheet" class="sheet hidden"><div class="box" id="sheetbox"></div></div>
 <div id="confirm" class="sheet hidden" style="z-index:100"><div class="box" id="confirmbox"></div></div>
-<div id="viewer" class="viewer hidden"><button class="vclose scrback" id="vclose">← 戻る</button><button id="vedit" class="vedit hidden" type="button" aria-label="この写真を編集">✎</button><div id="vmenu" class="vmenu"><button id="vmain" class="hidden">★ メイン画像にする</button><button id="vcopy" class="hidden">© 転載元・著作物</button><div id="vrot" class="vrot hidden"><button type="button" class="vrotgo">⟳ 画像回転<i aria-hidden="true">›</i></button><div class="vrot2"><button type="button" class="vrotbk">‹ もどる</button><button type="button" data-rot="-90">↺ 左90°</button><button type="button" data-rot="180">⟳ 180°</button><button type="button" data-rot="90">↻ 右90°</button></div></div><button id="vcrop" class="hidden">✂ 切り抜き・補正</button><button id="vcrop2" class="hidden">✂ もう1枚切り出す（同じ写真から）</button><button id="vdrv" class="hidden">☁ 元のファイルを確認</button><button id="vrep" class="hidden">この写真を差し替える</button><button id="vdel" class="hidden">削除</button></div><img id="vimg" alt=""><span id="vwm" class="wm vwm"></span><div id="vbk" class="vbk hidden"></div><div class="vbar"><button id="vprev">‹ 前</button><span id="vcount"></span><p id="vcredit" class="credit"></p><button id="vnext">次 ›</button></div><button id="vorig" type="button">高画質で見る</button></div>
+<div id="viewer" class="viewer hidden"><button class="vclose scrback" id="vclose">← 戻る</button><button id="vedit" class="vedit hidden" type="button" aria-label="この写真を編集">✎</button><div id="vmenu" class="vmenu"><button id="vmain" class="hidden">★ メイン画像にする</button><button id="vcopy" class="hidden">© 転載元・著作物</button><div id="vrot" class="vrot hidden"><button type="button" class="vrotgo">⟳ 画像回転<i aria-hidden="true">›</i></button><div class="vrot2"><button type="button" class="vrotbk">‹ もどる</button><button type="button" data-rot="-90">↺ 左90°</button><button type="button" data-rot="180">⟳ 180°</button><button type="button" data-rot="90">↻ 右90°</button></div></div><button id="vcrop" class="hidden">✂ 切り抜き・補正</button><button id="vcrop2" class="hidden">✂ もう1枚切り出す（同じ写真から）</button><button id="vdrv" class="hidden">☁ 元のファイルを確認</button><button id="vrep" class="hidden">この写真を差し替える</button><button id="vdel" class="hidden">削除</button></div><img id="vimg" alt=""><span id="vwm" class="wm vwm"></span><div id="vbk" class="vbk hidden"></div><div class="vrngw hidden"><input type="range" id="vrng" min="1" max="1" value="1" step="1" aria-label="ページを選ぶ"></div><div class="vbar"><button id="vprev">‹ 前</button><span id="vcount"></span><p id="vcredit" class="credit"></p><button id="vnext">次 ›</button></div><button id="vorig" type="button">高画質で見る</button></div>
 <div id="loading" class="loading hidden">読み込み中…</div>
 <div id="toast" class="tmsg hidden"></div>
 
@@ -2730,7 +2755,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '495b6923ef', APP_URL = location.origin + location.pathname;
+const BUILD = '02969f29f2', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6014,8 +6039,8 @@ function sheetDocReview(id){ try { const d0 = docById(id); if (d0) pdfPrefetch([
     S.sheetDoc = null; setTimeout(() => { S.sheetDoc = id; }, 0);
     openSheet(`<h3 class="dttl">${esc(docTitle(d))}<button type="button" class="edbtn" id="dvTtl" aria-label="タイトルを直す">✎</button></h3>${noteMode ? `<button type="button" class="act main pdfopen dvnote" data-note="${esc(id)}">📖 ノートで読む（資料の文字）</button><button type="button" class="act pdfopen" id="dvImgs">🖼 原本の画像を見る（${pg.length}枚）</button><div id="dvImgsBox"></div>` : imgs}
       ${d['全文あり'] && !noteMode ? `<button type="button" class="act main pdfopen dvnote" data-note="${esc(id)}">📖 ノートで読む（資料の文字）</button>` : ''}
-      ${driveBtn(pg[0], pg.length > 1 && !r.PDF ? '元のファイルを確認（1枚目）' : '')}<!-- 見る方法（ノート・元のファイル）は上にまとめる -->
-      ${canEdit() && r.PDF && docPdfFid(d) && PIMG[docPdfFid(d)] ? `<button type="button" class="act pdfopen" data-pimgre="${esc(id)}">↻ ページの表示を作り直す（元のファイルと違うとき）</button>` : ''}
+      <details class="dvmore"><summary>そのほかの見方（元のファイル${canEdit() && r.PDF && docPdfFid(d) && PIMG[docPdfFid(d)] ? '・表示の作り直し' : ''}）</summary>${driveBtn(pg[0], pg.length > 1 && !r.PDF ? '元のファイルを確認（1枚目）' : '')}<!-- 見る方法（ノート・元のファイル）は上にまとめる -->
+      ${canEdit() && r.PDF && docPdfFid(d) && PIMG[docPdfFid(d)] ? `<button type="button" class="act pdfopen" data-pimgre="${esc(id)}">↻ ページの表示を作り直す（元のファイルと違うとき）</button>` : ''}</details>
       <p class="hint">${esc([r['日付'], r['相手先'] && r.PDF ? r['相手先'] : '', r['要約']].filter(Boolean).join('　'))}</p>
       ${r['要確認'] ? `<div class="dchk"><b>⚠ 要確認</b>${esc(r['要確認'])}<button type="button" class="act" id="dvChk">確認した</button></div>` : ''}
       ${canEdit() && (r['食い違い']||[]).length ? `<h3 class="sec" style="font-size:18px">台帳との食い違い</h3><p class="hint">押すと、書類と作品を並べて見比べる画面が開き、「どっちが正しい？」を決められます。</p>${r['食い違い'].map((x, i) => dfCard(d, x, i)).join('')}` : ''}
@@ -6785,7 +6810,7 @@ const DOCUI2 = true;
 /* スマホの書類詳細：作品ページの「該当箇所を確認」と同じ見た目で、書類の1ページ目をはじめから表示する */
 /* 書類のページを正方形の枠に表示する部品：左右スワイプ・‹ › でページ送り、指2本で拡大（拡大中は指1本で動かす・2回タップで元に戻す）。拡大中はスワイプでページが変わらない */
 function pgPrev(host, fid, opt){ opt = opt || {}; const c = document.createElement('div'); c.className = 'dtopv';
-  c.innerHTML = `<div class="dtpbar"><button type="button" class="dtpnav" data-tp="-1" aria-label="前のページ">‹</button><span class="dtpn">p.–</span><button type="button" class="dtpnav" data-tp="1" aria-label="次のページ">›</button><button type="button" class="act dtpbig" data-pdfopen="${esc(fid)}" data-pdfp="1">大きく</button></div><div class="dtprng" hidden><input type="range" class="dtpr" min="1" max="1" value="1" step="1" aria-label="ページを選ぶ"></div><div class="dtpsq"><div class="ldwrap"><span class="ldspin"></span>書類を開いています…</div></div><p class="dtphint">左右にスワイプでページをめくれます（指2本で拡大）</p>`;
+  c.innerHTML = `<div class="dtpbar"><button type="button" class="dtpnav" data-tp="-1" aria-label="前のページ">‹</button><span class="dtpn">p.–</span><button type="button" class="dtpnav" data-tp="1" aria-label="次のページ">›</button><button type="button" class="act dtpbig" data-pdfopen="${esc(fid)}" data-pdfp="1">大きく</button></div><div class="dtpsq"><div class="ldwrap"><span class="ldspin"></span>書類を開いています…</div></div><div class="dtprng" hidden><input type="range" class="dtpr" min="1" max="1" value="1" step="1" aria-label="ページを選ぶ"></div><p class="dtphint">左右にスワイプでページをめくれます（指2本で拡大）</p>`;
   host(c); const sq = c.querySelector('.dtpsq'), lab = c.querySelector('.dtpn'), big = c.querySelector('.dtpbig'), rg = c.querySelector('.dtpr'); let doc = null, n = 0, tok = 0, Z = { s: 1, x: 0, y: 0 };
   const zApply = () => { const cv = sq.querySelector('canvas'); if (cv) cv.style.transform = Z.s === 1 ? '' : `translate(${Z.x}px,${Z.y}px) scale(${Z.s})`; };
   const zReset = () => { Z = { s: 1, x: 0, y: 0 }; zApply(); };
@@ -6846,9 +6871,9 @@ async function docSplit(id){ const d = docById(id), box = $('#sheetbox'); if (!d
   while (box.firstChild) R.appendChild(box.firstChild); box.classList.add('split'); box.append(L, R); if (spA) docSheetA(box, L, R);
   if (r.PDF) { L.innerHTML = '<div class="ldwrap"><span class="ldspin"></span>PDFを読み込んでいます…</div>';
     pdfMount(L, pg[0], docTitle(d)); }
-  else { L.innerHTML = (pg.length > 1 ? `<div class="dsvrng"><input type="range" class="dsvr" min="1" max="${pg.length}" value="1" step="1" aria-label="ページを選ぶ" style="width:100%;accent-color:var(--ink)"></div>` : '') + pg.map(f => `<div class="dsvp">${docImg(f, 1600)}</div>`).join(''); hydrateDocs(L);
-    const rg = L.querySelector('.dsvr'); if (rg) { const P = () => [...L.querySelectorAll('.dsvp')]; rg.addEventListener('input', () => { const el = P()[+rg.value - 1]; if (el) L.scrollTop += el.getBoundingClientRect().top - L.getBoundingClientRect().top - rg.parentNode.offsetHeight - 4; });
-      L.addEventListener('scroll', () => { if (document.activeElement === rg) return; const t = L.getBoundingClientRect().top + rg.parentNode.offsetHeight + 40; let c = 0; P().forEach((el, i) => { if (el.getBoundingClientRect().top <= t) c = i; }); rg.value = c + 1; }, { passive: true }); } }
+  else { L.innerHTML = pg.map(f => `<div class="dsvp">${docImg(f, 1600)}</div>`).join('') + (pg.length > 1 ? `<div class="dsvrng"><input type="range" class="dsvr" min="1" max="${pg.length}" value="1" step="1" aria-label="ページを選ぶ" style="width:100%;accent-color:var(--ink)"></div>` : ''); hydrateDocs(L);
+    const rg = L.querySelector('.dsvr'); if (rg) { const P = () => [...L.querySelectorAll('.dsvp')]; rg.addEventListener('input', () => { const el = P()[+rg.value - 1]; if (el) L.scrollTop += el.getBoundingClientRect().top - L.getBoundingClientRect().top - 4; });
+      L.addEventListener('scroll', () => { if (document.activeElement === rg) return; const t = L.getBoundingClientRect().top + 40; let c = 0; P().forEach((el, i) => { if (el.getBoundingClientRect().top <= t) c = i; }); rg.value = c + 1; }, { passive: true }); } }
 }
 
 /* ---------- 使い方ツアー ---------- */
@@ -7493,6 +7518,15 @@ function openEx(id, keepScroll, restoreSc){
     ${canEdit() && !isEasy() ? `<div class="edonly"><h3 class="sec">記録を更新する</h3><div class="actions bottomacts one"><button class="act main" data-link="ex|${esc(id)}">＋ 出品作品をひも付け</button><button class="act vadd" data-venue="${esc(id)}|">＋ 巡回先（会場）を追加</button><button class="act" data-mmadd="1">📝 お母さんへの確認メモを書く</button>${delBtn('ex', id, 'この展覧会')}</div></div>` : ''}${histBlock(id, x['登録日時'], x['登録者'])}</div>`;
   showPage({t:'ex', id}, html, keepScroll, restoreSc);
 }
+/* 画集・資料のページの上（10/10 開発 v19 本人）：表紙と「ページを見る（N枚）」と目次。ページは写真の画面（つまみは下）でめくる。
+   前の「いちばん上のめくり」「スキャンしたページの格子」「中のページ」は、同じページを3か所で見せていたのでやめた */
+function pbPagesHTML(id, x, cover){ const T = pbTop(id); if (!T.length) return '';
+  const cv = T[0], G = pbScans(id).length ? pbSecs(id) : [], nw = new Set(worksByPb[id] || []).size;
+  const at = p => Math.max(0, T.findIndex(q => q['写真ID'] === p['写真ID']));
+  return `<div class="pbhead"><div class="pbcv"><button type="button" class="pbcvb" data-pbtop="${esc(id)}|0" aria-label="表紙を大きく見る">${thImg(cv['ファイルID'], 400)}${wm(cv)}</button>${canEdit() && cover ? `<button type="button" class="cvpen" data-cvedit="${esc(id)}" aria-label="表紙を直す">${PEN}</button>` : ''}</div>
+    <div class="pbstat">${T.length > 1 ? `<span>ページ ${T.length}枚</span>` : ''}${G.length > 1 ? `<span>章 ${G.length}</span>` : ''}${nw ? `<span>掲載作品 ${nw}点</span>` : ''}</div></div>${creditHTML([coverPh(x)].filter(Boolean))}
+    ${T.length > 1 ? `<button type="button" class="act main pbopen" data-pbtop="${esc(id)}|${T.length > 1 && cover ? 1 : 0}">📖 ページを見る（${T.length}枚）</button>` : ''}
+    ${G.length > 1 ? `<h3 class="sec">目次</h3><div class="pbtoc2">${G.map(g => `<div class="pbtr"><button type="button" class="pbtj" data-pbtop="${esc(id)}|${at(g.P[0])}"><span>${esc(g.t)}<small>${pbRange(g)}${g.nw ? '・作品 ' + g.nw + '点' : ''}</small></span><i aria-hidden="true">›</i></button>${g.doc ? `<button type="button" class="golink pbtd" data-doc="${esc(g.doc)}">書類 ›</button>` : ''}</div>`).join('')}</div>` : ''}`; }
 function openPb(id, keepScroll, restoreSc){
   const x = pbById[id]; if (!x) return;
   const nos = worksByPb[id] || [], ex = exById[x['関連展覧会ID']];
@@ -7501,12 +7535,11 @@ function openPb(id, keepScroll, restoreSc){
     <div class="pagebody one"><div class="eyebrow">${esc(x['種類']||'出版物')}</div>
     <h2 class="title">${esc(x['タイトル']||'（書名未入力）')}</h2>
     <div class="tombstone">${esc([fmtDate(x['発行年月']), x['発行元'], x['著者・編者']].filter(Boolean).join('　|　'))}</div>
+    ${pbPagesHTML(id, x, cover)}
     ${(V => V ? `<dl class="info vonly pbinfo">${V}</dl>` : '')([dd2('掲載内容', esc(x['掲載内容'])), dd2('家にある冊数', x['家にある冊数'] ? esc(x['家にある冊数']) + '冊' : ''), ex ? dd2('関連する展覧会', `<button class="golink" data-ex="${esc(ex['展覧会ID'])}">${PRM(ex['名称'])}${esc(ex['名称'])} ›</button>`) : '', dd2('メモ', escU(x['メモ'])), srcDD(x)].join(''))}
     ${canEdit() ? `<div class="edonly"><h3 class="sec">資料の情報</h3>${recInfo('pb', id, x)}</div>` : ''}
-    ${(T => T.length > 1 ? `<div class="cover pbtop"><div class="pbgal">${T.map((p, i) => `<a href="#" data-pbtop="${esc(id)}|${i}" data-fid="${esc(p['ファイルID'])}" aria-label="${i + 1}枚目を大きく見る">${thImg(p['ファイルID'], 800)}${wm(p)}</a>`).join('')}</div>${canEdit() && cover ? `<button type="button" class="cvpen" data-cvedit="${esc(id)}" aria-label="表紙を直す">${PEN}</button>` : ''}<button type="button" class="pbmv prev" data-pbmv="-1" aria-label="前のページ" disabled>‹</button><button type="button" class="pbmv next" data-pbmv="1" aria-label="次のページ">›</button><span class="pbcnt">1 / ${T.length}</span></div><div class="pbrngw"><input type="range" class="pbrng" min="1" max="${T.length}" value="1" step="1" aria-label="ページを選ぶ"></div><p class="pbhint">${BOOKI}<span>${matchMedia('(hover:none)').matches ? '左右にスワイプして' : '‹ › を押して'}ページをめくれます（全${T.length}枚・${matchMedia('(hover:none)').matches ? '指2本' : 'Ctrl＋ホイール'}で拡大）</span></p>${creditHTML([coverPh(x)].filter(Boolean))}`
-      : cover ? `<div class="cover">${thImg(x['表紙写真ファイルID'], 800)}${wm(coverPh(x))}${canEdit() ? `<button type="button" class="cvpen" data-cvedit="${esc(id)}" aria-label="表紙を直す">${PEN}</button>` : ''}</div>${creditHTML([coverPh(x)].filter(Boolean))}` : '')(pbTop(id))}
-    ${pbScanHTML(id)}
-    ${(P => P.length ? `<h3 class="sec">中のページ ${P.length}枚</h3><div class="pbin">${P.map(ph => `<button type="button" class="pbinp" data-pbin="${esc(id)}|${esc(ph['写真ID'])}">${thImg(ph['ファイルID'], 400)}</button>`).join('')}</div>` : '')(pbInner(id))}
+    ${(T => false ? `<div class="cover pbtop"><div class="pbgal">${T.map((p, i) => `<a href="#" data-pbtop="${esc(id)}|${i}" data-fid="${esc(p['ファイルID'])}" aria-label="${i + 1}枚目を大きく見る">${thImg(p['ファイルID'], 800)}${wm(p)}</a>`).join('')}</div>${canEdit() && cover ? `<button type="button" class="cvpen" data-cvedit="${esc(id)}" aria-label="表紙を直す">${PEN}</button>` : ''}<button type="button" class="pbmv prev" data-pbmv="-1" aria-label="前のページ" disabled>‹</button><button type="button" class="pbmv next" data-pbmv="1" aria-label="次のページ">›</button><span class="pbcnt">1 / ${T.length}</span></div><div class="pbrngw"><input type="range" class="pbrng" min="1" max="${T.length}" value="1" step="1" aria-label="ページを選ぶ"></div><p class="pbhint">${BOOKI}<span>${matchMedia('(hover:none)').matches ? '左右にスワイプして' : '‹ › を押して'}ページをめくれます（全${T.length}枚・${matchMedia('(hover:none)').matches ? '指2本' : 'Ctrl＋ホイール'}で拡大）</span></p>${creditHTML([coverPh(x)].filter(Boolean))}`
+      : '')(pbTop(id))}
     <h3 class="sec">掲載作品 ${new Set(nos).size}点</h3>${exvSetBtn('pb', id)}${linkedGrid('pb', id)}${docLinks('資料ID', id)}${memosFor(id)}
     ${canEdit() && !isEasy() ? `<div class="edonly"><h3 class="sec">記録を更新する</h3><div class="actions bottomacts one">${(n => n ? `<button class="act main" data-pbplate="${esc(id)}">📖 図版の照合（あと${n}点）</button>` : '')(plGroups(id).length + plChecks(id).length)}<button class="act main" data-link="pb|${esc(id)}">＋ 掲載作品をひも付け</button><button class="act" data-cover="${esc(id)}">${cover ? '表紙の写真を差し替える' : '表紙の写真を登録（カメラ・写真）'}</button><button class="act" data-pbpages="${esc(id)}">＋ 中のページの写真を撮る</button><button class="act" data-pbpdf="${esc(id)}">＋ スキャンした PDF からページを入れる</button><button class="act" data-mmadd="1">📝 お母さんへの確認メモを書く</button>${delBtn('pb', id, 'この資料')}</div></div>` : ''}${histBlock(id, x['登録日時'], x['登録者'])}</div>`;
   showPage({t:'pb', id}, html, keepScroll, restoreSc); pbNudge();
@@ -7548,7 +7581,12 @@ function showV(){ const p = V.list[V.i]; if (!p) return;
       .catch(() => { vSpin(false); $('#vorig').textContent = '高画質で見る'; toast('高画質の写真を読み込めませんでした'); }); };
   { const ok2 = crCan(p) && !scanOf(p) && !pbPhOf(p) && !!(crInfo(p) || crTargets(p).corr) && !!workOf(S.cur); $('#vcrop2').classList.toggle('hidden', !ok2); } /* すでに切り出した写真（と、その元の記録写真）から、もう1枚 */
   if (ref) ['#vmain', '#vcopy', '#vedit', '#vrep', '#vdel', '#vrot', '#vcrop', '#vcrop2', '#vdrv'].forEach(k => $(k).classList.add('hidden')); /* 画集のページ（参照）は作品の写真ではないので、ここでは消したり直したりしない */
-  $('#vprev').style.visibility = V.i>0?'visible':'hidden'; $('#vnext').style.visibility = V.i<V.list.length-1?'visible':'hidden'; }
+  $('#vprev').style.visibility = V.i>0?'visible':'hidden'; $('#vnext').style.visibility = V.i<V.list.length-1?'visible':'hidden';
+  { const r = $('#vrng'), on = V.list.length >= 3; $('#viewer').classList.toggle('vhasr', on); r.parentNode.classList.toggle('hidden', !on); if (on) { r.max = V.list.length; if (document.activeElement !== r) r.value = V.i + 1; } } }
+/* 写真の画面のつまみ（10/10 開発 v19 本人「スライダーは画面の下」）：動かしているあいだは番号だけ、止まったらその写真 */
+(() => { const r = document.getElementById('vrng'); if (!r) return; let t = 0;
+  r.addEventListener('input', () => { const k = +r.value - 1, p = V.list[k]; if (p) $('#vcount').textContent = (k + 1) + ' / ' + V.list.length + (V.mode === 'scan' || V.mode === 'pbtop' ? '　' + (pbPhLab ? pbPhLab(p) : '') : ''); clearTimeout(t); t = setTimeout(() => { V.i = k; showV(); }, 200); });
+  r.addEventListener('change', () => { clearTimeout(t); V.i = +r.value - 1; showV(); }); })();
 $('#vclose').onclick = () => closeViewer();
 $('#vedit').onclick = e => { e.stopPropagation(); $('#vmenu').classList.remove('rot'); $('#vmenu').classList.toggle('open'); }; // 編集のボタンは鉛筆にまとめる
 $('#viewer').addEventListener('click', e => { if (!e.target.closest('#vedit') && (!e.target.closest('#vmenu') || e.target.closest('#vmenu button:not(.vrotgo):not(.vrotbk)'))) setTimeout(() => $('#vmenu').classList.remove('open', 'rot'), 0); });
@@ -10529,7 +10567,7 @@ function pqHint(host, hint, page){ const old = host.querySelector('.pqhint'); if
 async function pdfMount(host, fid, title, page, hint){
   const sd = canEdit() ? docByFile(fid) : null, mkOk = !!(sd && docPages(sd)[0] === fid); /* 🖍 で囲んでメモに貼る（編集できる人だけ） */
   host.classList.add('pqv'); const hre = hint && hint.q ? fzRe(esc(hint.q), 'gi') : null;
-  host.innerHTML = `<div class="pqbar"><span class="pqt">${esc(title || 'PDF')}</span><span class="pqpg">–</span><button type="button" data-pz="-" aria-label="縮小">−</button><button type="button" data-pz="fit" aria-label="幅に合わせる" title="幅に合わせる">↔</button><button type="button" data-pz="+" aria-label="拡大">＋</button><button type="button" data-pz="mark" class="pqmk" hidden title="マーカーの所を大きく">全体</button>${mkOk ? '<button type="button" data-pz="sel" class="pqselb0" title="書いてある所を囲んで、作品のメモに貼る">🖍</button>' : ''}<button type="button" data-pz="tab" title="別のタブで開く（印刷・保存）">↗</button>${host.closest('.pdfql') ? '<button type="button" data-pz="close" aria-label="閉じる" title="閉じる（Esc）">✕</button>' : ''}</div><div class="pqrngw" hidden><input type="range" class="pqrng" min="1" max="1" value="1" step="1" aria-label="ページを選ぶ"></div><div class="pqpages"><div class="ldwrap"><span class="ldspin"></span>PDFを読み込んでいます…</div></div>`;
+  host.innerHTML = `<div class="pqbar"><span class="pqt">${esc(title || 'PDF')}</span><span class="pqpg">–</span><button type="button" data-pz="-" aria-label="縮小">−</button><button type="button" data-pz="fit" aria-label="幅に合わせる" title="幅に合わせる">↔</button><button type="button" data-pz="+" aria-label="拡大">＋</button><button type="button" data-pz="mark" class="pqmk" hidden title="マーカーの所を大きく">全体</button>${mkOk ? '<button type="button" data-pz="sel" class="pqselb0" title="書いてある所を囲んで、作品のメモに貼る">🖍</button>' : ''}<button type="button" data-pz="tab" title="別のタブで開く（印刷・保存）">↗</button>${host.closest('.pdfql') ? '<button type="button" data-pz="close" aria-label="閉じる" title="閉じる（Esc）">✕</button>' : ''}</div><div class="pqpages"><div class="ldwrap"><span class="ldspin"></span>PDFを読み込んでいます…</div></div><div class="pqrngw" hidden><input type="range" class="pqrng" min="1" max="1" value="1" step="1" aria-label="ページを選ぶ"></div>`; /* つまみは下（10/10 開発 v19 本人） */
   pqHint(host, hint, page);
   const box = host.querySelector('.pqpages'), pgEl = host.querySelector('.pqpg'); let url = '';
   try { const doc = await pdfDocOf(fid); if (!host.isConnected) return;
