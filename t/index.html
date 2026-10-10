@@ -2680,7 +2680,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '267827f892', APP_URL = location.origin + location.pathname;
+const BUILD = 'f66151dea7', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -8953,17 +8953,19 @@ function edmForm(){ const pg = $('#page'); if (!EDM || !pg) return; inlineCancel
   if (host && !host.querySelector('.edband')) host.insertAdjacentHTML('afterbegin', '<div class="edband"><span class="edbi" aria-hidden="true">✎</span><span><b>編集中</b>　終わったら右上の「完了」</span><button type="button" class="edcancel">やめる</button></div>');
   if (EDM.t === 'w' || EDM.t === 'ot') { const no = EDM.id, w = workOf(no), ot = isOtNo(no); if (!w) return;
     pg.querySelectorAll('dl.info .pen[data-fill]').forEach(b => { const f = b.dataset.fill, dd = b.closest('dd'); if (!dd || !IE[f] || (f === 'w7' && ot)) return;
-      dd.innerHTML = ieBody(f, w, no, true); dd.classList.add('iedit', 'ief'); dd.classList.remove('empty'); dd.dataset.f = f; ieWire(dd); }); }
+      dd.innerHTML = ieBody(f, w, no, true); dd.classList.add('iedit', 'ief'); dd.classList.remove('empty'); dd.dataset.f = f; ieWire(dd); edmTouch(dd); }); }
   else if (EDM.t === 'ex' || EDM.t === 'pb') { const K = RK[EDM.t], x = K.get(EDM.id); if (!x) return;
     pg.querySelectorAll('dl.info .pen[data-rec]').forEach(b => { const i = +String(b.dataset.rf||'').replace(/\D/g, ''), d = K.F[i], dd = b.closest('dd'); if (!d || !dd) return;
-      const cur = String(x[d[1]]||''); dd.innerHTML = recBody(EDM.t, d, cur, true); dd.classList.add('iedit', 'ief'); dd.classList.remove('empty'); dd.dataset.ri = i;
+      const cur = String(x[d[1]]||''); dd.innerHTML = recBody(EDM.t, d, cur, true); dd.classList.add('iedit', 'ief'); dd.classList.remove('empty'); dd.dataset.ri = i; edmTouch(dd);
       const el = dd.querySelector('.iein'); if (!el) return; el.dataset.v0 = el.value;
       if ((SUG[EDM.t]||[]).includes(d[1]) && el.tagName === 'INPUT') { el.id = 'edxf' + i; suggestList(el, usedVals(EDM.t === 'ex' ? S.exhibits : S.pubs, d[1])); } }); }
   pg.querySelectorAll('.ief button:not(.iematsum), .ief summary').forEach(b => b.tabIndex = -1); /* Tab は入力欄から入力欄へ */
 }
+/* 押したり打ったりした項目だけを、変更の候補にする（開いただけで書き方がそろって「変更」にならないように） */
+function edmTouch(dd){ const on = e => { if (e.target.closest && e.target.closest('.iematsum, summary')) return; dd.dataset.touched = '1'; }; dd.addEventListener('input', on); dd.addEventListener('change', on); dd.addEventListener('click', e => { if (e.target.closest && e.target.closest('[data-mo], [data-o], .ieswap:not([data-pnform])')) on(e); }); }
 function edmPatch(){ const pg = $('#page'), p = {}; if (!EDM || !pg) return p;
-  if (EDM.t === 'w' || EDM.t === 'ot') { const w = workOf(EDM.id); if (!w) return p; pg.querySelectorAll('dd.ief').forEach(dd => Object.assign(p, iePatch(dd, dd.dataset.f, w))); }
-  else { const K = RK[EDM.t], x = K.get(EDM.id); if (!x) return p; pg.querySelectorAll('dd.ief').forEach(dd => { const d = K.F[+dd.dataset.ri], el = dd.querySelector('.iein'); if (!d || !el) return; const v = el.value.trim(); if (v !== String(x[d[1]]||'')) p[d[1]] = v; }); }
+  if (EDM.t === 'w' || EDM.t === 'ot') { const w = workOf(EDM.id); if (!w) return p; pg.querySelectorAll('dd.ief[data-touched]').forEach(dd => Object.assign(p, iePatch(dd, dd.dataset.f, w))); }
+  else { const K = RK[EDM.t], x = K.get(EDM.id); if (!x) return p; pg.querySelectorAll('dd.ief[data-touched]').forEach(dd => { const d = K.F[+dd.dataset.ri], el = dd.querySelector('.iein'); if (!d || !el) return; const v = el.value.trim(); if (v !== String(x[d[1]]||'')) p[d[1]] = v; }); }
   return p; }
 const edmDirty = () => !!EDM && Object.keys(edmPatch()).length > 0;
 const edmAsk = () => !edmDirty() || confirm('直した内容は、まだ保存されていません。保存せずに移りますか？');
@@ -8977,10 +8979,10 @@ function edmDone(){ if (!EDM) return; const { t, id } = EDM, patch = edmPatch();
 function edmCancel(){ if (!EDM) return; if (edmDirty() && !confirm('直した内容を取り消しますか？')) return; const { t, id } = EDM; edmEnd(); edmReopen(t, id); }
 /* 編集中に、鉛筆から開いた画面（場所・できごとなど）で保存してページを描き直しても、入れかけた内容は残す */
 function edmCapture(){ const pg = $('#page'), o = {}; if (!pg) return o;
-  pg.querySelectorAll('dd.ief').forEach(dd => { const k = dd.dataset.f || ('r' + dd.dataset.ri); o[k] = { v: [...dd.querySelectorAll('.iein')].map(i => i.type === 'checkbox' ? i.checked : i.value), m: [...dd.querySelectorAll('[data-mo]')].map(b => b.classList.contains('on')), p: (dd.querySelector('#ieform') || {}).dataset ? (dd.querySelector('#ieform') || {}).dataset.v : null, a: (dd.querySelector('.mpadd') || {}).value }; });
+  pg.querySelectorAll('dd.ief').forEach(dd => { const k = dd.dataset.f || ('r' + dd.dataset.ri); o[k] = { t: !!dd.dataset.touched, v: [...dd.querySelectorAll('.iein')].map(i => i.type === 'checkbox' ? i.checked : i.value), m: [...dd.querySelectorAll('[data-mo]')].map(b => b.classList.contains('on')), p: (dd.querySelector('#ieform') || {}).dataset ? (dd.querySelector('#ieform') || {}).dataset.v : null, a: (dd.querySelector('.mpadd') || {}).value }; });
   return o; }
 function edmRestore(o){ const pg = $('#page'); if (!pg || !o) return;
-  pg.querySelectorAll('dd.ief').forEach(dd => { const c = o[dd.dataset.f || ('r' + dd.dataset.ri)]; if (!c) return;
+  pg.querySelectorAll('dd.ief').forEach(dd => { const c = o[dd.dataset.f || ('r' + dd.dataset.ri)]; if (!c) return; if (c.t) dd.dataset.touched = '1';
     dd.querySelectorAll('.iein').forEach((i, n) => { if (c.v[n] === undefined) return; if (i.type === 'checkbox') i.checked = c.v[n]; else i.value = c.v[n]; });
     dd.querySelectorAll('[data-mo]').forEach((b, n) => { if (c.m[n] !== undefined) b.classList.toggle('on', c.m[n]); });
     const fp = dd.querySelector('#ieform'); if (fp && c.p != null) { fp.dataset.v = c.p; fp.querySelectorAll('button').forEach(b => b.classList.toggle('on', (b.dataset.o || b.textContent) === c.p)); }
@@ -9038,7 +9040,7 @@ function ieWire(dd){
 }
 /* 入力欄から、変わった項目だけを取り出す（日付の書き方をそろえただけのものは変更にしない） */
 function iePatch(dd, f, w){ const patch = {};
-  if (f === 'w6') { const m = matVal('iemat'), fm = formVal('ieform'); if (m !== String(w['画材']||'')) patch['画材'] = m; if (fm !== String(w['仕立て']||'')) patch['仕立て'] = fm; }
+  if (f === 'w6') { const m = matVal('iemat'), fm = formVal('ieform'), m0 = String(w['画材']||''); if (m !== m0 && m !== matJoin(matSplit(m0))) patch['画材'] = m; if (fm !== String(w['仕立て']||'')) patch['仕立て'] = fm; } /* 書き方の順をそろえただけ（「紙粘土、顔料・紙」→「紙・紙粘土・顔料」）は変更にしない */
   dd.querySelectorAll('.iein').forEach(i => { if (!i.dataset.k) return; const o = String(w[i.dataset.k]||''), v = i.type === 'checkbox' ? (i.checked ? '作品のみ' : '') : i.value.trim();
     if (v === o) return; if (i.type !== 'checkbox' && typeof normDate === 'function' && o && normDate(o) === v && i.value === i.dataset.v0) return;
     if (i.type !== 'checkbox' && typeof normDate === 'function' && o && normDate(o) === v && normDate(i.dataset.v0 || '') === v) return;
