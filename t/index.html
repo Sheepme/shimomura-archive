@@ -2639,6 +2639,27 @@ html[data-theme=dark] .evv .evtag{color:#ff9a8f}
 .evv .evnav input{flex:1;accent-color:var(--ink)}
 .evv .evp{width:44px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:18px}
 .evv .evp:disabled{opacity:.35}
+.evv .evbad{display:block;text-align:center;margin:12px auto 0;font-size:13.5px;color:var(--sub);text-decoration:underline;cursor:pointer}
+.evv .evsh{position:fixed;inset:0;z-index:5}
+.evv .evscrim{position:absolute;inset:0;background:rgba(0,0,0,.28)}
+.evv .evsbox{position:absolute;left:0;right:0;bottom:0;max-width:640px;margin:0 auto;background:var(--bg);border-radius:18px 18px 0 0;box-shadow:0 -6px 30px rgba(0,0,0,.2);padding:8px 16px calc(20px + env(safe-area-inset-bottom))}
+.evv .evgrab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:4px auto 10px}
+.evv .evsbox h4{margin:4px 2px 8px;font-size:15px}
+.evv .evopt{display:block;width:100%;text-align:left;padding:13px 4px;border:0;border-bottom:1px solid var(--line);background:none;font-size:16px;color:var(--ink);cursor:pointer}
+.evv .evopt small{display:block;font-size:12.5px;color:var(--sub);margin-top:2px}
+.evv .evsr{display:flex;gap:10px;margin-top:12px}
+.evv .evsr button{flex:1;padding:13px;border-radius:12px;font-size:15px;font-weight:700;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.evv .evsr .evok{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.evv .evfi{width:100%;box-sizing:border-box;padding:11px 12px;border:1.5px solid var(--ink);border-radius:10px;font-size:17px;background:var(--bg);color:var(--ink)}
+.evv .evsz{display:flex;align-items:center;gap:6px}.evv .evsz .evfi{flex:1;min-width:0}
+.evv .evsn{font-size:12.5px;color:var(--sub);margin:8px 2px 0}
+.evv .evdband{position:sticky;top:0;z-index:3;margin:0 -16px 10px;padding:10px 16px;background:#fff7d6;border-bottom:1px solid #f0d77a;color:#5a4500;font-size:14px}
+html[data-theme=dark] .evv .evdband{background:#3a3218;border-color:#6b5a22;color:#f3e3a6}
+.evv.evdraw .evpw{touch-action:none;cursor:crosshair;user-select:none;-webkit-user-select:none}
+.evv .evlasso{position:absolute;border:3px dashed #e22626;border-radius:12px;background:rgba(226,38,38,.08);pointer-events:none}
+.evv.evdraw .evbad{display:none}
+.evv .evdbtns .evdok{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.evv .evdbtns .evdok:disabled{opacity:.4}
 .evv .evpn{font-size:13px;color:var(--sub);white-space:nowrap}
 </style>
 </head>
@@ -2709,7 +2730,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '52c2c084c0', APP_URL = location.origin + location.pathname;
+const BUILD = '495b6923ef', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -9062,7 +9083,7 @@ async function evOpen(did, fs){ const d = docById(did); if (!d) return; const t 
   const el = document.createElement('div'); el.className = 'noteview evv'; el._reopen = () => evOpen(did, fs);
   el.innerHTML = `<div class="evin"><h2 class="nvt">${esc(docTitle(d))}</h2><p class="evsub">${esc([r['相手先'], r['日付']].filter(Boolean).join('・'))}</p><p class="evline" hidden></p><div class="evpg"><div class="ldwrap"><span class="ldspin"></span>書類を開いています…</div></div></div>
     <div class="evbar"><div class="evq">この書類に書かれている${esc(lab)}<span class="evtag" hidden></span></div><div class="evv1">${val ? esc(val) : '<span class="nv">読み取れていません</span>'}</div>
-      <div class="evbtns"><button type="button" class="evclose">閉じる</button>${val && EDM ? '<button type="button" class="evuse">この値を入れる</button>' : ''}</div>
+      <div class="evbtns"><button type="button" class="evclose">閉じる</button>${val && EDM ? '<button type="button" class="evuse">この値を入れる</button>' : ''}</div>${!isEasy() && canEdit() ? '<a class="evbad" href="#">読み取りがおかしい？</a>' : ''}
       <div class="evnav"><button type="button" class="evp" data-evp="-1" aria-label="前のページ">‹</button><input type="range" class="evr" min="1" max="1" value="1" aria-label="ページを選ぶ"><span class="evpn">1 / 1</span><button type="button" class="evp" data-evp="1" aria-label="次のページ">›</button></div></div>`;
   document.body.appendChild(el); hpush('n'); scrPush(el);
   const box = el.querySelector('.evpg'), tag = el.querySelector('.evtag'), ln = el.querySelector('.evline'), rg = el.querySelector('.evr'), nl = el.querySelector('.evpn');
@@ -9090,7 +9111,52 @@ async function evOpen(did, fs){ const d = docById(did); if (!d) return; const t 
   rg.addEventListener('input', () => { nl.textContent = rg.value + ' / ' + (N || 1); clearTimeout(rg._t); rg._t = setTimeout(() => go(+rg.value), 180); });
   el.querySelector('.evclose').onclick = () => docClose(el);
   const use = el.querySelector('.evuse'); if (use) use.onclick = () => { evUse(fs, h); docClose(el); };
+  const bad = el.querySelector('.evbad'); if (bad) bad.onclick = e => { e.preventDefault(); evBad(el, { did, fs, t, id, h, lab, val, page: () => n, go, setAt: a => { at = a; } }); };
   go(at.p || 1); }
+/* 「読み取りがおかしい？」（10/10 開発 v19 本人「書類側で直す」）。どれも書類の読み取り結果を直して、書類のメモに残す。台帳の値は変えない */
+function evBad(el, o){ const old = el.querySelector('.evsh'); if (old) old.remove();
+  const sh = document.createElement('div'); sh.className = 'evsh';
+  const close = () => sh.remove();
+  sh.innerHTML = `<div class="evscrim"></div><div class="evsbox"><div class="evgrab"></div><h4>読み取りがおかしいとき</h4>
+    <button type="button" class="evopt" data-k="value">値の読み間違いを直す<small>書類には本当は何と書いてあるかを入れる</small></button>
+    <button type="button" class="evopt" data-k="at">正しい場所を囲む<small>光っている所がちがうとき</small></button>
+    <button type="button" class="evopt" data-k="none">この書類には書いていない<small>この項目の出典から、この書類を外す</small></button>
+    <div class="evsr"><button type="button" class="evno">やめる</button></div></div>`;
+  el.appendChild(sh); sh.querySelector('.evscrim').onclick = close; sh.querySelector('.evno').onclick = close;
+  sh.querySelector('[data-k="value"]').onclick = () => { const sz = o.fs.includes('高さcm');
+    sh.querySelector('.evsbox').innerHTML = `<div class="evgrab"></div><h4>書類には本当は何と書いてある？</h4>${sz ? `<div class="evsz"><span>H</span><input class="evfi" data-f="高さcm" inputmode="decimal" value="${esc(String(o.h.v['高さcm'] || ''))}"><span>×</span><span>W</span><input class="evfi" data-f="幅cm" inputmode="decimal" value="${esc(String(o.h.v['幅cm'] || ''))}"><span>cm</span></div>`
+      : `<input class="evfi" data-f="${esc(o.fs[0])}" value="${esc(String(o.h.v[o.fs[0]] || ''))}">`}<p class="evsn">直すと書類のメモに「読み間違いを直した」と残ります。台帳の値は変わりません</p><div class="evsr"><button type="button" class="evno">やめる</button><button type="button" class="evok">直す</button></div>`;
+    const ins = [...sh.querySelectorAll('.evfi')]; setTimeout(() => { ins[0].focus(); ins[0].select(); }, 30);
+    sh.querySelector('.evno').onclick = close;
+    sh.querySelector('.evok').onclick = () => { const v = {}; ins.forEach(i => { const x = i.value.trim(); if (x !== String(o.h.v[i.dataset.f] || '')) v[i.dataset.f] = x; }); if (!Object.keys(v).length) return close(); evFix(el, o, { kind: 'value', v }); };
+    ins.forEach(i => i.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); sh.querySelector('.evok').click(); } })); };
+  sh.querySelector('[data-k="at"]').onclick = () => { close(); evDraw(el, o); };
+  sh.querySelector('[data-k="none"]').onclick = () => { if (!confirm('この書類を「' + o.lab + '」の出典から外しますか？（書類のメモに残ります）')) return; evFix(el, o, { kind: 'none' }); };
+}
+/* 正しい場所を囲む：ページの上を指（マウス）でなぞって四角で囲む → 「ここにする」 */
+function evDraw(el, o){ el.classList.add('evdraw'); const box = el.querySelector('.evpg'), bar = el.querySelector('.evbar');
+  const band = document.createElement('div'); band.className = 'evdband'; band.textContent = o.lab + 'が書いてある所を、指でなぞって囲んでください（ページは下の ‹ › でめくれます）'; el.querySelector('.evin').prepend(band);
+  const keep = bar.querySelector('.evbtns').outerHTML; bar.querySelector('.evbtns').outerHTML = '<div class="evbtns evdbtns"><button type="button" class="evdno">やめる</button><button type="button" class="evdok" disabled>ここにする</button></div>';
+  let r = null, st = null;
+  const wrap = () => box.querySelector('.evpw');
+  const pos = e => { const w = wrap().getBoundingClientRect(); return [Math.max(0, Math.min(1, (e.clientX - w.left) / w.width)), Math.max(0, Math.min(1, (e.clientY - w.top) / w.height))]; };
+  const draw = () => { let L = box.querySelector('.evlasso'); if (!L) { L = document.createElement('div'); L.className = 'evlasso'; wrap().appendChild(L); } const [x0, y0, x1, y1] = r;
+    Object.assign(L.style, { left: Math.min(x0, x1) * 100 + '%', top: Math.min(y0, y1) * 100 + '%', width: Math.abs(x1 - x0) * 100 + '%', height: Math.abs(y1 - y0) * 100 + '%' }); };
+  const down = e => { if (!wrap() || !wrap().contains(e.target)) return; e.preventDefault(); st = pos(e); r = [st[0], st[1], st[0], st[1]]; draw(); };
+  const move = e => { if (!st) return; e.preventDefault(); const p = pos(e); r = [st[0], st[1], p[0], p[1]]; draw(); };
+  const up = () => { if (!st) return; st = null; const ok = r && Math.abs(r[2] - r[0]) > .01 && Math.abs(r[3] - r[1]) > .005; bar.querySelector('.evdok').disabled = !ok; };
+  box.addEventListener('pointerdown', down); window.addEventListener('pointermove', move, { passive: false }); window.addEventListener('pointerup', up);
+  const end = () => { el.classList.remove('evdraw'); band.remove(); box.removeEventListener('pointerdown', down); window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); const L = box.querySelector('.evlasso'); if (L) L.remove(); bar.querySelector('.evdbtns').outerHTML = keep; };
+  bar.querySelector('.evdno').onclick = () => { end(); el._reopen && (docClose(el), el._reopen()); };
+  bar.querySelector('.evdok').onclick = () => { if (!r) return; const b = [Math.min(r[1], r[3]), Math.min(r[0], r[2]), Math.max(r[1], r[3]), Math.max(r[0], r[2])].map(v => Math.round(v * 1000)); evFix(el, o, { kind: 'at', at: { p: o.page(), box: b } }); };
+}
+async function evFix(el, o, a){ busy(true, '書類を直しています…');
+  try { const d = await call('fixDocRead', o.did, Object.assign({ t: o.t, id: o.id, fs: o.fs }, a)); setData(d); render(); }
+  catch(e){ busy(false); const m = String(e && e.message || e); return alert(/この操作はできません|fixDocRead/.test(m) ? 'まだ Google 側の更新（デプロイ）が済んでいません。デプロイのあとで使えます' : '直せませんでした。\n' + m); }
+  busy(false); docClose(el);
+  if (S.pcur) ({ w: openWork, ex: openEx, pb: openPb, ot: openOt })[S.pcur.t](S.pcur.id, true); /* 編集中なら、入れかけた内容は残る（showPage） */
+  toast(a.kind === 'value' ? '書類の読み取りを直しました' : a.kind === 'at' ? '書類の場所を直しました' : 'この書類を出典から外しました');
+  if (a.kind !== 'none') setTimeout(() => evOpen(o.did, o.fs), 250); }
 /* 「この値を入れる」：編集モードの入力欄に入れるだけ（保存は「完了」のとき） */
 function evUse(fs, h){ const pg = $('#page'); if (!pg || !EDM) return; let dd = null;
   if (EDM.t === 'ex') { dd = [...pg.querySelectorAll('dd.ief')].find(x => RK.ex.F[+x.dataset.ri] && RK.ex.F[+x.dataset.ri][1] === fs[0]); const i = dd && dd.querySelector('.iein'); if (i) i.value = h.v[fs[0]] || ''; }
