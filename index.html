@@ -2654,7 +2654,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'eff3a9db6a', APP_URL = location.origin + location.pathname;
+const BUILD = '637d4e9db3', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -9883,12 +9883,15 @@ let fsqT; $('#fsq').addEventListener('input', e => { const v = e.target.value;
   if (s[0]==='q'){ $('#q').value = v; S.limit = 60; render(); }
   else if (S.view==='ex') drawExList(); else if (S.view==='pb') drawPbList(); else if (S.view==='ot') drawOtList(); else if (S.view==='chrono') renderChrono(); else if (S.view==='doc') { if (v) S.dmode = ''; renderDocs(); }
 }, 250); });
-$('#fsq').addEventListener('keydown', e => { if (e.key==='Enter' && !e.isComposing) e.target.blur(); });
+$('#fsq').addEventListener('keydown', e => { if (e.key==='Enter' && !e.isComposing) { e.target.blur(); srchReset(); } });
 /* 下の検索欄：押したら、そのページで探す（探せないページなら作品アルバムに移る） */
 $('#fsq').addEventListener('focus', () => { closeDrawer(); if (S.aiOpen) closeAI(); const pgOpen = !$('#page').classList.contains('hidden'); if (pgOpen) closeAllPages();
   if (!SQ[S.view]) { S.view = S.wmode || 'album'; S.limit = 60; render(); window.scrollTo(0, 0); } else if (pgOpen) render();
   const s = SQ[S.view]; $('#fsq').placeholder = s[1]; $('#top').classList.remove('tuck'); scrollLock(true); document.body.classList.add('searching'); });
-$('#fsq').addEventListener('blur', () => { srchReset(); setTimeout(() => { if (document.activeElement !== $('#fsq')) srchReset(); }, 300); });
+$('#fsq').addEventListener('blur', () => { if (matchMedia('(pointer:coarse)').matches) return; srchReset(); setTimeout(() => { if (document.activeElement !== $('#fsq')) srchReset(); }, 300); });
+/* スマホ：ペーストしようとすると閉じた件（10/10 開発 v18 本人）。iPhone はペーストのメニュー・「ペーストを許可」の確認で入力欄から一度フォーカスが外れ、そのたびに閉じて（空の入力欄が消えて）いた。
+   スマホでは、フォーカスが外れても閉じず、検索欄の外を触ったとき・検索を押したとき・アプリを離れたときに閉じる */
+document.addEventListener('pointerdown', e => { if (!document.body.classList.contains('searching') || !matchMedia('(pointer:coarse)').matches) return; if (e.target.closest && e.target.closest('.cbin')) return; srchReset(); }, true);
 /* スマホ：検索欄を押したら、検索欄を画面の上へ移してから入力を始める（キーボードで画面がずれない・Claudeの検索と同じ形） */
 $('.cbin').addEventListener('click', e => { if (!matchMedia('(pointer:coarse)').matches) return; const fi = $('#fsq');
   if (document.activeElement === fi || e.target.id === 'fsqClose') return;
@@ -9926,7 +9929,7 @@ document.addEventListener('click', e => {
   if (t.dataset.v==='home'){ goHome(); return; }
   if (t.dataset.v==='exv'){ exvOpen(); return; }
   if (t.dataset.v==='inbox'){ shInbox(); return; }
-  if (t.id==='fsqClose'){ const fi = $('#fsq'); fi.value = ''; fi.dispatchEvent(new Event('input')); t.classList.add('hidden'); fi.blur(); return; }
+  if (t.id==='fsqClose'){ const fi = $('#fsq'); fi.value = ''; fi.dispatchEvent(new Event('input')); t.classList.add('hidden'); fi.blur(); srchReset(); return; }
   if (t.id==='fmAsk'){ hidePop(); $('#fmSearch').classList.add('hidden'); if (!S.user) return openLogin('質問するにはログインしてください'); return S.aiOpen ? closeAI() : openAI();; }
   if (t.closest('#fmPop, #fmInline')){ hidePop(); closeAllPages(); $('#fmSearch').classList.add('hidden'); }
   if (t.id==='modeBtn' || t.id==='modeSw'){ toggleMode(); return; }
