@@ -2654,7 +2654,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'b4f871f670', APP_URL = location.origin + location.pathname;
+const BUILD = 'ab4689fb08', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3373,7 +3373,7 @@ const QCITEM = { loc: '場所', conf: '場所', name: '作品名', photo: '写�
 const qcComplete = no => { const w = workOf(no); return !!w && hasPh(no) && hasName(w) && hasLoc(w); };
 function qcKind(no){ const w = workOf(no); if (!w) return null; const ph = hasPh(no);
   const k = !ph ? 'photo' : !hasLoc(w) ? 'loc' : !hasName(w) ? 'name' : needLoc(w) ? 'conf' : null;
-  if (!k) return null; const r = qzLast(no, QCITEM[k]); if (r && (r['答え']==='不明' || r['答え']==='保留')) return null; if (qzLocal(no, QCITEM[k])) return null; /* この端末で答えて、台帳にまだ入っていない */ return k; }
+  if (!k) return null; const r = qzLast(no, QCITEM[k]); if (r && (r['答え']==='不明' || r['答え']==='保留' || r['答え']==='はい')) return null; /* 答えたことのある項目は、もう聞かない。「無題」「不明」と名前を入れても hasName は「名前なし」のままなので、毎回聞いていた（10/10 本人「入力しても何回も聞いてくる」） */ if (qzLocal(no, QCITEM[k])) return null; /* この端末で答えて、台帳にまだ入っていない */ return k; }
 const QCSVG = { mute: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z" fill="currentColor"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>',
   x: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
   say: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>',
@@ -3415,7 +3415,7 @@ const qcAskLeft = () => { try { quizIndex(); } catch(e){} const all = (S.works |
 /* 作品ページの「クイズで埋める」：その作品の足りないところだけをカードで聞く（場所・作品名・写真・書類の違い・調べの記録） */
 function qcWorkCards(no){ const w = workOf(no); if (!w) return []; const L = [];
   if (!hasLoc(w)) L.push({ no, k: 'loc' }); else if (needLoc(w)) L.push({ no, k: 'conf' });
-  if (!hasName(w)) L.push({ no, k: 'name' });
+  if (!hasName(w) && !qzLast(no, '作品名')) L.push({ no, k: 'name' });
   if (!hasPh(no)) L.push({ no, k: 'photo' });
   if (qcAskOpen(w)) L.push({ no, k: 'ask' });
   (S.docs || []).forEach(d => { if (d['状態'] !== '登録済み') return; if ((docRes(d)['食い違い'] || []).some((x, i) => !x.r && x.t === 'w' && String(x.id) === String(no) && !QDD.has(d['書類ID'] + '|' + i) && !(x.f === '所在' && musSame(x.cur, x.doc)))) L.push({ no, k: 'diff', did: d['書類ID'], g: 1 }); });
