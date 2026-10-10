@@ -2808,7 +2808,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '8a9f958dc9', APP_URL = location.origin + location.pathname;
+const BUILD = 'c32ca1bbee', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -12090,7 +12090,7 @@ let EXVSET = null;
 const exvSetOf = (kind, id) => { const x = kind === 'ex' ? exById[id] : pbById[id]; if (!x) return null; const f = kind === 'ex' ? '展覧会ID' : '資料ID', seen = new Set();
   const E = S.events.filter(e => e[f] === id && !seen.has(String(e['作品番号'])) && seen.add(String(e['作品番号'])));
   const ky = e => { const m = /No\.?\s*(M-)?(\d+)/.exec(String(e['内容'] || '')); return m ? (m[1] ? 1e4 : 0) + +m[2] : null; }, nk = E.filter(e => ky(e) != null).length;
-  const ord = nk >= E.length * 0.6; const L = ord ? E.map((e, i) => ({ e, i, k: ky(e) == null ? 1e9 : ky(e) })).sort((a, b) => a.k - b.k || a.i - b.i).map(o => o.e) : E; /* 図録・図版の番号があれば、その順 */
+  const ord = kind === 'pb' || nk >= E.length * 0.6; const L = ord ? E.map((e, i) => ({ e, i, k: ky(e) == null ? 1e9 : ky(e) })).sort((a, b) => a.k - b.k || a.i - b.i).map(o => o.e) : E; /* 図録・図版の番号があれば、その順 */
   const cv = kind === 'pb' && x['表紙写真ファイルID'] && S.photos.some(p => p['ファイルID'] === x['表紙写真ファイルID']) ? x['表紙写真ファイルID'] : '';
   return { kind, id, title: String((kind === 'ex' ? x['名称'] : x['タイトル']) || id).trim(), nos: L.map(e => String(e['作品番号'])), ord, cover: cv }; };
 async function exvOpen(start, noPush, set){
