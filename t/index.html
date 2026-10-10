@@ -2249,6 +2249,7 @@ button.ulrow{cursor:pointer}
 .pbtop .pbcnt{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);font-size:12px;line-height:1;padding:4px 9px;border-radius:999px;background:rgba(0,0,0,.5);color:#fff;z-index:2;pointer-events:none}
 @media (hover:none){.pbtop .pbmv{width:32px;height:32px;font-size:19px;opacity:.85}}
 .pbhint{display:flex;align-items:center;justify-content:center;gap:6px;margin:8px auto 0;max-width:min(640px,100%);font-size:12.5px;color:var(--sub)}
+@media (min-width: 1000px){ .pagebody .pbrngw,.pagebody .pbhint{margin-left:0} }
 .booki{width:16px;height:16px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}
 .pbph .pbpg{position:absolute;right:6px;bottom:6px;z-index:2;display:inline-flex;align-items:center;gap:3px;font-size:11.5px;line-height:1;padding:4px 7px 4px 6px;border-radius:999px;background:rgba(0,0,0,.55);color:#fff;letter-spacing:0;pointer-events:none}
 .pbph .pbpg .booki{width:13px;height:13px}
@@ -2787,7 +2788,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '32777da3a8', APP_URL = location.origin + location.pathname;
+const BUILD = 'b256b28226', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
