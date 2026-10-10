@@ -2580,6 +2580,11 @@ body.qcopen #bigwait{visibility:visible!important}body.bbig #toast.tmsg:not(.hid
 .gpp{position:relative;flex:0 0 auto;background:#e8e3d9;overflow:hidden;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.2)}.gpp img{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none}
 .gpp span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:10px;line-height:1.3;color:#6f685f;padding:2px}
 .gpp.miss{background:repeating-linear-gradient(135deg,#efebe4 0 6px,#e5e0d6 6px 12px);box-shadow:inset 0 0 0 1px rgba(0,0,0,.22)}
+.tile .ph.gph{padding:9%}
+.tile .ph.gph .gpv{width:100%;margin:0}
+.tile .ph.gph .gpp i{display:none}
+.tile .gtag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:var(--wash);color:var(--sub);font-size:11px;font-weight:600;vertical-align:2px;letter-spacing:0}
+.tl .evfrom{display:inline-block;margin:2px 0 2px;padding:1px 8px;border-radius:999px;background:var(--wash);color:var(--sub);font-size:12px}
 .gpp i{position:absolute;left:3px;top:2px;font:600 9px/1 var(--sans);font-style:normal;color:#fff;text-shadow:0 0 2px rgba(0,0,0,.8)}
 .gpp.cur{outline:2px solid var(--accent);outline-offset:-2px;z-index:1}.gpv:not(.ed) .gpp[data-gpw]{cursor:pointer}
 .gpv.ed .gpp{touch-action:none;cursor:grab;-webkit-user-select:none;user-select:none}.gpv.ed .gpp.sel{outline:3px solid #2e7dd7;outline-offset:-3px;z-index:1}.gpv.ed .gpp.drag{opacity:.55}
@@ -2809,7 +2814,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '9c2e99fe46', APP_URL = location.origin + location.pathname;
+const BUILD = 'f34d332043', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -7051,7 +7056,7 @@ function openWork(no, keepScroll, restoreSc){
   const ot = isOtNo(no), NO = ot ? no : 'No. ' + no; // その他の作品（Y001など）は本作と同じページで、クイズ・インタビューなしで表示
   const pg = $('#page');
   const ph = wPh(no);
-  const evAll = (eventBy[no]||[]).slice().sort((a,b)=> dateKey(a['日付'])-dateKey(b['日付']) || (a['種類']==='制作'?-1:0));
+  const evAll = (eventBy[no]||[]).concat(grpEvs(no)).sort((a,b)=> dateKey(a['日付'])-dateKey(b['日付']) || (a['種類']==='制作'?-1:0));
   const ev = evAll.filter(e => e['種類']!=='エピソード'), epi = evAll.filter(e => e['種類']==='エピソード');
   const QK = {'作品名':'作品名','サイズ':'サイズ','制作年':'制作年','画材':'画材','種別':'種別','シリーズ':'シリーズ'};
   const qv = k => k==='サイズ' ? sizeOf(w) : (w[k]||'');
@@ -7087,17 +7092,17 @@ function openWork(no, keepScroll, restoreSc){
       ${ot && !epi.length ? '' : epi.length ? `<div class="epis">${epi.map(e => `<blockquote class="epi">${escU(e['内容'])}<cite>${esc(String(e['根拠・出典']||'').replace(/^聞き取り（(.*)）$/, '$1さんの話') || '')}${e['登録日時'] ? '　' + esc(String(e['登録日時']).slice(0,10)) : ''}${canEdit()?` <button class="pen pen-s" data-evedit="${esc(e['出来事ID'])}" aria-label="このお話を直す"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.6"/></svg></button>`:''}</cite></blockquote>`).join('')}</div>` : '<p class="edonly" style="color:var(--sub)">まだありません</p>'}
       ${ot ? '' : `<button class="act ivbtn edonly" data-ivwork="${esc(no)}">🎙 この作品についてインタビュー</button>`}
       <h3 class="sec">来歴</h3>
-      ${canEdit() ? '<div class="edonly">' + evDupHTML(ev) + '</div>' : ''}
+      ${canEdit() ? '<div class="edonly">' + evDupHTML(ev.filter(e => !e._from)) + '</div>' : ''}
       ${ev.length ? `<ul class="tl">${ev.map(e=>{ const ds=String(e['日付']||''); const y=(ds.match(/\d{4}/)||[''])[0]; const rest=ds.replace(y,'').replace(/^年/,'').trim();
         const viewable = !!((e['展覧会ID'] && exById[e['展覧会ID']]) || (e['資料ID'] && pbById[e['資料ID']]) || (canEdit() && evDocs(e).some(id => docById(id))));
         return `<li class="${viewable ? 'viewable' : ''}" data-ev="${esc(e['出来事ID'])}"><div class="d">${esc(y||'—')}${rest?`<span class="dsub">${esc(rest)}</span>`:(y?'':'<span class="dsub">日付不明</span>')}</div><div>
-          <div class="ty ${esc(e['種類'])}">${esc(e['種類'])}</div>
+          <div class="ty ${esc(e['種類'])}">${esc(e['種類'])}</div>${e._from ? `<div class="evfrom">組のもう1枚（${esc(nol(e._from))}）の記録</div>` : ''}
           ${e['相手先・場所']?`<div class="pl"><b>${PRM(e['相手先・場所'])}${esc(e['相手先・場所'])}</b></div>`:''}
           ${e['展覧会ID'] && exById[e['展覧会ID']] ? `<button class="golink" data-ex="${esc(e['展覧会ID'])}">展覧会のページ ›</button>` : ''}${e['資料ID'] && pbById[e['資料ID']] ? `<button class="golink" data-pb="${esc(e['資料ID'])}">${esc(pbById[e['資料ID']]['種類']||'資料')}のページ ›</button>` : ''}
           ${e['内容'] && e['内容']!==e['相手先・場所'] && e['内容']!=='制作' ? `<div class="pl">${escU(e['内容'])}</div>`:''}
           ${e['担当者・連絡先'] ? `<div class="pl">担当者：${esc(e['担当者・連絡先'])}</div>` : ''}
           ${canEdit() && evDocs(e).some(id => docById(id) && docRes(docById(id)).PDF) ? `<button type="button" class="evsrc" data-evsrc="${esc(e['出来事ID'])}">該当箇所を確認 ↓</button><div class="evsrcbox"></div>` : ''}${canEdit() ? evDocs(e).filter(id => docById(id)).map((id, n, all) => `<button class="golink" data-doc="${esc(id)}">書類${all.length > 1 ? (n + 1) : ''}を見る ›</button>`).join('') : ''}<div class="src">${escU([evDocs(e).length ? (evDocs(e).length > 1 ? '書類' + evDocs(e).length + '通より' : '書類より') : e['根拠・出典'], e['確かさ'], e['登録者']!=='旧リストから移行'?e['登録者']:''].filter(Boolean).join(' · '))}</div>
-          ${canEdit()?`<button class="pen" data-evedit="${esc(e['出来事ID'])}" aria-label="このできごとを直す"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.6"/></svg></button>`:''}
+          ${canEdit() && !e._from?`<button class="pen" data-evedit="${esc(e['出来事ID'])}" aria-label="このできごとを直す"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.6"/></svg></button>`:''}
         </div></li>`; }).join('')}</ul>` : '<p style="color:var(--sub)">まだ記録がありません</p>'}
       ${canEdit() ? '<div class="edonly">' + workDiffsHTML(no) + '</div>' + workDocsHTML(no) : ''}
       ${canEdit() ? '<div class="edonly">' + workActsHTML(no, w, ot) + (!ot ? workQuizHTML(no) : '') + '</div>' : ''}
@@ -7306,10 +7311,13 @@ function linkedGrid(kind, id){
   const field = kind==='ex' ? '展覧会ID' : '資料ID', seen = {};
   let list = S.events.filter(e => e[field]===id && !seen[e['作品番号']] && (seen[e['作品番号']] = 1));
   if (kind === 'pb') { const ky = e => { const m = /No\.?\s*(M-)?(\d+)/.exec(String(e['内容'] || '')); return m ? (m[1] ? 1e4 : 0) + +m[2] : 1e9; }; list = list.map((e, i) => ({ e, i, k: ky(e) })).sort((a, b) => a.k - b.k || a.i - b.i).map(x => x.e); } /* 画集は図版 No. の順に（10/9 開発 v15） */
+  { const G = new Set(); list = list.filter(e => { const g = grpOf(e['作品番号']); if (!g) return true; if (G.has(g['組ID'])) return false; G.add(g['組ID']); return true; }); } /* 組は1枚のカード（10/11 開発 v19） */
   const fold = kind === 'pb' && list.length > 30;
   const add = '';
   if (!list.length) return add + '<p class="muted">まだ作品のひも付けがありません</p>';
-  return add + '<div class="grid' + (fold ? ' fold' : '') + '">' + list.map(e => { const no = e['作品番号'], w = workOf(no) || {};
+  return add + '<div class="grid' + (fold ? ' fold' : '') + '">' + list.map(e => { const no = e['作品番号'], w = workOf(no) || {}, g = grpOf(no);
+    if (g) { const sl = grpSlots(grpL(g)), ps = sl.filter(x => x.w), ys = [...new Set(ps.map(x => String(x.w['制作年'] || '').replace(/年$/, '')).filter(Boolean))].join('・');
+      return `<div class="tilewrap gtw"><button class="tile" data-no="${esc(no)}"><div class="ph gph">${grpPrevHTML(sl, { gap: grpGap(g) }).replace(/ data-gpw="[^"]*"/g, '')}</div><div class="cap"><div class="no">No. ${ps.map(x => esc(x.no)).join('・')}</div><div class="tt">${esc(grpName(g))}<span class="gtag">${sl.length}枚一組</span></div><div class="yr">${esc(kind === 'pb' && e['内容'] ? e['内容'] : ys)}</div></div></button>${canEdit() && ps.filter(x => S.events.some(v => v[kind === 'ex' ? '展覧会ID' : '資料ID'] === id && String(v['作品番号']) === x.no)).length === 1 ? `<button class="unl" data-unlink="${kind}|${esc(e['出来事ID'])}" aria-label="ひも付けを外す">×</button>` : ''}</div>`; }
     return `<div class="tilewrap"><button class="tile" data-no="${esc(no)}"><div class="ph">${thumbHTML(no,400)}</div><div class="cap"><div class="no">${isOtNo(no) ? '' : 'No. '}${esc(no)}</div><div class="tt">${w['作品名']?esc(w['作品名']):'<span class="untitled">無題</span>'}</div><div class="yr">${esc(kind==='pb' && e['内容'] ? e['内容'] : (w['制作年']||''))}</div></div></button>${canEdit() ? `<button class="unl" data-unlink="${kind}|${esc(e['出来事ID'])}" aria-label="ひも付けを外す">×</button>` : ''}</div>`; }).join('') + '</div>' + (fold ? `<button type="button" class="act gunfold" data-gunfold="1">残りの ${list.length - 24}点も表示する（全${list.length}点）</button>` : '');
 }
 function sheetLink(kind, id){
@@ -7602,7 +7610,7 @@ function openEx(id, keepScroll, restoreSc){
     ${(V => V ? `<dl class="info vonly exinfo">${V}</dl>` : '')([dd2('主催', esc(x['主催'])), x['国'] && x['国'] !== '日本' ? dd2('国', esc(x['国'])) : '', cat ? dd2('図録', `<button class="golink" data-pb="${esc(cat['資料ID'])}">${esc(cat['タイトル']||'図録')} ›</button>`) : '', rel.length ? dd2('関連資料', rel.map(p => `<button class="golink" data-pb="${esc(p['資料ID'])}">${esc(p['タイトル']||p['資料ID'])} ›</button>`).join('')) : '', dd2('メモ', escU(x['メモ'])), srcDD(x)].join(''))}
     ${canEdit() ? `<div class="edonly"><h3 class="sec">展覧会の情報</h3>${recInfo('ex', id, x)}</div>` : ''}
     ${(venueBy[id] || []).length ? venueSec(id) : `<div class="edonly">${venueSec(id)}</div>`}
-    <h3 class="sec">出品作品 ${new Set(nos).size}点</h3>${exvSetBtn('ex', id)}${linkedGrid('ex', id)}${docLinks('展覧会ID', id)}${memosFor(id)}
+    <h3 class="sec">出品作品 ${grpCnt(nos)}点</h3>${exvSetBtn('ex', id)}${linkedGrid('ex', id)}${docLinks('展覧会ID', id)}${memosFor(id)}
     ${canEdit() && !isEasy() ? `<div class="edonly"><h3 class="sec">記録を更新する</h3><div class="actions bottomacts one"><button class="act main" data-link="ex|${esc(id)}">＋ 出品作品をひも付け</button><button class="act vadd" data-venue="${esc(id)}|">＋ 巡回先（会場）を追加</button><button class="act" data-mmadd="1">📝 お母さんへの確認メモを書く</button>${delBtn('ex', id, 'この展覧会')}</div></div>` : ''}${histBlock(id, x['登録日時'], x['登録者'])}</div>`;
   showPage({t:'ex', id}, html, keepScroll, restoreSc);
 }
@@ -7629,7 +7637,7 @@ function openPb(id, keepScroll, restoreSc){
     ${pbPagesHTML(id, x, cover)}
     ${(V => V ? `<dl class="info vonly pbinfo">${V}</dl>` : '')([dd2('掲載内容', esc(x['掲載内容'])), dd2('家にある冊数', x['家にある冊数'] ? esc(x['家にある冊数']) + '冊' : ''), ex ? dd2('関連する展覧会', `<button class="golink" data-ex="${esc(ex['展覧会ID'])}">${PRM(ex['名称'])}${esc(ex['名称'])} ›</button>`) : '', dd2('メモ', escU(x['メモ'])), srcDD(x)].join(''))}
     ${canEdit() ? `<div class="edonly"><h3 class="sec">資料の情報</h3>${recInfo('pb', id, x)}</div>` : ''}
-    <h3 class="sec">掲載作品 ${new Set(nos).size}点</h3>${exvSetBtn('pb', id)}${linkedGrid('pb', id)}${docLinks('資料ID', id)}${memosFor(id)}
+    <h3 class="sec">掲載作品 ${grpCnt(nos)}点</h3>${exvSetBtn('pb', id)}${linkedGrid('pb', id)}${docLinks('資料ID', id)}${memosFor(id)}
     ${canEdit() && !isEasy() ? `<div class="edonly"><h3 class="sec">記録を更新する</h3><div class="actions bottomacts one">${(n => n ? `<button class="act main" data-pbplate="${esc(id)}">📖 図版の照合（あと${n}点）</button>` : '')(plGroups(id).length + plChecks(id).length)}<button class="act main" data-link="pb|${esc(id)}">＋ 掲載作品をひも付け</button><button class="act" data-cover="${esc(id)}">${cover ? '表紙の写真を差し替える' : '表紙の写真を登録（カメラ・写真）'}</button><button class="act" data-pbpages="${esc(id)}">＋ 中のページの写真を撮る</button><button class="act" data-pbpdf="${esc(id)}">＋ スキャンした PDF からページを入れる</button><button class="act" data-mmadd="1">📝 お母さんへの確認メモを書く</button>${delBtn('pb', id, 'この資料')}</div></div>` : ''}${histBlock(id, x['登録日時'], x['登録者'])}${PC ? '</div>' : ''}</div>`;
   showPage({t:'pb', id}, html, keepScroll, restoreSc); pbNudge();
   const m = PC && document.querySelector('#page .pbmedia'); if (m) { imgMount(m, T0.map(p => thImg(p['ファイルID'], 800) + wm(p)), x['タイトル'] || '', { open: i => { if (V.prevCur === undefined) V.prevCur = S.cur; S.cur = id; openViewerL(pbTop(id), i, 'pbtop'); } }); hydrate(m); colStick(m); }
@@ -11687,9 +11695,15 @@ function grpGuess(no){ const w = grpW(no), m = w && grpSuf(w['作品名']); if (
 let GE = null, GU = null; /* GE：組の編集中、GU：さっきの変更（作品ページの「もどす」用。3分） */
 const grpUndoBtn = (no, cls) => GU && GU.from === String(no) && Date.now() - GU.t < 180000 ? `<button type="button" class="${cls}" data-gpundo="${esc(no)}">↩ さっきの組の変更をもどす</button>` : '';
 /* 作品ページの欄（組に入っている作品だけ） */
+/* 組の数え方（展覧会・画集の「◯点」）：組のパーツはまとめて1点 */
+const grpKey = no => { const g = grpOf(no); return g ? 'g:' + g['組ID'] : String(no); };
+const grpCnt = nos => new Set((nos || []).map(grpKey)).size;
+/* 作品ページの来歴に、組のもう1枚の展覧会・画集の記録も（同じ展覧会・画集は1回だけ。直すのはその作品のページで） */
+function grpEvs(no){ const g = grpOf(no); if (!g) return []; const own = new Set((eventBy[no] || []).map(e => e['展覧会ID'] || e['資料ID']).filter(Boolean)), seen = new Set();
+  return grpL(g).filter(x => x && x !== String(no)).flatMap(p => (eventBy[p] || []).filter(e => { const k = e['展覧会ID'] || e['資料ID']; if (!k || own.has(k) || seen.has(k)) return false; seen.add(k); return true; }).map(e => Object.assign({}, e, { _from: p }))); }
 function grpSecHTML(no){ const g = grpOf(no); if (!g) return ''; const sl = grpSlots(grpL(g)), reg = sl.filter(x => x.w).length;
   return `<h3 class="sec">組（パーツ）</h3><div class="gpsec">${grpPrevHTML(sl, { cur: String(no), gap: grpGap(g) })}<p class="hint">${esc(grpName(g))}：全${sl.length}パーツ（台帳にあるもの ${reg}点${sl.length > reg ? '・台帳にないもの ' + (sl.length - reg) + '点' : ''}）。パーツを押すと、その作品のページへ。展示ビューでは、くっつけて1つの作品にします。</p>
-    ${canEdit() ? `<div class="gpbt"><button type="button" class="shfam" data-grped="${esc(g['組ID'])}" data-gpfrom="${esc(no)}">組を編集</button>${grpUndoBtn(no, 'shfam')}</div>` : ''}</div>`; }
+    ${canEdit() ? `<div class="gpbt edonly"><button type="button" class="shfam" data-grped="${esc(g['組ID'])}" data-gpfrom="${esc(no)}">組を編集</button>${grpUndoBtn(no, 'shfam')}</div>` : ''}</div>`; }
 function grpRefresh(no){ if (S.pcur && S.pcur.t === 'w' && String(S.pcur.id) === String(no)) openWork(no, true); }
 function grpEdit(id, from){ const g = id ? (S.groups || []).find(x => x['組ID'] === id) : null, gs = g ? null : grpGuess(from);
   GE = { id: g ? g['組ID'] : '', from: String(from || ''), name: g ? String(g['作品名'] || '') : gs ? gs.name : grpBase((grpW(from) || {})['作品名']), list: g ? grpL(g) : gs ? gs.list : [String(from), ''], sel: -1, prev: g ? Object.assign({}, g) : null, guess: !!gs, gap: grpGap(g), sep: grpSep(g) };
