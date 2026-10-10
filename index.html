@@ -218,6 +218,7 @@ nav button.on:after{content:"";position:absolute;top:0;left:30%;right:30%;height
 dl.info{display:grid;grid-template-columns:6.5em 1fr;margin:0}
 dl.info{grid-template-columns:6.5em minmax(0,1fr)}dl.info dt,dl.info dd{min-width:0}
 #page dl.info dd select,#page dl.info dd input,#page dl.info dd textarea{max-width:100%;min-width:0;box-sizing:border-box}
+#sheetbox.dview:not(.dse) #dvTtl,#sheetbox.dview:not(.dse) .dchk,#sheetbox.dview:not(.dse) .dfsec,#sheetbox.dview:not(.dse) .cmpbtn,#sheetbox.dview:not(.dse) .wfix,#sheetbox.dview:not(.dse) .wfixhint,#sheetbox.dview:not(.dse) #dvAgain{display:none!important} /* 書類の画面：見るだけのときは直す道具を出さない（10/11 開発 v19） */
 #page{overflow-x:hidden}
 dl.info dt,dl.info dd{padding:13px 0;border-bottom:1px solid var(--line);margin:0}
 dl.info dt{color:var(--sub);font-size:16px}
@@ -2814,7 +2815,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '54f28880c2', APP_URL = location.origin + location.pathname;
+const BUILD = '99f7b10aa7', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3051,7 +3052,7 @@ function abBackName(){
 function abV19(){ const h = $('#abTitle'); if (!h || h.className.indexOf('st-') === 0) { edBtnSync(); return; }
   const top = SCR[SCR.length - 1];
   if (top && top.classList && top.classList.contains('bigv')) { edBtnSync(); return; } /* 大きく見る画面は、いままでどおりファイル名 */
-  if (EDM && !SCR.length && !$('#page').classList.contains('hidden')) { h.innerHTML = '<span class="abedt">✎ 編集中</span>'; edBtnSync(); return; } /* 編集中は見出しを「編集中」に（10/10 開発 v19 本人） */
+  if ((EDM && !SCR.length && !$('#page').classList.contains('hidden')) || (dsCtx() && $('#sheetbox').classList.contains('dse'))) { h.innerHTML = '<span class="abedt">✎ 編集中</span>'; edBtnSync(); return; } /* 編集中は見出しを「編集中」に（10/10 開発 v19 本人） */
   const nm = abBackName();
   if (nm) h.innerHTML = `<span class="abbk" role="button" tabindex="0" aria-label="${esc(nm)}にもどる">${esc(nm)}</span>`;
   else if (S.view !== 'home') { const cur = h.querySelector('.crumb.cur'), cn = h.querySelector('.abcn'), cps = [...h.querySelectorAll('.crumb.cp')].filter(c => !c.classList.contains('chome')), up = cps.length ? cps[cps.length - 1] : null;
@@ -3059,9 +3060,12 @@ function abV19(){ const h = $('#abTitle'); if (!h || h.className.indexOf('st-') 
     h.innerHTML = (up ? `<span class="crumb cp abup" ${at} aria-label="${esc(up.getAttribute('aria-label') || '')}にもどる">‹</span>` : '') + `<span class="crumb cur">${esc(cur ? cur.textContent : (h.dataset.t || ''))}</span>` + (cn ? cn.outerHTML : ''); }
   edBtnSync(); }
 function edBtnSync(){ const b = $('#abEdit'); if (!b) return; const pgOpen = !$('#page').classList.contains('hidden') && S.pcur;
-  const on = !!(pgOpen && !SCR.length && ['w', 'ot', 'ex', 'pb'].includes(S.pcur.t) && canEdit());
-  b.classList.toggle('hidden', !on); b.textContent = EDM ? '完了' : '編集'; b.classList.toggle('on', !!EDM);
-  const c = $('#abCancel'); if (c) c.classList.toggle('hidden', !(on && EDM)); document.body.classList.toggle('edmhd', !!(on && EDM)); }
+  const on = !!(pgOpen && !SCR.length && ['w', 'ot', 'ex', 'pb'].includes(S.pcur.t) && canEdit()), ds = dsCtx(), dse = ds && $('#sheetbox').classList.contains('dse');
+  b.classList.toggle('hidden', !(on || ds)); b.textContent = (ds ? dse : EDM) ? '完了' : '編集'; b.classList.toggle('on', !!(ds ? dse : EDM));
+  const c = $('#abCancel'); if (c) c.classList.toggle('hidden', !(on && EDM)); document.body.classList.toggle('edmhd', !!((on && EDM) || dse)); }
+/* 書類の画面（見る形）がいちばん上にあって、直せる人か。書類の編集は、押したその場で保存されるので「やめる」はない（10/11 開発 v19） */
+function dsCtx(){ const top = SCR[SCR.length - 1]; return !!(top && top.id === 'sheet' && $('#sheetbox').classList.contains('dview') && canEdit()); }
+function dseToggle(){ $('#sheetbox').classList.toggle('dse'); abRender(); }
 /* パンくず：入りきれば文字で → 入らなければアイコンで → それでも入らなければ「… › ひとつ前のアイコン › 名前」 */
 function abFit(){ const h = document.getElementById('abTitle'); if (!h) return; h.classList.remove('bcI', 'bcD');
   if (!h.querySelector('.cp') || !h.clientWidth) return;
@@ -5211,7 +5215,7 @@ function workDocsHTML(no){
   if (!ds.length) return '';
   const st = d => ({'まだ':'まだ読んでいない','確認待ち':'確認待ち','登録済み':'登録済み','登録しない':'登録しない'})[d['状態']] || d['状態'] || '';
   return `<h3 class="sec">この作品の書類（${ds.length}通）</h3><div class="dlist wdocs">${ds.map(d => { const ok = d['状態'] === '登録済み', pdf = ok && docPdfFid(d), k = esc(d['書類ID']) + '|' + esc(no);
-    return `<div class="dfx evx wdoc" data-wdid="${esc(d['書類ID'])}">${docCard(d, docWarn(d) ? '⚠ ' + docWarn(d) : st(d))}${ok ? `<button type="button" class="act main wdcmp" data-cmp="${k}">📑 書類と見比べる</button>` : ''}</div>`; }).join('')}</div>` + contactsHTML(ds.filter(d => d['状態'] === '登録済み'));
+    return `<div class="dfx evx wdoc" data-wdid="${esc(d['書類ID'])}">${docCard(d, docWarn(d) ? '⚠ ' + docWarn(d) : st(d))}${ok ? `<button type="button" class="act main wdcmp edonly" data-cmp="${k}">📑 書類と見比べる</button>` : ''}</div>`; }).join('')}</div>` + contactsHTML(ds.filter(d => d['状態'] === '登録済み'));
 }
 /* ---- 同じ出来事（制作・出品・掲載・貸出・委託・寄贈・販売・贈与・廃棄など）が重なっていたら1つにまとめる ----
    同じ種類・同じ相手・同じ時期なら候補。内容は補い合い、書類はすべて残す。食い違う項目は選んでもらう。
@@ -6112,7 +6116,7 @@ function sheetDocReview(id){ try { const d0 = docById(id); if (d0) pdfPrefetch([
       ${canEdit() && r.PDF && docPdfFid(d) && PIMG[docPdfFid(d)] ? `<button type="button" class="act pdfopen" data-pimgre="${esc(id)}">↻ ページの表示を作り直す（元のファイルと違うとき）</button>` : ''}</details>
       <p class="hint">${esc([r['日付'], r['相手先'] && r.PDF ? r['相手先'] : '', r['要約']].filter(Boolean).join('　'))}</p>
       ${r['要確認'] ? `<div class="dchk"><b>⚠ 要確認</b>${esc(r['要確認'])}<button type="button" class="act" id="dvChk">確認した</button></div>` : ''}
-      ${canEdit() && (r['食い違い']||[]).length ? `<h3 class="sec" style="font-size:18px">台帳との食い違い</h3><p class="hint">押すと、書類と作品を並べて見比べる画面が開き、「どっちが正しい？」を決められます。</p>${r['食い違い'].map((x, i) => dfCard(d, x, i)).join('')}` : ''}
+      ${canEdit() && (r['食い違い']||[]).length ? `<div class="dfsec"><h3 class="sec" style="font-size:18px">台帳との食い違い</h3><p class="hint">押すと、書類と作品を並べて見比べる画面が開き、「どっちが正しい？」を決められます。</p>${r['食い違い'].map((x, i) => dfCard(d, x, i)).join('')}</div>` : ''}
       ${(r['台帳にない作品'] || []).length ? `<details class="dfill dnf"><summary>この書類にだけある作品（台帳にない）${r['台帳にない作品'].length}点</summary><p class="hint">チャリティーの色紙など、台帳に入っていない作品です。確認はいりません（台帳に入れたいときは「新しい作品を登録」から）。</p>${r['台帳にない作品'].map(w => `<p>${esc(w['作品名'] || '（無題）')}${[w['制作年'], w['高さcm'] && w['幅cm'] ? w['高さcm'] + '×' + w['幅cm'] + 'cm' : '', w['画材'], w['メモ']].filter(Boolean).map(v => '　<small>' + esc(v) + '</small>').join('')}</p>`).join('')}</details>` : ''}
       ${docEvHTML(d)}${docTocHTML(d)}
       ${(r['補完']||[]).length ? `<details class="dfill"><summary>この書類から自動で埋めた項目（${r['補完'].length}件）</summary>${r['補完'].map(x => `<p>${esc(x.name)}：${esc(x.f)}　→　${esc(x.v)}</p>`).join('')}</details>` : ''}
@@ -6874,7 +6878,7 @@ document.addEventListener('click', async e => {
 });
 /* 資料ページの新しい見た目（年表と同じ、文字中心のシンプルな形）。false にすると元の見た目に戻る */
 const DOCUI2 = true;
-(function(){ const _o = sheetDocReview; sheetDocReview = function(id){ _o(id); { const sb = $('#sheetbox'); if (sb) sb.classList.toggle('dv2', DOCUI2); } const bx = $('#sheetbox .btns'); if (bx && canEdit() && !$('#sheetbox [data-del]')) bx.insertAdjacentHTML('beforebegin', delBtn('doc', id, 'この書類')); docSplit(id); }; })();
+(function(){ const _o = sheetDocReview; sheetDocReview = function(id){ _o(id); { const sb = $('#sheetbox'); if (sb) { sb.classList.toggle('dv2', DOCUI2); const d = docById(id), st = d && d['状態']; sb.classList.toggle('dview', !!d && (st === '登録済み' || st === '登録しない' || !canEdit())); try { abRender(); } catch(e){} } } const bx = $('#sheetbox .btns'); if (bx && canEdit() && !$('#sheetbox [data-del]')) bx.insertAdjacentHTML('beforebegin', delBtn('doc', id, 'この書類')); docSplit(id); }; })();
 /* 画面が広いときは、左に書類（PDF・写真）、右に確認・修正の画面を並べる */
 /* スマホの書類詳細：作品ページの「該当箇所を確認」と同じ見た目で、書類の1ページ目をはじめから表示する */
 /* 書類のページを正方形の枠に表示する部品：左右スワイプ・‹ › でページ送り、指2本で拡大（拡大中は指1本で動かす・2回タップで元に戻す）。拡大中はスワイプでページが変わらない */
@@ -8921,7 +8925,7 @@ function scrBack(fromHist){ const top = SCR[SCR.length - 1]; if (!top) return fa
   if (top.classList.contains('docview') || top.classList.contains('noteview')) { docClose(top, fromHist); return true; }
   return false; }
 function openSheet(html){ if (S.sheetDoc && !$('#sheet').classList.contains('hidden')) { const did = S.sheetDoc, sc = $('#sheet').scrollTop, sb = $('#sheetbox').scrollTop; S.sheetRet = () => { sheetDocReview(did); setTimeout(() => { $('#sheet').scrollTop = sc; $('#sheetbox').scrollTop = sb; }, 120); }; } /* 書類の上で直す画面を開いたら、閉じたとき書類に戻る */
-  S.sheetDoc = null; $('#sheetbox').classList.remove('split'); $('#sheetbox').innerHTML = html; $('#sheetbox').scrollTop = 0; $('#sheet').scrollTop = 0; /* 中身を入れ替えたら上から */ if ($('#sheet').classList.contains('hidden')) { hpush('s'); $('#sheet').classList.remove('hidden'); scrPush($('#sheet')); }
+  S.sheetDoc = null; $('#sheetbox').classList.remove('split', 'dview', 'dse'); $('#sheetbox').innerHTML = html; $('#sheetbox').scrollTop = 0; $('#sheet').scrollTop = 0; /* 中身を入れ替えたら上から */ if ($('#sheet').classList.contains('hidden')) { hpush('s'); $('#sheet').classList.remove('hidden'); scrPush($('#sheet')); }
   clearTimeout(SNAP.t); SNAP.v = null; SNAP.t = setTimeout(() => { SNAP.v = sheetState(); }, 250); }
 /* 入力中の内容があるか（開いたときの状態とくらべる）。写真を選んだ・項目を選んだ・文字を入れた、を見分ける */
 const SNAP = { v: null, t: 0 };
@@ -9180,7 +9184,7 @@ document.addEventListener('keydown', e => { if (!EDM || e.key !== 'Enter' || e.i
   const L = [...$('#page').querySelectorAll('dd.ief .iein, dd.ief .mpadd')].filter(x => x.offsetParent && x.type !== 'checkbox' && !x.disabled), k = L.indexOf(i), nx = L[k + 1];
   if (nx) { nx.focus(); if (nx.select && nx.tagName === 'INPUT') nx.select(); } else i.blur(); }, true);
 document.addEventListener('click', e => { const t = e.target;
-  if (t.closest && t.closest('#abEdit')) { e.preventDefault(); edmToggle(); return; }
+  if (t.closest && t.closest('#abEdit')) { e.preventDefault(); if (dsCtx()) return dseToggle(); edmToggle(); return; }
   if (t.closest && (t.closest('.edcancel') || t.closest('#abCancel'))) { e.preventDefault(); edmCancel(); return; } });
 /* ---------- 編集モードの「出典」（10/10 開発 v19 本人「編集前に根拠を確認してから修正できる」） ----------
    各項目の下に灰色の小さな1行。出どころは ①書類の読み取り（食い違い・補完。位置 at があれば赤のマーカー）②作品の変更の記録（srcOf）。
