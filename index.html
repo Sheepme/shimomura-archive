@@ -2815,7 +2815,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '99f7b10aa7', APP_URL = location.origin + location.pathname;
+const BUILD = '39619ec56c', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5205,7 +5205,7 @@ const DOC_MOVE = ['寄託','寄贈','貸出','返却','委託','販売','譲渡'
 /** 要確認メモの中身に合わせたボタン（年の食い違い→正しい年を選ぶ／重複→統合する／それ以外→確認できた） */
 function flagActs(w){
   const m = String(w['要確認メモ']||''), ys = [...new Set((m.match(/(1[89]\d\d|20\d\d)(?=年)/g) || []))];
-  if (/重複|同じ作品|統合|二重/.test(m)) return '<br><button class="mgbtn" data-act="merge">統合する</button>';
+  if (/重複|同じ作品|統合|二重/.test(m)) return '<br><span class="yrq">台帳に同じ作品はあった？</span><br><button class="mgbtn" data-act="merge">あった（統合する）</button> <button class="mgbtn" data-act="flag">なかった（確認できた）</button>';
   if (ys.length >= 2 && /制作|年/.test(m)) return `<br><span class="yrq">正しい制作年はどっち？</span><br>${ys.map(y => `<button class="mgbtn" data-yrfix="${y}">${y}年</button>`).join(' ')} <button class="mgbtn" data-act="edit">ほかの年</button>`;
   return '<br><button class="mgbtn" data-act="flag">確認できた</button>';
 }
@@ -7080,7 +7080,7 @@ function openWork(no, keepScroll, restoreSc){
       ${!ot && exvWorks(true).some(d => exvHas(d, no)) ? `<button type="button" class="shfam" data-exvw="${esc(no)}">${EXVIC}展示ビュー</button>` : ''}${canEdit() ? `<button type="button" class="shfam" data-share="${esc(no)}">${SHIC}家族に送る</button>` : ''}
       <div class="loc"><span class="lk">いまの場所</span><span style="display:flex;align-items:center"><b>${esc(w['所在']||w['所在区分']||'不明')}</b>${canEdit()?`<button class="pen" data-act="move" aria-label="場所を変える"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.6"/></svg></button>`:''}</span></div>
       ${canEdit() ? (w['場所確認日'] ? `<p class="locokv vonly">場所の確認：${esc(String(w['場所確認日']).split(' ')[0])}（${esc(w['場所確認者']||'')}）</p>` : '') + `<label class="locok edonly ${w['場所確認日']?'on':''}"><input type="checkbox" id="locOk" ${w['場所確認日']?'checked':''}><span>${w['場所確認日'] ? 'この場所にあることを確認済み<small>' + esc(String(w['場所確認日']).split(' ')[0]) + '　' + esc(w['場所確認者']||'') + '</small>' : 'この場所にあることを確認した'}</span></label>` : (w['場所確認日'] ? `<p class="locokv">場所の確認：${esc(String(w['場所確認日']).split(' ')[0])}（${esc(w['場所確認者']||'')}）</p>` : '')}
-      ${w['要確認']?`<div class="flagbox">要確認 — ${escU(w['要確認メモ']||'（メモなし）')}${canEdit()?'<span class="edonly">' + flagActs(w) + '</span>':''}</div>`:''}
+      ${w['要確認']?`<div class="flagbox">要確認 — ${escU(w['要確認メモ']||'（メモなし）')}${canEdit()?flagActs(w):''}</div>`:''}
       <h3 class="sec">作品の情報</h3>
       <dl class="info">
         ${dd('作品名', w['作品名'], 'w1')}
