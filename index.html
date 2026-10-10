@@ -215,6 +215,9 @@ nav button.on:after{content:"";position:absolute;top:0;left:30%;right:30%;height
 .sec{margin:56px 0 16px;font-size:15px;font-family:var(--sans);font-weight:500;letter-spacing:.24em;text-transform:uppercase;color:var(--sub);display:flex;align-items:center;gap:14px}
 .sec:after{content:"";flex:1;height:1px;background:var(--line)}
 dl.info{display:grid;grid-template-columns:6.5em 1fr;margin:0}
+dl.info{grid-template-columns:6.5em minmax(0,1fr)}dl.info dt,dl.info dd{min-width:0}
+#page dl.info dd select,#page dl.info dd input,#page dl.info dd textarea{max-width:100%;min-width:0;box-sizing:border-box}
+#page{overflow-x:hidden}
 dl.info dt,dl.info dd{padding:13px 0;border-bottom:1px solid var(--line);margin:0}
 dl.info dt{color:var(--sub);font-size:16px}
 dl.info .empty{color:var(--faint)}
@@ -513,7 +516,7 @@ nav button.on:after{display:none}
 .act{border-radius:6px;font-size:16px;letter-spacing:0;padding:13px 10px}
 .sec{margin:40px 0 10px;font:700 17px/1.4 var(--sans);letter-spacing:0;text-transform:none;color:var(--ink)}
 .sec:after{display:none}
-dl.info{grid-template-columns:5.5em 1fr}
+dl.info{grid-template-columns:5.5em minmax(0,1fr)}
 dl.info dt{font-size:14px}
 dl.info dd{font-size:16px}
 .flagbox{border-radius:6px;border-left:0;font-size:15px}
@@ -2804,7 +2807,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '72d6371f74', APP_URL = location.origin + location.pathname;
+const BUILD = 'ad6d17c6df', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
