@@ -2222,7 +2222,7 @@ button.ulrow{cursor:pointer}
 @media (hover:hover){.pbrw:hover .pbrmv.can{opacity:.92;pointer-events:auto}}
 .pbsx.all .pbrmv{display:none}
 @media (max-width:520px){.pbsxbar{gap:6px;padding:6px 8px}.pbsxv{gap:4px}.pbsxv button,.pbtoc button{padding:5px 10px;font-size:12.5px}}
-.pbrngw{max-width:min(640px,100%);margin:8px auto 0;padding:0 8%;box-sizing:border-box}
+.pbrngw{max-width:min(640px,100%);margin:8px auto 0;padding:0 8%;box-sizing:border-box} .pbgal a{overflow:hidden} .pbgal a img{transition:transform .08s linear;will-change:transform} .pbgal.pbzoom{overflow:hidden!important;touch-action:none} .pbgal a.pbzon{cursor:grab} .dtprng,.pqrngw{padding:6px 12px 2px;box-sizing:border-box} .dtprng input,.pqrngw input{width:100%;margin:0;accent-color:var(--ink)} .pqrngw[hidden],.dtprng[hidden]{display:none} .dsvrng{position:sticky;top:0;z-index:2;background:var(--bg);padding:6px 12px}
 .pbrng{width:100%;accent-color:var(--ink);margin:0}
 .grid.fold>.tilewrap:nth-child(n+25){display:none}
 .act.gunfold{display:block;margin:10px auto 4px}
@@ -2654,7 +2654,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'b32164ba29', APP_URL = location.origin + location.pathname;
+const BUILD = 'e991d57386', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3836,7 +3836,32 @@ document.addEventListener('scroll', e => { const r = e.target; if (r && r.classL
 let PBSPY = 0;
 /* いちばん上のめくりのつまみ（ページが多いとき） */
 document.addEventListener('input', e => { const rg = e.target; if (!rg.classList || !rg.classList.contains('pbrng')) return; const w = rg.closest('.pbrngw'), b = w && w.previousElementSibling, g = b && b.querySelector('.pbgal'); if (!g) return;
-  g.scrollTo({ left: pbStep(g) * (+rg.value - 1), behavior: 'auto' }); });
+  pbzReset(); g.scrollTo({ left: pbStep(g) * (+rg.value - 1), behavior: 'auto' }); });
+/* 画集・書籍のいちばん上のめくりも、書類のプレビューと同じく指2本で拡大（1〜5倍。10/10 開発 v18 本人）。拡大中は1本指で動かす（めくらない・押しても大きな画面を開かない）。
+   指2本で元の大きさにもどすか、つまみ・‹ › でめくると元にもどる。パソコンは Ctrl＋ホイール（トラックパッドのピンチ）で拡大、ドラッグで動かす。拡大したら細かい写真（1600）に差しかえる */
+let PBZ = null, PBZT = 0, pbzG = null;
+const pbzApply = z => { const on = z.s > 1.001; z.img.style.transform = on ? `translate(${z.x}px,${z.y}px) scale(${z.s})` : ''; z.a.classList.toggle('pbzon', on); const g = z.a.parentNode; if (g && g.classList) g.classList.toggle('pbzoom', on); };
+const pbzClamp = z => { const mx = Math.max(0, (z.s - 1) * z.img.offsetWidth / 2), my = Math.max(0, (z.s - 1) * z.img.offsetHeight / 2); z.x = Math.max(-mx, Math.min(mx, z.x)); z.y = Math.max(-my, Math.min(my, z.y)); };
+function pbzReset(){ if (!PBZ) return; const z = PBZ; PBZ = null; z.s = 1; z.x = z.y = 0; pbzApply(z); }
+const pbzOf = a => { if (PBZ && PBZ.a === a) return PBZ; pbzReset(); const img = a.querySelector('img'); if (!img) return null; PBZ = { a, img, s: 1, x: 0, y: 0 }; return PBZ; };
+const pbzHi = z => { if (z.hi || z.s < 1.4) return; z.hi = 1; const fid = z.a.dataset.fid; if (!fid) return; const hi = new Image(); hi.dataset.tid = fid; hi.dataset.w = '1600'; hi.onload = () => { if (z.img.isConnected && hi.naturalWidth >= z.img.naturalWidth) z.img.src = hi.src; }; queueThumb(hi); };
+const pbzDist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY) || 1;
+document.addEventListener('touchstart', e => { const a = e.target.closest && e.target.closest('.pbgal > a'); if (!a) { pbzG = null; return; } const t = e.touches;
+  if (t.length === 2) { const z = pbzOf(a); if (!z) return; e.preventDefault(); pbzG = { m: 'p', d0: pbzDist(t), s0: z.s, x0: z.x, y0: z.y }; }
+  else if (t.length === 1 && PBZ && PBZ.a === a && PBZ.s > 1.001) pbzG = { m: 'm', px: t[0].clientX, py: t[0].clientY, x0: PBZ.x, y0: PBZ.y };
+  else pbzG = null; }, { passive: false });
+document.addEventListener('touchmove', e => { const g = pbzG, z = PBZ; if (!g || !z) return; const t = e.touches;
+  if (g.m === 'p' && t.length === 2) { e.preventDefault(); z.s = Math.max(1, Math.min(5, g.s0 * pbzDist(t) / g.d0)); const k = z.s / g.s0; z.x = g.x0 * k; z.y = g.y0 * k; pbzClamp(z); pbzApply(z); pbzHi(z); }
+  else if (g.m === 'm' && t.length === 1) { e.preventDefault(); z.x = g.x0 + t[0].clientX - g.px; z.y = g.y0 + t[0].clientY - g.py; pbzClamp(z); pbzApply(z); } }, { passive: false });
+document.addEventListener('touchend', e => { if (!pbzG) return; PBZT = Date.now(); const t = e.touches;
+  if (!t.length) { pbzG = null; if (PBZ && PBZ.s < 1.05) pbzReset(); }
+  else if (t.length === 1 && PBZ && PBZ.s > 1.001) pbzG = { m: 'm', px: t[0].clientX, py: t[0].clientY, x0: PBZ.x, y0: PBZ.y }; }, { passive: true });
+document.addEventListener('wheel', e => { if (!e.ctrlKey) return; const a = e.target.closest && e.target.closest('.pbgal > a'); if (!a) return; const z = pbzOf(a); if (!z) return; e.preventDefault();
+  const d = Math.max(-30, Math.min(30, e.deltaMode ? e.deltaY * 16 : e.deltaY)); z.s = Math.max(1, Math.min(5, z.s * Math.exp(-d * .01))); pbzClamp(z); pbzApply(z); pbzHi(z); if (z.s < 1.02) pbzReset(); }, { passive: false });
+let pbzD = null;
+document.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse' || !PBZ || PBZ.s <= 1.001 || !(e.target.closest && e.target.closest('.pbgal > a') === PBZ.a)) return; pbzD = { x: e.clientX, y: e.clientY, x0: PBZ.x, y0: PBZ.y }; e.preventDefault(); });
+document.addEventListener('pointermove', e => { if (!pbzD || !PBZ) return; PBZ.x = pbzD.x0 + e.clientX - pbzD.x; PBZ.y = pbzD.y0 + e.clientY - pbzD.y; pbzClamp(PBZ); pbzApply(PBZ); });
+document.addEventListener('pointerup', () => { if (pbzD) { pbzD = null; PBZT = Date.now(); } });
 const pbStep = g => { const a = g.children[0], b = g.children[1]; return Math.max(1, a && b ? b.offsetLeft - a.offsetLeft : g.clientWidth); }; /* 1ページ分の横の長さ（次のページの端を見せているので、幅より少し短い） */
 const BOOKI = '<svg class="booki" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6.5C10.2 5.2 7.6 4.6 4 4.8v13c3.6-.2 6.2.4 8 1.7 1.8-1.3 4.4-1.9 8-1.7v-13c-3.6-.2-6.2.4-8 1.7zM12 6.5v13"/></svg>';
 const scanCp = p => ({ mu: pbLab(p['作品番号']), u: p['作品番号'] + '/' + p['写真ID'], hide: false, n: pbPhLab(p) });
@@ -4233,12 +4258,12 @@ function sheetPbPages(id){ const x = pbById[id]; if (!x || !canEdit()) return;
 document.addEventListener('click', e => {
   const a = e.target.closest('[data-pbpages]'); if (a) return sheetPbPages(a.dataset.pbpages);
   const b = e.target.closest('[data-pbin]'); if (b) { const [id, pid] = b.dataset.pbin.split('|'); S.cur = id; const L = (photoBy[id] || []).filter(p => p['種類'] !== SCAN_K); openViewerL(L, Math.max(0, L.findIndex(p => p['写真ID'] === pid)), 'pbin'); }
-  const pt = e.target.closest('[data-pbtop]'); if (pt) { e.preventDefault(); const [id, i] = pt.dataset.pbtop.split('|'); if (V.prevCur === undefined) V.prevCur = S.cur; S.cur = id; return openViewerL(pbTop(id), +i, 'pbtop'); }
+  const pt = e.target.closest('[data-pbtop]'); if (pt) { e.preventDefault(); if (pt.classList.contains('pbzon') || Date.now() - PBZT < 400) return; const [id, i] = pt.dataset.pbtop.split('|'); if (V.prevCur === undefined) V.prevCur = S.cur; S.cur = id; return openViewerL(pbTop(id), +i, 'pbtop'); }
   const pj = e.target.closest('[data-pbjump]'); if (pj) { const x = pj.closest('.pbsx'), sc = x && x.querySelector(`[data-pbsec="${pj.dataset.pbjump}"]`); if (sc) pbJump(x, sc); return; }
   const pv = e.target.closest('[data-pbsxv]'); if (pv) { const x = pv.closest('.pbsx'), all = pv.dataset.pbsxv === 'all'; x.classList.toggle('all', all); x.querySelectorAll('[data-pbsxv]').forEach(b => b.classList.toggle('on', b === pv)); try { localStorage.setItem('smr_pbsxv', all ? 'all' : 'sec'); } catch(e){} hydrate(x); return; }
   const rv = e.target.closest('[data-pbrmv]'); if (rv) { const r = rv.parentNode.querySelector('.pbrow'); r.scrollBy({ left: Math.max(120, r.clientWidth * .85) * +rv.dataset.pbrmv, behavior: 'smooth' }); return; }
   const fm = e.target.closest('[data-gunfold]'); if (fm) { const gr = fm.previousElementSibling; if (gr) { gr.classList.remove('fold'); hydrate(gr); } fm.remove(); return; }
-  const mv = e.target.closest('[data-pbmv]'); if (mv) { const g = mv.closest('.pbtop').querySelector('.pbgal'); g.scrollBy({ left: pbStep(g) * +mv.dataset.pbmv, behavior: 'smooth' }); return; }
+  const mv = e.target.closest('[data-pbmv]'); if (mv) { pbzReset(); const g = mv.closest('.pbtop').querySelector('.pbgal'); g.scrollBy({ left: pbStep(g) * +mv.dataset.pbmv, behavior: 'smooth' }); return; }
   const sc = e.target.closest('[data-pbscan]'); if (sc) { e.preventDefault(); const [id, pid] = sc.dataset.pbscan.split('|'); return bkOpen(id, pid); }
   const pf = e.target.closest('[data-pbpdf]'); if (pf) return sheetPbPdf(pf.dataset.pbpdf);
   const pq = e.target.closest('[data-pbplate]'); if (pq) return plOpen(pq.dataset.pbplate);
@@ -6659,11 +6684,11 @@ const DOCUI2 = true;
 /* スマホの書類詳細：作品ページの「該当箇所を確認」と同じ見た目で、書類の1ページ目をはじめから表示する */
 /* 書類のページを正方形の枠に表示する部品：左右スワイプ・‹ › でページ送り、指2本で拡大（拡大中は指1本で動かす・2回タップで元に戻す）。拡大中はスワイプでページが変わらない */
 function pgPrev(host, fid, opt){ opt = opt || {}; const c = document.createElement('div'); c.className = 'dtopv';
-  c.innerHTML = `<div class="dtpbar"><button type="button" class="dtpnav" data-tp="-1" aria-label="前のページ">‹</button><span class="dtpn">p.–</span><button type="button" class="dtpnav" data-tp="1" aria-label="次のページ">›</button><button type="button" class="act dtpbig" data-pdfopen="${esc(fid)}" data-pdfp="1">大きく</button></div><div class="dtpsq"><div class="ldwrap"><span class="ldspin"></span>書類を開いています…</div></div><p class="dtphint">左右にスワイプでページをめくれます（指2本で拡大）</p>`;
-  host(c); const sq = c.querySelector('.dtpsq'), lab = c.querySelector('.dtpn'), big = c.querySelector('.dtpbig'); let doc = null, n = 0, tok = 0, Z = { s: 1, x: 0, y: 0 };
+  c.innerHTML = `<div class="dtpbar"><button type="button" class="dtpnav" data-tp="-1" aria-label="前のページ">‹</button><span class="dtpn">p.–</span><button type="button" class="dtpnav" data-tp="1" aria-label="次のページ">›</button><button type="button" class="act dtpbig" data-pdfopen="${esc(fid)}" data-pdfp="1">大きく</button></div><div class="dtprng" hidden><input type="range" class="dtpr" min="1" max="1" value="1" step="1" aria-label="ページを選ぶ"></div><div class="dtpsq"><div class="ldwrap"><span class="ldspin"></span>書類を開いています…</div></div><p class="dtphint">左右にスワイプでページをめくれます（指2本で拡大）</p>`;
+  host(c); const sq = c.querySelector('.dtpsq'), lab = c.querySelector('.dtpn'), big = c.querySelector('.dtpbig'), rg = c.querySelector('.dtpr'); let doc = null, n = 0, tok = 0, Z = { s: 1, x: 0, y: 0 };
   const zApply = () => { const cv = sq.querySelector('canvas'); if (cv) cv.style.transform = Z.s === 1 ? '' : `translate(${Z.x}px,${Z.y}px) scale(${Z.s})`; };
   const zReset = () => { Z = { s: 1, x: 0, y: 0 }; zApply(); };
-  const go = async (k, quiet) => { const my = ++tok; try { if (!doc) doc = await pdfDocOf(fid); k = Math.min(doc.numPages, Math.max(1, k)); if (k === n && sq.querySelector('canvas')) return; n = k; lab.textContent = 'p.' + n + ' / ' + doc.numPages; big.dataset.pdfp = n;
+  const go = async (k, quiet) => { const my = ++tok; try { if (!doc) doc = await pdfDocOf(fid); k = Math.min(doc.numPages, Math.max(1, k)); if (k === n && sq.querySelector('canvas')) return; n = k; lab.textContent = 'p.' + n + ' / ' + doc.numPages; big.dataset.pdfp = n; if (rg) { rg.max = doc.numPages; rg.parentNode.hidden = doc.numPages < 2; if (document.activeElement !== rg) rg.value = n; }
       c.querySelector('[data-tp="-1"]').disabled = n <= 1; c.querySelector('[data-tp="1"]').disabled = n >= doc.numPages; if (!quiet && opt.onPage) opt.onPage(n);
       const pg = await doc.getPage(n), v0 = pg.getViewport({ scale: 1 }), W = sq.clientWidth || 320, dpr = Math.min(2, window.devicePixelRatio || 1), sc = Math.min(W / v0.width, W / v0.height), vp = pg.getViewport({ scale: sc * dpr * 1.5 });
       const cv = document.createElement('canvas'); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height); cv.style.width = Math.round(v0.width * sc) + 'px'; cv.style.height = Math.round(v0.height * sc) + 'px';
@@ -6671,6 +6696,7 @@ function pgPrev(host, fid, opt){ opt = opt || {}; const c = document.createEleme
       if (n < doc.numPages) doc.getPage(n + 1).then(x => x.prefetch && x.prefetch()).catch(() => {}); }
     catch(e){ if (my === tok) sq.innerHTML = '<p class="hint" style="padding:16px">書類を読み込めませんでした</p>'; } };
   c.querySelectorAll('[data-tp]').forEach(b => b.onclick = () => go(n + (+b.dataset.tp)));
+  if (rg) { rg.addEventListener('input', () => { if (doc) lab.textContent = 'p.' + rg.value + ' / ' + doc.numPages; clearTimeout(rg._t); rg._t = setTimeout(() => go(+rg.value), 180); }); rg.addEventListener('change', () => { clearTimeout(rg._t); go(+rg.value); }); } /* つまみ（10/10 開発 v18 本人「書類のプレビューにもスライダー」）：動かしているあいだはページ番号だけ、止まったらそのページ */
   const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY) || 1; let st = null, lastTap = 0;
   sq.addEventListener('touchstart', e => { const t0 = e.touches; e.stopPropagation();
     if (t0.length === 2) { e.preventDefault(); st = { m: 'pinch', d0: dist(t0), s0: Z.s, x0: Z.x, y0: Z.y }; }
@@ -6719,7 +6745,9 @@ async function docSplit(id){ const d = docById(id), box = $('#sheetbox'); if (!d
   while (box.firstChild) R.appendChild(box.firstChild); box.classList.add('split'); box.append(L, R); if (spA) docSheetA(box, L, R);
   if (r.PDF) { L.innerHTML = '<div class="ldwrap"><span class="ldspin"></span>PDFを読み込んでいます…</div>';
     pdfMount(L, pg[0], docTitle(d)); }
-  else { L.innerHTML = pg.map(f => docImg(f, 1600)).join(''); hydrateDocs(L); }
+  else { L.innerHTML = (pg.length > 1 ? `<div class="dsvrng"><input type="range" class="dsvr" min="1" max="${pg.length}" value="1" step="1" aria-label="ページを選ぶ" style="width:100%;accent-color:var(--ink)"></div>` : '') + pg.map(f => `<div class="dsvp">${docImg(f, 1600)}</div>`).join(''); hydrateDocs(L);
+    const rg = L.querySelector('.dsvr'); if (rg) { const P = () => [...L.querySelectorAll('.dsvp')]; rg.addEventListener('input', () => { const el = P()[+rg.value - 1]; if (el) L.scrollTop += el.getBoundingClientRect().top - L.getBoundingClientRect().top - rg.parentNode.offsetHeight - 4; });
+      L.addEventListener('scroll', () => { if (document.activeElement === rg) return; const t = L.getBoundingClientRect().top + rg.parentNode.offsetHeight + 40; let c = 0; P().forEach((el, i) => { if (el.getBoundingClientRect().top <= t) c = i; }); rg.value = c + 1; }, { passive: true }); } }
 }
 
 /* ---------- 使い方ツアー ---------- */
@@ -7372,7 +7400,7 @@ function openPb(id, keepScroll, restoreSc){
     <div class="pagebody one"><div class="eyebrow">${esc(x['種類']||'出版物')}</div>
     <h2 class="title">${esc(x['タイトル']||'（書名未入力）')}</h2>
     <div class="tombstone">${esc([fmtDate(x['発行年月']), x['発行元'], x['著者・編者']].filter(Boolean).join('　|　'))}</div>
-    ${(T => T.length > 1 ? `<div class="cover pbtop"><div class="pbgal">${T.map((p, i) => `<a href="#" data-pbtop="${esc(id)}|${i}" aria-label="${i + 1}枚目を大きく見る">${thImg(p['ファイルID'], 800)}${wm(p)}</a>`).join('')}</div>${canEdit() && cover ? `<button type="button" class="cvpen" data-cvedit="${esc(id)}" aria-label="表紙を直す">${PEN}</button>` : ''}<button type="button" class="pbmv prev" data-pbmv="-1" aria-label="前のページ" disabled>‹</button><button type="button" class="pbmv next" data-pbmv="1" aria-label="次のページ">›</button><span class="pbcnt">1 / ${T.length}</span></div>${T.length > 12 ? `<div class="pbrngw"><input type="range" class="pbrng" min="1" max="${T.length}" value="1" step="1" aria-label="ページを選ぶ"></div>` : ''}<p class="pbhint">${BOOKI}<span>${matchMedia('(hover:none)').matches ? '左右にスワイプして' : '‹ › を押して'}ページをめくれます（全${T.length}枚）</span></p>${creditHTML([coverPh(x)].filter(Boolean))}`
+    ${(T => T.length > 1 ? `<div class="cover pbtop"><div class="pbgal">${T.map((p, i) => `<a href="#" data-pbtop="${esc(id)}|${i}" data-fid="${esc(p['ファイルID'])}" aria-label="${i + 1}枚目を大きく見る">${thImg(p['ファイルID'], 800)}${wm(p)}</a>`).join('')}</div>${canEdit() && cover ? `<button type="button" class="cvpen" data-cvedit="${esc(id)}" aria-label="表紙を直す">${PEN}</button>` : ''}<button type="button" class="pbmv prev" data-pbmv="-1" aria-label="前のページ" disabled>‹</button><button type="button" class="pbmv next" data-pbmv="1" aria-label="次のページ">›</button><span class="pbcnt">1 / ${T.length}</span></div><div class="pbrngw"><input type="range" class="pbrng" min="1" max="${T.length}" value="1" step="1" aria-label="ページを選ぶ"></div><p class="pbhint">${BOOKI}<span>${matchMedia('(hover:none)').matches ? '左右にスワイプして' : '‹ › を押して'}ページをめくれます（全${T.length}枚・${matchMedia('(hover:none)').matches ? '指2本' : 'Ctrl＋ホイール'}で拡大）</span></p>${creditHTML([coverPh(x)].filter(Boolean))}`
       : cover ? `<div class="cover">${thImg(x['表紙写真ファイルID'], 800)}${wm(coverPh(x))}${canEdit() ? `<button type="button" class="cvpen" data-cvedit="${esc(id)}" aria-label="表紙を直す">${PEN}</button>` : ''}</div>${creditHTML([coverPh(x)].filter(Boolean))}` : '')(pbTop(id))}
     ${pbScanHTML(id)}
     ${(P => P.length ? `<h3 class="sec">中のページ ${P.length}枚</h3><div class="pbin">${P.map(ph => `<button type="button" class="pbinp" data-pbin="${esc(id)}|${esc(ph['写真ID'])}">${thImg(ph['ファイルID'], 400)}</button>`).join('')}</div>` : '')(pbInner(id))}
@@ -10205,7 +10233,7 @@ function pqHint(host, hint, page){ const old = host.querySelector('.pqhint'); if
 async function pdfMount(host, fid, title, page, hint){
   const sd = canEdit() ? docByFile(fid) : null, mkOk = !!(sd && docPages(sd)[0] === fid); /* 🖍 で囲んでメモに貼る（編集できる人だけ） */
   host.classList.add('pqv'); const hre = hint && hint.q ? fzRe(esc(hint.q), 'gi') : null;
-  host.innerHTML = `<div class="pqbar"><span class="pqt">${esc(title || 'PDF')}</span><span class="pqpg">–</span><button type="button" data-pz="-" aria-label="縮小">−</button><button type="button" data-pz="fit" aria-label="幅に合わせる" title="幅に合わせる">↔</button><button type="button" data-pz="+" aria-label="拡大">＋</button><button type="button" data-pz="mark" class="pqmk" hidden title="マーカーの所を大きく">全体</button>${mkOk ? '<button type="button" data-pz="sel" class="pqselb0" title="書いてある所を囲んで、作品のメモに貼る">🖍</button>' : ''}<button type="button" data-pz="tab" title="別のタブで開く（印刷・保存）">↗</button>${host.closest('.pdfql') ? '<button type="button" data-pz="close" aria-label="閉じる" title="閉じる（Esc）">✕</button>' : ''}</div><div class="pqpages"><div class="ldwrap"><span class="ldspin"></span>PDFを読み込んでいます…</div></div>`;
+  host.innerHTML = `<div class="pqbar"><span class="pqt">${esc(title || 'PDF')}</span><span class="pqpg">–</span><button type="button" data-pz="-" aria-label="縮小">−</button><button type="button" data-pz="fit" aria-label="幅に合わせる" title="幅に合わせる">↔</button><button type="button" data-pz="+" aria-label="拡大">＋</button><button type="button" data-pz="mark" class="pqmk" hidden title="マーカーの所を大きく">全体</button>${mkOk ? '<button type="button" data-pz="sel" class="pqselb0" title="書いてある所を囲んで、作品のメモに貼る">🖍</button>' : ''}<button type="button" data-pz="tab" title="別のタブで開く（印刷・保存）">↗</button>${host.closest('.pdfql') ? '<button type="button" data-pz="close" aria-label="閉じる" title="閉じる（Esc）">✕</button>' : ''}</div><div class="pqrngw" hidden><input type="range" class="pqrng" min="1" max="1" value="1" step="1" aria-label="ページを選ぶ"></div><div class="pqpages"><div class="ldwrap"><span class="ldspin"></span>PDFを読み込んでいます…</div></div>`;
   pqHint(host, hint, page);
   const box = host.querySelector('.pqpages'), pgEl = host.querySelector('.pqpg'); let url = '';
   try { const doc = await pdfDocOf(fid); if (!host.isConnected) return;
@@ -10218,7 +10246,8 @@ async function pdfMount(host, fid, title, page, hint){
         const c = document.createElement('canvas'); c.width = vp.width; c.height = vp.height; e.target.appendChild(c); p.render({ canvasContext: c.getContext('2d'), viewport: vp }); }), { root: box, rootMargin: '600px 0px' });
       pages.forEach((p, i) => { const vp0 = p.getViewport({ scale: 1 }), w = fitW(p) * z, el = document.createElement('div'); el.className = 'pqp'; el.dataset.i = i; el.style.width = w + 'px'; el.style.height = (w * vp0.height / vp0.width) + 'px'; inner.appendChild(el); io.observe(el); });
       upd(); };
-    const upd = () => { const els = box.querySelectorAll('.pqp'); let cur = 0; const top = box.getBoundingClientRect().top + 40; els.forEach((el, i) => { if (el.getBoundingClientRect().top <= top) cur = i; }); pgEl.textContent = (cur + 1) + ' / ' + pages.length; };
+    const upd = () => { const els = box.querySelectorAll('.pqp'); let cur = 0; const top = box.getBoundingClientRect().top + 40; els.forEach((el, i) => { if (el.getBoundingClientRect().top <= top) cur = i; }); pgEl.textContent = (cur + 1) + ' / ' + pages.length; if (prg && document.activeElement !== prg) prg.value = cur + 1; };
+    const prg = host.querySelector('.pqrng'); if (prg) { prg.max = pages.length; prg.parentNode.hidden = pages.length < 2; prg.addEventListener('input', () => { const el = box.querySelector(`.pqp[data-i="${+prg.value - 1}"]`); if (el) box.scrollTop += el.getBoundingClientRect().top - box.getBoundingClientRect().top - 4; pgEl.textContent = prg.value + ' / ' + pages.length; }); } /* つまみでページへ（10/10 開発 v18） */
     box.addEventListener('scroll', upd, { passive: true });
     host.querySelector('.pqbar').onclick = e => { const b = e.target.closest('[data-pz]'); if (!b) return; const v = b.dataset.pz;
       if (v === 'mark') { zoomMark(!host._mz); return; }
