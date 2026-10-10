@@ -2814,7 +2814,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'f34d332043', APP_URL = location.origin + location.pathname;
+const BUILD = '54f28880c2', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -8925,9 +8925,10 @@ function openSheet(html){ if (S.sheetDoc && !$('#sheet').classList.contains('hid
   clearTimeout(SNAP.t); SNAP.v = null; SNAP.t = setTimeout(() => { SNAP.v = sheetState(); }, 250); }
 /* 入力中の内容があるか（開いたときの状態とくらべる）。写真を選んだ・項目を選んだ・文字を入れた、を見分ける */
 const SNAP = { v: null, t: 0 };
+const SNAPNAV = '.pqv, .dcgalw, .pbtop, .dtopv, .dfprev, .devw, .evv, .dsv'; /* 見るための部品（ページのめくり・PDF・目次から開いたプレビュー） */
 function sheetState(){ const b = $('#sheetbox'); if (!b) return '';
-  return [...b.querySelectorAll('input:not([type=file]):not([data-nosnap]),textarea,select')].map(e => (e.type==='checkbox' || e.type==='radio') ? e.checked : e.value).join('\u0001')
-    + '|' + [...b.querySelectorAll('.pick')].map(p => p.dataset.v).join('\u0001') + '|' + b.querySelectorAll('.on').length
+  return [...b.querySelectorAll('input:not([type=file]):not([type=range]):not([type=search]):not([data-nosnap]),textarea,select')].filter(e => !e.closest(SNAPNAV)).map(e => (e.type==='checkbox' || e.type==='radio') ? e.checked : e.value).join('\u0001')
+    + '|' + [...b.querySelectorAll('.pick')].map(p => p.dataset.v).join('\u0001') + '|' + [...b.querySelectorAll('.on')].filter(e => !e.closest(SNAPNAV) && !e.matches('.dtr, .dtr *, .chip[data-dmode]')).length
     + '|' + [...b.querySelectorAll('img.preview,.pvs img')].filter(i => !i.classList.contains('hidden') && i.getAttribute('src')).length; }
 const sheetDirty = () => !$('#sheet').classList.contains('hidden') && SNAP.v !== null && sheetState() !== SNAP.v;
 const askLeave = () => !sheetDirty() || confirm('入力した内容は、まだ保存されていません。閉じていいですか？');
