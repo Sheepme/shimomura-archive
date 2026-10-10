@@ -2611,6 +2611,35 @@ html[data-theme=dark] .edcancel{background:transparent;border-color:#8a7430;colo
 .iemore summary::after{content:' ▾'}.iemore[open] summary::after{content:' ▴'}
 .iemore[open] summary{margin-bottom:8px}
 html[data-theme=dark] .iemore summary{color:#8db8ff}
+#page dd.ief .edsrc{display:block;margin:6px 0 0;font-size:12.5px;line-height:1.55;color:var(--sub)}
+#page dd.ief .evsee{margin-left:6px;color:#2f6fd0;font-weight:600;text-decoration:none;white-space:nowrap}
+html[data-theme=dark] #page dd.ief .evsee{color:#8db8ff}
+#page dd.ief.evflash{animation:evfl 1.6s ease}
+@keyframes evfl{0%,40%{background:rgba(240,200,60,.28)}100%{background:transparent}}
+.noteview.evv{display:flex;flex-direction:column;padding-bottom:0}
+.evv .evin{flex:1;padding:0 16px 12px;max-width:820px;width:100%;margin:0 auto;box-sizing:border-box}
+.evv .nvt{font-size:18px;margin:4px 0 2px}
+.evv .evsub{margin:0 0 10px;color:var(--sub);font-size:13px}
+.evv .evline{margin:0 0 10px;padding:8px 10px;border-radius:8px;background:var(--wash);font-size:14px;line-height:1.6}
+.evv .evline mark{background:rgba(226,38,38,.22);color:inherit;border-radius:3px;padding:0 1px}
+.evv .evpg{position:relative}
+.evv .evpw{position:relative;width:100%;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.12)}
+.evv .evpw canvas,.evv .evpw img{display:block;width:100%;height:auto}
+.evv .evbar{position:sticky;bottom:0;z-index:2;background:var(--bg);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom));box-shadow:0 -4px 16px rgba(0,0,0,.06)}
+.evv .evbar > *{max-width:788px;margin-left:auto;margin-right:auto}
+.evv .evq{font-size:13px;color:var(--sub)}
+.evv .evtag[hidden]{display:none}.evv .evtag{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;background:rgba(226,38,38,.12);color:#b42318;font-size:12px;font-weight:600}
+html[data-theme=dark] .evv .evtag{color:#ff9a8f}
+.evv .evv1{font-size:17px;font-weight:700;margin:2px 0 10px}
+.evv .evbtns{display:flex;gap:10px}
+.evv .evbtns button{flex:1;padding:13px;border-radius:12px;font-size:15px;font-weight:700;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.evv .evbtns .evuse{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.evv .evnav{display:flex;align-items:center;gap:10px;margin-top:12px}
+.evv .evnav[hidden]{display:none}
+.evv .evnav input{flex:1;accent-color:var(--ink)}
+.evv .evp{width:44px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:18px}
+.evv .evp:disabled{opacity:.35}
+.evv .evpn{font-size:13px;color:var(--sub);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -2680,7 +2709,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'f66151dea7', APP_URL = location.origin + location.pathname;
+const BUILD = '52c2c084c0', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -8960,6 +8989,7 @@ function edmForm(){ const pg = $('#page'); if (!EDM || !pg) return; inlineCancel
       const el = dd.querySelector('.iein'); if (!el) return; el.dataset.v0 = el.value;
       if ((SUG[EDM.t]||[]).includes(d[1]) && el.tagName === 'INPUT') { el.id = 'edxf' + i; suggestList(el, usedVals(EDM.t === 'ex' ? S.exhibits : S.pubs, d[1])); } }); }
   pg.querySelectorAll('.ief button:not(.iematsum), .ief summary').forEach(b => b.tabIndex = -1); /* Tab は入力欄から入力欄へ */
+  try { evSrcFill(); } catch(e){}
 }
 /* 押したり打ったりした項目だけを、変更の候補にする（開いただけで書き方がそろって「変更」にならないように） */
 function edmTouch(dd){ const on = e => { if (e.target.closest && e.target.closest('.iematsum, summary')) return; dd.dataset.touched = '1'; }; dd.addEventListener('input', on); dd.addEventListener('change', on); dd.addEventListener('click', e => { if (e.target.closest && e.target.closest('[data-mo], [data-o], .ieswap:not([data-pnform])')) on(e); }); }
@@ -8996,6 +9026,80 @@ document.addEventListener('keydown', e => { if (!EDM || e.key !== 'Enter' || e.i
 document.addEventListener('click', e => { const t = e.target;
   if (t.closest && t.closest('#abEdit')) { e.preventDefault(); edmToggle(); return; }
   if (t.closest && t.closest('.edcancel')) { e.preventDefault(); edmCancel(); return; } });
+/* ---------- 編集モードの「出典」（10/10 開発 v19 本人「編集前に根拠を確認してから修正できる」） ----------
+   各項目の下に灰色の小さな1行。出どころは ①書類の読み取り（食い違い・補完。位置 at があれば赤のマーカー）②作品の変更の記録（srcOf）。
+   「旧リストのまま」や分からないものは出さない。書類があれば「書類で見る ›」で、その箇所を開く */
+const EVK = { w1: ['作品名'], w3: ['高さcm', '幅cm'], w5: ['制作年'], w6: ['画材'] }, EVLOG = { w1: '作品名', w3: 'サイズ', w5: '制作年', w6: '画材' }, EVEX = ['名称', '会場', '開始日', '終了日', '都市'];
+const EVLAB = { '作品名': '作品名', '高さcm': 'サイズ', '幅cm': 'サイズ', '制作年': '制作年', '画材': '画材', '名称': '名称', '会場': '会場', '開始日': '開始日', '終了日': '終了日', '都市': '都市' };
+function evFind(t, id, fs){ const out = [];
+  (S.docs || []).forEach(d => { if (d['状態'] === '登録しない') return; const r = docRes(d) || {}, h = { d, v: {}, at: null };
+    (r['食い違い'] || []).forEach(y => { if (y.t !== t || String(y.id) !== String(id) || !fs.includes(y.f)) return; if (h.v[y.f] == null) h.v[y.f] = y.doc; if (y.at && (!h.at || (!h.at.box && y.at.box))) h.at = y.at; });
+    (r['補完'] || []).forEach(x => { if (x.t !== t || String(x.id) !== String(id) || !fs.includes(x.f)) return; if (h.v[x.f] == null) h.v[x.f] = x.v; if (x.at && (!h.at || (!h.at.box && x.at.box))) h.at = x.at; });
+    if (Object.keys(h.v).length) out.push(h); });
+  return out.sort((a, b) => (b.at && b.at.box ? 1 : 0) - (a.at && a.at.box ? 1 : 0)); }
+const evVal = (h, fs) => fs.includes('高さcm') ? (h.v['高さcm'] || h.v['幅cm'] ? ['H ' + (h.v['高さcm'] || '？'), 'W ' + (h.v['幅cm'] || '？')].join(' × ') + ' cm' : '') : String(h.v[fs[0]] || '');
+const evHow = t => String(t || '').replace(/^書類「(.+)」を登録したとき$/, '書類「$1」').replace(/^書類「(.+)」とのちがいで、書類の方をえらんだとき$/, '書類「$1」（ちがいで書類をえらんだ）')
+  .replace(/^調べの記録（(.+)）で同じ作品としたとき$/, '調べの記録（$1）').replace(/^(.+) と1つにまとめたとき$/, 'No.$1 とまとめた').replace('新しく登録したとき', '新しく登録').replace('カードで答えたとき', 'カードの答え').replace('管理者がまとめて直したとき', 'まとめて直した').replace('手で入力したとき', '手で入力');
+function evSrcFill(){ const pg = $('#page'); if (!EDM || !pg) return; const t = (EDM.t === 'w' || EDM.t === 'ot') ? 'w' : EDM.t, id = EDM.id;
+  const fsOf = dd => dd.dataset.f ? EVK[dd.dataset.f] : (t === 'ex' && RK.ex.F[+dd.dataset.ri] && EVEX.includes(RK.ex.F[+dd.dataset.ri][1]) ? [RK.ex.F[+dd.dataset.ri][1]] : null);
+  const draw = L => { if (!EDM || String(EDM.id) !== String(id)) return;
+    pg.querySelectorAll('dd.ief').forEach(dd => { const fs = fsOf(dd); if (!fs) return; dd.querySelectorAll('.edsrc').forEach(x => x.remove());
+      const hs = evFind(t, id, fs), h = hs[0], parts = [];
+      const lg = L && dd.dataset.f && EVLOG[dd.dataset.f] ? srcOf(id, EVLOG[dd.dataset.f], L).out[0] : null;
+      const lt = lg ? evHow(lg.t) + (lg.who || lg.d ? '（' + [lg.who, lg.d].filter(Boolean).join('・') + '）' : '') : '';
+      if (lt && !(h && lt.indexOf(docTitle(h.d)) >= 0)) parts.push(esc(lt));
+      if (h) { const cur = fs.map(f => String((t === 'ex' ? exById[id] : workOf(id) || {})[f] || '')).join('|'), dv = fs.map(f => String(h.v[f] || '')).join('|'), same = dfN ? fs.every(f => !h.v[f] || dfN(f, h.v[f]) === dfN(f, (t === 'ex' ? exById[id] : workOf(id) || {})[f])) : cur === dv;
+        parts.push(`書類「${esc(docTitle(h.d))}」${same ? '' : '：' + esc(evVal(h, fs))}${hs.length > 1 ? `ほか${hs.length - 1}通` : ''}<a class="evsee" href="#" data-evd="${esc(h.d['書類ID'])}" data-evf="${esc(fs.join(','))}">書類で見る ›</a>`); }
+      if (parts.length) dd.insertAdjacentHTML('beforeend', `<span class="edsrc">出典：${parts.join('　・')}</span>`); }); };
+  draw(null);
+  if (t !== 'w' || (typeof noLog === 'function' && noLog())) return;
+  const c = WLOG[id]; if (Array.isArray(c)) return draw(c);
+  (c || (WLOG[id] = call('getWorkLog', id))).then(L => { WLOG[id] = Array.isArray(L) ? L : []; draw(WLOG[id]); }).catch(() => { delete WLOG[id]; }); }
+/* 「書類で見る」：書類のそのページを開いて、読み取った位置に赤のマーカー（位置が分からなければ、全文から探したページと行）。
+   下に「この書類に書かれている〇〇」と「閉じる」「この値を入れる」。つまみ・‹ › は画面の下 */
+async function evOpen(did, fs){ const d = docById(did); if (!d) return; const t = (EDM && EDM.t === 'ex') ? 'ex' : 'w', id = EDM ? EDM.id : S.cur;
+  const h = evFind(t, id, fs).find(x => x.d === d) || { d, v: {}, at: null }, r = docRes(d) || {}, pgs = docPages(d), pdf = !!r.PDF, lab = EVLAB[fs[0]] || fs[0], val = evVal(h, fs);
+  const el = document.createElement('div'); el.className = 'noteview evv'; el._reopen = () => evOpen(did, fs);
+  el.innerHTML = `<div class="evin"><h2 class="nvt">${esc(docTitle(d))}</h2><p class="evsub">${esc([r['相手先'], r['日付']].filter(Boolean).join('・'))}</p><p class="evline" hidden></p><div class="evpg"><div class="ldwrap"><span class="ldspin"></span>書類を開いています…</div></div></div>
+    <div class="evbar"><div class="evq">この書類に書かれている${esc(lab)}<span class="evtag" hidden></span></div><div class="evv1">${val ? esc(val) : '<span class="nv">読み取れていません</span>'}</div>
+      <div class="evbtns"><button type="button" class="evclose">閉じる</button>${val && EDM ? '<button type="button" class="evuse">この値を入れる</button>' : ''}</div>
+      <div class="evnav"><button type="button" class="evp" data-evp="-1" aria-label="前のページ">‹</button><input type="range" class="evr" min="1" max="1" value="1" aria-label="ページを選ぶ"><span class="evpn">1 / 1</span><button type="button" class="evp" data-evp="1" aria-label="次のページ">›</button></div></div>`;
+  document.body.appendChild(el); hpush('n'); scrPush(el);
+  const box = el.querySelector('.evpg'), tag = el.querySelector('.evtag'), ln = el.querySelector('.evline'), rg = el.querySelector('.evr'), nl = el.querySelector('.evpn');
+  let at = h.at && h.at.p ? h.at : null, q = '', line = '';
+  if (!at || !at.box) { try { if (d['全文あり']) { const tx = DTEXT[did] != null ? DTEXT[did] : (DTEXT[did] = await call('getDocText', did)); const f = dfFind(tx, fs.includes('高さcm') ? (h.v['高さcm'] || h.v['幅cm'] || '') : val);
+      if (f) { q = f.q; const re = fzRe(f.q), pt = String(tx).split(/【\s*p\.?\s*(\d+)\s*】/i), k = pt.indexOf(String(f.p)); line = ((k >= 0 ? pt[k + 1] : pt[0]) || '').split('\n').find(l => re && re.test(l)) || ''; line = line.trim().slice(0, 90); if (!at) at = { p: +f.p }; } } } catch(e){} }
+  if (!el.isConnected) return;
+  if (at && !at.box) { tag.hidden = false; tag.textContent = '位置はたぶんこのページ'; }
+  if (!at) { at = { p: 1 }; if (val) { tag.hidden = false; tag.textContent = '場所が見つかりませんでした'; } }
+  if (line) { const hre = q ? fzRe(esc(q), 'gi') : null; ln.hidden = false; ln.innerHTML = hre ? esc(line).replace(hre, m => '<mark>' + m + '</mark>') : esc(line); }
+  let n = 0, N = pdf ? 0 : pgs.length, pdoc = null, tok = 0;
+  const go = async k => { const my = ++tok; try {
+      if (pdf && !pdoc) { pdoc = await pdfDocOf(pgs[0]); N = pdoc.numPages; }
+      k = Math.max(1, Math.min(N || 1, k)); n = k; rg.max = N || 1; rg.value = n; nl.textContent = n + ' / ' + (N || 1); el.querySelector('.evnav').hidden = (N || 1) < 2;
+      el.querySelectorAll('.evp').forEach(b => b.disabled = (+b.dataset.evp < 0 ? n <= 1 : n >= N));
+      const mk = at.box && n === at.p ? `<div class="pqmark" style="top:calc(${at.box[0] / 10}% - 4px);left:calc(${at.box[1] / 10}% - 4px);height:calc(${(at.box[2] - at.box[0]) / 10}% + 8px);width:calc(${(at.box[3] - at.box[1]) / 10}% + 8px)"></div>` : '';
+      const W = Math.max(240, box.clientWidth || 320);
+      if (pdf) { const pg = await pdoc.getPage(n), v0 = pg.getViewport({ scale: 1 }), dpr = Math.min(2, window.devicePixelRatio || 1), vp = pg.getViewport({ scale: W / v0.width * dpr * 1.4 });
+        const cv = document.createElement('canvas'); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height); await pg.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise; if (my !== tok) return;
+        box.innerHTML = `<div class="evpw" style="aspect-ratio:${v0.width}/${v0.height}"></div>`; const w = box.firstChild; w.appendChild(cv); w.insertAdjacentHTML('beforeend', mk); }
+      else { box.innerHTML = `<div class="evpw evimg">${docImg(pgs[n - 1], 1600)}${mk}</div>`; try { hydrateDocs(box); } catch(e){} }
+      if (mk) setTimeout(() => { const m = box.querySelector('.pqmark'); if (m && m.scrollIntoView) m.scrollIntoView({ block: 'center' }); }, 60);
+    } catch(e){ if (my === tok) box.innerHTML = '<p class="hint" style="padding:16px">書類を読み込めませんでした</p>'; } };
+  el.querySelectorAll('.evp').forEach(b => b.onclick = () => go(n + (+b.dataset.evp)));
+  rg.addEventListener('input', () => { nl.textContent = rg.value + ' / ' + (N || 1); clearTimeout(rg._t); rg._t = setTimeout(() => go(+rg.value), 180); });
+  el.querySelector('.evclose').onclick = () => docClose(el);
+  const use = el.querySelector('.evuse'); if (use) use.onclick = () => { evUse(fs, h); docClose(el); };
+  go(at.p || 1); }
+/* 「この値を入れる」：編集モードの入力欄に入れるだけ（保存は「完了」のとき） */
+function evUse(fs, h){ const pg = $('#page'); if (!pg || !EDM) return; let dd = null;
+  if (EDM.t === 'ex') { dd = [...pg.querySelectorAll('dd.ief')].find(x => RK.ex.F[+x.dataset.ri] && RK.ex.F[+x.dataset.ri][1] === fs[0]); const i = dd && dd.querySelector('.iein'); if (i) i.value = h.v[fs[0]] || ''; }
+  else { const f = Object.keys(EVK).find(k => EVK[k].join() === fs.join()); dd = pg.querySelector(`dd.ief[data-f="${f}"]`); if (!dd) return;
+    if (f === 'w6') { dd.querySelectorAll('[data-mo].on').forEach(b => b.classList.remove('on')); const a = dd.querySelector('.mpadd'); if (a) a.value = h.v['画材'] || ''; const sm = dd.querySelector('.iematsum'); if (sm) sm.firstChild.textContent = (h.v['画材'] || '') + ' '; }
+    else fs.forEach(k => { const i = dd.querySelector(`.iein[data-k="${k}"]`); if (i && h.v[k] != null) i.value = String(h.v[k]).replace(/\s*cm$/i, ''); }); }
+  if (!dd) return; dd.dataset.touched = '1'; dd.classList.add('evflash'); setTimeout(() => dd.classList.remove('evflash'), 1600);
+  setTimeout(() => { dd.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 80); toast('入力欄に入れました（「完了」で保存）'); }
+document.addEventListener('click', e => { const a = e.target.closest && e.target.closest('.evsee'); if (!a) return; e.preventDefault(); e.stopPropagation(); evOpen(a.dataset.evd, a.dataset.evf.split(',')); }, true);
 function inlineCancel(){ const dd = document.querySelector('#page dd.iedit:not(.ief)'); if (dd) { dd.innerHTML = dd.dataset.orig; dd.classList.remove('iedit'); } }
 function inlineEdit(btn, no, f){
   const spec = IE[f], dd = btn.closest('dd'); if (!spec || !dd) return false;
