@@ -2654,7 +2654,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '650bdc3d95', APP_URL = location.origin + location.pathname;
+const BUILD = 'b4f871f670', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3373,7 +3373,7 @@ const QCITEM = { loc: '場所', conf: '場所', name: '作品名', photo: '写�
 const qcComplete = no => { const w = workOf(no); return !!w && hasPh(no) && hasName(w) && hasLoc(w); };
 function qcKind(no){ const w = workOf(no); if (!w) return null; const ph = hasPh(no);
   const k = !ph ? 'photo' : !hasLoc(w) ? 'loc' : !hasName(w) ? 'name' : needLoc(w) ? 'conf' : null;
-  if (!k) return null; const r = qzLast(no, QCITEM[k]); if (r && (r['答え']==='不明' || r['答え']==='保留')) return null; return k; }
+  if (!k) return null; const r = qzLast(no, QCITEM[k]); if (r && (r['答え']==='不明' || r['答え']==='保留')) return null; if (qzLocal(no, QCITEM[k])) return null; /* この端末で答えて、台帳にまだ入っていない */ return k; }
 const QCSVG = { mute: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z" fill="currentColor"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>',
   x: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
   say: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>',
@@ -3425,6 +3425,12 @@ const QCWK = { loc: '場所', conf: '場所の確認', name: '作品名', photo:
 function workQuizHTML(no){ const L = qcWorkCards(no), K = [...new Set(L.map(c => QCWK[c.k]))];
   return `<h3 class="sec">クイズで埋める</h3><div class="wquiz">${L.length ? `<p>この作品で足りないところを、カードで1つずつ聞きます（${L.length}問：${esc(K.join('・'))}）</p><button type="button" class="act main" data-wquiz="${esc(no)}">クイズを始める（${L.length}問）</button>` : '<p>この作品で聞くことはありません。場所・作品名・写真がそろっています</p>'}</div>`; }
 const qcTestNote = () => '<p class="qc-test">' + (isViewer() ? '閲覧モード：ためしに答えられます（答えは保存しません）' : '練習モード：答えは保存しません') + '</p>';
+/* 「とばす」を押したカードは端末に覚えて、7日のあいだは後ろに回す（ほかに聞くことがあるうちは出さない）。前は次の回のはじめにまた出ていた（10/10 本人） */
+const QCSK = 'smr_qcskip', QCSK_MS = 7 * 864e5;
+const qcKey = c => [c.k, c.id || c.did || '', c.no || ''].join('|');
+const qcSkips = () => { try { const o = JSON.parse(localStorage.getItem(QCSK) || '{}') || {}, now = Date.now(); Object.keys(o).forEach(k => { if (!(now - o[k] < QCSK_MS)) delete o[k]; }); return o; } catch(e){ return {}; } };
+const qcSkipAdd = c => { try { const o = qcSkips(); o[qcKey(c)] = Date.now(); localStorage.setItem(QCSK, JSON.stringify(o)); } catch(e){} };
+const qcPick = (L, n) => { const o = qcSkips(), A = [], B = []; (L || []).forEach(x => (o[qcKey(Array.isArray(x) ? x[0] || {} : x)] ? B : A).push(x)); return A.concat(B).slice(0, n); };
 function startCards(test, mode, wno){ /* 閲覧（閲覧の人・閲覧モード）は、ふつうのカードを練習と同じく保存せずに試せる（10/7 開発 v11 本人） */
   try { quizIndex(); } catch(e){}
   let L = [];
@@ -3432,17 +3438,18 @@ function startCards(test, mode, wno){ /* 閲覧（閲覧の人・閲覧モード
     const by = { loc: [], name: [], photo: [], conf: [] };
     hgPick(5000).forEach(no => { const w = workOf(no); if (!w) return; const ph = hasPh(no), k = !ph ? (hasName(w) ? 'photo' : null) : !hasLoc(w) ? 'loc' : !hasName(w) ? 'name' : needLoc(w) ? 'conf' : null; if (k && by[k].length < 3) by[k].push({ no, k }); });
     ['loc', 'name', 'photo', 'conf'].forEach(k => L = L.concat(by[k])); L = L.concat(qcDiffs(3), qcFinds(4, true)); }
-  else if (mode === 'diff') L = qcDiffs(10);
-  else if (mode === 'find') L = qcFinds(10);
-  else if (mode === 'ask') L = qcAsks(10);
-  else if (mode === 'lit') L = qcLits(10);
-  else if (mode === 'litb') L = qcLitB(10);
-  else if (mode === 'pbph') L = qcPbPhs(10);
+  else if (mode === 'diff') L = qcPick(qcDiffs(999), 10);
+  else if (mode === 'find') L = qcPick(qcFinds(999), 10);
+  else if (mode === 'ask') L = qcPick(qcAsks(999), 10);
+  else if (mode === 'lit') L = qcPick(qcLits(999), 10);
+  else if (mode === 'litb') L = qcPick(qcLitB(999), 10);
+  else if (mode === 'pbph') L = qcPick(qcPbPhs(999), 10);
   else if (mode === 'work') L = qcWorkCards(wno);
   else { /* 今日の10作品：同じ種類が続かないよう、場所・調べの記録・作品名・書類の違い・写真・場所の確認を順番にまぜる */
-    const by = { loc: [], name: [], photo: [], conf: [] };
-    hgPick(400).forEach(no => { const k = qcKind(no); if (k && by[k].length < 10) by[k].push({ no, k }); });
-    const P = [by.loc, qcFinds(3), by.name, qcDiffGroups(3), by.photo, qcAsks(2), qcLits(2), qcPbPhs(1), by.conf]; /* 書類の違いは、同じ書類と作品のものを続けて出す */
+    const by = { loc: [], name: [], photo: [], conf: [] }, sk = qcSkips(), byS = { loc: [], name: [], photo: [], conf: [] };
+    hgPick(400).forEach(no => { const k = qcKind(no); if (!k) return; const c = { no, k }, B = sk[qcKey(c)] ? byS : by; if (B[k].length < 10) B[k].push(c); });
+    Object.keys(by).forEach(k => { by[k] = by[k].concat(byS[k]).slice(0, 10); }); /* とばしたカードは後ろ */
+    const P = [by.loc, qcPick(qcFinds(999), 3), by.name, qcPick(qcDiffGroups(999), 3), by.photo, qcPick(qcAsks(999), 2), qcPick(qcLits(999), 2), qcPick(qcPbPhs(999), 1), by.conf]; /* 書類の違いは、同じ書類と作品のものを続けて出す */
     for (let r = 0; L.length < 10 && P.some(x => x.length); r++) P.forEach(x => { if (L.length < 10 && x.length) { const it = x.shift(); if (Array.isArray(it)) L.push(...it); else L.push(it); } }); }
   if (!L.length) return toast(mode === 'work' ? 'この作品で聞くことはありません' : mode === 'ask' ? 'いま聞きたいことはありません' : mode === 'lit' ? 'いま聞きたい展覧会・本はありません' : mode === 'pbph' ? 'いま写真を撮る本はありません' : mode === 'litb' ? '確かめる記録はありません' : mode === 'diff' ? 'いま決める書類の違いはありません' : mode === 'find' ? 'いま確かめる調べの記録はありません' : 'いま確かめる作品はありません');
   closeSheet(); closeAllPages(); ttsUnlock();
@@ -3482,7 +3489,12 @@ function qcDiffGroups(max){ const G = new Map(), pri = f => f === '所在' ? 0 :
 const qcDiffs = max => qcDiffGroups(max);
 /* ===== 調べで見つかった記録（収集チャットの結果）：台帳の作品との照合はアプリの中だけで行う ===== */
 const FDIC = '<circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/>';
-const FDS = new Set(); /* この画面で決めた記録（保存の返事が来る前に同じものを出さない） */
+/* 答えた・とばした印（端末に7日残す）。iPhone のホーム画面アプリを開き直すと、前の控えのデータ（答えが入る前）から始まることがあり、同じことを聞いていた（10/10 本人） */
+class PSet extends Set { constructor(key, ms){ super(); this.k = key; this.ms = ms; this.t = {}; try { const o = JSON.parse(localStorage.getItem(key) || '{}') || {}, now = Date.now(); Object.keys(o).forEach(v => { if (now - o[v] < ms) { this.t[v] = o[v]; super.add(v); } }); } catch(e){} }
+  add(v){ if (this.t) { this.t[v] = Date.now(); this.sv(); } return super.add(v); }
+  delete(v){ if (this.t) { delete this.t[v]; this.sv(); } return super.delete(v); }
+  sv(){ try { localStorage.setItem(this.k, JSON.stringify(this.t)); } catch(e){} } }
+const FDS = new PSet('smr_fds', 7 * 864e5); /* この画面で決めた記録（保存の返事が来る前に同じものを出さない） */
 /* 表記ゆれ（収集チャットのメモから） */
 const FD_PH = [['鳥の社', '鳥のほこら'], ['闘鶏b', '闘鶏捻'], ['闘鶏c', '闘鶏逸']];
 const FD_CH = { '遙': '遥', '鷙': '鷲', '棒': '捧', '昹': '哋', 'ル': 'る', '翔遥': '遥翔' };
@@ -3695,7 +3707,7 @@ function qcFindAct(a, c){
 }
 /* ===== 調べで見つかった展覧会・図録・本（収集 第4回の文献）：管理者がまとめて確かめて台帳へ → 家族にカードで聞く ===== */
 const LTIC = '<path d="M5 5.5a2 2 0 0 1 2-2h11.5v14H7a2 2 0 0 0-2 2z"/><path d="M5 19.5a2 2 0 0 0 2 2h11.5v-4M9 8h6"/>';
-const LTS = new Set(); /* この画面で答えた記録（保存の返事が来る前に同じものを出さない） */
+const LTS = new PSet('smr_lts', 7 * 864e5); /* この画面で答えた記録（保存の返事が来る前に同じものを出さない） */
 const ltIsEx = l => l['種類'] === '展覧会';
 const ltById = id => (S.lits || []).find(l => l['候補ID'] === id);
 const ltRec = l => ltIsEx(l) ? (S.exhibits || []).find(x => x['展覧会ID'] === l['台帳ID']) : (S.pubs || []).find(p => p['資料ID'] === l['台帳ID']);
@@ -3736,7 +3748,7 @@ function qcDrawLit(el, c){
    ・カード k:'pbph'。表紙がなければ表紙（addCover）、そのあと中のページ（addPhotos、写真の種類「中面」）。表紙＋中のページ PBPH_N 枚で終わり
    ・ホームの行「家にある本の写真」・今日の10作品（1問まで）・本のカードで「ある」と答えたすぐあと・資料のページの「＋ 中のページの写真を撮る」 */
 const PBPH_N = 3;
-const PBS = new Set(); /* 「あとで撮る」にした本（開いているあいだだけ） */
+const PBS = new PSet('smr_pbs', 7 * 864e5); /* 「あとで撮る」にした本（開いているあいだだけ） */
 const pbInner = id => (S.photos || []).filter(p => p['作品番号'] === id && p['種類'] === '中面');
 /* ---------- 画集のスキャンしたページ（10/8 開発 v13） ----------
    スキャンした PDF を、パソコンで1ページずつ高画質の画像（長い辺 5000px・1500万画素まで）にして、資料の写真（種類「スキャン」、メモ「スキャン 3/9｜ファイル名」）として入れる。元の PDF は入れない。
@@ -4270,7 +4282,7 @@ function ltCands(l){ const ex = ltIsEx(l), nm = ltN(l['名称']), y = fdY(l['開
     if (/不明/.test(p['タイトル'] || '') && p['種類'] === l['細分']) s = Math.max(s, .5);
     if (s >= .5) out.push({ id: p['資料ID'], s, t: p['タイトル'] || '（題なし）', sub: [p['資料ID'], p['種類'], p['発行年月'], p['発行元']].filter(Boolean).join('・') }); });
   return out.sort((a, b) => b.s - a.s).slice(0, 4); }
-const LTD = new Set(); /* この画面で決めた記録 */
+const LTD = new PSet('smr_ltd', 7 * 864e5); /* この画面で決めた記録 */
 let LTDIRTY = false; /* 台帳に入れたあと、読み直しが要る */
 const ltbOpenL = () => (S.lits || []).filter(l => !l['状態'] && !LTD.has(l['候補ID']));
 function qcLitB(max){ return ltbOpenL().slice(0, max).map(l => ({ no: '', k: 'litb', id: l['候補ID'] })); }
@@ -4560,7 +4572,7 @@ function qcDrawDiffOther(el, c, x, ar){
   hydrate(el); el.scrollTop = 0; qcMusFilter();
 }
 const qcDiffX = c => { const d = docById(c.did); return d && (docRes(d)['食い違い'] || [])[c.i]; };
-const QDD = new Set(); /* この画面で決めた違い（保存の返事が来る前に同じものを出さない） */
+const QDD = new PSet('smr_qdd', 7 * 864e5); /* この画面で決めた違い（保存の返事が来る前に同じものを出さない） */
 function qcDiffLeft(){ let all = 0, left = 0; const dd = QDD;
   (S.docs||[]).forEach(d => { if (d['状態'] !== '登録済み') return; (docRes(d)['食い違い']||[]).forEach((x, i) => { if (x.t !== 'w' || !workOf(x.id) || (x.f === '所在' && musSame(x.cur, x.doc))) return; all++; if (!x.r && !dd.has(d['書類ID'] + '|' + i)) left++; }); });
   return { all, left }; }
@@ -4710,7 +4722,7 @@ function qcAct(a, btn){ const c = QC && QC.L[QC.i]; if (!c) return; const no = c
   if (a === 'no') { QC.step = 'loc'; return qcDraw(); }
   if (a === 'unk') return qcSave(no, { item, value: c.k === 'conf' ? (w['所在'] || '') : '', answer: '不明' });
   if (a === 'later') return qcSave(no, { item, value: '', answer: '保留' });
-  if (a === 'skip') { QC.i++; QC.step = ''; QC.heard = ''; QC.pend = null; QC.pn = null; QC.draft = ''; QC.dr = ''; qcHoldSet(null, null); return qcDraw(); }
+  if (a === 'skip') { if (!QC.test) qcSkipAdd(c); QC.i++; QC.step = ''; QC.heard = ''; QC.pend = null; QC.pn = null; QC.draft = ''; QC.dr = ''; qcHoldSet(null, null); return qcDraw(); }
   if (a === 'name') { const v = (($('#qcTtl') || {}).value || '').trim(); if (!v) return toast('名前を入れてください'); return ask({ item: '作品名', value: v, answer: 'はい' }, { '作品名': v }, null, v); }
   if (a === 'micdfo') { ttsUnlock(); const ok = listen(text => { const i = $('#qcDfo'); if (!i) return; let v = qcClean(text).replace(/(やったと思う|だったと思う)$/, ''); if (i.inputMode) { const n = v.normalize('NFKC').replace(/[^\d.]/g, ''); if (n) v = n; } i.value = v; }, () => {}); if (!ok) toast('マイクが使えません。ボタンで答えてください'); return; }
   if (a.indexOf('mic') === 0) { ttsUnlock(); QC.vOffAt = -1; if (!qcVoice(false)) toast('マイクが使えません。ボタンで答えてください'); return; }
@@ -4825,14 +4837,14 @@ async function qcSave(no, rec, patch, loc){
   if (QC.test) { const d0 = rec && rec.answer === 'はい' ? 1 : 0; stopMic(true); QC.n += d0; QC.i++; QC.step = ''; QC.heard = ''; QC.pend = null; QC.pn = null; QC.draft = ''; QC.dr = ''; qcHoldSet(null, () => { QC.n -= d0; }); return qcDraw(); } /* 練習モードは保存しない */
   const w = workOf(no), me = S.user && S.user.name || '';
   const K = ['所在区分', '所在', '場所確認日', '場所確認者'].concat(Object.keys(patch || {})), snap = w ? K.map(k => [k, w[k]]) : [], qk = rec ? no + '|' + rec.item : '', qOld = qk ? QZI[qk] : null, qLen = (S.quiz || []).length, dn = rec && rec.answer === 'はい' ? 1 : 0;
-  let row = null; if (rec) { S.quiz = S.quiz || []; row = { '日時': '', '答えた人': me, '種類': '作品', '対象': no, '項目': rec.item, '値': String(rec.value || ''), '答え': rec.answer }; S.quiz.push(row); QZP.push({ row, t: Date.now() }); QZI[no + '|' + rec.item] = row; }
+  let row = null; if (rec) { S.quiz = S.quiz || []; row = { '日時': '', '答えた人': me, '種類': '作品', '対象': no, '項目': rec.item, '値': String(rec.value || ''), '答え': rec.answer }; S.quiz.push(row); QZP.push({ row, t: Date.now(), u: me, send: [no, [rec], patch || null, loc || null] }); qzpSave(); QZI[no + '|' + rec.item] = row; }
   if (w && patch) Object.assign(w, patch);
   if (w && loc && loc.kind) Object.assign(w, { '所在区分': loc.kind, '所在': loc.place || loc.kind, '場所確認日': today(), '場所確認者': me });
   if (w && loc && loc.confirm) Object.assign(w, { '場所確認日': today(), '場所確認者': me });
   stopMic(true); QC.n += dn; QC.i++; QC.step = ''; QC.heard = ''; QC.pend = null; QC.pn = null; QC.draft = ''; QC.dr = '';
-  qcHoldSet(async () => { try { await call('quizSave', no, rec ? [rec] : [], patch || null, loc || null, null); }
+  qcHoldSet(async () => { try { await call('quizSave', no, rec ? [rec] : [], patch || null, loc || null, null); const p = row && QZP.find(x => x.row === row); if (p) { p.ok = true; p.send = null; qzpSave(); } }
       catch(e){ if (isLoginErr(e)) { alert('ログインの有効期限が切れました。もう一度ログインしてください。'); if (QC) qcEnd(); return; } toast('保存できませんでした：' + (e.message || e)); } },
-    () => { if (w) snap.forEach(([k, v]) => { w[k] = v; }); if (S.quiz) S.quiz.length = qLen; if (row) QZP = QZP.filter(p => p.row !== row); if (qk) { if (qOld) QZI[qk] = qOld; else delete QZI[qk]; } QC.n -= dn; });
+    () => { if (w) snap.forEach(([k, v]) => { w[k] = v; }); if (S.quiz) S.quiz.length = qLen; if (row) { QZP = QZP.filter(p => p.row !== row); qzpSave(); } if (qk) { if (qOld) QZI[qk] = qOld; else delete QZI[qk]; } QC.n -= dn; });
   qcDraw();
 }
 async function qcPhoto(file){ const c = QC && QC.L[QC.i]; if (!c) return;
@@ -6011,12 +6023,22 @@ let QZI = {};
 /* カードで答えて、まだ Google の台帳に入ったと分かっていない答え（10/9 開発 v15 本人「一度不明にしたものを何度も聞かれる」）。
    カードを閉じると、最後の答えを送るのと同時に台帳を読み直していたため、読み直した台帳にまだその答えがなく、「わからない」と答えた作品を次の10作品ですぐまた聞いていた。
    台帳に入ったと分かるまで（30分まで）は、手元の答えを台帳の答えに足しておく */
-let QZP = [];
+/* 10/10 開発 v18（本人「母にまだ何回も聞いてくると言われた」）：手元の答え QZP を端末（localStorage）にも残す（7日まで）。
+   iPhone のホーム画面アプリは開き直すと前の控えのデータから始まり、最後の答えが入っていないことがある。そのあいだに10作品を始めると同じことを聞いていた。
+   送れなかった答え（通信の失敗・送る前にアプリを閉じた）は、新しい台帳を読んだあと（答えから90秒以上たって、台帳にまだない）に3回まで送り直す */
+const QZP_KEY = 'smr_qzp', QZP_MS = 7 * 864e5;
+let QZP = (() => { try { const a = JSON.parse(localStorage.getItem(QZP_KEY) || '[]'); return Array.isArray(a) ? a.filter(p => p && p.row && Date.now() - p.t < QZP_MS) : []; } catch(e){ return []; } })();
+const qzpSave = () => { try { localStorage.setItem(QZP_KEY, JSON.stringify(QZP.map(p => ({ row: p.row, t: p.t, u: p.u || '', ok: !!p.ok, send: p.ok ? null : (p.send || null), tr: p.tr || 0 })))); } catch(e){} };
+const qzLocal = (no, item) => QZP.some(p => String(p.row['対象']) === String(no) && p.row['項目'] === item);
+let QZR = 0;
+function qzRetry(){ if (QZR || !S.dataAt || !S.user) return; const me = S.user.name || '';
+  const P = QZP.filter(p => !p.ok && p.send && p.u === me && S.dataAt - p.t > 90000 && (p.tr || 0) < 3 && !(QC && QC.hold)); if (!P.length) return;
+  QZR = 1; (async () => { for (const p of P) { p.tr = (p.tr || 0) + 1; try { await call('quizSave', p.send[0], p.send[1], p.send[2], p.send[3], null); p.ok = true; p.send = null; } catch(e){} } qzpSave(); QZR = 0; })(); }
 const qzSame = (a, b) => a['種類'] === b['種類'] && String(a['対象']) === String(b['対象']) && a['項目'] === b['項目'] && a['答え'] === b['答え'] && String(a['値'] || '') === String(b['値'] || '');
 function quizIndex(){ const now = Date.now(); S.quiz = S.quiz || [];
-  QZP = QZP.filter(p => now - p.t < 30 * 60000 && !S.quiz.some(r => r !== p.row && r['日時'] && qzSame(r, p.row)));
+  const n0 = QZP.length; QZP = QZP.filter(p => now - p.t < QZP_MS && !S.quiz.some(r => r !== p.row && r['日時'] && qzSame(r, p.row))); if (QZP.length !== n0) qzpSave();
   QZP.forEach(p => { if (!S.quiz.includes(p.row)) S.quiz.push(p.row); });
-  QZI = {}; S.quiz.forEach(r => { if (r['種類']==='作品') QZI[r['対象'] + '|' + r['項目']] = r; }); }
+  QZI = {}; S.quiz.forEach(r => { if (r['種類']==='作品') QZI[r['対象'] + '|' + r['項目']] = r; }); try { qzRetry(); } catch(e){} }
 const qzLast = (no, item) => QZI[no + '|' + item];
 const qzDone = (no, item, v) => { const r = qzLast(no, item); return !!r && ((r['答え']==='はい' && r['値']===String(v||'')) || (r['答え']==='不明' && r['値']===String(v||''))); };
 const qzUnknown = (no, item) => { const r = qzLast(no, item); return !!r && r['答え']==='不明'; };
