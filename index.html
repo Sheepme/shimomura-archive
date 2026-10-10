@@ -2616,6 +2616,7 @@ body.exvopen #toast:not(.hidden){z-index:9600!important} /* 展示ビューの�
 #abTitle .abedt{font-weight:700}
 body.edmhd header#top,body.edmhd header#top .brand.appbar{background:#ea580c!important}
 body.edmhd header#top{box-shadow:none}
+body.wide.edmhd header#top #dwSrch,body.wide.edmhd #fmAsk{display:none!important} /* パソコンの編集中は、ヘッダーの検索窓とAIを出さない */
 body.edmhd header#top #btnMenu#btnMenu{visibility:hidden!important;pointer-events:none}
 body.edmhd #abTitle .abedt{color:#fff}
 body.edmhd .abedit.abcancel{background:#ea580c;color:#fff;border-color:#fdba74}
@@ -2803,7 +2804,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'aa8b9abf52', APP_URL = location.origin + location.pathname;
+const BUILD = '73d06e6a21', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
