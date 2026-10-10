@@ -2804,7 +2804,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '73d06e6a21', APP_URL = location.origin + location.pathname;
+const BUILD = '72d6371f74', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -7245,7 +7245,7 @@ const PRM = t => /パンリアル/.test(String(t||'')) ? '<i class="prm" aria-hi
 const exNo = x => { const m = /第\s*(\d+)\s*回/.exec(String((x||{})['名称']||'').normalize('NFKC')); return m ? +m[1] : 9999; };
 function renderExList(){
   $('#chronobar').innerHTML = `<div class="search"><input id="xq" type="search" placeholder="展覧会名・会場・年で探す" value="${esc(S.xq)}" enterkeyhint="search"></div>
-    <div class="chips">${['すべて', ...EX_T].map(k => `<button class="chip ${S.xt===k?'on':''}" data-xt="${esc(k)}">${esc(k)}</button>`).join('')}<button class="chip ${S.xmain?'on':''}" data-xmain="1">${S.xmain?'✓ ':''}主要だけ</button><button class="chip ${S.xnl?'on':''}" data-xnl="1">${S.xnl?'✓ ':''}作品のひも付けなし</button></div>`;
+    <div class="chips">${['すべて', ...EX_T].map(k => `<button class="chip ${S.xt===k?'on':''}" data-xt="${esc(k)}">${esc(k)}<span class="cn">${k==='すべて' ? S.exhibits.length : S.exhibits.filter(x => x['種類']===k).length}</span></button>`).join('')}<button class="chip ${S.xmain?'on':''}" data-xmain="1">${S.xmain?'✓ ':''}主要だけ</button><button class="chip ${S.xnl?'on':''}" data-xnl="1">${S.xnl?'✓ ':''}作品のひも付けなし</button></div>`;
   $('#xq').oninput = e => { S.xq = e.target.value; drawExList(); };
   drawExList();
 }
