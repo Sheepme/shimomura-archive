@@ -2711,6 +2711,13 @@ html[data-theme=dark] .evv .evdband{background:#3a3218;border-color:#6b5a22;colo
 #viewer.vhasr{padding-bottom:150px}
 #viewer.vhasr .vbar{bottom:54px}
 #viewer.vhasr #vorig{bottom:104px}
+#vorig#vorig{background:rgba(24,24,24,.78);color:#fff;border:0;font-weight:600;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 2px 10px rgba(0,0,0,.25);z-index:6}
+#vorig#vorig.hq{background:rgba(24,24,24,.55)}
+.vbkw span{color:var(--ink);font-weight:600}
+/* 拡大しているあいだは、上の作品のボタン・下の前後・つまみ・高画質のボタンを隠して、写真を広く見せる（10/11 開発 v19） */
+#viewer.pzon .vbk,#viewer.pzon .vbar,#viewer.pzon .vrngw,#viewer.pzon #vorig{opacity:0;pointer-events:none}
+#viewer .vbk,#viewer .vbar,#viewer .vrngw,#viewer #vorig{transition:opacity .2s}
+.pzsharp{position:absolute;pointer-events:none;z-index:1;opacity:0;transition:opacity .12s}
 .pbhead{display:flex;align-items:flex-end;gap:14px;margin:14px 0 8px}
 .pbcv{position:relative;flex:none;width:132px}
 .pbcvb{display:block;width:100%;padding:0;border:0;background:none;cursor:zoom-in}
@@ -2815,7 +2822,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd2b10bdc84', APP_URL = location.origin + location.pathname;
+const BUILD = '19737aeb4b', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2823,12 +2830,12 @@ function checkBuild(){
     // 入力中でなければ、そのまま新しい版に切り替える（古い画面が残らないように）
     const busyEdit = CALLS.n > 0 || !$('#loading').classList.contains('hidden') || (!$('#sheet').classList.contains('hidden') && !!$('#sheetbox').querySelector('#ok, textarea, input:not([type=hidden]):not([type=search]), select')) || /* 書類の詳細など、見るだけの画面は入力中に数えない */ (document.activeElement && /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) || S.aiOpen || !!document.querySelector('.quiz:not(.hidden)') || !!document.getElementById('crop') || AC.run;
     let tried = ''; try { tried = sessionStorage.getItem('smr_upd') || ''; } catch(e){}
-    if (!busyEdit && tried !== b) { try { sessionStorage.setItem('smr_upd', b); } catch(e){} location.replace(APP_URL + '?r=' + Date.now()); return; }
+    if (!busyEdit && tried !== b) { try { sessionStorage.setItem('smr_upd', b); } catch(e){} updGo(); return; }
     let snz = 0; try { snz = +sessionStorage.getItem('smr_updsnz') || 0; } catch(e){} if (Date.now() - snz < 30 * 60000) return; /* 「あとで」を押したら30分は出さない */
     /* 新しい版のお知らせ：ヘッダーの下に浮かぶカード（どの画面の上でも押せる） */
     const d = document.createElement('div'); d.id = 'updBar'; d.className = 'updcard'; d.setAttribute('role', 'status');
     d.innerHTML = '<span class="updic" aria-hidden="true">↻</span><span class="updtx"><b>新しい版があります</b><small>入力中のものは保存してから更新してください</small></span><button type="button" class="updgo">更新する</button><button type="button" class="updx" aria-label="あとで">✕</button>';
-    d.querySelector('.updgo').onclick = e => { e.stopPropagation(); d.classList.add('go'); d.querySelector('.updgo').textContent = '更新中…'; window.open(APP_URL + '?r=' + Date.now(), '_top'); };
+    d.querySelector('.updgo').onclick = e => { e.stopPropagation(); d.classList.add('go'); d.querySelector('.updgo').textContent = '更新中…'; updGo(); };
     d.querySelector('.updx').onclick = e => { e.stopPropagation(); try { sessionStorage.setItem('smr_updsnz', String(Date.now())); } catch(x){} d.remove(); };
     document.body.appendChild(d); }).catch(() => {});
 }
@@ -3035,7 +3042,7 @@ function syncThemeColor(){ let m = document.querySelector('meta[name="theme-colo
 setTimeout(syncThemeColor, 0); new MutationObserver(syncThemeColor).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
 /* お知らせ（読み込み中・保存しました・新しい版）は、上のページ名のところに色を変えて出す */
 function setTitle(t){ const h = $('#abTitle'); if (!h) return; h.dataset.t = t; abRender(); }
-function abRender(){ abRender0(); try { scrCrumb(); } catch(e){} try { abV19(); } catch(e){} if (typeof capFit === 'function') capFit(); abFit(); }
+function abRender(){ abRender0(); try { scrCrumb(); } catch(e){} try { abV19(); } catch(e){} if (typeof capFit === 'function') capFit(); abFit(); try { barHeal(); } catch(e){} }
 /* 上の見出し（10/10 開発 v19 本人「パンくずは「‹ 戻り先」1つに」）：
    詳細・重ねた画面は、左の「‹」の横に「戻ると行く画面の名前」だけ（押しても戻る）。一覧は題名と件数だけ。
    美術館・フォルダなど一覧の下の階層では、名前の前の「‹」で1つ上へ。右に「編集／完了」（詳細ページ・編集できる人） */
@@ -3457,7 +3464,12 @@ function render(){ const r = render0.apply(this, arguments); try { vTrack(); } c
 function barHeal(){ const b = document.body, h = document.getElementById('top');
   if (b.classList.contains('qcopen') && !(typeof QC !== 'undefined' && QC) && !(typeof FDB !== 'undefined' && FDB) && !(typeof IV !== 'undefined' && IV) && !(typeof AC !== 'undefined' && AC && AC.open)) { try { qcLock(false); } catch(e){ b.classList.remove('qcopen'); } }
   if (b.classList.contains('exvopen') && !(typeof EXV !== 'undefined' && EXV)) b.classList.remove('exvopen');
-  if ((window.scrollY || 0) < 80 && h && h.classList.contains('tuck')) { h.classList.remove('tuck'); b.classList.remove('tucked'); } }
+  if ((window.scrollY || 0) < 80 && h && h.classList.contains('tuck')) { h.classList.remove('tuck'); b.classList.remove('tucked'); }
+  /* 写真・書類の全画面がもう閉じているのに、上のバーを隠したままのとき（10/11 開発 v19 本人「ページを移動していると上のUIが消える」） */
+  { const tp = (typeof SCR !== 'undefined') ? SCR[SCR.length - 1] : null; if (b.classList.contains('hidebar') && !(tp && tp.isConnected && !tp.classList.contains('hidden') && (tp.id === 'viewer' || (tp.classList.contains('docview') && !tp.classList.contains('bigv'))))) b.classList.remove('hidebar'); }
+  /* 画面を移ったら、下へスクロールして隠した上のバーは出す */
+  try { const pg = document.getElementById('page'), sig = (S.view || '') + '|' + (S.pcur && pg && !pg.classList.contains('hidden') ? S.pcur.t + ':' + S.pcur.id : '') + '|' + (typeof SCR !== 'undefined' ? SCR.length : 0);
+    if (sig !== barHeal.sig) { barHeal.sig = sig; if (h && h.classList.contains('tuck')) { h.classList.remove('tuck'); b.classList.remove('tucked'); } } } catch(e){} }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') setTimeout(barHeal, 100); });
 function render0(){ setTimeout(() => { try { tedBar(); } catch(e){} }, 0);
   if (S.view === 'album' || S.view === 'list') { S.sortBy = S.sortBy || { album: 'rand', list: 'no' }; S.sort = S.sortBy[S.view] || S.sort; const so = document.getElementById('sort'); if (so && so.value !== S.sort) so.value = S.sort; } /* 並び順はアルバムとリストで別々（リストは番号順から。10/7 本人） */
@@ -7676,10 +7688,10 @@ function showV(){ const p = V.list[V.i]; if (!p) return;
   $('#vcopy').classList.toggle('hidden', !canEdit() || !p['写真ID']); $('#vcopy').textContent = copyOf(p) ? '© 著作物（' + copyOf(p).mu + '）' : '© 著作物の設定';
   $('#vedit').classList.toggle('hidden', !canEdit()); $('#vmenu').classList.remove('open', 'rot');
   $('#vrep').classList.toggle('hidden', !canEdit()); $('#vdrv').classList.toggle('hidden', !canEdit() || !p['ファイルID'] || !!copyOf(p)); /* 他人の著作物（縮小画像だけ保存）には出さない */ $('#vdel').classList.toggle('hidden', !canEdit() || !p['写真ID']); $('#vrot').classList.toggle('hidden', !canEdit()); { const ok = crCan(p) && !scanOf(p); $('#vcrop').classList.toggle('hidden', !ok); if (ok) $('#vcrop').textContent = crTargets(p).corr ? '✂ 切り抜き・補正（直し直す）' : '✂ 切り抜き・補正'; }
-  $('#vorig').textContent = TH['3200_' + p['ファイルID']] ? '高画質で表示中' : '高画質で見る';
+  $('#vorig').textContent = TH['3200_' + p['ファイルID']] ? '✓ 高画質' : '高画質で見る'; $('#vorig').classList.toggle('hq', !!TH['3200_' + p['ファイルID']]);
   $('#vorig').onclick = () => { const id = p['ファイルID'], k2 = '3200_' + id; if (TH[k2]) { $('#vimg').src = TH[k2]; return; }
     $('#vorig').textContent = '読み込み中…'; vSpin(true);
-    call('getThumbs', [id], 3200).then(m => { if (!m[id]) throw new Error('empty'); TH[k2] = m[id]; if (V.list[V.i] === p) { $('#vimg').src = m[id]; $('#vorig').textContent = '高画質で表示中'; vSpin(false); } })
+    call('getThumbs', [id], 3200).then(m => { if (!m[id]) throw new Error('empty'); TH[k2] = m[id]; if (V.list[V.i] === p) { $('#vimg').src = m[id]; $('#vorig').textContent = '✓ 高画質'; $('#vorig').classList.add('hq'); vSpin(false); } })
       .catch(() => { vSpin(false); $('#vorig').textContent = '高画質で見る'; toast('高画質の写真を読み込めませんでした'); }); };
   { const ok2 = crCan(p) && !scanOf(p) && !pbPhOf(p) && !!(crInfo(p) || crTargets(p).corr) && !!workOf(S.cur); $('#vcrop2').classList.toggle('hidden', !ok2); } /* すでに切り出した写真（と、その元の記録写真）から、もう1枚 */
   if (ref) ['#vmain', '#vcopy', '#vedit', '#vrep', '#vdel', '#vrot', '#vcrop', '#vcrop2', '#vdrv'].forEach(k => $(k).classList.add('hidden')); /* 画集のページ（参照）は作品の写真ではないので、ここでは消したり直したりしない */
@@ -7695,12 +7707,25 @@ $('#viewer').addEventListener('click', e => { if (!e.target.closest('#vedit') &&
 /* ---------- 写真のプレビューの拡大・移動：どの画面も同じ動き（写真の拡大画面・画集のページの見比べ・カードの写真）（10/8 本人「プレビュー画面は全てジェスチャに対応して、動作を統一」） ----------
    指：2本でつまむ・広げる（指のまん中を中心に）、拡大中は1本でなぞって移動、2回タップで拡大（タップした所を中心に）／全体にもどす。拡大していないとき左右にスワイプ＝前後（opt.swipe）
    マウス・トラックパッド：ホイール・ピンチで拡大・縮小（マウスの位置を中心に）、拡大中はドラッグで移動、ダブルクリックで拡大／全体。1〜6倍。絵が枠から離れすぎないよう端で止める */
+/* 拡大した写真をくっきり（10/11 開発 v19 本人「拡大してもキャプションの文字が読めない」）：拡大して指を止めたら、画面に見えている所だけを
+   キャンバスに写真の元の画素から描く（transform で拡大すると iPhone は小さく描いたものを引きのばすため、ぼやける）。動かしている間は隠す */
+function pzSharp(box, el, Z, geo){ const cv = document.createElement('canvas'); cv.className = 'pzsharp'; cv.setAttribute('aria-hidden', 'true'); box.appendChild(cv); let t = 0;
+  const hide = () => { clearTimeout(t); cv.style.opacity = '0'; };
+  const draw = () => { try { if (Z.s <= 1.15 || !el.complete || !el.naturalWidth || !el.getAttribute('src')) return hide(); const G = geo(), dpr = Math.min(3, window.devicePixelRatio || 1);
+      const L = G.ox + Z.x + Z.s * G.cx, T = G.oy + Z.y + Z.s * G.cy, W = G.cw * Z.s, H = G.ch * Z.s;
+      const x0 = Math.max(0, L), y0 = Math.max(0, T), x1 = Math.min(G.bw, L + W), y1 = Math.min(G.bh, T + H); if (x1 - x0 < 4 || y1 - y0 < 4) return hide();
+      const nw = el.naturalWidth, nh = el.naturalHeight; if (W / nw < 1 / dpr * 0.9) return hide(); /* 元の画素より小さく表示しているときは、そのままでくっきり */
+      cv.width = Math.round((x1 - x0) * dpr); cv.height = Math.round((y1 - y0) * dpr); Object.assign(cv.style, { left: x0 + 'px', top: y0 + 'px', width: (x1 - x0) + 'px', height: (y1 - y0) + 'px' });
+      const g = cv.getContext('2d'); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+      g.drawImage(el, (x0 - L) / W * nw, (y0 - T) / H * nh, (x1 - x0) / W * nw, (y1 - y0) / H * nh, 0, 0, cv.width, cv.height); cv.style.opacity = '1'; } catch(e){ hide(); } };
+  return { hide, later: () => { hide(); t = setTimeout(draw, 220); } }; }
 function pzMake(box, el, opt){ opt = opt || {}; const Z = opt.state || { s: 1, x: 0, y: 0 }, MAX = opt.max || 6, P = new Map(); let g = null, last = null, tapT = 0, gs = null;
   const geo = () => { const ow = el.offsetWidth, oh = el.offsetHeight, nw = el.naturalWidth || ow, nh = el.naturalHeight || oh, ar = (nw / nh) || 1, cw = Math.min(ow, oh * ar), ch = cw / ar; let ox = 0, oy = 0, n = el;
     while (n && n !== box) { ox += n.offsetLeft; oy += n.offsetTop; n = n.offsetParent; } return { ox, oy, cx: (ow - cw) / 2, cy: (oh - ch) / 2, cw, ch, bw: box.clientWidth, bh: box.clientHeight }; };
   const clamp = () => { const G = geo(), s = Z.s; [['x', G.ox, G.cx, G.cw, G.bw], ['y', G.oy, G.cy, G.ch, G.bh]].forEach(([a, o, c0, len, b]) => { const L = len * s;
     if (L <= b) Z[a] = (c0 + len / 2) * (1 - s); else Z[a] = Math.min(-o - s * c0, Math.max(b - o - s * (c0 + len), Z[a])); }); }; /* 枠より小さい向きはまん中のまま、大きい向きは端が枠の中に入りこまない */
-  const apply = () => { if (Z.s <= 1.001) { Z.s = 1; Z.x = 0; Z.y = 0; } else clamp(); el.style.transformOrigin = '0 0'; el.style.transform = Z.s === 1 ? '' : `translate(${Z.x}px,${Z.y}px) scale(${Z.s})`;
+  const SH = opt.sharp ? pzSharp(box, el, Z, () => geo()) : null; if (SH) el.addEventListener('load', () => SH.later());
+  const apply = () => { if (Z.s <= 1.001) { Z.s = 1; Z.x = 0; Z.y = 0; } else clamp(); el.style.transformOrigin = '0 0'; el.style.transform = Z.s === 1 ? '' : `translate(${Z.x}px,${Z.y}px) scale(${Z.s})`; if (SH) SH.later();
     el.classList.toggle('zoomed', Z.s > 1); box.classList.toggle('pzon', Z.s > 1); if (opt.onZoom) opt.onZoom(Z.s); };
   const zoomAt = (ns, px, py) => { const r = box.getBoundingClientRect(), G = geo(), bx = px - r.left, by = py - r.top, lx = (bx - G.ox - Z.x) / Z.s, ly = (by - G.oy - Z.y) / Z.s;
     ns = Math.max(1, Math.min(MAX, ns)); Z.s = ns; Z.x = bx - G.ox - lx * ns; Z.y = by - G.oy - ly * ns; el.style.transition = 'none'; apply(); };
@@ -7732,7 +7757,7 @@ const VZ = { s: 1, x: 0, y: 0 }; let VPZ = null;
 function vzApply(){ if (VPZ) VPZ.apply(); }
 function vzReset(){ VZ.s = 1; VZ.x = 0; VZ.y = 0; vzApply(); }
 function vzToggle(){ if (VPZ) VPZ.toggle(); }
-VPZ = pzMake($('#viewer'), $('#vimg'), { state: VZ, skip: e => e.pointerType === 'touch' && VZ.s === 1 && (e.clientX <= 24 || e.clientX >= innerWidth - 24) || !!(e.target.closest && e.target.closest('#vmenu,.vbar,.vbk')),
+VPZ = pzMake($('#viewer'), $('#vimg'), { state: VZ, sharp: true, skip: e => e.pointerType === 'touch' && VZ.s === 1 && (e.clientX <= 24 || e.clientX >= innerWidth - 24) || !!(e.target.closest && e.target.closest('#vmenu,.vbar,.vbk')),
   swipe: d => { const n = V.i + d; if (n >= 0 && n < V.list.length) { V.i = n; showV(); } },
   onZoom: s => { const p = V.list[V.i]; if (s > 1.4 && p && p['ファイルID'] && !TH['3200_' + p['ファイルID']] && V.hiAsk !== p['ファイルID']) { V.hiAsk = p['ファイルID']; const b = $('#vorig'); if (b && b.onclick) b.onclick(); } } });
 function vSpin(on){ let el = $('#vspin'); if (!el) { el = document.createElement('div'); el.id = 'vspin'; el.innerHTML = '<span class="ldspin"></span><small>読み込み中</small>'; $('#viewer').appendChild(el); } el.classList.toggle('hidden', !on); }
@@ -8926,23 +8951,32 @@ function scrBack(fromHist){ const top = SCR[SCR.length - 1]; if (!top) return fa
   return false; }
 function openSheet(html){ if (S.sheetDoc && !$('#sheet').classList.contains('hidden')) { const did = S.sheetDoc, sc = $('#sheet').scrollTop, sb = $('#sheetbox').scrollTop; S.sheetRet = () => { sheetDocReview(did); setTimeout(() => { $('#sheet').scrollTop = sc; $('#sheetbox').scrollTop = sb; }, 120); }; } /* 書類の上で直す画面を開いたら、閉じたとき書類に戻る */
   S.sheetDoc = null; $('#sheetbox').classList.remove('split', 'dview', 'dse'); $('#sheetbox').innerHTML = html; $('#sheetbox').scrollTop = 0; $('#sheet').scrollTop = 0; /* 中身を入れ替えたら上から */ if ($('#sheet').classList.contains('hidden')) { hpush('s'); $('#sheet').classList.remove('hidden'); scrPush($('#sheet')); }
-  clearTimeout(SNAP.t); SNAP.v = null; SNAP.t = setTimeout(() => { SNAP.v = sheetState(); }, 250); }
+  clearTimeout(SNAP.t); SNAP.v = null; SNAP.touched = false; SNAP.t = setTimeout(() => { SNAP.v = sheetState(); }, 250); }
 /* 入力中の内容があるか（開いたときの状態とくらべる）。写真を選んだ・項目を選んだ・文字を入れた、を見分ける */
-const SNAP = { v: null, t: 0 };
+const SNAP = { v: null, t: 0, touched: false };
+/* シートの入力欄・選ぶボタン・写真を選んだときだけ「さわった」にする（読み込みが遅れて中身が変わっただけでは、確認を出さない。10/11 開発 v19 本人「資料を開いて戻るとアラート」） */
+['input', 'change'].forEach(k => document.addEventListener(k, e => { const t = e.target; if (!t || !t.closest || !t.closest('#sheetbox') || t.closest(SNAPNAV)) return; if (t.matches && t.matches('input[type=range], input[type=search], [data-nosnap]')) return; SNAP.touched = true; }, true));
+document.addEventListener('click', e => { const t = e.target && e.target.closest && e.target.closest('#sheetbox [data-o], #sheetbox [data-mo], #sheetbox .pick, #sheetbox .chip'); if (t && !t.closest(SNAPNAV)) SNAP.touched = true; }, true);
 const SNAPNAV = '.pqv, .dcgalw, .pbtop, .dtopv, .dfprev, .devw, .evv, .dsv'; /* 見るための部品（ページのめくり・PDF・目次から開いたプレビュー） */
 function sheetState(){ const b = $('#sheetbox'); if (!b) return '';
   return [...b.querySelectorAll('input:not([type=file]):not([type=range]):not([type=search]):not([data-nosnap]),textarea,select')].filter(e => !e.closest(SNAPNAV)).map(e => (e.type==='checkbox' || e.type==='radio') ? e.checked : e.value).join('\u0001')
     + '|' + [...b.querySelectorAll('.pick')].map(p => p.dataset.v).join('\u0001') + '|' + [...b.querySelectorAll('.on')].filter(e => !e.closest(SNAPNAV) && !e.matches('.dtr, .dtr *, .chip[data-dmode]')).length
     + '|' + [...b.querySelectorAll('img.preview,.pvs img')].filter(i => !i.classList.contains('hidden') && i.getAttribute('src')).length; }
-const sheetDirty = () => !$('#sheet').classList.contains('hidden') && SNAP.v !== null && sheetState() !== SNAP.v;
+const sheetDirty = () => !$('#sheet').classList.contains('hidden') && SNAP.v !== null && SNAP.touched && sheetState() !== SNAP.v;
 const askLeave = () => !sheetDirty() || confirm('入力した内容は、まだ保存されていません。閉じていいですか？');
 function closeSheet(fromHist){ if (!$('#sheet').classList.contains('hidden')) scrPop($('#sheet')); $('#sheetbox').onclick = null; $('#sheetbox').classList.remove('split'); const open = !$('#sheet').classList.contains('hidden'); $('#sheet').classList.add('hidden'); $('#sheetbox').innerHTML=''; if (open && !fromHist) hback(); { const rt = S.sheetRet, n0 = NAVN; S.sheetRet = null; if (open && rt) setTimeout(() => { if (NAVN !== n0 || !$('#sheet').classList.contains('hidden')) return; rt(); }, fromHist ? 60 : 380); } /* 書類から直しに行ったときは、閉じたら書類に戻る */ try { if (PDFQ && PDFQ.running) setTimeout(pdfBg, 0); } catch(e){} }
 
 /* ---------- スワイプで戻る（ブラウザの「戻る」と連動） ---------- */
 /* 画面を開くたびに履歴を1つ積み、戻る操作で一番上の画面を閉じる */
-const HIST = { skip: 0, idx: 0, noPush: 0 };
+const HIST = { skip: 0, idx: 0, noPush: 0, bounce: 0 };
+/* この画面（ページを読み込んだ1回分）の印と、読み込んだ時刻。「アプリを更新」のあと、端スワイプで更新前の画面にもどらないように（10/11 開発 v19 本人） */
+const HSID = Math.random().toString(36).slice(2, 9), LOADT = Date.now();
+const updT = () => { try { return +sessionStorage.getItem('smr_updT') || 0; } catch(e){ return 0; } };
+function updGo(){ try { sessionStorage.setItem('smr_updT', String(Date.now())); } catch(e){} location.replace(APP_URL + '?r=' + Date.now()); }
+try { const T = updT(), st = history.state; if (T && st && st.t && st.t < T) history.forward(); } catch(e){} /* 更新より前の履歴から開かれた → 更新後へもどす */
+addEventListener('pageshow', e => { if (e.persisted && updT() > LOADT) { try { history.forward(); } catch(x){} } }); /* 更新前の画面がそのまま出てきた → 更新後へもどす */
 function hist_(){ try { return google.script.history; } catch(e){ return null; } }
-function hpush(tag){ if (HIST.noPush) return; FW.length = 0; const h = hist_(); if (h) try { HIST.idx++; h.push({ o: tag, t: Date.now(), i: HIST.idx }, {}, tag); } catch(e){} } /* 新しく進んだら「進む」の先は消える */
+function hpush(tag){ if (HIST.noPush) return; FW.length = 0; const h = hist_(); if (h) try { HIST.idx++; h.push({ o: tag, t: Date.now(), i: HIST.idx, sid: HSID }, {}, tag); } catch(e){} } /* 新しく進んだら「進む」の先は消える */
 /* ---- 「進む」：戻るときに閉じた画面を覚えておき、進むでもう一度開く ---- */
 const FW = [];
 function fwdRecord(){ let f = null;
@@ -8974,6 +9008,9 @@ function closeTop(){
   return false;
 }
 (function(){ const h = hist_(); if (h) try { h.setChangeHandler(ev => { const st = ev && ev.state, i = st && typeof st.i === 'number' ? st.i : null;
+      if (HIST.bounce) { HIST.bounce = 0; return; }
+      if (st && ((st.sid && st.sid !== HSID) || (st.t && st.t < updT()))) { HIST.bounce = 1; try { history.forward(); } catch(e){ HIST.bounce = 0; } return; } /* 更新前の履歴にはもどらない */
+      if (HIST.skip <= 0 && (i == null || i <= HIST.idx) && (!$('#loading').classList.contains('hidden') || !$('#confirm').classList.contains('hidden') || ($('#updBar') && $('#updBar').classList.contains('go')))) { HIST.idx = i != null ? i : Math.max(0, HIST.idx - 1); hpush('k'); return; } /* 保存中・保存の確認中・更新中は、スワイプで戻らない（履歴を積み直す） */
       if (HIST.skip > 0) { HIST.skip--; HIST.idx = i != null ? i : Math.max(0, HIST.idx - 1); FW.length = 0; return; } /* ボタンで閉じたときは「進む」の先を残さない */
       if (i != null && i > HIST.idx) { HIST.idx = i; fwdGo(); return; } /* ブラウザの「進む」 */
       HIST.idx = i != null ? i : Math.max(0, HIST.idx - 1); fwdRecord(); if (!closeTop()) vBack(); }); } catch(e){} })();
@@ -11026,7 +11063,7 @@ async function freshReload(n){
     r.onupgradeneeded = () => { try { r.result.createObjectStore('kv'); } catch(e){} };
     r.onsuccess = () => { try { const tx = r.result.transaction('kv', 'readwrite'); tx.objectStore('kv').delete('C'); tx.oncomplete = tx.onerror = tx.onabort = () => { try { r.result.close(); } catch(e){} ok(); }; } catch(e){ ok(); } };
     r.onerror = r.onblocked = () => ok(); }); } catch(e){}
-  window.open(APP_URL + '?r=' + Date.now(), '_top');
+  updGo();
 }
 async function freshDone(f){ let lb = ''; try { lb = await call('appBuild'); } catch(e){}
   if (lb && BUILD && lb !== BUILD && (f.n || 0) < 2) { toast('新しい画面を読み込み直しています…'); return setTimeout(() => freshReload((f.n || 0) + 1), 800); } /* 古い画面が届いたときは、もう一度 */
