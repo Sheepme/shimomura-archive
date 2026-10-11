@@ -2930,7 +2930,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '4dfef6c4bb', APP_URL = location.origin + location.pathname;
+const BUILD = '66fa5fd029', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6047,7 +6047,7 @@ function ocrFind(o, p, text, all){ const pg = o && o.pages && o.pages[p - 1]; if
     const add = g => { const w = wb.get(g) || 0; if (w < (qb.get(g) || 0)) com++; wb.set(g, w + 1); }, del = g => { const w = wb.get(g) - 1; wb.set(g, w); if (w < (qb.get(g) || 0)) com--; };
     for (let k = 0; k < L - 1; k++) add(N.s.substr(k, 2));
     for (let s0 = 0; ; s0++) { if (com > best) { best = com; bi = s0; } if (s0 + L >= N.s.length) break; del(N.s.substr(s0, 2)); add(N.s.substr(s0 + L - 1, 2)); }
-    if (bi >= 0 && best / (L - 1) >= 0.5) hits.push([bi, bi + L]); }
+    if (bi >= 0 && best / (L - 1) >= 0.5) { let a = bi, b = bi + L; while (a < b && q.indexOf(N.s[a]) < 0) a++; while (b > a && q.indexOf(N.s[b - 1]) < 0) b--; if (b - a >= 2) hits.push([a, b]); } }
   if (!hits.length) return null; const boxes = []; hits.forEach(h => boxes.push(...ocrRects(pg, h[0], h[1]))); if (!boxes.length) return null;
   return { p, box: boxes.reduce((a, b) => [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[2], b[2]), Math.max(a[3], b[3])]), boxes, ocr: 1 }; }
 /* 書類のあるページの、ある場所を赤いマーカーで見せる（ノートの「📍 書類で場所を見る」。書類で見る〔evOpen〕と同じ見た目） */
