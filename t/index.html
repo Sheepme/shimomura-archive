@@ -2930,7 +2930,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '66fa5fd029', APP_URL = location.origin + location.pathname;
+const BUILD = '826a103557', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3197,6 +3197,19 @@ async function ocrKeyAsk(){ if (!S.user || S.user.role !== '管理') { alert('Go
   try { await call('setVisionKey', k); busy(false); toast('OCR のキーを入れました'); return true; }
   catch(e){ busy(false); const m = String(e && e.message || e); alert(/この操作はできません|setVisionKey/.test(m) ? 'まだ Google 側の更新（デプロイ）が済んでいません' : m); return false; } }
 const ocrKeyErr = m => /VISION_API_KEY|API key not valid|API_KEY_INVALID/i.test(String(m || ''));
+/* 大きい PDF：pdf-lib で5ページ（重ければもっと少なく）ずつの PDF にして、1つずつ Google に送る（ocrChunk）。画質はそのまま。終わるまで画面は開いたまま */
+async function docOcrSplit(did){ const d = docById(did), fid = d && docPdfFid(d); if (!fid) return;
+  busy(true, 'PDF を分けています…');
+  try { const L = await pdfLib(), url = await pdfBlobUrl(fid), buf = await (await fetch(url)).arrayBuffer(), src = await L.PDFDocument.load(buf, { ignoreEncryption: true }), N = src.getPageCount();
+    for (let p = 1; p <= N;) { let k = Math.min(5, N - p + 1), out = null;
+      for (;;) { const nd = await L.PDFDocument.create(), pgs = await nd.copyPages(src, Array.from({ length: k }, (_, i) => p - 1 + i)); pgs.forEach(x => nd.addPage(x)); out = await nd.save(); if (out.length <= 6.8e6 || k === 1) break; k = Math.max(1, Math.floor(k / 2)); }
+      if (out.length > 7.2e6) throw new Error(p + 'ページ目は1ページだけでも大きすぎて送れません');
+      busy(true, `文字の位置を作っています…（${p}〜${p + k - 1} / ${N}ページ）\n終わるまで、この画面を開いたままにしてください`);
+      const b64 = u8b64(out); for (let t = 0; ; t++) { try { await call('ocrChunk', did, b64, p, k, N); break; } catch(e){ if (!(e && e.net) || t >= 1) throw e; await new Promise(r => setTimeout(r, 2500)); } } /* Google 側の一時的な404：1回だけやり直す */
+      p += k; }
+    busy(true, '仕上げています…'); try { setData(await call('getData')); } catch(e){} busy(false); toast(`文字の位置を作りました（${N}ページ）`); try { render(); } catch(e){} sheetDocReview(did); }
+  catch(e){ busy(false); const m = String(e && e.message || e); if (ocrKeyErr(m)) { if (await ocrKeyAsk()) docOcrSplit(did); return; }
+    alert(/この操作はできません|ocrChunk/.test(m) ? 'まだ Google 側の更新（デプロイ）が済んでいません' : '文字の位置を作れませんでした（途中まで作った分は残ります。もう一度押すと最初から）。\n' + m); } }
 async function docOcrOne(did){ const d = docById(did); if (!d) return;
   if (!confirm('この書類の文字の位置を、Google の OCR で作ります。\n1ページ1回分（毎月1,000ページまで無料。アプリでも月950ページで止めます）。よろしいですか？')) return;
   busy(true, '文字の位置を作っています…（大きい書類は数分）');
@@ -3204,6 +3217,7 @@ async function docOcrOne(did){ const d = docById(did); if (!d) return;
     toast(o ? (o.part ? `途中まで作りました（${o.done} / ${o.n}ページ）。もう一度押すと続きから` : `文字の位置を作りました（${o.n}ページ）`) : '文字の位置を作りました'); try { render(); } catch(e){} sheetDocReview(did); }
   catch(e){ busy(false); const m = String(e && e.message || e); if (ocrKeyErr(m)) { if (await ocrKeyAsk()) docOcrOne(did); return; }
     if (e && e.net) { try { busy(true, '結果を確かめています…'); setData(await call('getData')); } catch(x){} busy(false); if (ocrHas(docById(did))) { toast('文字の位置を作りました'); try { render(); } catch(x){} sheetDocReview(did); return; } } /* Google 側の一時的な404：作れていることがある */
+    if (/PDFが大きすぎます/.test(m)) { if (confirm('この PDF は大きいので、アプリで数ページずつに分けて送ります（画質はそのまま）。\n終わるまで、この画面を開いたままにしてください。始めますか？')) docOcrSplit(did); return; }
     alert(/この操作はできません|ocrOne/.test(m) ? 'まだ Google 側の更新（デプロイ）が済んでいません。デプロイのあとで使えます' : '文字の位置を作れませんでした。\n' + m); } }
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('#sheetbox [data-docr]'); if (!b) return; e.preventDefault(); docOcrOne(S.sheetDoc); });
 const docCurPage = () => { const t = ($('#sheetbox .dsv .pqpg') || $('#sheetbox .dcgalw .pbcnt') || {}).textContent || ''; return parseInt(t, 10) || 1; };
@@ -7242,7 +7256,7 @@ const DOCUI2 = true;
 function pgPrev(host, fid, opt){ opt = opt || {}; const c = document.createElement('div'); c.className = 'dtopv';
   c.innerHTML = `<div class="dtpsq"><div class="ldwrap"><span class="ldspin"></span>書類を開いています…</div></div>
     <div class="dtpctl"><button type="button" class="dtpi dtpnv" data-tp="-1" aria-label="前のページ"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M10.5 3.5 3.5 13l7 9.5"/></svg></button><div class="dtpmid"><input type="range" class="dtpr" min="1" max="1" value="1" step="1" aria-label="ページを選ぶ"><span class="dtpn"><b>–</b><select class="dtpsel" aria-label="ページを選ぶ"></select></span></div><button type="button" class="dtpi dtpnv" data-tp="1" aria-label="次のページ"><svg viewBox="0 0 14 26" aria-hidden="true"><path d="M3.5 3.5 10.5 13l-7 9.5"/></svg></button>
-    <span class="dtpsep" aria-hidden="true"></span><button type="button" class="dtpi" data-tpz="mark" aria-label="印の所へ寄る" title="印の所へ寄る" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.2"/><path d="m15.2 15.2 5 5M8 10.5h5M10.5 8v5"/></svg></button><button type="button" class="dtpi" data-tpz="fit" aria-label="ページ全体を表示" title="ページ全体"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="3.5" width="12" height="17" rx="1.6"/><path d="M9 8.5h6M9 11.5h6M9 14.5h3.5"/></svg></button><button type="button" class="dtpi" data-tpz="full" aria-label="全画面で見る" title="全画面"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button></div>`; /* 操作は下に1列（10/11 開発 v20 本人「展示ビューのようにプレビュー画面下にまとめる」） */
+    <span class="dtpsep" aria-hidden="true"></span><button type="button" class="dtpi" data-tpz="mark" aria-label="印の所へ寄る" title="印の所へ寄る" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.2"/><path d="m15.2 15.2 5 5M8 10.5h5M10.5 8v5"/></svg></button><button type="button" class="dtpi" data-tpz="fit" aria-label="ページ全体を表示" title="ページ全体"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5V5.5A1.5 1.5 0 0 1 5.5 4h3M15.5 4h3A1.5 1.5 0 0 1 20 5.5v3M20 15.5v3a1.5 1.5 0 0 1-1.5 1.5h-3M8.5 20h-3A1.5 1.5 0 0 1 4 18.5v-3"/><rect x="8" y="8.5" width="8" height="7" rx="1"/></svg></button><button type="button" class="dtpi" data-tpz="full" aria-label="全画面で見る" title="全画面"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg></button></div>`; /* 操作は下に1列（10/11 開発 v20 本人「展示ビューのようにプレビュー画面下にまとめる」） */
   host(c); const sq = c.querySelector('.dtpsq'), lab = c.querySelector('.dtpn b'), sel = c.querySelector('.dtpsel'), rg = c.querySelector('.dtpr'); let doc = null, n = 0, tok = 0, Z = { s: 1, x: 0, y: 0 };
   const zApply = () => { const cv = sq.querySelector('.dtpcw') || sq.querySelector('canvas'); if (cv) cv.style.transform = Z.s === 1 ? '' : `translate(${Z.x}px,${Z.y}px) scale(${Z.s})`; };
   const zReset = () => { Z = { s: 1, x: 0, y: 0 }; zApply(); };
