@@ -2762,6 +2762,11 @@ html[data-theme=dark] .evv .evdband{background:#3a3218;border-color:#6b5a22;colo
 .pqp.pqwait::after,.pqimg .pqp:has(img:not([src]))::after,.dcgal .pbgal>a:has(>img:not([src]))::after{content:'';position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-28px 0 0 -15px;border-radius:50%;border:3px solid rgba(0,0,0,.1);border-top-color:#8a8780;animation:ldrot .8s linear infinite;z-index:1;pointer-events:none}
 .pqp.pqwait::before,.pqimg .pqp:has(img:not([src]))::before,.dcgal .pbgal>a:has(>img:not([src]))::before{content:'読み込んでいます…';position:absolute;left:0;right:0;top:50%;margin-top:12px;text-align:center;font-size:13px;color:#8a8780;z-index:1;pointer-events:none}
 .pqimg .pqp:has(img:not([src])),.dcgal .pbgal>a:has(>img:not([src])){position:relative;min-height:160px}
+.nvhits{position:sticky;bottom:calc(16px + env(safe-area-inset-bottom));z-index:6;display:flex;align-items:center;gap:6px;width:max-content;max-width:calc(100% - 32px);margin:18px auto 0;padding:6px 6px 6px 14px;border-radius:999px;background:rgba(24,24,24,.86);color:#fff;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 4px 16px rgba(0,0,0,.22);font-size:14px}
+.nvhits .nvhq{max-width:40vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.nvhits .nvhn{font-variant-numeric:tabular-nums;opacity:.85;margin-right:4px}
+.nvhits button{width:38px;height:34px;border:0;border-radius:999px;background:rgba(255,255,255,.14);color:#fff;font-size:17px;cursor:pointer}.nvhits button:active{background:rgba(255,255,255,.28)}
+.nvnote .nvhitcur{background:rgba(253,230,138,.45);border-radius:6px;box-shadow:0 0 0 4px rgba(253,230,138,.45)}
+@media (min-width:900px){.noteview.nv2 .nvhits{margin:18px max(28px,calc((100% - 1500px) / 2 + 28px)) 0 auto}}
 .fmeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:2px var(--gx,16px) 8px}
 .fmeta .fcnt{font-size:13px;color:var(--sub)}.fmeta .fcnt small{margin-left:4px}
 .fmeta .fmr{margin-left:auto;display:flex;align-items:center;gap:8px}
@@ -2890,7 +2895,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '60f4797bb4', APP_URL = location.origin + location.pathname;
+const BUILD = 'c41f4f6479', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5963,6 +5968,16 @@ async function noteView(id, startP, qq){ const d = docById(id); if (!d) return;
     el.querySelectorAll('[data-np]').forEach(b => b.onclick = () => { cur = Math.min(parts.length - 1, Math.max(0, cur + (+b.dataset.np))); draw(); el.scrollTop = 0; });
     el.querySelectorAll('.nvsel').forEach(sl => sl.onchange = () => { cur = +sl.value; draw(); el.scrollTop = 0; }); };
   draw();
+  /* 探している言葉があるときは、その行へ自動でスクロールし、下の「↑ ↓ n / N」で次の場所へ（ページもまたぐ。10/11 開発 v19 本人「A」） */
+  if (qre) { const hits = []; parts.forEach((p, pi) => p.t.trim().split('\n').forEach((l, li) => { if (l.trim() && qre.test(l)) hits.push({ pi, li }); }));
+    if (hits.length) { let hi = Math.max(0, hits.findIndex(h => h.pi === cur)); const bar = document.createElement('div'); bar.className = 'nvhits';
+      bar.innerHTML = `<span class="nvhq">「${esc(q)}」</span><span class="nvhn"></span><button type="button" data-nh="-1" aria-label="前の場所">↑</button><button type="button" data-nh="1" aria-label="次の場所">↓</button>`; el.appendChild(bar);
+      const goHit = i => { hi = (i + hits.length) % hits.length; const h = hits[hi]; if (h.pi !== cur) { cur = h.pi; draw(); }
+        bar.querySelector('.nvhn').textContent = (hi + 1) + ' / ' + hits.length;
+        requestAnimationFrame(() => { const ln = el.querySelector(`.nvnote [data-ln="${h.li}"]`); el.querySelectorAll('.nvhitcur').forEach(x => x.classList.remove('nvhitcur')); if (!ln) return; ln.classList.add('nvhitcur');
+          const r = ln.getBoundingClientRect(), er = el.getBoundingClientRect(); el.scrollTo({ top: el.scrollTop + r.top - er.top - el.clientHeight / 2 + r.height / 2, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }); };
+      bar.querySelectorAll('[data-nh]').forEach(b => b.onclick = e => { e.stopPropagation(); goHit(hi + (+b.dataset.nh)); });
+      setTimeout(() => goHit(hi), 120); } }
   /* 行を押すと「書類で場所を見る」「直す」（10/11 開発 v19 本人「AIの読み間違い修正は、ノート画面で」「テキストタップで、ハイライト」）。見出し（手紙：…）も押すと直せる */
   if (canEdit()) { el.classList.add('nvtapon');
     const rebuild = t => { const np = []; String(t || '').split(/【\s*p\.?\s*(\d+)\s*】/i).forEach((x, i, a) => { if (i % 2 === 1) np.push({ n: x, t: a[i + 1] || '' }); else if (i === 0 && x.trim()) np.push({ n: '', t: x }); }); if (!np.length) np.push({ n: '1', t: t || '' }); parts.splice(0, parts.length, ...np); cur = Math.min(cur, parts.length - 1); };
@@ -6168,8 +6183,9 @@ function renderDocFiles(){
   if (ft) { const shown = new Set(D.map(x => x.d['書類ID'])), rq = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const show = L => { const el = $('#main .fft'); if (!el || (S.dfq || '').trim() !== q) return; const R = (L || []).map(x => ({ d: docById(x.id), s: x.s })).filter(x => x.d && !shown.has(x.d['書類ID']));
       el.innerHTML = R.length ? `<h3 class="sec fsec">中身（全文）に「${esc(q)}」がある資料 ${R.length}件</h3><div class="fl2">${R.map(x => { const r = docRes(x.d);
-          return `<button type="button" class="fr2" data-doc="${esc(x.d['書類ID'])}">${r.PDF ? FIC.doc : FIC.img}<span class="ftx"><b>${esc(docTitle(x.d))}</b><small class="fsnip">…${esc(x.s).replace(new RegExp(esc(rq), 'gi'), m => '<mark>' + m + '</mark>')}…</small></span><span class="fgo">›</span></button>`; }).join('')}</div>`
+          return `<button type="button" class="fr2" data-dnote="${esc(x.d['書類ID'])}">${r.PDF ? FIC.doc : FIC.img}<span class="ftx"><b>${esc(docTitle(x.d))}</b><small class="fsnip">…${esc(x.s).replace(new RegExp(esc(rq), 'gi'), m => '<mark>' + m + '</mark>')}…</small></span><span class="fgo">›</span></button>`; }).join('')}</div>`
         : (items.length ? '' : '<p class="fempty">名前にも中身（全文）にも見つかりませんでした</p>');
+      el.querySelectorAll('[data-dnote]').forEach(b => b.onclick = () => { try { srchReset(); } catch(e){} noteView(b.dataset.dnote, null, q); }); /* 押すと、ノートのその言葉の行へ（10/11 開発 v19 本人「A」） */
       hydrateDocs(el); };
     if (DSQC[q]) show(DSQC[q]);
     else { $('#main .fft').innerHTML = '<div class="ldwrap" style="min-height:60px"><span class="ldspin"></span>中身（全文）も探しています…</div>'; clearTimeout(DSQT); const n = ++DSQN;
