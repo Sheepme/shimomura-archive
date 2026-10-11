@@ -2930,7 +2930,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '826a103557', APP_URL = location.origin + location.pathname;
+const BUILD = '5082a84366', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6054,8 +6054,22 @@ function ocrRects(pg, a, b){ const out = []; let cur = null, last = null;
     cur = v.slice(); out.push(cur); last = v; }
   return out; }
 /* ページ p の中で text を探す。all：同じ言葉をぜんぶ（探した言葉の印）。見つからなければ、2文字ずつの重なりで似た所（半分以上合えば） */
-function ocrFind(o, p, text, all){ const pg = o && o.pages && o.pages[p - 1]; if (!pg || !pg.t) return null; const N = ocrNorm(pg), q = ocrQ(text).slice(0, 80); if (q.length < 2) return null;
-  const hits = []; let i = N.s.indexOf(q); while (i >= 0) { hits.push([i, i + q.length]); if (!all) break; i = N.s.indexOf(q, i + q.length); }
+function ocrFind(o, p, text, all){ const pg = o && o.pages && o.pages[p - 1]; if (!pg || !pg.t) return null; const N = ocrNorm(pg), qa = ocrQ(text).slice(0, 600); if (qa.length < 2) return null;
+  const hits = []; let i = N.s.indexOf(qa); while (i >= 0) { hits.push([i, i + qa.length]); if (!all) break; i = N.s.indexOf(qa, i + qa.length); }
+  if (!hits.length && !all && qa.length >= 10) { /* 8字ずつに分けて、それぞれの場所を探す（段組み・改行の順がちがっても合う） */
+    const SEG = 8, segs = []; for (let k = 0; k < qa.length; k += SEG) segs.push(qa.slice(k, k + SEG)); if (segs.length > 1 && segs[segs.length - 1].length < 4) segs[segs.length - 2] += segs.pop();
+    const occ = segs.map(sg => { const a = []; let j = N.s.indexOf(sg); while (j >= 0 && a.length < 30) { a.push(j); j = N.s.indexOf(sg, j + 1); } return a; });
+    const pick = occ.map(a => a.length === 1 ? a[0] : null); /* まず、1か所にしかない切れ端を手がかりに */
+    occ.forEach((a, k) => { if (pick[k] != null || !a.length) return; let ref = null; for (let d = 1; d < segs.length && ref == null; d++) { if (pick[k - d] != null) ref = pick[k - d] + d * SEG; else if (pick[k + d] != null) ref = pick[k + d] - d * SEG; }
+      pick[k] = ref == null ? a[0] : a.reduce((x, y) => Math.abs(y - ref) < Math.abs(x - ref) ? y : x); });
+    const rg = []; let got = 0; pick.forEach((st, k) => { if (st == null) return; let qs = k * SEG - 1, ts = st - 1, qe = k * SEG + segs[k].length, te = st + segs[k].length; /* 前後も1字ずつ合うところまで広げる */
+      while (qs >= 0 && ts >= 0 && qa[qs] === N.s[ts]) { qs--; ts--; } while (qe < qa.length && te < N.s.length && qa[qe] === N.s[te]) { qe++; te++; } rg.push([ts + 1, te]); got += segs[k].length; });
+    pick.forEach((st, k) => { if (st != null) return; const sg = segs[k], h = Math.ceil(sg.length / 2); /* 段の切れ目をまたいだ切れ端は、半分ずつ前後の近くで探す */
+      [[sg.slice(0, h), pick[k - 1] != null ? pick[k - 1] + segs[k - 1].length : null], [sg.slice(h), pick[k + 1] != null ? pick[k + 1] - (sg.length - h) : null]].forEach(([ps, ref]) => { if (ps.length < 3 || ref == null) return;
+        let bj = null; for (let j = N.s.indexOf(ps); j >= 0; j = N.s.indexOf(ps, j + 1)) if (bj == null || Math.abs(j - ref) < Math.abs(bj - ref)) bj = j; if (bj != null) { rg.push([bj, bj + ps.length]); got += ps.length; } }); });
+    rg.sort((x, y) => x[0] - y[0]).forEach(r => { const last = hits[hits.length - 1]; if (last && r[0] <= last[1] + 2) last[1] = Math.max(last[1], r[1]); else hits.push(r.slice()); });
+    if (got < qa.length * 0.4) hits.length = 0; }
+  const q = qa.slice(0, 80);
   if (!hits.length && !all && q.length >= 4 && N.s.length >= q.length) { const L = q.length, qb = new Map(), wb = new Map(); let com = 0, best = 0, bi = -1;
     for (let k = 0; k < L - 1; k++) { const g = q.substr(k, 2); qb.set(g, (qb.get(g) || 0) + 1); }
     const add = g => { const w = wb.get(g) || 0; if (w < (qb.get(g) || 0)) com++; wb.set(g, w + 1); }, del = g => { const w = wb.get(g) - 1; wb.set(g, w); if (w < (qb.get(g) || 0)) com--; };
@@ -6150,12 +6164,12 @@ async function noteView(id, startP, qq, emb){ const d = docById(id); if (!d) ret
     el.addEventListener('click', async e => { const t = e.target; if (!t.closest || t.closest('.nvfix')) return;
       const b = t.closest('[data-nva]');
       if (b) { e.stopPropagation(); const ln = el.querySelector('.nvnote .nvon'); if (!ln) return; const body = parts[cur].t.trim(), raw = (body.split('\n')[+ln.dataset.ln] || '').trim(), pn = +(parts[cur].n || 1) || 1;
-        if (b.dataset.nva === 'find') { const key = pn + '|' + raw.normalize('NFKC').replace(/\s+/g, '').slice(0, 60), dd = docById(id) || d, mem = (docRes(dd)['ノート位置'] || {})[key] || NLOC[id + '|' + key];
+        if (b.dataset.nva === 'find' || b.dataset.nva === 'findai') { const key = pn + '|' + raw.normalize('NFKC').replace(/\s+/g, '').slice(0, 60), dd = docById(id) || d, mem = (docRes(dd)['ノート位置'] || {})[key] || NLOC[id + '|' + key];
           const wide = PVM() || (emb && PV), show = at => wide ? PV.mark(at) : docShowAt(id, at, raw);
-          if (mem && mem.p && !ocrHas(dd)) return show(mem);
+          if (mem && mem.p && (!ocrHas(dd) || b.dataset.nva === 'findai')) return show(mem); /* AI で前に探した場所 */
           const t0 = b.textContent; b.disabled = true; b.textContent = '探しています…'; const lnF = el.querySelector('.nvnote .nvon'); if (lnF) lnF.classList.add('nvfind');
-          try { if (ocrHas(dd)) { const o = await ocrOf(id), oa = o && ocrFind(o, pn, raw); if (oa) { await show(oa); return; } if (!o) { toast('文字の位置を読み込めませんでした。もう一度押してください'); return; } /* 読み込めなかっただけのときは AI を使わない（費用） */
-              if (b.hidden) { const lo = el.querySelector('.nvnote .nvon'); if (lo && !el.querySelector('.nvact [data-nva="find"]')) { const ac = el.querySelector('.nvact'); const h = '<button type="button" data-nva="find">📍 AI で探す</button>'; if (ac) ac.insertAdjacentHTML('afterbegin', h); else lo.insertAdjacentHTML('afterend', '<div class="nvact">' + h + '</div>'); } toast('原本の文字の中に、この行が見つかりませんでした'); return; } } /* 自動では AI を使わない。押したときだけ */
+          try { if (ocrHas(dd) && b.dataset.nva !== 'findai') { const o = await ocrOf(id), oa = o && ocrFind(o, pn, raw); if (oa) { await show(oa); return; } if (!o) { toast('文字の位置を読み込めませんでした。もう一度押してください'); return; } /* 読み込めなかっただけのときは AI を使わない（費用） */
+              if (b.hidden) { const lo = el.querySelector('.nvnote .nvon'); if (lo && !el.querySelector('.nvact [data-nva="findai"]')) { const ac = el.querySelector('.nvact'); const h = '<button type="button" data-nva="findai">📍 AI で探す</button>'; if (ac) ac.insertAdjacentHTML('afterbegin', h); else lo.insertAdjacentHTML('afterend', '<div class="nvact">' + h + '</div>'); } toast('原本の文字の中に、この行が見つかりませんでした'); return; } } /* 自動では AI を使わない。押したときだけ */
             if (mem && mem.p) { show(mem); return; }
             const at = await call('findDocText', id, pn, raw); if (at && at.p) { NLOC[id + '|' + key] = at; show(at); } else toast('書類の中で見つかりませんでした'); }
           catch(x){ gasErr(x, '探せ'); } finally { b.disabled = false; b.textContent = t0; el.querySelectorAll('.nvfind').forEach(x => x.classList.remove('nvfind')); } return; }
@@ -6174,7 +6188,7 @@ async function noteView(id, startP, qq, emb){ const d = docById(id); if (!d) ret
       const ln = t.closest('.nvnote [data-ln]'); if (!ln || t.closest('a,button,select')) return;
       const was = ln.classList.contains('nvon'); el.querySelectorAll('.nvact').forEach(x => x.remove()); el.querySelectorAll('.nvon').forEach(x => x.classList.remove('nvon')); if (was) return;
       ln.classList.add('nvon'); const ed = !emb || (emb.edit && emb.edit()), oc = ocrHas(docById(id) || d); /* 書類のページ：文字の位置があれば押すだけで原本に印。直すのは「編集」のときだけ */
-      const bt = (oc ? '' : '<button type="button" data-nva="find">📍 書類で場所を見る</button>') + (ed ? '<button type="button" data-nva="fix">✎ 直す</button>' : '');
+      const bt = (oc ? '' : '<button type="button" data-nva="find">📍 書類で場所を見る</button>') + (ed ? '<button type="button" data-nva="fix">✎ 直す</button>' : '') + (oc ? '<button type="button" data-nva="findai">場所が違う？（AIで探す）</button>' : '');
       if (bt) ln.insertAdjacentHTML('afterend', '<div class="nvact">' + bt + '</div>');
       if (oc) { const fb = document.createElement('button'); fb.type = 'button'; fb.dataset.nva = 'find'; fb.hidden = true; ln.after(fb); fb.click(); setTimeout(() => fb.remove(), 0); } });
   }
