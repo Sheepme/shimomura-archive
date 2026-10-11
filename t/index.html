@@ -1515,6 +1515,14 @@ html body #main section.cy .cage{font-size:12px!important;color:var(--sub)!impor
 .dfx{border:0;border-radius:12px;padding:12px 14px;margin:10px 0;background:var(--paper);transition:background .2s}.dfx.done .dfrow,.dfx.done>b{opacity:.65}.dfx b{display:block;font-size:15px}
 .dfrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0}.dfrow span{background:var(--wash);border-radius:8px;padding:6px 8px;font-size:16px;word-break:break-all}.dfrow small{display:block;font-size:12px;color:var(--sub)}
 .dfbtn{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.dfbtn .act{margin:0}.dfill{margin:8px 0;font-size:14px;color:var(--sub)}.dfill p{margin:4px 0}.dtoc{display:flex;flex-direction:column;gap:2px;margin:6px 0 10px}.dtr{display:flex;gap:12px;align-items:flex-start;text-align:left;padding:10px 14px;border-radius:12px;background:var(--paper);border:0;font:inherit;color:var(--ink);font-size:15px;line-height:1.55}.dtr b{color:var(--ink)}.dtr small{color:var(--sub)}.dtoc{gap:6px}button.dtr{cursor:pointer;width:100%}.dtp{flex:0 0 auto;min-width:3.6em;color:var(--sub);font-variant-numeric:tabular-nums;font-size:14px;padding-top:1px}#bgsave{position:fixed;left:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:9500;display:flex;align-items:center;gap:8px;background:rgba(30,30,30,.88);color:#fff;font-size:13px;padding:8px 12px;border-radius:20px;box-shadow:0 2px 10px rgba(0,0,0,.2);pointer-events:none}#bgsave.hidden{display:none}#bgsave .ldspin{width:14px;height:14px;border-width:2px;border-color:rgba(255,255,255,.3);border-top-color:#fff}.dmodes{display:flex;gap:0;margin:4px 0 14px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+@media (max-width:899px){
+.noteview.nv2 .dtopv{position:sticky;top:var(--nvtop,0px);z-index:4;background:var(--bg)!important;margin:6px 0 10px;box-shadow:0 6px 10px -8px rgba(0,0,0,.25)}.noteview.nv2 .dtopv .dtpbar{background:var(--bg)}
+.noteview.nv2 .dtopv .dtpsq{aspect-ratio:auto;height:40svh;transition:height .26s ease}
+.noteview.nv2[data-pv="S"] .dtopv .dtpsq{height:17svh}
+.noteview.nv2[data-pv="L"] .dtopv .dtpsq{height:68svh}
+.noteview.nv2[data-pv="S"] .dtopv .dtphint,.noteview.nv2[data-pv="S"] .dtopv .dtprng,.noteview.nv2[data-pv="L"] .dtopv .dtphint{display:none!important}
+.noteview.nv2 .dtopv .dtphint{padding:4px 12px 6px}
+}
 .dtabs{position:sticky;top:0;z-index:5;background:var(--bg);margin:0 0 6px;padding:6px 0 8px}.dtabs .dtin{display:flex;gap:4px;padding:4px;border-radius:12px;background:var(--wash)}#sheetbox.split .dtabs{background:var(--bg)}
 .nvhits .nvhpdf{width:auto;padding:0 12px;white-space:nowrap;font-size:14px}
 .dtabs button{flex:1;padding:10px 6px;font:inherit;font-size:16px;font-weight:600;border:0;border-radius:9px;background:transparent;color:var(--sub);cursor:pointer}
@@ -2911,7 +2919,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'cc0d9eded0', APP_URL = location.origin + location.pathname;
+const BUILD = 'f7fddb6549', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5960,7 +5968,7 @@ function dfFind(text, v){ const parts = String(text || '').split(/【\s*p\.?\s*(
 const NLOC = {}; /* ノートの行の場所（この端末で探したもの） */
 /* 書類のページ：原本・文字・情報（10/11 開発 v20 本人「資料詳細ページとノートで読むを統合」1:B タブで切りかえ 2:はじめは情報）。
    スマホ：原本｜文字｜情報。パソコン：左に原本、右に 情報｜文字。文字のページと原本のページはそろう。文字の行を押すと原本のその場所に印 */
-const DOCTAB = true;
+const DOCTAB = false; /* 10/11 本人「使いにくい。原本と情報は以前の仕様のまま」：タブはやめた（コードは残す） */
 function scrOf(el){ for (let p = el && el.parentElement; p; p = p.parentElement) { const o = getComputedStyle(p).overflowY; if (o === 'auto' || o === 'scroll') return p; } return document.scrollingElement; }
 function docTabs(id){ const sb = $('#sheetbox'), d = docById(id); if (!DOCTAB || !sb || !d || !sb.classList.contains('dview') || sb.querySelector('.dtabs')) return;
   const wide = sb.classList.contains('split'), R = wide ? sb.querySelector('.dsr') : sb, h = R && R.querySelector('h3.dttl'); if (!h) return;
@@ -6072,6 +6080,21 @@ async function noteView(id, startP, qq, emb){ const d = docById(id); if (!d) ret
     <select class="nvsel">${parts.map((p, i) => `<option value="${i}" ${i === cur ? 'selected' : ''}>${p.n || i + 1} / ${parts[parts.length - 1].n || parts.length}ページ${toc[p.n] ? '　' + esc(toc[p.n].slice(0, 24)) : ''}${hit(p.t) ? '　●' : ''}</option>`).join('')}</select>
     <button type="button" class="act" data-np="1" ${cur === parts.length - 1 ? 'disabled' : ''}>次 ›</button></div>`;
   let PV = null; if (emb) PV = emb.viewer || null; else if (pdf) { el.classList.add('nv2'); PV = pgPrev(c => el.querySelector('.nvt').after(c), pdf, { page: +(parts[cur].n || 1) || 1, onPage: k => { const j = parts.findIndex(x => +x.n === k); if (j >= 0 && j !== cur) { cur = j; draw(true); } } }); } /* ノートの上に、そのページの原本を表示（横に広い画面では左の列） */
+  if (PV && !emb) { /* スマホ：文字を読み進めると上の原本は小さく、上に戻すと元に。原本を押すと大きく、もう一度で元に（10/11 開発 v20 本人「YouTube のように」） */
+    let pvS = 'N', pvT = 0, pvAt = 0, pvLock = 0; el.dataset.pv = 'N'; const hn = PV.el.querySelector('.dtphint'); if (hn && innerWidth < 900) hn.textContent = '押すと大きく・左右にスワイプでページ';
+    const setPv = sz => { if (innerWidth >= 900 || sz === pvS) return; pvS = sz; el.dataset.pv = sz; pvLock = Date.now() + 520; pvAt = el.scrollTop; clearTimeout(pvT); pvT = setTimeout(() => { pvAt = el.scrollTop; PV.refit && PV.refit(); }, 300); };
+    const hb = () => { const a = document.querySelector('#top .appbar'), r = a && a.getBoundingClientRect(), bt = r && r.height ? Math.max(0, r.bottom) : 0, pt = parseFloat(getComputedStyle(el).paddingTop) || 0; el.style.setProperty('--nvtop', Math.round(bt - pt) + 'px'); }; /* 上のバーのすぐ下に止める */
+    hb(); setTimeout(hb, 400);
+    el.addEventListener('scroll', () => { if (innerWidth >= 900) return; hb(); const st = el.scrollTop, room = el.scrollHeight - el.clientHeight;
+      if (st < 12 && pvS === 'S') { setPv('N'); return; } /* いちばん上にもどったら、ふつうの大きさ */
+      if (Date.now() < pvLock) { pvAt = st; return; } /* 大きさを変えた直後の動き（ずれの補正）は数えない */
+      if (st < 12) { pvAt = st; return; }
+      if (pvS === 'L') { if (Math.abs(st - pvAt) > 160) setPv(room > 420 ? 'S' : 'N'); return; }
+      if (pvS === 'N' && st - pvAt > 60 && room > 420) setPv('S'); else if (pvS === 'S' && st < pvAt) pvAt = st; else if (pvS === 'N' && st < pvAt) pvAt = st; }, { passive: true });
+    PV.onTap = () => { if (innerWidth >= 900) return; if (pvS === 'L') setPv(el.scrollTop > 90 && el.scrollHeight - el.clientHeight > 420 ? 'S' : 'N'); else setPv('L'); };
+    const mk0 = PV.mark; PV.mark = async at => { if (innerWidth < 900 && pvS === 'S') { setPv('N'); await new Promise(r => setTimeout(r, 320));
+        const ln = el.querySelector('.nvnote .nvon'); if (ln) { pvLock = Date.now() + 400; const r = ln.getBoundingClientRect(), pb = PV.el.getBoundingClientRect().bottom; if (r.top < pb + 8 || r.bottom > el.clientHeight) el.scrollTop += r.top - pb - 48; } } /* 押した行が原本の下に隠れないように */
+      return mk0(at); }; }
   const draw = (fromPv) => { const p = parts[cur], body = p.t.trim(); if (PV && !fromPv && p.n) PV.go(+p.n);
     el.querySelector('.nvbody').innerHTML = (toc[p.n] ? `<p class="nvtoc">${esc(toc[p.n])}</p>` : '') + `<div class="note nvnote">${body ? noteHTML(body, q).replace(/<p class="hint" style="margin-top:12px">[\s\S]*$/, '') : '<p class="hint">このページには文字がありません（写真・図など）。</p>'}</div>` + pager()
       + (pdf && !emb ? `<button type="button" class="act pdfopen" data-pdfopen="${esc(pdf)}" data-pdfp="${esc(p.n || '')}"${hit(p.t) ? ` data-pdfq="${esc(q)}" data-pdfl="${esc(((p.t.split('\n').find(l => qre.test(l)) || '').trim()).slice(0, 90))}"` : ''}>📄 原本（PDF）で見る${p.n ? '（' + esc(p.n) + 'ページ）' : ''}</button>` : '') + (emb ? '' : driveBtn(docPages(d)[0])) + (emb && emb.src === 'ocr' ? '<p class="hint" style="margin-top:10px">※Google の OCR で読みとった文字です（表や縦書きは、並びが崩れることがあります）。</p>' : '<p class="hint" style="margin-top:10px">※AIが資料の文字を書き起こしたものです。読めなかった字は〓になっています。</p>');
@@ -6079,7 +6102,7 @@ async function noteView(id, startP, qq, emb){ const d = docById(id); if (!d) ret
     el.querySelectorAll('.nvsel').forEach(sl => sl.onchange = () => { cur = +sl.value; draw(); toTop(); }); };
   draw();
   el._goPage = k => { const j = parts.findIndex(x => +x.n === +k); if (j >= 0 && j !== cur) { cur = j; draw(true); } }; el._curPage = () => +(parts[cur].n || 1) || 1; /* 書類のページのタブ：原本と同じページにそろえる */
-  const PVM = () => !!PV && (emb ? !!emb.wide : innerWidth >= 900 && el.classList.contains('nv2'));
+  const PVM = () => !!PV && (emb ? !!emb.wide : true);
   /* 探している言葉があるときは、その行へ自動でスクロールし、下の「↑ ↓ n / N」で次の場所へ（ページもまたぐ。10/11 開発 v19 本人「A」） */
   if (qre) { const hits = []; parts.forEach((p, pi) => p.t.trim().split('\n').forEach((l, li) => { if (l.trim() && qre.test(l)) hits.push({ pi, li }); }));
     if (hits.length) { let hi = Math.max(0, hits.findIndex(h => h.pi === cur)); const bar = document.createElement('div'); bar.className = 'nvhits';
@@ -6125,7 +6148,7 @@ async function noteView(id, startP, qq, emb){ const d = docById(id); if (!d) ret
           catch(x){ busy(false); gasErr(x, '直せ'); } }; return; }
       const ln = t.closest('.nvnote [data-ln]'); if (!ln || t.closest('a,button,select')) return;
       const was = ln.classList.contains('nvon'); el.querySelectorAll('.nvact').forEach(x => x.remove()); el.querySelectorAll('.nvon').forEach(x => x.classList.remove('nvon')); if (was) return;
-      ln.classList.add('nvon'); const ed = !emb || (emb.edit && emb.edit()), oc = !!emb && ocrHas(docById(id) || d); /* 書類のページ：文字の位置があれば押すだけで原本に印。直すのは「編集」のときだけ */
+      ln.classList.add('nvon'); const ed = !emb || (emb.edit && emb.edit()), oc = ocrHas(docById(id) || d); /* 書類のページ：文字の位置があれば押すだけで原本に印。直すのは「編集」のときだけ */
       const bt = (oc ? '' : '<button type="button" data-nva="find">📍 書類で場所を見る</button>') + (ed ? '<button type="button" data-nva="fix">✎ 直す</button>' : '');
       if (bt) ln.insertAdjacentHTML('afterend', '<div class="nvact">' + bt + '</div>');
       if (oc) { const fb = document.createElement('button'); fb.type = 'button'; fb.dataset.nva = 'find'; fb.hidden = true; ln.after(fb); fb.click(); setTimeout(() => fb.remove(), 0); } });
@@ -7210,7 +7233,7 @@ function pgPrev(host, fid, opt){ opt = opt || {}; const c = document.createEleme
   host(c); const sq = c.querySelector('.dtpsq'), lab = c.querySelector('.dtpn'), big = c.querySelector('.dtpbig'), rg = c.querySelector('.dtpr'); let doc = null, n = 0, tok = 0, Z = { s: 1, x: 0, y: 0 };
   const zApply = () => { const cv = sq.querySelector('canvas'); if (cv) cv.style.transform = Z.s === 1 ? '' : `translate(${Z.x}px,${Z.y}px) scale(${Z.s})`; };
   const zReset = () => { Z = { s: 1, x: 0, y: 0 }; zApply(); };
-  const go = async (k, quiet) => { const my = ++tok; try { if (!doc) doc = await pdfDocOf(fid); k = Math.min(doc.numPages, Math.max(1, k)); if (k === n && sq.querySelector('canvas')) return; n = k; lab.textContent = 'p.' + n + ' / ' + doc.numPages; big.dataset.pdfp = n; if (rg) { rg.max = doc.numPages; rg.parentNode.hidden = doc.numPages < 2; if (document.activeElement !== rg) rg.value = n; }
+  const go = async (k, quiet) => { const my = ++tok; try { if (!doc) doc = await pdfDocOf(fid); k = Math.min(doc.numPages, Math.max(1, k)); if (k === n && sq.querySelector('canvas')) return; n = k; if (lastAt && +lastAt.p !== k) lastAt = null; lab.textContent = 'p.' + n + ' / ' + doc.numPages; big.dataset.pdfp = n; if (rg) { rg.max = doc.numPages; rg.parentNode.hidden = doc.numPages < 2; if (document.activeElement !== rg) rg.value = n; }
       c.querySelector('[data-tp="-1"]').disabled = n <= 1; c.querySelector('[data-tp="1"]').disabled = n >= doc.numPages; if (!quiet && opt.onPage) opt.onPage(n);
       const pg = await doc.getPage(n), v0 = pg.getViewport({ scale: 1 }), W = sq.clientWidth || 320, H = sq.clientHeight || W, dpr = Math.min(2, window.devicePixelRatio || 1), sc = Math.min(W / v0.width, H / v0.height), vp = pg.getViewport({ scale: sc * dpr * 1.5 });
       const cv = document.createElement('canvas'); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height); cv.style.width = Math.round(v0.width * sc) + 'px'; cv.style.height = Math.round(v0.height * sc) + 'px';
@@ -7219,7 +7242,7 @@ function pgPrev(host, fid, opt){ opt = opt || {}; const c = document.createEleme
     catch(e){ if (my === tok) sq.innerHTML = '<p class="hint" style="padding:16px">書類を読み込めませんでした</p>'; } };
   c.querySelectorAll('[data-tp]').forEach(b => b.onclick = () => go(n + (+b.dataset.tp)));
   if (rg) { rg.addEventListener('input', () => { if (doc) lab.textContent = 'p.' + rg.value + ' / ' + doc.numPages; clearTimeout(rg._t); rg._t = setTimeout(() => go(+rg.value), 180); }); rg.addEventListener('change', () => { clearTimeout(rg._t); go(+rg.value); }); } /* つまみ（10/10 開発 v18 本人「書類のプレビューにもスライダー」）：動かしているあいだはページ番号だけ、止まったらそのページ */
-  const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY) || 1; let st = null, lastTap = 0;
+  const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY) || 1; let st = null, lastTap = 0, tapT = 0, lastAt = null;
   sq.addEventListener('touchstart', e => { const t0 = e.touches; e.stopPropagation();
     if (t0.length === 2) { e.preventDefault(); st = { m: 'pinch', d0: dist(t0), s0: Z.s, x0: Z.x, y0: Z.y }; }
     else if (t0.length === 1) st = { m: 'one', px: t0[0].clientX, py: t0[0].clientY, x0: Z.x, y0: Z.y, dx: 0, dy: 0 }; }, { passive: false });
@@ -7228,17 +7251,18 @@ function pgPrev(host, fid, opt){ opt = opt || {}; const c = document.createEleme
     else if (st.m === 'one' && t0.length === 1) { st.dx = t0[0].clientX - st.px; st.dy = t0[0].clientY - st.py; if (Z.s > 1) { e.preventDefault(); Z.x = st.x0 + st.dx; Z.y = st.y0 + st.dy; zApply(); } else if (Math.abs(st.dx) > Math.abs(st.dy)) e.preventDefault(); } }, { passive: false });
   sq.addEventListener('touchend', e => { e.stopPropagation(); if (!st) return;
     if (st.m === 'one' && !e.touches.length) { const ad = Math.abs(st.dx) + Math.abs(st.dy);
-      if (ad < 8) { const tn = Date.now(); if (tn - lastTap < 320) { if (Z.s > 1) zReset(); else { Z.s = 2.5; zApply(); } lastTap = 0; } else lastTap = tn; }
+      if (ad < 8) { const tn = Date.now(); if (tn - lastTap < 320) { clearTimeout(tapT); if (Z.s > 1) zReset(); else { Z.s = 2.5; zApply(); } lastTap = 0; } else { lastTap = tn; clearTimeout(tapT); tapT = setTimeout(() => { if (lastTap === tn && Z.s === 1 && api.onTap) api.onTap(); }, 330); } }
       else if (Z.s === 1 && Math.abs(st.dx) > 50 && Math.abs(st.dx) > Math.abs(st.dy) * 1.5) go(n + (st.dx < 0 ? 1 : -1)); }
     if (Z.s < 1.05) zReset(); st = null; });
   ['gesturestart', 'gesturechange'].forEach(k => sq.addEventListener(k, e => e.preventDefault()));
   go(opt.page || 1, true);
   /* そのページの、その場所に赤い印（ノートの行を押したとき。横に広い画面の左の列） */
-  const mark = async at => { if (!at || !at.p) return; await go(+at.p); zReset(); const cv = sq.querySelector('canvas'); sq.querySelectorAll('.pqmark').forEach(x => x.remove()); if (!cv || !(at.boxes || at.box)) return;
+  const mark = async at => { if (!at || !at.p) return; lastAt = at; await go(+at.p); zReset(); const cv = sq.querySelector('canvas'); sq.querySelectorAll('.pqmark').forEach(x => x.remove()); if (!cv || !(at.boxes || at.box)) return;
     const r = cv.getBoundingClientRect(), q = sq.getBoundingClientRect(); sq.style.position = 'relative';
     (at.boxes || [at.box]).forEach(b => { const m = document.createElement('div'); m.className = 'pqmark dtmk';
       Object.assign(m.style, { left: (r.left - q.left + b[1] / 1000 * r.width - 4) + 'px', top: (r.top - q.top + b[0] / 1000 * r.height - 3) + 'px', width: ((b[3] - b[1]) / 1000 * r.width + 8) + 'px', height: ((b[2] - b[0]) / 1000 * r.height + 6) + 'px' }); sq.appendChild(m); }); };
-  return { go: k => go(k, true), mark, el: c }; }
+  const refit = async () => { if (!doc) return; const k = n || opt.page || 1; n = 0; await go(k, true); if (lastAt && +lastAt.p === k) await mark(lastAt); };
+  const api = { go: k => go(k, true), mark, el: c, refit }; return api; }
 function docTopPreview(d){ const r = docRes(d), box = $('#sheetbox'); if (!box || box.querySelector('.dtopv, .dcgalw') || !docPages(d).length) return;
   box.querySelectorAll('#dvImgs,#dvImgsBox').forEach(x => x.remove());
   box.querySelectorAll('.dpages.rv').forEach(x => { const h = x.nextElementSibling; if (h && h.classList.contains('hint') && /大きく見られます/.test(h.textContent)) h.remove(); x.remove(); }); /* 上に大きいプレビューがあるので、下の小さなページ一覧は出さない */
