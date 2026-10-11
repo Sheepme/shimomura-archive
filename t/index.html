@@ -2930,7 +2930,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '5082a84366', APP_URL = location.origin + location.pathname;
+const BUILD = '95b04e0e77', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6068,6 +6068,7 @@ function ocrFind(o, p, text, all){ const pg = o && o.pages && o.pages[p - 1]; if
       [[sg.slice(0, h), pick[k - 1] != null ? pick[k - 1] + segs[k - 1].length : null], [sg.slice(h), pick[k + 1] != null ? pick[k + 1] - (sg.length - h) : null]].forEach(([ps, ref]) => { if (ps.length < 3 || ref == null) return;
         let bj = null; for (let j = N.s.indexOf(ps); j >= 0; j = N.s.indexOf(ps, j + 1)) if (bj == null || Math.abs(j - ref) < Math.abs(bj - ref)) bj = j; if (bj != null) { rg.push([bj, bj + ps.length]); got += ps.length; } }); });
     rg.sort((x, y) => x[0] - y[0]).forEach(r => { const last = hits[hits.length - 1]; if (last && r[0] <= last[1] + 2) last[1] = Math.max(last[1], r[1]); else hits.push(r.slice()); });
+    if (hits.length > 1) { const big = hits.filter(h => h[1] - h[0] >= 6); if (big.length) hits.splice(0, hits.length, ...big); } /* 離れた所の短い切れ端は、たまたま同じ字のことが多いので外す */
     if (got < qa.length * 0.4) hits.length = 0; }
   const q = qa.slice(0, 80);
   if (!hits.length && !all && q.length >= 4 && N.s.length >= q.length) { const L = q.length, qb = new Map(), wb = new Map(); let com = 0, best = 0, bi = -1;
