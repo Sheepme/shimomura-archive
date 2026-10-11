@@ -218,7 +218,7 @@ nav button.on:after{content:"";position:absolute;top:0;left:30%;right:30%;height
 dl.info{display:grid;grid-template-columns:6.5em 1fr;margin:0}
 dl.info{grid-template-columns:6.5em minmax(0,1fr)}dl.info dt,dl.info dd{min-width:0}
 #page dl.info dd select,#page dl.info dd input,#page dl.info dd textarea{max-width:100%;min-width:0;box-sizing:border-box}
-#sheetbox.dview:not(.dse) .dsrot,#sheetbox.dview:not(.dse) #dvTtl,#sheetbox.dview:not(.dse) .dchk,#sheetbox.dview:not(.dse) .dfsec,#sheetbox.dview:not(.dse) .cmpbtn,#sheetbox.dview:not(.dse) .wfix,#sheetbox.dview:not(.dse) .wfixhint,#sheetbox.dview:not(.dse) #dvAgain{display:none!important} /* 書類の画面：見るだけのときは直す道具を出さない（10/11 開発 v19） */
+#sheetbox.dview:not(.dse) .dsrot,#sheetbox.dview:not(.dse) .dsocr,#sheetbox.dview:not(.dse) #dvTtl,#sheetbox.dview:not(.dse) .dchk,#sheetbox.dview:not(.dse) .dfsec,#sheetbox.dview:not(.dse) .cmpbtn,#sheetbox.dview:not(.dse) .wfix,#sheetbox.dview:not(.dse) .wfixhint,#sheetbox.dview:not(.dse) #dvAgain{display:none!important} /* 書類の画面：見るだけのときは直す道具を出さない（10/11 開発 v19） */
 #page{overflow-x:hidden}
 dl.info dt,dl.info dd{padding:13px 0;border-bottom:1px solid var(--line);margin:0}
 dl.info dt{color:var(--sub);font-size:16px}
@@ -2905,7 +2905,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '4b217d4a9f', APP_URL = location.origin + location.pathname;
+const BUILD = 'd6098bae62', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3161,6 +3161,25 @@ function docRotUI(d){ const sb = $('#sheetbox'); if (!sb || !d || !canEdit() || 
   const at = sb.querySelector('details.dvmore'); const html = `<div class="dsrot"><span class="dsrl">ページの向き</span><select class="dsrp" aria-label="回すページ"><option value="0">見ているページ</option></select><button type="button" class="act" data-drot="-90">↺ 左へ回す</button><button type="button" class="act" data-drot="90">↻ 右へ回す</button></div>`;
   if (at) at.insertAdjacentHTML('beforebegin', html); else (sb.querySelector('.dsr') || sb).insertAdjacentHTML('beforeend', html);
   pdfDocOf(fid).then(doc => { const sel = sb.querySelector('.dsrp'); if (!sel || !doc) return; for (let i = 1; i <= doc.numPages; i++) sel.insertAdjacentHTML('beforeend', `<option value="${i}">${i}ページ目</option>`); }).catch(() => {}); }
+function docOcrUI(d){ const sb = $('#sheetbox'); if (!sb || !d || !canEdit() || !docRes(d).PDF || d['状態'] !== '登録済み' || sb.querySelector('.dsocr') || !docPdfFid(d)) return;
+  const o = docRes(d).OCR, has = ocrHas(d), st = has ? `作成済み（${o.n}ページ）` : o && o.part && o.pdf === docPdfFid(d) ? `途中（${o.part} / ${o.n}ページ）` : o ? 'PDF が変わったので作り直しが必要' : 'まだ';
+  const html = `<div class="dsrot dsocr"><span class="dsrl">原本の文字の位置（Google の OCR）：${esc(st)}</span><button type="button" class="act" data-docr="1">${has ? '作り直す' : o && o.part ? '続きを作る' : '作る'}</button></div>`;
+  const at = sb.querySelector('details.dvmore'); if (at) at.insertAdjacentHTML('beforebegin', html); else (sb.querySelector('.dsr') || sb).insertAdjacentHTML('beforeend', html); }
+/* キーを入れる（管理者だけ）。Google 側で1回だけ試してから保存する。キーは画面にも端末にも残さない */
+async function ocrKeyAsk(){ if (!S.user || S.user.role !== '管理') { alert('Google の OCR のキーがまだ入っていません（管理者が入れます）'); return false; }
+  const k = (prompt('Google の OCR（Cloud Vision）の API キーを貼ってください。\nキーは Google 側にだけ保存され、この画面には残りません。') || '').trim(); if (!k) return false;
+  busy(true, 'キーを確かめています…');
+  try { await call('setVisionKey', k); busy(false); toast('OCR のキーを入れました'); return true; }
+  catch(e){ busy(false); const m = String(e && e.message || e); alert(/この操作はできません|setVisionKey/.test(m) ? 'まだ Google 側の更新（デプロイ）が済んでいません' : m); return false; } }
+const ocrKeyErr = m => /VISION_API_KEY|API key not valid|API_KEY_INVALID/i.test(String(m || ''));
+async function docOcrOne(did){ const d = docById(did); if (!d) return;
+  if (!confirm('この書類の文字の位置を、Google の OCR で作ります。\n1ページ1回分（毎月1,000ページまで無料。アプリでも月950ページで止めます）。よろしいですか？')) return;
+  busy(true, '文字の位置を作っています…（大きい書類は数分）');
+  try { const r = await call('ocrOne', did); busy(false); if (r && r.docs) setData(r); const o = r && r.ocr;
+    toast(o ? (o.part ? `途中まで作りました（${o.done} / ${o.n}ページ）。もう一度押すと続きから` : `文字の位置を作りました（${o.n}ページ）`) : '文字の位置を作りました'); try { render(); } catch(e){} sheetDocReview(did); }
+  catch(e){ busy(false); const m = String(e && e.message || e); if (ocrKeyErr(m)) { if (await ocrKeyAsk()) docOcrOne(did); return; }
+    alert(/この操作はできません|ocrOne/.test(m) ? 'まだ Google 側の更新（デプロイ）が済んでいません。デプロイのあとで使えます' : '文字の位置を作れませんでした。\n' + m); } }
+document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('#sheetbox [data-docr]'); if (!b) return; e.preventDefault(); docOcrOne(S.sheetDoc); });
 const docCurPage = () => { const t = ($('#sheetbox .dsv .pqpg') || $('#sheetbox .dcgalw .pbcnt') || {}).textContent || ''; return parseInt(t, 10) || 1; };
 let PDFLIBP = null;
 const pdfLib = () => window.PDFLib ? Promise.resolve(window.PDFLib) : (PDFLIBP || (PDFLIBP = new Promise((ok, ng) => { const U = ['https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js', 'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js'];
@@ -5932,6 +5951,34 @@ function dfFind(text, v){ const parts = String(text || '').split(/【\s*p\.?\s*(
     if (parts.length === 1 && re.test(parts[0])) return { p: '1', q }; }
   return null; }
 const NLOC = {}; /* ノートの行の場所（この端末で探したもの） */
+/* 原本の文字の位置（Google の OCR。10/11 開発 v20）：書類の 読取結果 OCR があれば、getOcr の中身（ページごとの文字 t と1文字ずつの四角 b）を覚えて、
+   ノートの行・探した言葉の場所を AI を使わずに出す。四角は 上・左・下・右（縦横1000）を36進2けたずつ、8文字で1文字分（~ は空白・改行） */
+const OCRC = {};
+const ocrHas = d => { const o = d && docRes(d).OCR; return !!(o && o.f && !o.part && o.pdf && o.pdf === docPdfFid(d)); };
+function ocrOf(did){ const d = docById(did); if (!ocrHas(d)) return Promise.resolve(null); const k = did + '|' + docRes(d).OCR.at;
+  return OCRC[k] || (OCRC[k] = call('getOcr', did).then(x => x ? JSON.parse(x) : null).catch(() => { delete OCRC[k]; return null; })); }
+const ocrQ = q => String(q || '').normalize('NFKC').toLowerCase().replace(/[\s〓]/g, '');
+function ocrNorm(pg){ if (pg._n) return pg._n; let s = ''; const ix = [], t = pg.t || '';
+  for (let i = 0; i < t.length; i++) { const c = ocrQ(t[i]); for (let u = 0; u < c.length; u++) { s += c[u]; ix.push(i); } } return (pg._n = { s, ix }); }
+const ocrBox = (b, i) => { const x = String(b || '').substr(i * 8, 8); if (x.length < 8 || x[0] === '~') return null; const v = []; for (let k = 0; k < 4; k++) v.push(parseInt(x.substr(k * 2, 2), 36)); return v.some(isNaN) ? null : v; };
+/* 文字の並び（a〜b）を、となり合う文字ごとにまとめた四角に（横書きも縦書きも：前の文字のすぐ隣なら同じ四角） */
+function ocrRects(pg, a, b){ const out = []; let cur = null, last = null;
+  for (let j = a; j < b; j++) { const v = ocrBox(pg.b, pg._n.ix[j]); if (!v) continue;
+    if (cur && last) { const ch = Math.max(last[2] - last[0], last[3] - last[1], v[2] - v[0], v[3] - v[1], 4);
+      if (Math.abs((v[0] + v[2]) - (last[0] + last[2])) / 2 < ch * 2.2 && Math.abs((v[1] + v[3]) - (last[1] + last[3])) / 2 < ch * 2.2) { cur[0] = Math.min(cur[0], v[0]); cur[1] = Math.min(cur[1], v[1]); cur[2] = Math.max(cur[2], v[2]); cur[3] = Math.max(cur[3], v[3]); last = v; continue; } }
+    cur = v.slice(); out.push(cur); last = v; }
+  return out; }
+/* ページ p の中で text を探す。all：同じ言葉をぜんぶ（探した言葉の印）。見つからなければ、2文字ずつの重なりで似た所（半分以上合えば） */
+function ocrFind(o, p, text, all){ const pg = o && o.pages && o.pages[p - 1]; if (!pg || !pg.t) return null; const N = ocrNorm(pg), q = ocrQ(text).slice(0, 80); if (q.length < 2) return null;
+  const hits = []; let i = N.s.indexOf(q); while (i >= 0) { hits.push([i, i + q.length]); if (!all) break; i = N.s.indexOf(q, i + q.length); }
+  if (!hits.length && !all && q.length >= 4 && N.s.length >= q.length) { const L = q.length, qb = new Map(), wb = new Map(); let com = 0, best = 0, bi = -1;
+    for (let k = 0; k < L - 1; k++) { const g = q.substr(k, 2); qb.set(g, (qb.get(g) || 0) + 1); }
+    const add = g => { const w = wb.get(g) || 0; if (w < (qb.get(g) || 0)) com++; wb.set(g, w + 1); }, del = g => { const w = wb.get(g) - 1; wb.set(g, w); if (w < (qb.get(g) || 0)) com--; };
+    for (let k = 0; k < L - 1; k++) add(N.s.substr(k, 2));
+    for (let s0 = 0; ; s0++) { if (com > best) { best = com; bi = s0; } if (s0 + L >= N.s.length) break; del(N.s.substr(s0, 2)); add(N.s.substr(s0 + L - 1, 2)); }
+    if (bi >= 0 && best / (L - 1) >= 0.5) hits.push([bi, bi + L]); }
+  if (!hits.length) return null; const boxes = []; hits.forEach(h => boxes.push(...ocrRects(pg, h[0], h[1]))); if (!boxes.length) return null;
+  return { p, box: boxes.reduce((a, b) => [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[2], b[2]), Math.max(a[3], b[3])]), boxes, ocr: 1 }; }
 /* 書類のあるページの、ある場所を赤いマーカーで見せる（ノートの「📍 書類で場所を見る」。書類で見る〔evOpen〕と同じ見た目） */
 function docShowAt(did, at, line){ const d = docById(did); if (!d || !at) return; const r = docRes(d) || {}, pgs = docPages(d), pdf = !!r.PDF;
   const el = document.createElement('div'); el.className = 'noteview evv evat'; el._reopen = () => docShowAt(did, at, line);
@@ -5943,7 +5990,7 @@ function docShowAt(did, at, line){ const d = docById(did); if (!d || !at) return
       if (pdf && !pdoc) { pdoc = await pdfDocOf(pgs[0]); N = pdoc.numPages; }
       k = Math.max(1, Math.min(N || 1, k)); n = k; rg.max = N || 1; rg.value = n; nl.textContent = n + ' / ' + (N || 1); el.querySelector('.evnav').hidden = (N || 1) < 2;
       el.querySelectorAll('.evp').forEach(b => b.disabled = (+b.dataset.evp < 0 ? n <= 1 : n >= N));
-      const mk = at.box && n === +at.p ? `<div class="pqmark" style="top:calc(${at.box[0] / 10}% - 4px);left:calc(${at.box[1] / 10}% - 4px);height:calc(${(at.box[2] - at.box[0]) / 10}% + 8px);width:calc(${(at.box[3] - at.box[1]) / 10}% + 8px)"></div>` : '';
+      const mk = n === +at.p ? (at.boxes || (at.box ? [at.box] : [])).map(b => `<div class="pqmark" style="top:calc(${b[0] / 10}% - 4px);left:calc(${b[1] / 10}% - 4px);height:calc(${(b[2] - b[0]) / 10}% + 8px);width:calc(${(b[3] - b[1]) / 10}% + 8px)"></div>`).join('') : '';
       const W = Math.max(240, box.clientWidth || 320);
       if (pdf) { const pg = await pdoc.getPage(n), v0 = pg.getViewport({ scale: 1 }), dpr = Math.min(2, window.devicePixelRatio || 1), vp = pg.getViewport({ scale: W / v0.width * dpr * 1.4 });
         const cv = document.createElement('canvas'); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height); await pg.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise; if (my !== tok) return;
@@ -5981,11 +6028,16 @@ async function noteView(id, startP, qq){ const d = docById(id); if (!d) return;
   /* 探している言葉があるときは、その行へ自動でスクロールし、下の「↑ ↓ n / N」で次の場所へ（ページもまたぐ。10/11 開発 v19 本人「A」） */
   if (qre) { const hits = []; parts.forEach((p, pi) => p.t.trim().split('\n').forEach((l, li) => { if (l.trim() && qre.test(l)) hits.push({ pi, li }); }));
     if (hits.length) { let hi = Math.max(0, hits.findIndex(h => h.pi === cur)); const bar = document.createElement('div'); bar.className = 'nvhits';
-      bar.innerHTML = `<span class="nvhq">「${esc(q)}」</span><span class="nvhn"></span><button type="button" data-nh="-1" aria-label="前の場所">↑</button><button type="button" data-nh="1" aria-label="次の場所">↓</button>`; el.appendChild(bar);
+      bar.innerHTML = `<span class="nvhq">「${esc(q)}」</span><span class="nvhn"></span>${pdf ? '<button type="button" class="nvhpdf" data-nhpdf="1">📄 原本</button>' : ''}<button type="button" data-nh="-1" aria-label="前の場所">↑</button><button type="button" data-nh="1" aria-label="次の場所">↓</button>`; el.appendChild(bar);
+      const hitAt = async () => { const pn = +(parts[cur].n || 1) || 1, o = await ocrOf(id); return (o && ocrFind(o, pn, q, true)) || { p: pn }; };
+      const wideMark = () => { if (PV && innerWidth >= 900 && el.classList.contains('nv2') && ocrHas(docById(id))) hitAt().then(at => { if (at.boxes && el.isConnected) PV.mark(at); }); };
+      bar.querySelectorAll('[data-nhpdf]').forEach(b => b.onclick = async e => { e.stopPropagation(); const at = await hitAt();
+        if (PV && innerWidth >= 900 && el.classList.contains('nv2')) { if (at.boxes) PV.mark(at); else PV.go(at.p); return; }
+        const h = hits[hi], ln = h ? (parts[h.pi].t.trim().split('\n')[h.li] || '').trim() : ''; docShowAt(id, at, ln); });
       const goHit = i => { hi = (i + hits.length) % hits.length; const h = hits[hi]; if (h.pi !== cur) { cur = h.pi; draw(); }
         bar.querySelector('.nvhn').textContent = (hi + 1) + ' / ' + hits.length;
         requestAnimationFrame(() => { const ln = el.querySelector(`.nvnote [data-ln="${h.li}"]`); el.querySelectorAll('.nvhitcur').forEach(x => x.classList.remove('nvhitcur')); if (!ln) return; ln.classList.add('nvhitcur');
-          const r = ln.getBoundingClientRect(), er = el.getBoundingClientRect(); el.scrollTo({ top: el.scrollTop + r.top - er.top - el.clientHeight / 2 + r.height / 2, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }); };
+          const r = ln.getBoundingClientRect(), er = el.getBoundingClientRect(); el.scrollTo({ top: el.scrollTop + r.top - er.top - el.clientHeight / 2 + r.height / 2, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }); wideMark(); };
       bar.querySelectorAll('[data-nh]').forEach(b => b.onclick = e => { e.stopPropagation(); goHit(hi + (+b.dataset.nh)); });
       setTimeout(() => goHit(hi), 120); } }
   /* 行を押すと「書類で場所を見る」「直す」（10/11 開発 v19 本人「AIの読み間違い修正は、ノート画面で」「テキストタップで、ハイライト」）。見出し（手紙：…）も押すと直せる */
@@ -5998,9 +6050,11 @@ async function noteView(id, startP, qq){ const d = docById(id); if (!d) return;
       if (b) { e.stopPropagation(); const ln = el.querySelector('.nvnote .nvon'); if (!ln) return; const body = parts[cur].t.trim(), raw = (body.split('\n')[+ln.dataset.ln] || '').trim(), pn = +(parts[cur].n || 1) || 1;
         if (b.dataset.nva === 'find') { const key = pn + '|' + raw.normalize('NFKC').replace(/\s+/g, '').slice(0, 60), dd = docById(id) || d, mem = (docRes(dd)['ノート位置'] || {})[key] || NLOC[id + '|' + key];
           const wide = PV && innerWidth >= 900 && el.classList.contains('nv2'), show = at => wide ? PV.mark(at) : docShowAt(id, at, raw);
-          if (mem && mem.p) return show(mem);
+          if (mem && mem.p && !ocrHas(dd)) return show(mem);
           const t0 = b.textContent; b.disabled = true; b.textContent = '探しています…';
-          try { const at = await call('findDocText', id, pn, raw); if (at && at.p) { NLOC[id + '|' + key] = at; show(at); } else toast('書類の中で見つかりませんでした'); }
+          try { if (ocrHas(dd)) { const o = await ocrOf(id), oa = o && ocrFind(o, pn, raw); if (oa) { show(oa); return; } }
+            if (mem && mem.p) { show(mem); return; }
+            const at = await call('findDocText', id, pn, raw); if (at && at.p) { NLOC[id + '|' + key] = at; show(at); } else toast('書類の中で見つかりませんでした'); }
           catch(x){ gasErr(x, '探せ'); } finally { b.disabled = false; b.textContent = t0; } return; }
         if (b.dataset.nva === 'fix') { const act = el.querySelector('.nvact'); act.outerHTML = fixBox([raw], ['正しい文字']); const box = el.querySelector('.nvfix'), ta = box.querySelector('.nvfi'); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
           box.querySelector('[data-nvf="no"]').onclick = () => draw();
@@ -6222,10 +6276,14 @@ function renderDocs(){ setTimeout(sameChk, 500);
   if (done.length) h += `<h3 class="sec">終わったもの（${done.length}通）</h3><div class="dlist">${done.slice().reverse().map(d => card(d, d['状態']==='登録しない' ? '登録しなかった' : '登録済み')).join('')}</div>`;
   if (!(S.docs||[]).length) h += '<p class="muted" style="text-align:center;padding:30px 0">まだ書類はありません。<br>「書類を撮る」から始めてください。</p>';
   const noTxt = (S.docs||[]).filter(d => d['状態']==='登録済み' && !d['全文あり'] && docRes(d).PDF).length;
-  const tools = (noTxt && !(PJ.j && PJ.j.on) ? `<button type="button" class="act dbig" id="txtJob">📝 全文がまだの資料 ${noTxt}通を書き起こす（サーバーで）</button>` : '');
+  const noOcr = (S.docs||[]).filter(d => d['状態']==='登録済み' && docRes(d).PDF && docPdfFid(d) && !ocrHas(d)).length;
+  const tools = (noTxt && !(PJ.j && PJ.j.on) ? `<button type="button" class="act dbig" id="txtJob">📝 全文がまだの資料 ${noTxt}通を書き起こす（サーバーで）</button>` : '')
+    + (noOcr && !(PJ.j && PJ.j.on) ? `<button type="button" class="act dbig" id="ocrJob">🔎 原本の文字の位置を作る（まだ ${noOcr}通・サーバーで）</button>` : '');
   h = h.replace('<button class="act main dbig" data-docnew="">', tools + '<button class="act main dbig" data-docnew="">');
   h = h.replace('<div class="dsteps">', `<div class="dmodes"><button type="button" data-dmode="files">📁 資料ファイル</button><button type="button" class="on" data-dmode="list">登録の作業</button></div><div class="dsteps">`);
   $('#main').innerHTML = '<div class="docs">' + h + '</div>'; hydrateDocs($('#main')); hydrate($('#main'));
+  if ($('#ocrJob')) $('#ocrJob').onclick = async () => { if (!confirm(noOcr + '通の書類の文字の位置を、Google の OCR でサーバーで作ります（アプリを閉じても進みます）。\n毎月1,000ページまで無料。アプリでも月950ページで止め、残りは来月に続けます。よろしいですか？')) return;
+    busy(true, 'サーバーに頼んでいます…'); try { pjShow(await call('startOcrJob')); clearTimeout(PJ.t); PJ.t = setTimeout(pjPoll, 15000); toast('文字の位置づくりを始めました'); render(); } catch(e){ const m = String(e.message || e); busy(false); if (ocrKeyErr(m)) { if (await ocrKeyAsk()) $('#ocrJob') && $('#ocrJob').click(); return; } alert(/この操作はできません|startOcrJob/.test(m) ? 'まだ Google 側の更新（デプロイ）が済んでいません' : '始められませんでした（' + m + '）'); } finally { busy(false); } };
   if ($('#txtJob')) $('#txtJob').onclick = async () => { if (!confirm(noTxt + '通の資料の全文を、サーバーで書き起こします。\n費用の目安：1ページ0.3〜0.8円ほど。よろしいですか？')) return;
     busy(true, 'サーバーに頼んでいます…'); try { pjShow(await call('startTextJob')); clearTimeout(PJ.t); PJ.t = setTimeout(pjPoll, 15000); toast('全文の書き起こしを始めました'); render(); } catch(e){ alert('始められませんでした（' + (e.message || e) + '）'); } finally { busy(false); } };
 }
@@ -7086,7 +7144,7 @@ document.addEventListener('click', async e => {
 });
 /* 資料ページの新しい見た目（年表と同じ、文字中心のシンプルな形）。false にすると元の見た目に戻る */
 const DOCUI2 = true;
-(function(){ const _o = sheetDocReview; sheetDocReview = function(id){ _o(id); { const sb = $('#sheetbox'); if (sb) { sb.classList.toggle('dv2', DOCUI2); const d = docById(id), st = d && d['状態']; sb.classList.toggle('dview', !!d && (st === '登録済み' || st === '登録しない' || !canEdit())); try { abRender(); } catch(e){} try { docRotUI(d); } catch(e){} } } const bx = $('#sheetbox .btns'); if (bx && canEdit() && !$('#sheetbox [data-del]')) bx.insertAdjacentHTML('beforebegin', delBtn('doc', id, 'この書類')); docSplit(id); }; })();
+(function(){ const _o = sheetDocReview; sheetDocReview = function(id){ _o(id); { const sb = $('#sheetbox'); if (sb) { sb.classList.toggle('dv2', DOCUI2); const d = docById(id), st = d && d['状態']; sb.classList.toggle('dview', !!d && (st === '登録済み' || st === '登録しない' || !canEdit())); try { abRender(); } catch(e){} try { docRotUI(d); } catch(e){} try { docOcrUI(d); } catch(e){} } } const bx = $('#sheetbox .btns'); if (bx && canEdit() && !$('#sheetbox [data-del]')) bx.insertAdjacentHTML('beforebegin', delBtn('doc', id, 'この書類')); docSplit(id); }; })();
 /* 画面が広いときは、左に書類（PDF・写真）、右に確認・修正の画面を並べる */
 /* スマホの書類詳細：作品ページの「該当箇所を確認」と同じ見た目で、書類の1ページ目をはじめから表示する */
 /* 書類のページを正方形の枠に表示する部品：左右スワイプ・‹ › でページ送り、指2本で拡大（拡大中は指1本で動かす・2回タップで元に戻す）。拡大中はスワイプでページが変わらない */
@@ -7119,9 +7177,10 @@ function pgPrev(host, fid, opt){ opt = opt || {}; const c = document.createEleme
   ['gesturestart', 'gesturechange'].forEach(k => sq.addEventListener(k, e => e.preventDefault()));
   go(opt.page || 1, true);
   /* そのページの、その場所に赤い印（ノートの行を押したとき。横に広い画面の左の列） */
-  const mark = async at => { if (!at || !at.p) return; await go(+at.p); zReset(); const cv = sq.querySelector('canvas'); sq.querySelectorAll('.pqmark').forEach(x => x.remove()); if (!cv || !at.box) return;
-    const r = cv.getBoundingClientRect(), q = sq.getBoundingClientRect(), b = at.box, m = document.createElement('div'); m.className = 'pqmark dtmk'; sq.style.position = 'relative';
-    Object.assign(m.style, { left: (r.left - q.left + b[1] / 1000 * r.width - 4) + 'px', top: (r.top - q.top + b[0] / 1000 * r.height - 3) + 'px', width: ((b[3] - b[1]) / 1000 * r.width + 8) + 'px', height: ((b[2] - b[0]) / 1000 * r.height + 6) + 'px' }); sq.appendChild(m); };
+  const mark = async at => { if (!at || !at.p) return; await go(+at.p); zReset(); const cv = sq.querySelector('canvas'); sq.querySelectorAll('.pqmark').forEach(x => x.remove()); if (!cv || !(at.boxes || at.box)) return;
+    const r = cv.getBoundingClientRect(), q = sq.getBoundingClientRect(); sq.style.position = 'relative';
+    (at.boxes || [at.box]).forEach(b => { const m = document.createElement('div'); m.className = 'pqmark dtmk';
+      Object.assign(m.style, { left: (r.left - q.left + b[1] / 1000 * r.width - 4) + 'px', top: (r.top - q.top + b[0] / 1000 * r.height - 3) + 'px', width: ((b[3] - b[1]) / 1000 * r.width + 8) + 'px', height: ((b[2] - b[0]) / 1000 * r.height + 6) + 'px' }); sq.appendChild(m); }); };
   return { go: k => go(k, true), mark, el: c }; }
 function docTopPreview(d){ const r = docRes(d), box = $('#sheetbox'); if (!box || box.querySelector('.dtopv, .dcgalw') || !docPages(d).length) return;
   box.querySelectorAll('#dvImgs,#dvImgsBox').forEach(x => x.remove());
@@ -11139,7 +11198,7 @@ async function pjPoll(){ clearTimeout(PJ.t); if (!S.user) { PJ.t = setTimeout(pj
   pjShow(j); if (j && j.on) PJ.t = setTimeout(pjPoll, 20000); }
 function pjShow(j){ const was = PJ.j && PJ.j.on; PJ.j = j; let el = $('#pjbg');
   if (j && j.on) { if (!el) { el = document.createElement('button'); el.type = 'button'; el.id = 'pjbg'; el.onclick = () => sheetPdfScan(); document.body.appendChild(el); }
-    el.textContent = j.mode === 'text' ? `☁ 全文を書き起こし中　${j.done}件${j.left != null ? '・残り ' + j.left + '件' : ''} ›` : `☁ サーバーで読み取り中　登録 ${j.done}件${j.left != null ? '・残り ' + j.left + '件' : ''} ›`; if ($('#pdfHead')) pdfHead(); return; }
+    el.textContent = j.mode === 'ocr' ? `☁ 原本の文字の位置を作成中　${j.done}件${j.left != null ? '・残り ' + j.left + '件' : ''} ›` : j.mode === 'text' ? `☁ 全文を書き起こし中　${j.done}件${j.left != null ? '・残り ' + j.left + '件' : ''} ›` : `☁ サーバーで読み取り中　登録 ${j.done}件${j.left != null ? '・残り ' + j.left + '件' : ''} ›`; if ($('#pdfHead')) pdfHead(); return; }
   if (el) el.remove(); if ($('#pdfHead')) pdfHead();
   if (!j || !j.end) return;
   const sig = [j.mode || '', j.done, j.fail || 0, j.capped ? 1 : 0, j.msg || ''].join('|'); /* 同じ結果のお知らせは2回出さない（終わった時刻が毎回変わっても） */
@@ -11147,10 +11206,10 @@ function pjShow(j){ const was = PJ.j && PJ.j.on; PJ.j = j; let el = $('#pjbg');
   if (seen === j.end || seen2 === sig || PJ.seen === sig) return; PJ.seen = sig; try { localStorage.setItem('smr_pjseen', j.end); localStorage.setItem('smr_pjseen2', sig); } catch(e){}
   if (j.done) refreshData();
   if (!S.user || S.user.role !== '管理') return; /* 終わったお知らせは管理者だけ。ほかの人には出さない（10/6 本人） */
-  const msg = j.mode === 'text' ? (j.capped ? `使いすぎ防止の上限で、全文の書き起こしが止まりました（${j.done}件）。` : `全文の書き起こしが終わりました（${j.done}件${j.fail ? '・できなかった ' + j.fail + '件' : ''}）。`) : j.msg ? `サーバーでの読み取りが止まりました：${j.msg}（登録 ${j.done}件）` : j.capped ? `使いすぎ防止の上限で、サーバーでの読み取りが止まりました（登録 ${j.done}件）。` : j.stopped ? `サーバーでの読み取りを止めました（登録 ${j.done}件）。`
+  const msg = j.mode === 'ocr' ? (j.msg && !j.capped ? `文字の位置づくりが止まりました：${j.msg}（${j.done}件）` : j.capped ? `今月の上限で、文字の位置づくりが止まりました（${j.done}件）。来月また続けられます` : j.stopped ? `文字の位置づくりを止めました（${j.done}件）。` : `原本の文字の位置ができました（${j.done}件${j.pages ? '・' + j.pages + 'ページ' : ''}${j.fail ? '・できなかった ' + j.fail + '件' : ''}）。`) : j.mode === 'text' ? (j.capped ? `使いすぎ防止の上限で、全文の書き起こしが止まりました（${j.done}件）。` : `全文の書き起こしが終わりました（${j.done}件${j.fail ? '・できなかった ' + j.fail + '件' : ''}）。`) : j.msg ? `サーバーでの読み取りが止まりました：${j.msg}（登録 ${j.done}件）` : j.capped ? `使いすぎ防止の上限で、サーバーでの読み取りが止まりました（登録 ${j.done}件）。` : j.stopped ? `サーバーでの読み取りを止めました（登録 ${j.done}件）。`
     : `サーバーでの読み取りと登録が終わりました（登録 ${j.done}件${j.diff ? '・食い違い ' + j.diff + '件' : ''}${j.dupN ? '・同じ書類がありそうで保留 ' + j.dupN + '件' : ''}${j.fail ? '・読めなかった ' + j.fail + '件' : ''}）。`;
   setTimeout(() => { if (!$('#sheet').classList.contains('hidden') && !$('#pdfHead')) { toast(msg); return; }
-    if (j.capped) { if (confirm(msg + '\nこのまま続けますか？（今日だけ50件ふやします）')) pjMore(); }
+    if (j.capped && j.mode !== 'ocr') { if (confirm(msg + '\nこのまま続けますか？（今日だけ50件ふやします）')) pjMore(); }
     else if (j.stopped && !was) {}
     else toast(msg); }, 400); /* 「書類を確かめますか？」の確認は出さず、短いお知らせだけ（毎回出て邪魔なため。10/6 本人） */
 }
