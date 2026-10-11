@@ -1588,7 +1588,6 @@ body.wide .noteview{left:var(--pw,264px)}.nvin{max-width:760px;margin:0 auto;pad
 .nvpager{display:flex;align-items:center;gap:8px;margin:8px 0}.nvpager .act{margin:0;flex:none;padding:8px 14px}.nvpager .act:disabled{opacity:.35}.nvsel{flex:1;min-width:0;font-size:16px;padding:8px}
 .nphoto{margin:8px 0;padding:8px 12px;border:1px dashed var(--line);border-radius:10px;color:var(--sub);font-size:15px;background:var(--wash)}
 .nvnote{font-size:17px;line-height:1.85;min-height:40vh}@media (max-width:899px){.nvnote{font-size:20px;line-height:1.9}.nvnote .nsec{font-size:18px}.nvnote .nphoto{font-size:18px}.nvtoc{font-size:15px}}.dvnote{font-size:17px}
-.spinev{display:flex;gap:8px;overflow-x:auto;margin:4px 0 10px}.spinev img{max-height:60vh;max-width:100%;border-radius:6px;border:1px solid var(--line)}
 .pdfnm{font-weight:600;margin-bottom:8px;word-break:break-all}.pdfnm small{font-weight:400;color:var(--faint);margin-left:8px;font-size:12px}
 .pdfw{padding:8px 0;border-top:1px solid var(--line)}.pdfw:first-of-type{border-top:0}
 .pdfw b{display:block}.pdfw small{display:block;color:var(--sub);font-size:12.5px}
@@ -2738,7 +2737,6 @@ html[data-theme=dark] .evv .evdband{background:#3a3218;border-color:#6b5a22;colo
 .fmeta2 .fsort{font:inherit;font-size:14px;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink)}
 .fzm{display:inline-flex;background:var(--paper);border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .fzm button{width:38px;height:32px;border:0;background:transparent;color:var(--ink);font-size:18px;line-height:1;cursor:pointer}.fzm button+button{border-left:1px solid var(--line)}.fzm button:disabled{opacity:.3}
-.fspine2{display:block;width:100%;margin:2px 0 6px;padding:12px 2px;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);font:inherit;font-size:15px;text-align:left;cursor:pointer}
 .fl2{border-top:1px solid var(--line)}
 .fr2{display:flex;align-items:center;gap:14px;width:100%;padding:14px 4px;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
 .fr2:active{background:var(--wash)}
@@ -2905,7 +2903,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'd6098bae62', APP_URL = location.origin + location.pathname;
+const BUILD = 'fba38c648e', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6241,8 +6239,7 @@ function renderDocFiles(){
   const ft = k && canEdit() && q.length >= 2;
   const body = !items.length ? (ft ? '' : `<p class="fempty">${k ? '見つかりませんでした' : '資料はまだありません'}</p>`)
     : icon ? `<div class="fg2" style="--dfc:${cols}">${items.map(tile).join('')}</div>` : `<div class="fl2">${items.map(row).join('')}</div>`;
-  const spine = !k && b0 && b0 !== DF_NONE ? `<button type="button" class="fspine2" data-spine="${esc(path.join('/'))}">📦 このフォルダの背表紙を見る</button>` : '';
-  const content = `<div class="fhd"><h2 class="ftt">${here}</h2><p class="fsub">${cnt}</p></div>${meta}${spine}${body}${ft ? '<div class="fft"></div>' : ''}`;
+  const content = `<div class="fhd"><h2 class="ftt">${here}</h2><p class="fsub">${cnt}</p></div>${meta}${body}${ft ? '<div class="fft"></div>' : ''}`;
   const side = wide ? `<aside class="fbl"><div class="fblh">バインダー</div>${binders.map(n => `<button type="button" class="fr2 ffold fblr ${b0 === n ? 'on' : ''}" data-dfp="${esc(n)}">${fIc(n, n === DF_NONE ? FIC.fold : FIC.bind)}<span class="ftx"><b>${esc(lab(n))}</b><small>${fsub(root.k[n])}</small></span></button>`).join('')}</aside>` : '';
   $('#main').innerHTML = `<div class="docs fwrap fv2${wide ? ' fsplit' : ''}">${wide || !path.length || k ? work : ''}${wide ? `<div class="fsp2">${side}<section class="fcont ${anim}">${content}</section></div>` : `<section class="fcont ${anim}">${content}</section>`}</div>`;
   { const sel = $('#main .fsort'); if (sel) sel.onchange = () => { const v = sel.value; S.dfs = v === 'dnew' || v === 'dold' ? 'date' : v; S.dfsd = v === 'dnew' ? -1 : 1; render(); }; }
@@ -6387,7 +6384,7 @@ function sheetDocReview(id){ try { const d0 = docById(id); if (d0) pdfPrefetch([
       ${docEvHTML(d)}${docTocHTML(d)}
       ${(r['補完']||[]).length ? `<details class="dfill"><summary>この書類から自動で埋めた項目（${r['補完'].length}件）</summary>${r['補完'].map(x => `<p>${esc(x.name)}：${esc(x.f)}　→　${esc(x.v)}</p>`).join('')}</details>` : ''}
       ${d['メモ'] ? `<p class="hint dmemo">📝 ${esc(d['メモ'])}</p>` : ''}
-      ${d['保管番号'] ? `<button type="button" class="act pdfopen" data-spine="${esc(d['保管番号'])}">📦 ${esc(d['保管番号'])} の背表紙を見る</button><button type="button" class="act pdfopen" data-dfgo="${esc(d['保管番号'])}">📁 このファイルを開く（同じフォルダの資料）</button>` : ''}
+      ${d['保管番号'] ? `<button type="button" class="act pdfopen" data-dfgo="${esc(d['保管番号'])}">📁 このファイルを開く（同じフォルダの資料）</button>` : ''}
       ${String(r['展覧会ID']||'').split(',').filter((x, i, a) => x && a.indexOf(x) === i && (S.exhibits||[]).some(e => e['展覧会ID']===x)).map(x => `<p><button type="button" class="golink" data-ex="${esc(x)}">展覧会：${esc((S.exhibits.find(e => e['展覧会ID']===x)||{})['名称']||x)} ›</button></p>`).join('')}
       ${contactsHTML([d])}
       ${String(r['資料ID']||'').split(',').filter(x => (S.pubs||[]).some(p => p['資料ID']===x)).map(x => `<p><button type="button" class="golink" data-pb="${esc(x)}">画集・本：${esc((S.pubs.find(p => p['資料ID']===x)||{})['タイトル']||x)} ›</button></p>`).join('')}
@@ -10760,7 +10757,6 @@ document.addEventListener('click', e => {
   if (t.dataset.drive){ openOrigFile(t.dataset.drive); return; } // 元のファイルを開く（アプリの中で開く）
   if (t.dataset.pdftab){ openOrigPdf(t.dataset.pdftab); return; } // 元のPDFファイルを開く
   if (t.dataset.pdfopen){ openPdf(t.dataset.pdfopen, t.dataset.pdfp, t.dataset.pdfq ? { q: t.dataset.pdfq, line: t.dataset.pdfl || '' } : null); return; }
-  if (t.dataset.spine){ showSpine(t, t.dataset.spine); return; }
   if (t.dataset.rec){ if (canEdit() && !recInline(t)) sheetRec(t.dataset.rec, t.dataset.rid, t.dataset.rf); return; } // 展覧会・画集なども、鉛筆でその場で直す
   if (t.dataset.ex && inDocSheet(t)){ openPageFromDoc('ex', t.dataset.ex, S.sheetDoc); return; }
   if (t.dataset.pb && inDocSheet(t)){ openPageFromDoc('pb', t.dataset.pb, S.sheetDoc); return; }
@@ -11137,16 +11133,6 @@ async function sheetPdfScan(){
 function sepPrint(){ const w = window.open('', '_blank'); if (!w) return alert('印刷の画面を開けませんでした（ポップアップを許可してください）');
   w.document.write('<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>区切り</title><style>@page{size:A4 portrait;margin:0}html,body{margin:0;height:100%;font-family:"Hiragino Mincho ProN","Yu Mincho",serif;color:#000;background:#fff}.p{height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6vh;border:6px dashed #000;box-sizing:border-box;margin:0}.k{font-size:34vw;line-height:1;font-weight:700;letter-spacing:.05em}.s{font-size:4.2vw;line-height:1.7;text-align:center}</style></head><body><div class="p"><div class="k">区切り</div><div class="s">ここで書類が分かれます<br>（下村良之介 作品目録・スキャン用）</div></div><script>onload=()=>setTimeout(()=>print(),300)<\/script></body></html>');
   w.document.close(); }
-/* 資料ファイルの背表紙（「スキャン › 35」などに一緒に入れた写真）を、その場に出す／しまう */
-const SPINE = {};
-async function showSpine(btn, box){
-  const host = btn.closest('.pdfnm') || btn, nx = host.nextElementSibling;
-  if (nx && nx.classList.contains('spinev')) { nx.remove(); return; }
-  const v = document.createElement('div'); v.className = 'spinev'; v.innerHTML = '<div class="ldwrap" style="min-height:120px"><span class="ldspin"></span>背表紙を読み込んでいます…</div>'; host.after(v);
-  try { const L = SPINE[box] || (SPINE[box] = await call('getSpine', box));
-    v.innerHTML = L.length ? L.map(u => `<img src="${u}" alt="📦 ${esc(box)} の背表紙">`).join('') : '<p class="hint">背表紙の写真が見つかりませんでした。</p>'; }
-  catch(e){ v.innerHTML = `<p class="hint">読み込めませんでした（${esc(e && e.message || e)}）</p>`; }
-}
 const pdfSnap = () => { try { SNAP.v = sheetState(); } catch(e){} }; // 読み取り結果を出しただけでは「入力中」にしない
 function pdfHead(){ const h = $('#pdfHead'); if (!h || !PDFQ) return;
   const L = PDFQ.list, R = PDFQ.res, unread = L.filter(x => !R[x.id]).length, done = L.filter(x => R[x.id] && R[x.id].done).length;
@@ -11157,7 +11143,7 @@ function pdfHead(){ const h = $('#pdfHead'); if (!h || !PDFQ) return;
       ${PDFQ.running || unread > 1 ? '<p class="hint">読み取り中は、この画面を閉じてほかの作業をしていても大丈夫です。終わったらお知らせします（アプリは開いたままにしてください）。</p>' : ''}`;
   pdfSnap(); }
 function pdfCard(i){ const el = $('#pc' + i); if (!el || !PDFQ) return; const x = PDFQ.list[i], r = PDFQ.res[x.id];
-  const nm = `<div class="pdfnm">${x.box ? `<span class="pdfbox">📦 ${esc(x.box)}</span>${x.spine ? `<button type="button" class="golink" data-spine="${esc(x.box)}">背表紙</button>` : ''}` : ''}📄 ${esc(x.name)}<small>${Math.max(1, Math.round(x.size / 1024))}KB</small></div>`;
+  const nm = `<div class="pdfnm">${x.box ? `<span class="pdfbox">📦 ${esc(x.box)}</span>` : ''}📄 ${esc(x.name)}<small>${Math.max(1, Math.round(x.size / 1024))}KB</small></div>`;
   if (!r) { el.innerHTML = nm + `<button type="button" class="act" data-pq="read|${i}">読み取る</button>`; return pdfSnap(); }
   if (r.loading) { el.innerHTML = nm + '<p class="hint">AIが読み取っています…</p>'; return pdfSnap(); }
   if (r.err) { el.innerHTML = nm + `<p class="hint" style="color:var(--warn)">${esc(r.err)}</p><button type="button" class="act" data-pq="again|${i}">もう一度読み取る</button>`; return pdfSnap(); }
