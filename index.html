@@ -218,7 +218,7 @@ nav button.on:after{content:"";position:absolute;top:0;left:30%;right:30%;height
 dl.info{display:grid;grid-template-columns:6.5em 1fr;margin:0}
 dl.info{grid-template-columns:6.5em minmax(0,1fr)}dl.info dt,dl.info dd{min-width:0}
 #page dl.info dd select,#page dl.info dd input,#page dl.info dd textarea{max-width:100%;min-width:0;box-sizing:border-box}
-#sheetbox.dview:not(.dse) .dsrot,#sheetbox.dview:not(.dse) .dsocr,#sheetbox.dview:not(.dse) #dvTtl,#sheetbox.dview:not(.dse) .dchk,#sheetbox.dview:not(.dse) .dfsec,#sheetbox.dview:not(.dse) .cmpbtn,#sheetbox.dview:not(.dse) .wfix,#sheetbox.dview:not(.dse) .wfixhint,#sheetbox.dview:not(.dse) #dvAgain{display:none!important} /* 書類の画面：見るだけのときは直す道具を出さない（10/11 開発 v19） */
+#sheetbox.dview:not(.dse) .dsrot,#sheetbox.dview:not(.dse) .dsocr,#sheetbox.dview:not(.dse) #dvTtl,#sheetbox.dview:not(.dse) #dvChk,#sheetbox.dview:not(.dse) .dfsec>.hint:not(.dvedh),#sheetbox.dview:not(.dse) .dfsec .dfgo,#sheetbox.dview:not(.dse) .cmpbtn,#sheetbox.dse .dvedh,#sheetbox:not(.dview) .dvedh,#sheetbox.dview:not(.dse) .wfix,#sheetbox.dview:not(.dse) .wfixhint,#sheetbox.dview:not(.dse) #dvAgain{display:none!important} /* 書類の画面：見るだけのときは直す道具を出さない（10/11 開発 v19） */
 #page{overflow-x:hidden}
 dl.info dt,dl.info dd{padding:13px 0;border-bottom:1px solid var(--line);margin:0}
 dl.info dt{color:var(--sub);font-size:16px}
@@ -1515,6 +1515,7 @@ html body #main section.cy .cage{font-size:12px!important;color:var(--sub)!impor
 .dfx{border:0;border-radius:12px;padding:12px 14px;margin:10px 0;background:var(--paper);transition:background .2s}.dfx.done .dfrow,.dfx.done>b{opacity:.65}.dfx b{display:block;font-size:15px}
 .dfrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0}.dfrow span{background:var(--wash);border-radius:8px;padding:6px 8px;font-size:16px;word-break:break-all}.dfrow small{display:block;font-size:12px;color:var(--sub)}
 .dfbtn{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.dfbtn .act{margin:0}.dfill{margin:8px 0;font-size:14px;color:var(--sub)}.dfill p{margin:4px 0}.dtoc{display:flex;flex-direction:column;gap:2px;margin:6px 0 10px}.dtr{display:flex;gap:12px;align-items:flex-start;text-align:left;padding:10px 14px;border-radius:12px;background:var(--paper);border:0;font:inherit;color:var(--ink);font-size:15px;line-height:1.55}.dtr b{color:var(--ink)}.dtr small{color:var(--sub)}.dtoc{gap:6px}button.dtr{cursor:pointer;width:100%}.dtp{flex:0 0 auto;min-width:3.6em;color:var(--sub);font-variant-numeric:tabular-nums;font-size:14px;padding-top:1px}#bgsave{position:fixed;left:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:9500;display:flex;align-items:center;gap:8px;background:rgba(30,30,30,.88);color:#fff;font-size:13px;padding:8px 12px;border-radius:20px;box-shadow:0 2px 10px rgba(0,0,0,.2);pointer-events:none}#bgsave.hidden{display:none}#bgsave .ldspin{width:14px;height:14px;border-width:2px;border-color:rgba(255,255,255,.3);border-top-color:#fff}.dmodes{display:flex;gap:0;margin:4px 0 14px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+#sheetbox.dview:not(.dse) .dfsec .dfsum{pointer-events:none}.dchk .dvedh{margin:8px 0 0;font-size:13px}
 .nvnote .nvfind{animation:nvfind 1s ease-in-out infinite}@keyframes nvfind{50%{opacity:.45}}
 @media (max-width:899px){
 .noteview.nv2 .dtopv{position:sticky;top:var(--nvtop,0px);z-index:4;background:var(--bg)!important;margin:6px 0 10px;box-shadow:0 6px 10px -8px rgba(0,0,0,.25)}.noteview.nv2 .dtopv .dtpbar{background:var(--bg)}
@@ -2935,7 +2936,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '94efd9778d', APP_URL = location.origin + location.pathname;
+const BUILD = '6d0b763835', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6513,8 +6514,8 @@ function sheetDocReview(id){ try { const d0 = docById(id); if (d0) pdfPrefetch([
       <details class="dvmore"><summary>そのほかの見方（元のファイル${canEdit() && r.PDF && docPdfFid(d) && PIMG[docPdfFid(d)] ? '・表示の作り直し' : ''}）</summary>${driveBtn(pg[0], pg.length > 1 && !r.PDF ? '元のファイルを確認（1枚目）' : '')}<!-- 見る方法（ノート・元のファイル）は上にまとめる -->
       ${canEdit() && r.PDF && docPdfFid(d) && PIMG[docPdfFid(d)] ? `<button type="button" class="act pdfopen" data-pimgre="${esc(id)}">↻ ページの表示を作り直す（元のファイルと違うとき）</button>` : ''}</details>
       <p class="hint">${esc([r['日付'], r['相手先'] && r.PDF ? r['相手先'] : '', r['要約']].filter(Boolean).join('　'))}</p>
-      ${r['要確認'] ? `<div class="dchk"><b>⚠ 要確認</b>${esc(r['要確認'])}<button type="button" class="act" id="dvChk">確認した</button></div>` : ''}
-      ${canEdit() && (r['食い違い']||[]).length ? `<div class="dfsec"><h3 class="sec" style="font-size:18px">台帳との食い違い</h3><p class="hint">押すと、書類と作品を並べて見比べる画面が開き、「どっちが正しい？」を決められます。</p>${r['食い違い'].map((x, i) => dfCard(d, x, i)).join('')}</div>` : ''}
+      ${r['要確認'] ? `<div class="dchk"><b>⚠ 要確認</b>${esc(r['要確認'])}<button type="button" class="act" id="dvChk">確認した</button>${canEdit() ? '<p class="hint dvedh">確認が済んだら、右上の「編集」から「確認した」を押せます</p>' : ''}</div>` : ''}
+      ${canEdit() && (r['食い違い']||[]).length ? `<div class="dfsec"><h3 class="sec" style="font-size:18px">台帳との食い違い</h3><p class="hint">押すと、書類と作品を並べて見比べる画面が開き、「どっちが正しい？」を決められます。</p><p class="hint dvedh">どちらが正しいか決めるときは、右上の「編集」を押してください</p>${r['食い違い'].map((x, i) => dfCard(d, x, i)).join('')}</div>` : ''}
       ${(r['台帳にない作品'] || []).length ? `<details class="dfill dnf"><summary>この書類にだけある作品（台帳にない）${r['台帳にない作品'].length}点</summary><p class="hint">チャリティーの色紙など、台帳に入っていない作品です。確認はいりません（台帳に入れたいときは「新しい作品を登録」から）。</p>${r['台帳にない作品'].map(w => `<p>${esc(w['作品名'] || '（無題）')}${[w['制作年'], w['高さcm'] && w['幅cm'] ? w['高さcm'] + '×' + w['幅cm'] + 'cm' : '', w['画材'], w['メモ']].filter(Boolean).map(v => '　<small>' + esc(v) + '</small>').join('')}</p>`).join('')}</details>` : ''}
       ${docEvHTML(d)}${docTocHTML(d)}
       ${(r['補完']||[]).length ? `<details class="dfill"><summary>この書類から自動で埋めた項目（${r['補完'].length}件）</summary>${r['補完'].map(x => `<p>${esc(x.name)}：${esc(x.f)}　→　${esc(x.v)}</p>`).join('')}</details>` : ''}
