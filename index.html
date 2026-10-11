@@ -1030,6 +1030,7 @@ body.briefing nav.fmenu{display:none}
 .mgx{display:flex;gap:6px}.mgx button{flex:1;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:7px 8px;font-size:14px;color:var(--sub)}
 .mgx button.on{background:var(--ink);color:var(--inv);border-color:var(--ink)}
 .delwhy{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+#sheetbox.dview:not(.dse) .delbtn{display:none!important}.delevl{margin:8px 0 4px;padding-left:1.3em;font-size:14px;line-height:1.6;color:var(--ink)}.delev .hint{margin:6px 0 0}
 .field label.dwchk{display:flex;align-items:center;gap:10px;margin:0;font-size:16px;font-weight:400;letter-spacing:0;color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--paper);position:relative}
 .dwchk input{position:absolute;opacity:0;pointer-events:none}
 .dwchk .mgck{flex:none;width:24px;height:24px;border-radius:7px;border:1.5px solid var(--line);color:transparent;display:flex;align-items:center;justify-content:center;font-weight:800}
@@ -2948,7 +2949,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '933d74fa01', APP_URL = location.origin + location.pathname;
+const BUILD = '05051b8223', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -7275,16 +7276,26 @@ document.addEventListener('click', e => { const b = e.target.closest('[data-link
 
 /* ---------- 削除（アーカイブへ）と戻す ---------- */
 const delBtn = (kind, id, label) => canEdit() ? `<button class="act delbtn" data-del="${kind}|${esc(id)}|${esc(label)}">🗑 ${esc(label)}を削除</button>` : '';
+function docEvList(did){ const d = docById(did); if (!d) return []; const ids = String(d['出来事ID'] || '').split(',').filter(Boolean);
+  const ev = [...new Set(ids.map(i => (S.events || []).find(e => e['出来事ID'] === i)).filter(Boolean).concat((S.events || []).filter(e => evDocs(e).includes(did))))];
+  return ev.map(e => { const src = String(e['根拠・出典'] || ''), rest = src.replace(/D\d{6,}[0-9A-Za-z-]*/g, '').replace(/[\s／\/、,・:：（）()]|書類/g, ''); return { e, only: !evDocs(e).some(x => x !== did) && !rest }; }); }
 function sheetDelete(kind, id, label){
+  const EVS = kind === 'doc' ? docEvList(id) : [], ONLY = EVS.filter(x => x.only).map(x => x.e), KEEP = EVS.length - ONLY.length;
+  const evTx = e => [nol(e['作品番号']), e['日付'], e['種類'], e['相手先・場所']].filter(Boolean).join('　');
   openSheet(`<h3>${esc(label)}を削除</h3><p class="hint">削除したものは「アーカイブ」に残ります。まちがえたときは、右上の名前ボタン →「削除したもの」から戻せます。${kind==='w' ? '<br>この作品の写真と来歴も一緒にアーカイブへ移ります。' : kind==='ex' || kind==='pb' ? '<br>作品とのひも付けも一緒にアーカイブへ移ります。' : ''}</p>
     <div class="field"><label>削除する理由（選ぶか、書いてください）</label>
-      <div class="delwhy">${['間違って登録した','同じ情報が2つ登録されている'].map(t => `<label class="dwchk"><input type="checkbox" data-why="${t}"><span class="mgck">✓</span><span>${t}</span></label>`).join('')}</div>
+      <div class="delwhy">${['間違って登録した','同じ情報が2つ登録されている'].concat(kind === 'doc' ? ['残さないことにした（背表紙など）'] : []).map(t => `<label class="dwchk"><input type="checkbox" data-why="${t}"><span class="mgck">✓</span><span>${t}</span></label>`).join('')}</div>
       <textarea id="delWhy" placeholder="そのほかの理由（あれば）"></textarea></div>
-    <div class="btns"><button type="button" data-close>やめる</button><button type="button" class="primary danger" id="ok">削除する</button></div>`);
+    ${EVS.length ? `<div class="field delev"><label>この書類からわかった来歴（${EVS.length}件）</label>${ONLY.length ? `<label class="dwchk"><input type="checkbox" id="delEv"><span class="mgck">✓</span><span>この書類だけが根拠の来歴 ${ONLY.length}件も、一緒に削除する</span></label><ul class="delevl">${ONLY.map(e => `<li>${esc(evTx(e))}</li>`).join('')}</ul><p class="hint">チェックしないと、来歴は残ります（根拠の書類がない来歴になります）。</p>` : ''}${KEEP ? `<p class="hint">ほかの書類などにも書かれている来歴 ${KEEP}件は、そのまま残ります。</p>` : ''}</div>` : ''}
+    <div class="btns"><button type="button" ${kind === 'doc' ? 'id="delBack"' : 'data-close'}>やめる</button><button type="button" class="primary danger" id="ok">削除する</button></div>`);
+  try { abRender(); } catch(e){} /* 上の帯の「編集中」を消す */
+  if ($('#delBack')) $('#delBack').onclick = () => sheetDocReview(id); /* やめたら書類の画面にもどる */
   $('#ok').onclick = async () => {
     const why = [...document.querySelectorAll('#sheetbox [data-why]:checked')].map(x => x.dataset.why).concat(val('delWhy') ? [val('delWhy')] : []).join('／'); if (!why) return alert('削除する理由を選ぶか、書いてください');
     busy(true, '削除しています…');
-    try { const d = await call('archiveItem', kind, id, why); setData(d); closeSheet();
+    try { let d = await call('archiveItem', kind, id, why);
+      if (kind === 'doc' && $('#delEv') && $('#delEv').checked) { let k = 0; for (const e of ONLY) { busy(true, '来歴を削除しています… ' + (++k) + ' / ' + ONLY.length); try { d = await call('archiveItem', 'e', e['出来事ID'], why + '（書類 ' + id + ' と一緒に削除）'); } catch(x){} } } /* 1件ずつ（アーカイブへ。戻せる） */
+      setData(d); closeSheet();
       if (kind==='p' || kind==='e') { if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); }
       else if (kind!=='doc') closeWork();
       render(); toast('削除しました（アーカイブに移しました）'); }
@@ -7311,7 +7322,7 @@ document.addEventListener('click', async e => {
 });
 /* 資料ページの新しい見た目（年表と同じ、文字中心のシンプルな形）。false にすると元の見た目に戻る */
 const DOCUI2 = true;
-(function(){ const _o = sheetDocReview; sheetDocReview = function(id){ _o(id); { const sb = $('#sheetbox'); if (sb) { sb.classList.toggle('dv2', DOCUI2); const d = docById(id), st = d && d['状態']; sb.classList.toggle('dview', !!d && (st === '登録済み' || st === '登録しない' || !canEdit())); try { abRender(); } catch(e){} try { docRotUI(d); } catch(e){} try { docOcrUI(d); } catch(e){} } } const bx = $('#sheetbox .btns'); if (bx && canEdit() && !$('#sheetbox [data-del]')) bx.insertAdjacentHTML('beforebegin', delBtn('doc', id, 'この書類')); docSplit(id); try { docTabs(id); } catch(e){ console.error(e); } }; })();
+(function(){ const _o = sheetDocReview; sheetDocReview = function(id){ _o(id); { const sb = $('#sheetbox'); if (sb) { sb.classList.toggle('dv2', DOCUI2); const d = docById(id), st = d && d['状態']; sb.classList.toggle('dview', !!d && (st === '登録済み' || st === '登録しない' || !canEdit())); try { abRender(); } catch(e){} try { docRotUI(d); } catch(e){} try { docOcrUI(d); } catch(e){} } } const bx = $('#sheetbox .btns'); if (bx && canEdit() && !$('#sheetbox [data-del]')) bx.insertAdjacentHTML('beforebegin', delBtn('doc', id, 'この書類')); else if (!bx && $('#sheetbox').classList.contains('dview') && canEdit() && !$('#sheetbox [data-del]')) $('#sheetbox').insertAdjacentHTML('beforeend', delBtn('doc', id, 'この書類')); /* 登録済みの書類も、編集のときは削除できる（10/11 開発 v20） */ docSplit(id); try { docTabs(id); } catch(e){ console.error(e); } }; })();
 /* 画面が広いときは、左に書類（PDF・写真）、右に確認・修正の画面を並べる */
 /* スマホの書類詳細：作品ページの「該当箇所を確認」と同じ見た目で、書類の1ページ目をはじめから表示する */
 /* 書類のページを正方形の枠に表示する部品：左右スワイプ・‹ › でページ送り、指2本で拡大（拡大中は指1本で動かす・2回タップで元に戻す）。拡大中はスワイプでページが変わらない */
