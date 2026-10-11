@@ -1833,11 +1833,15 @@ body.cmpon #abTitle{visibility:hidden}
 .cwdec{margin:2px 0 8px}.cwq{font-size:14.5px}
 .fico.fmk,.fico.fbadge{display:inline-flex;align-items:center;justify-content:center;border-radius:7px;overflow:hidden;background:#fff;box-shadow:0 0 0 1px var(--line);flex:0 0 auto;aspect-ratio:1/1;width:auto!important}.fico.fmk img{width:100%;height:100%;object-fit:contain;display:block}.fico.fbadge{background:hsl(var(--h) 38% 46%);color:#fff;font-weight:700;font-size:.42em;box-shadow:none;border-radius:50%;letter-spacing:-.04em;line-height:1}.fnm .fico.fmk,.fnm .fico.fbadge{height:26px}.ftth .fico.fmk,.ftth .fico.fbadge{height:60px;font-size:20px}.fsrow .fico.fmk,.fsrow .fico.fbadge{height:18px;font-size:8px}.fpath .fico.fmk,.fpath .fico.fbadge{height:14px;font-size:7px}.fnm .fico.fbadge{font-size:10.5px}@media (max-width:899px){.fnm .fico.fmk,.fnm .fico.fbadge{height:32px}.fnm .fico.fbadge{font-size:12px}.ftth .fico.fmk,.ftth .fico.fbadge{height:56px}}
 
-.cmpback{display:none}
+.cmpback{display:none}.cmpgrip{display:none}
 @media (max-width:899px){
  body.cmpon #top,body.cmpon #top .appbar,body.cmpon .cbar{display:none!important}
  .noteview.cmpv{padding-top:max(env(safe-area-inset-top),var(--cap,0px))!important;z-index:200}
- .cmpdoc{flex:0 0 34%}
+ .cmpdoc{flex:0 0 34%;transition:flex-basis .25s ease}.cmpv.cmpdrag .cmpdoc{transition:none}
+ .cmpgrip{display:flex;align-items:center;justify-content:center;gap:10px;flex:0 0 auto;width:100%;height:30px;padding:0;border:0;border-bottom:1px solid var(--line);background:var(--paper);color:var(--sub);font:inherit;font-size:12px;touch-action:none;cursor:row-resize;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+ .cmpgrip i{width:40px;height:5px;border-radius:3px;background:var(--line)}.cmpgrip:active{background:var(--wash)}
+ .cmpv .pqhint{padding:5px 10px;font-size:12.5px}.cmpv .pqhint small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;margin-top:1px}
+ .cmpv.cmpbig .cmpq>small,.cmpv.cmpbig .cmpq .roh{display:none}.cmpv.cmpbig .cmpq{padding:6px 10px}.cmpv.cmpbig .cmpqb{margin-top:6px}
  .cmpback{display:flex;align-items:center;justify-content:center;position:absolute;left:6px;top:2px;z-index:5;width:40px;height:36px;border:0;border-radius:10px;background:transparent;color:var(--ink);cursor:pointer}
  .cmpback svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
  .cmpv .pqbar{padding-left:50px;min-height:40px}
@@ -2953,7 +2957,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '51d751f9a9', APP_URL = location.origin + location.pathname;
+const BUILD = '5bd8e8984f', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5954,12 +5958,23 @@ async function cqDecide(did, c, P){ const d = docById(did); if (!d) return; cons
     setData(res); busy(false); for (let n = 0; n < 3 && SCR.length && SCR[SCR.length - 1].classList.contains('cmpv'); n++) scrBack();
     render(); sheetDocReview(did); toast(P ? nol(P) + ' にひも付けました' : 'ひも付けないことにしました'); }
   catch(e){ busy(false); alert('保存できませんでした：' + (e.message || e)); } }
+let CMPH = 0; /* 見比べる画面の書類の大きさ（スマホ、0＝ふつう） */
 function cmpView(did, no, fi, back, ro, cq){ ro = !!ro || !canEdit(); const d = docById(did), d0 = d; if (!d) return; const nos = cq ? cq.nos.slice() : String(d['作品番号'] || '').split(',').map(x => x.trim()).filter(Boolean); if (!no || !nos.includes(String(no))) no = nos[0];
   const el = document.createElement('div'); el.className = 'noteview cmpv' + (ro ? ' cmpro' : '') + (cq ? ' cmpcq' : ''); el._reopen = () => cmpView(did, no, fi, false, ro, cq);
-  el.innerHTML = `<div class="cmpin"><button type="button" class="cmpback" aria-label="戻る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><div class="cmpdoc"></div><div class="cmpside">${cq ? '<div class="cmpq"></div>' : ''}<div class="cmpws"></div><div class="cmpw"></div></div></div>`;
+  el.innerHTML = `<div class="cmpin"><button type="button" class="cmpback" aria-label="戻る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><div class="cmpdoc"></div><button type="button" class="cmpgrip" aria-label="書類の表示を大きく・小さく（引っぱっても変えられます）"><i></i><span>書類を大きく ⌄</span></button><div class="cmpside">${cq ? '<div class="cmpq"></div>' : ''}<div class="cmpws"></div><div class="cmpw"></div></div></div>`;
   document.body.appendChild(el); hpush('n'); scrPush(el); document.body.classList.add('cmpon'); if (back) { try { el.getAnimations().forEach(a => a.cancel()); } catch(e){} scrAnim(el, '-100', '0'); }
   const mo = new MutationObserver(() => { if (!el.isConnected) { mo.disconnect(); if (!document.querySelector('.noteview.cmpv')) document.body.classList.remove('cmpon'); pinDrawer(); } }); mo.observe(document.body, { childList: true }); pinDrawer();
   const V = el.querySelector('.cmpdoc'), P = el.querySelector('.cmpw'), r = docRes(d);
+  { /* スマホ：書類の大きさ（つまみを押すと 大きく⇔小さく、引っぱると好きな大きさ。この端末で開いているあいだは覚えておく）（10/12 開発 v20 本人「プレビューエリアを広げて確認」） */
+    const G = el.querySelector('.cmpgrip'), IN = el.querySelector('.cmpin'), lab = G.querySelector('span');
+    const setH = (f, keep) => { if (innerWidth >= 900) { V.style.flexBasis = ''; return; } f = Math.max(.2, Math.min(.84, f)); V.style.flexBasis = (f * 100).toFixed(1) + '%'; const big = f > .5; el.classList.toggle('cmpbig', big); lab.textContent = big ? '書類を小さく ⌃' : '書類を大きく ⌄'; if (keep) CMPH = f; };
+    if (CMPH) setH(CMPH);
+    let g0 = null;
+    G.addEventListener('pointerdown', e => { if (innerWidth >= 900) return; e.preventDefault(); g0 = { y: e.clientY, h: V.getBoundingClientRect().height, H: IN.getBoundingClientRect().height, mv: false }; el.classList.add('cmpdrag'); try { G.setPointerCapture(e.pointerId); } catch(x){} });
+    G.addEventListener('pointermove', e => { if (!g0) return; const dy = e.clientY - g0.y; if (Math.abs(dy) > 6) g0.mv = true; if (g0.mv) setH((g0.h + dy) / g0.H, true); });
+    const up = () => { if (!g0) return; const m = g0.mv, f = g0.h / g0.H; g0 = null; el.classList.remove('cmpdrag'); if (!m) setH(f > .5 ? .34 : .78, true); };
+    G.addEventListener('pointerup', up); G.addEventListener('pointercancel', up);
+    G.addEventListener('click', e => { e.stopPropagation(); if (innerWidth >= 900) return; if (e.detail === 0) setH(V.getBoundingClientRect().height / IN.getBoundingClientRect().height > .5 ? .34 : .78, true); }); /* キーボードで押したとき */ }
   if (r.PDF) pdfMount(V, docPages(d)[0], docTitle(d)); else { V.innerHTML = `<div class="cmpimgs">${docPages(d).map(f => docImg(f, 1600)).join('')}</div>`; hydrateDocs(V); }
   el._did = did; const W = el.querySelector('.cmpws');
   const cqBar = () => { const Q = el.querySelector('.cmpq'); if (!Q) return; Q.innerHTML = `<b>書類の「${esc(cq.name)}」は、どの作品？</b><small>書類に番号が ${cq.raw.length}つ書かれています（${cq.raw.map(x => 'No.' + esc(x)).join('・')}）。${cq.miss.length ? cq.miss.map(x => 'No.' + esc(x)).join('・') + ' は台帳にありません。' : ''}下の作品を押して見比べてください。</small>`
