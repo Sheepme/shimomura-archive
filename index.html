@@ -1954,6 +1954,7 @@ html:not([data-theme=dark]) body.vhome{background:var(--bg)} /* ライトモー�
 .hm2 .hg-date{margin:0;font-size:15px;font-weight:700;color:var(--hg-s)}
 .hm2 .hg-hello{margin:2px 0 18px;font-size:clamp(25px,7.4vw,30px);font-weight:800;line-height:1.25;color:var(--hg-h);text-wrap:balance}
 .hm2 .hg-card{display:flex;flex-direction:column;gap:12px;margin:0 0 20px;padding:18px;border-radius:20px;border:2px solid var(--hg-ln);border-bottom-width:5px;background:var(--hg-bg)}
+.hg-card .hg-btn2.hg-ivs{align-self:center;width:auto!important;min-height:38px!important;padding:0 16px!important;border-width:1.5px!important;border-bottom-width:3px!important;border-radius:999px!important;font-size:14px!important;font-weight:700}
 .hm2 .hg-ttl{font-size:clamp(22px,6.6vw,26px);font-weight:800;color:var(--hg-h)}
 .hm2 .hg-sub{margin-top:4px;font-size:16px;line-height:1.5;color:var(--hg-s)}
 .hm2 .hg-go,.hm2 .hg-btn2{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:16px;font-family:inherit;font-weight:800;cursor:pointer}
@@ -2963,7 +2964,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '9e6d1e72bd', APP_URL = location.origin + location.pathname;
+const BUILD = '1058779770', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5347,9 +5348,9 @@ function renderHome(){
     <p class="hg-date">${d.getMonth() + 1}月${d.getDate()}日（${'日月火水木金土'[d.getDay()]}）</p>
     <h1 class="hg-hello">${esc(S.user && S.user.name || '')}さん、こんにちは</h1>
     <div id="hgInbox">${shHomeHTML()}</div>
-    <section class="hg-card">${ed ? `<div><div class="hg-ttl">今日の10作品</div><div class="hg-sub">保管場所の確認から・5分ほど。ボタンでも声でも答えられます</div></div>
+    <section class="hg-card">${ed ? `<div><div class="hg-ttl">今日の10作品</div></div>
       <button type="button" class="hg-go" data-hg10="1">${PLAY}はじめる</button>${S.user && S.user.role === '管理' && !isEasy() && canEdit() ? '<button type="button" class="hg-link hg-test" data-hgtest="1">練習する（答えは保存しません）</button>' : isViewer() ? '<span class="hg-link" style="cursor:default">閲覧モード：答えは保存しません</span>' : ''}` : ''}
-      <button type="button" class="${ed ? 'hg-btn2' : 'hg-go'}" data-ivgo="1">インタビュー</button></section>
+      <button type="button" class="${ed ? 'hg-btn2 hg-ivs' : 'hg-go'}" data-ivgo="1">${ed ? '🎙 ' : ''}インタビュー</button></section>
     <section class="hg-sec hglook"><h2 class="hg-h2">見る</h2><div class="hglk">${[['album', '作品', ico('works')], ['ex', '展覧会', ico('ex')], ['pb', '画集・資料', ico('pb')], ['chrono', '年表', ico('chrono')], ['exv', '展示ビュー', typeof EXVIC !== 'undefined' ? EXVIC : ''], ...(typeof canDocs === 'function' && canDocs() ? [['doc', '書類', ico('doc')]] : [])].map(([v, t, ic]) => `<button type="button" data-hglook="${v}"><span class="hglki">${ic}</span><span>${t}</span></button>`).join('')}</div></section>
     ${canEdit() ? memoFold() : ''}
     ${ed ? `<section class="hg-sec"><h2 class="hg-h2">やること</h2>
