@@ -2758,6 +2758,10 @@ html[data-theme=dark] .evv .evdband{background:#3a3218;border-color:#6b5a22;colo
 .ft2 b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:15px;font-weight:600;line-height:1.4;margin-top:8px;overflow-wrap:anywhere}
 .ft2 small{display:block;font-size:12.5px;color:var(--sub);margin-top:2px}
 .fg2[style*="--dfc:1"] b{font-size:17px}
+/* 書類のページの絵が届くまでのしるし（ほかの画面のくるくると同じ形。白いページの上なので色は濃いめ） */
+.pqp.pqwait::after,.pqimg .pqp:has(img:not([src]))::after,.dcgal .pbgal>a:has(>img:not([src]))::after{content:'';position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-28px 0 0 -15px;border-radius:50%;border:3px solid rgba(0,0,0,.1);border-top-color:#8a8780;animation:ldrot .8s linear infinite;z-index:1;pointer-events:none}
+.pqp.pqwait::before,.pqimg .pqp:has(img:not([src]))::before,.dcgal .pbgal>a:has(>img:not([src]))::before{content:'読み込んでいます…';position:absolute;left:0;right:0;top:50%;margin-top:12px;text-align:center;font-size:13px;color:#8a8780;z-index:1;pointer-events:none}
+.pqimg .pqp:has(img:not([src])),.dcgal .pbgal>a:has(>img:not([src])){position:relative;min-height:160px}
 .fmeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:2px var(--gx,16px) 8px}
 .fmeta .fcnt{font-size:13px;color:var(--sub)}.fmeta .fcnt small{margin-left:4px}
 .fmeta .fmr{margin-left:auto;display:flex;align-items:center;gap:8px}
@@ -2886,7 +2890,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'ede490d1a2', APP_URL = location.origin + location.pathname;
+const BUILD = '60f4797bb4', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -10909,8 +10913,8 @@ async function pdfMount(host, fid, title, page, hint){
     let draw = () => { box.innerHTML = '<div class="pqin"></div>'; inner = box.firstChild; const done = new Set();
       const io = new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; const i = +e.target.dataset.i; if (done.has(i)) return; done.add(i);
         const p = pages[i], vp0 = p.getViewport({ scale: 1 }), w = fitW(p) * z, sc = w / vp0.width, dpr = Math.min(window.devicePixelRatio || 1, 2), vp = p.getViewport({ scale: sc * dpr });
-        const c = document.createElement('canvas'); c.width = vp.width; c.height = vp.height; e.target.appendChild(c); p.render({ canvasContext: c.getContext('2d'), viewport: vp }); }), { root: box, rootMargin: '600px 0px' });
-      pages.forEach((p, i) => { const vp0 = p.getViewport({ scale: 1 }), w = fitW(p) * z, el = document.createElement('div'); el.className = 'pqp'; el.dataset.i = i; el.style.width = w + 'px'; el.style.height = (w * vp0.height / vp0.width) + 'px'; inner.appendChild(el); io.observe(el); });
+        const c = document.createElement('canvas'); c.width = vp.width; c.height = vp.height; e.target.appendChild(c); const tk = p.render({ canvasContext: c.getContext('2d'), viewport: vp }); Promise.resolve(tk && tk.promise).then(() => e.target.classList.remove('pqwait'), () => e.target.classList.remove('pqwait')); }), { root: box, rootMargin: '600px 0px' });
+      pages.forEach((p, i) => { const vp0 = p.getViewport({ scale: 1 }), w = fitW(p) * z, el = document.createElement('div'); el.className = 'pqp pqwait'; el.dataset.i = i; el.style.width = w + 'px'; el.style.height = (w * vp0.height / vp0.width) + 'px'; inner.appendChild(el); io.observe(el); });
       upd(); };
     const upd = () => { const els = box.querySelectorAll('.pqp'); let cur = 0; const top = box.getBoundingClientRect().top + 40; els.forEach((el, i) => { if (el.getBoundingClientRect().top <= top) cur = i; }); pgEl.textContent = (cur + 1) + ' / ' + pages.length; if (prg && document.activeElement !== prg) prg.value = cur + 1; };
     const prg = host.querySelector('.pqrng'); if (prg) { prg.max = pages.length; prg.parentNode.hidden = pages.length < 2; prg.addEventListener('input', () => { const el = box.querySelector(`.pqp[data-i="${+prg.value - 1}"]`); if (el) box.scrollTop += el.getBoundingClientRect().top - box.getBoundingClientRect().top - 4; pgEl.textContent = prg.value + ' / ' + pages.length; }); } /* つまみでページへ（10/10 開発 v18） */
