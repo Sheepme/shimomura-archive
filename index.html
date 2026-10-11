@@ -218,7 +218,7 @@ nav button.on:after{content:"";position:absolute;top:0;left:30%;right:30%;height
 dl.info{display:grid;grid-template-columns:6.5em 1fr;margin:0}
 dl.info{grid-template-columns:6.5em minmax(0,1fr)}dl.info dt,dl.info dd{min-width:0}
 #page dl.info dd select,#page dl.info dd input,#page dl.info dd textarea{max-width:100%;min-width:0;box-sizing:border-box}
-#sheetbox.dview:not(.dse) #dvTtl,#sheetbox.dview:not(.dse) .dchk,#sheetbox.dview:not(.dse) .dfsec,#sheetbox.dview:not(.dse) .cmpbtn,#sheetbox.dview:not(.dse) .wfix,#sheetbox.dview:not(.dse) .wfixhint,#sheetbox.dview:not(.dse) #dvAgain{display:none!important} /* 書類の画面：見るだけのときは直す道具を出さない（10/11 開発 v19） */
+#sheetbox.dview:not(.dse) .dsrot,#sheetbox.dview:not(.dse) #dvTtl,#sheetbox.dview:not(.dse) .dchk,#sheetbox.dview:not(.dse) .dfsec,#sheetbox.dview:not(.dse) .cmpbtn,#sheetbox.dview:not(.dse) .wfix,#sheetbox.dview:not(.dse) .wfixhint,#sheetbox.dview:not(.dse) #dvAgain{display:none!important} /* 書類の画面：見るだけのときは直す道具を出さない（10/11 開発 v19） */
 #page{overflow-x:hidden}
 dl.info dt,dl.info dd{padding:13px 0;border-bottom:1px solid var(--line);margin:0}
 dl.info dt{color:var(--sub);font-size:16px}
@@ -2718,6 +2718,20 @@ html[data-theme=dark] .evv .evdband{background:#3a3218;border-color:#6b5a22;colo
 #viewer.pzon .vbk,#viewer.pzon .vbar,#viewer.pzon .vrngw,#viewer.pzon #vorig{opacity:0;pointer-events:none}
 #viewer .vbk,#viewer .vbar,#viewer .vrngw,#viewer #vorig{transition:opacity .2s}
 .pzsharp{position:absolute;pointer-events:none;z-index:1;opacity:0;transition:opacity .12s}
+.dsrot{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0 6px;padding:10px 12px;border:1px dashed var(--line);border-radius:12px}
+.dsrot .dsrl{font-size:13px;color:var(--sub);margin-right:auto}
+.dsrot select{font-size:15px;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.dsrot .act{padding:8px 12px;font-size:14px}
+.nvtapon .nvnote [data-ln]{cursor:pointer;border-radius:6px;transition:background .15s}
+.nvtapon .nvnote [data-ln].nvon{background:rgba(234,88,12,.12);box-shadow:0 0 0 2px rgba(234,88,12,.35)}
+.nvtapon .nvtoc{cursor:pointer}
+.nvtapon .nvtoc::after{content:' ✎';color:var(--faint);font-size:12px}
+.nvact{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 12px}
+.nvact button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:7px 14px;font-size:14px;cursor:pointer}
+.nvfix{margin:6px 0 14px;padding:10px;border:1px solid rgba(234,88,12,.5);border-radius:12px;background:var(--paper)}
+.nvfix .nvfi{width:100%;box-sizing:border-box;font-size:16px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);margin:0 0 8px;resize:vertical;font-family:inherit}
+.nvfix .nvfb{display:flex;gap:8px;justify-content:flex-end}
+.nvfix .hint{margin:6px 0 0;font-size:12px}
 .pbhead{display:flex;align-items:flex-end;gap:14px;margin:14px 0 8px}
 .pbcv{position:relative;flex:none;width:132px}
 .pbcvb{display:block;width:100%;padding:0;border:0;background:none;cursor:zoom-in}
@@ -2822,7 +2836,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '19737aeb4b', APP_URL = location.origin + location.pathname;
+const BUILD = '4b424eec1b', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3072,6 +3086,34 @@ function edBtnSync(){ const b = $('#abEdit'); if (!b) return; const pgOpen = !$(
   const c = $('#abCancel'); if (c) c.classList.toggle('hidden', !(on && EDM)); document.body.classList.toggle('edmhd', !!((on && EDM) || dse)); }
 /* 書類の画面（見る形）がいちばん上にあって、直せる人か。書類の編集は、押したその場で保存されるので「やめる」はない（10/11 開発 v19） */
 function dsCtx(){ const top = SCR[SCR.length - 1]; return !!(top && top.id === 'sheet' && $('#sheetbox').classList.contains('dview') && canEdit()); }
+/* 書類の画面（編集のとき）：PDF のページの向きを直す（10/11 開発 v19 本人「ドライブのPDFを1ページだけ回転させたい」）。
+   この端末で PDF のそのページだけ回し（pdf-lib）、新しい版として Google に送る。書類は新しいファイルに付けかわり、元のファイルはドライブの「差しかえ前」に残る */
+function docRotUI(d){ const sb = $('#sheetbox'); if (!sb || !d || !canEdit() || !docRes(d).PDF || d['状態'] !== '登録済み' || sb.querySelector('.dsrot')) return; const fid = docPdfFid(d); if (!fid) return;
+  const at = sb.querySelector('details.dvmore'); const html = `<div class="dsrot"><span class="dsrl">ページの向き</span><select class="dsrp" aria-label="回すページ"><option value="0">見ているページ</option></select><button type="button" class="act" data-drot="-90">↺ 左へ回す</button><button type="button" class="act" data-drot="90">↻ 右へ回す</button></div>`;
+  if (at) at.insertAdjacentHTML('beforebegin', html); else (sb.querySelector('.dsr') || sb).insertAdjacentHTML('beforeend', html);
+  pdfDocOf(fid).then(doc => { const sel = sb.querySelector('.dsrp'); if (!sel || !doc) return; for (let i = 1; i <= doc.numPages; i++) sel.insertAdjacentHTML('beforeend', `<option value="${i}">${i}ページ目</option>`); }).catch(() => {}); }
+const docCurPage = () => { const t = ($('#sheetbox .dsv .pqpg') || $('#sheetbox .dcgalw .pbcnt') || {}).textContent || ''; return parseInt(t, 10) || 1; };
+let PDFLIBP = null;
+const pdfLib = () => window.PDFLib ? Promise.resolve(window.PDFLib) : (PDFLIBP || (PDFLIBP = new Promise((ok, ng) => { const U = ['https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js', 'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js'];
+  const one = k => { if (k >= U.length) { PDFLIBP = null; return ng(new Error('PDFの道具を読み込めませんでした')); } const sc = document.createElement('script'); sc.src = U[k]; sc.onload = () => window.PDFLib ? ok(window.PDFLib) : one(k + 1); sc.onerror = () => one(k + 1); document.head.appendChild(sc); }; one(0); })));
+const u8b64 = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
+async function docRotPage(did, pg, deg){ const d = docById(did); if (!d) return; const fid = docPdfFid(d); if (!fid) return;
+  if (!confirm(pg + 'ページ目を' + (deg > 0 ? '右' : '左') + 'へ90°回します。\nPDF を新しい版に差しかえます（元のファイルはドライブの「差しかえ前」に残ります）')) return;
+  busy(true, 'ページを回しています…'); const hadImg = !!PIMG[fid];
+  try { const L = await pdfLib(), url = await pdfBlobUrl(fid), buf = await (await fetch(url)).arrayBuffer(), doc = await L.PDFDocument.load(buf, { ignoreEncryption: true });
+    if (pg < 1 || pg > doc.getPageCount()) throw new Error('そのページがありません'); const p = doc.getPage(pg - 1), a = ((p.getRotation().angle || 0) + deg + 360) % 360; p.setRotation(L.degrees(a));
+    const out = await doc.save(); busy(true, '新しい版を送っています…');
+    const res = await call('replaceDocPdf', did, u8b64(out), pg + 'ページを' + (deg > 0 ? '右' : '左') + 'へ90°回した', [pg]);
+    if (res && res.docs) setData(res);
+    const d2 = docById(did), nf = d2 && docPdfFid(d2);
+    if (nf && nf !== fid) { try { DPDF[nf] = URL.createObjectURL(new Blob([out], { type: 'application/pdf' })); } catch(e){}
+      if (hadImg) try { busy(true, 'ページの表示を作っています…'); const lib = await pdfjs(), pd = await lib.getDocument({ data: out.slice() }).promise, pp = await pd.getPage(pg), v0 = pp.getViewport({ scale: 1 }), vp = pp.getViewport({ scale: Math.min(3, 1600 / v0.width) }), c = document.createElement('canvas');
+        c.width = Math.round(vp.width); c.height = Math.round(vp.height); const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); await pp.render({ canvasContext: g, viewport: vp }).promise;
+        const rows = await call('savePageImgs', did, nf, String(d2['更新日時'] || ''), [{ p: pg, b64: c.toDataURL('image/jpeg', .72).split(',')[1], w: Math.round(v0.width * 100) / 100, h: Math.round(v0.height * 100) / 100 }], false); c.width = c.height = 0;
+        S.pimg = (S.pimg || []).filter(r => !(r[0] === did && +r[2] === pg)).concat(rows || []); pimgIndex(); } catch(e){} } /* 作れなくても、PDFから表示する（あとで「ハイライトを速くする」で作れる） */
+    busy(false); try { render(); } catch(e){} sheetDocReview(did); toast(pg + 'ページの向きを直しました'); }
+  catch(e){ busy(false); const m = String(e && e.message || e); alert(/この操作はできません|replaceDocPdf/.test(m) ? 'まだ Google 側の更新（デプロイ）が済んでいません。デプロイのあとで使えます' : '向きを直せませんでした。\n' + m); } }
+document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('#sheetbox [data-drot]'); if (!b) return; e.preventDefault(); const sel = $('#sheetbox .dsrp'), v = +(sel && sel.value) || docCurPage(); docRotPage(S.sheetDoc, v, +b.dataset.drot); });
 function dseToggle(){ $('#sheetbox').classList.toggle('dse'); abRender(); }
 /* パンくず：入りきれば文字で → 入らなければアイコンで → それでも入らなければ「… › ひとつ前のアイコン › 名前」 */
 function abFit(){ const h = document.getElementById('abTitle'); if (!h) return; h.classList.remove('bcI', 'bcD');
@@ -5820,6 +5862,30 @@ function dfFind(text, v){ const parts = String(text || '').split(/【\s*p\.?\s*(
   for (const q of dfVariants(v)) { const re = fzRe(q); if (!re) continue; for (let i = 1; i < parts.length; i += 2) if (re.test(parts[i + 1] || '')) return { p: parts[i], q };
     if (parts.length === 1 && re.test(parts[0])) return { p: '1', q }; }
   return null; }
+const NLOC = {}; /* ノートの行の場所（この端末で探したもの） */
+/* 書類のあるページの、ある場所を赤いマーカーで見せる（ノートの「📍 書類で場所を見る」。書類で見る〔evOpen〕と同じ見た目） */
+function docShowAt(did, at, line){ const d = docById(did); if (!d || !at) return; const r = docRes(d) || {}, pgs = docPages(d), pdf = !!r.PDF;
+  const el = document.createElement('div'); el.className = 'noteview evv evat'; el._reopen = () => docShowAt(did, at, line);
+  el.innerHTML = `<div class="evin"><h2 class="nvt">${esc(docTitle(d))}</h2>${line ? `<p class="evline">${esc(line)}</p>` : ''}<div class="evpg"><div class="ldwrap"><span class="ldspin"></span>書類を開いています…</div></div></div>
+    <div class="evbar"><div class="evbtns"><button type="button" class="evclose">閉じる</button></div><div class="evnav"><button type="button" class="evp" data-evp="-1" aria-label="前のページ">‹</button><input type="range" class="evr" min="1" max="1" value="1" aria-label="ページを選ぶ"><span class="evpn">1 / 1</span><button type="button" class="evp" data-evp="1" aria-label="次のページ">›</button></div></div>`;
+  document.body.appendChild(el); hpush('n'); scrPush(el);
+  const box = el.querySelector('.evpg'), rg = el.querySelector('.evr'), nl = el.querySelector('.evpn'); let n = 0, N = pdf ? 0 : pgs.length, pdoc = null, tok = 0;
+  const go = async k => { const my = ++tok; try {
+      if (pdf && !pdoc) { pdoc = await pdfDocOf(pgs[0]); N = pdoc.numPages; }
+      k = Math.max(1, Math.min(N || 1, k)); n = k; rg.max = N || 1; rg.value = n; nl.textContent = n + ' / ' + (N || 1); el.querySelector('.evnav').hidden = (N || 1) < 2;
+      el.querySelectorAll('.evp').forEach(b => b.disabled = (+b.dataset.evp < 0 ? n <= 1 : n >= N));
+      const mk = at.box && n === +at.p ? `<div class="pqmark" style="top:calc(${at.box[0] / 10}% - 4px);left:calc(${at.box[1] / 10}% - 4px);height:calc(${(at.box[2] - at.box[0]) / 10}% + 8px);width:calc(${(at.box[3] - at.box[1]) / 10}% + 8px)"></div>` : '';
+      const W = Math.max(240, box.clientWidth || 320);
+      if (pdf) { const pg = await pdoc.getPage(n), v0 = pg.getViewport({ scale: 1 }), dpr = Math.min(2, window.devicePixelRatio || 1), vp = pg.getViewport({ scale: W / v0.width * dpr * 1.4 });
+        const cv = document.createElement('canvas'); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height); await pg.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise; if (my !== tok) return;
+        box.innerHTML = `<div class="evpw" style="aspect-ratio:${v0.width}/${v0.height}"></div>`; const w = box.firstChild; w.appendChild(cv); w.insertAdjacentHTML('beforeend', mk); }
+      else { box.innerHTML = `<div class="evpw evimg">${docImg(pgs[n - 1], 1600)}${mk}</div>`; try { hydrateDocs(box); } catch(e){} }
+      if (mk) setTimeout(() => { const m = box.querySelector('.pqmark'); if (m && m.scrollIntoView) m.scrollIntoView({ block: 'center' }); }, 60);
+    } catch(e){ if (my === tok) box.innerHTML = '<p class="hint" style="padding:16px">書類を読み込めませんでした</p>'; } };
+  el.querySelectorAll('.evp').forEach(b => b.onclick = () => go(n + (+b.dataset.evp)));
+  rg.addEventListener('input', () => { nl.textContent = rg.value + ' / ' + (N || 1); clearTimeout(rg._t); rg._t = setTimeout(() => go(+rg.value), 180); });
+  el.querySelector('.evclose').onclick = () => docClose(el);
+  go(+at.p || 1); }
 async function noteView(id, startP, qq){ const d = docById(id); if (!d) return;
   const el = document.createElement('div'); el.className = 'noteview' + (DOCUI2 ? ' dv2' : ''); el._reopen = () => noteView(id, startP, qq);
   el.innerHTML = `<div class="nvin"><h2 class="nvt">${esc(docTitle(d))}</h2><div class="nvbody"><div class="ldwrap"><span class="ldspin"></span>ノートを読み込んでいます…</div></div></div>`;
@@ -5843,6 +5909,35 @@ async function noteView(id, startP, qq){ const d = docById(id); if (!d) return;
     el.querySelectorAll('[data-np]').forEach(b => b.onclick = () => { cur = Math.min(parts.length - 1, Math.max(0, cur + (+b.dataset.np))); draw(); el.scrollTop = 0; });
     el.querySelectorAll('.nvsel').forEach(sl => sl.onchange = () => { cur = +sl.value; draw(); el.scrollTop = 0; }); };
   draw();
+  /* 行を押すと「書類で場所を見る」「直す」（10/11 開発 v19 本人「AIの読み間違い修正は、ノート画面で」「テキストタップで、ハイライト」）。見出し（手紙：…）も押すと直せる */
+  if (canEdit()) { el.classList.add('nvtapon');
+    const rebuild = t => { const np = []; String(t || '').split(/【\s*p\.?\s*(\d+)\s*】/i).forEach((x, i, a) => { if (i % 2 === 1) np.push({ n: x, t: a[i + 1] || '' }); else if (i === 0 && x.trim()) np.push({ n: '', t: x }); }); if (!np.length) np.push({ n: '1', t: t || '' }); parts.splice(0, parts.length, ...np); cur = Math.min(cur, parts.length - 1); };
+    const gasErr = (x, what) => { const m = String(x && x.message || x); alert(/この操作はできません|findDocText|fixDocText/.test(m) ? 'まだ Google 側の更新（デプロイ）が済んでいません。デプロイのあとで使えます' : what + 'できませんでした。\n' + m); };
+    const fixBox = (vals, ph) => `<div class="nvfix">${vals.map((v, k) => `<textarea class="nvfi" rows="${vals.length > 1 ? 1 : 2}" placeholder="${esc(ph[k] || '')}">${esc(v)}</textarea>`).join('')}<div class="nvfb"><button type="button" class="act" data-nvf="no">やめる</button><button type="button" class="act main" data-nvf="ok">直す</button></div><p class="hint">書類のメモに、直したことが残ります</p></div>`;
+    el.addEventListener('click', async e => { const t = e.target; if (!t.closest || t.closest('.nvfix')) return;
+      const b = t.closest('[data-nva]');
+      if (b) { e.stopPropagation(); const ln = el.querySelector('.nvnote .nvon'); if (!ln) return; const body = parts[cur].t.trim(), raw = (body.split('\n')[+ln.dataset.ln] || '').trim(), pn = +(parts[cur].n || 1) || 1;
+        if (b.dataset.nva === 'find') { const key = pn + '|' + raw.normalize('NFKC').replace(/\s+/g, '').slice(0, 60), dd = docById(id) || d, mem = (docRes(dd)['ノート位置'] || {})[key] || NLOC[id + '|' + key];
+          if (mem && mem.p) return docShowAt(id, mem, raw);
+          const t0 = b.textContent; b.disabled = true; b.textContent = '探しています…';
+          try { const at = await call('findDocText', id, pn, raw); if (at && at.p) { NLOC[id + '|' + key] = at; docShowAt(id, at, raw); } else toast('書類の中で見つかりませんでした'); }
+          catch(x){ gasErr(x, '探せ'); } finally { b.disabled = false; b.textContent = t0; } return; }
+        if (b.dataset.nva === 'fix') { const act = el.querySelector('.nvact'); act.outerHTML = fixBox([raw], ['正しい文字']); const box = el.querySelector('.nvfix'), ta = box.querySelector('.nvfi'); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+          box.querySelector('[data-nvf="no"]').onclick = () => draw();
+          box.querySelector('[data-nvf="ok"]').onclick = async () => { const v = ta.value.replace(/\s*\n\s*/g, ' ').trim(); if (!v || v === raw) return draw();
+            busy(true, 'ノートを直しています…'); try { const r = await call('fixDocText', id, { kind: 'line', p: parts[cur].n || '', old: raw, v }); busy(false); if (r && r.text != null) { DTEXT[id] = r.text; rebuild(r.text); } draw(); toast('ノートを直しました'); }
+            catch(x){ busy(false); gasErr(x, '直せ'); } }; return; } }
+      const tc = t.closest('.nvbody .nvtoc');
+      if (tc) { const pn = parts[cur].n; if (!pn) return; const g = (docRes(docById(id) || d)['ページ'] || []).find(x => String(x.p) === String(pn)) || {};
+        tc.outerHTML = fixBox([g['種類'] || '', g['説明'] || ''], ['種類（例：手紙）', 'なにか（例：藤本直美宛の手紙）']); const box = el.querySelector('.nvfix'), [a1, a2] = box.querySelectorAll('.nvfi'); a2.focus();
+        box.querySelector('[data-nvf="no"]').onclick = () => draw();
+        box.querySelector('[data-nvf="ok"]').onclick = async () => { const k1 = a1.value.trim(), k2 = a2.value.trim(); if (k1 === (g['種類'] || '') && k2 === (g['説明'] || '')) return draw();
+          busy(true, '見出しを直しています…'); try { const r = await call('fixDocText', id, { kind: 'toc', p: pn, '種類': k1, '説明': k2 }); if (r && r.docs) setData(r); busy(false); toc[String(pn)] = [k1, k2].filter(Boolean).join('：'); draw(); toast('見出しを直しました'); }
+          catch(x){ busy(false); gasErr(x, '直せ'); } }; return; }
+      const ln = t.closest('.nvnote [data-ln]'); if (!ln || t.closest('a,button,select')) return;
+      const was = ln.classList.contains('nvon'); el.querySelectorAll('.nvact').forEach(x => x.remove()); el.querySelectorAll('.nvon').forEach(x => x.classList.remove('nvon')); if (was) return;
+      ln.classList.add('nvon'); ln.insertAdjacentHTML('afterend', '<div class="nvact"><button type="button" data-nva="find">📍 書類で場所を見る</button><button type="button" data-nva="fix">✎ 直す</button></div>'); });
+  }
   /* 左右にスワイプでページをめくる */
   let sx = null, sy = 0; el.addEventListener('touchstart', e => { if (e.touches.length === 1) { const x = e.touches[0].clientX; sx = (x <= 24 || x >= innerWidth - 24) ? null : x; sy = e.touches[0].clientY; } }, {passive: true}); /* 端からのスワイプは戻る・進む用 */
   el.addEventListener('touchend', e => { if (sx === null) return; if (e.target.closest && e.target.closest('.dtopv')) { sx = null; return; } const t2 = e.changedTouches[0], dx = t2.clientX - sx, dy = t2.clientY - sy; sx = null;
@@ -5853,14 +5948,14 @@ function noteHTML(t, q){
   const mark = s => { let h = esc(s); h = h.replace(/下村\s*良之介/g, m => `<b class="nme">${m}</b>`); if (q) { const re = fzRe(esc(q), 'gi'); if (re) h = h.replace(re, m => `<mark>${m}</mark>`); } return h; };
   const isItem = s => /^\s*\d+\s*[.．、)）]?\s*\S/.test(s) && !/^\s*\d{4}\s*年/.test(s);
   for (let i = 0; i < L.length; i++) { const s = L[i].trim(); if (!s) continue; let m;
-    if ((m = s.match(/^【\s*p\.?\s*(\d+)\s*】$/i))) { out.push(`<div class="npg">${m[1]}ページ</div>`); me = false; continue; }
-    if ((m = s.match(/^[［\[]\s*(写真|絵|図|イラスト|地図)\s*[：:]\s*(.+?)[］\]]$/))) { out.push(`<div class="nphoto">🖼 ${esc(m[1])}：${mark(m[2])}</div>`); continue; }
-    if (/^[［\[].+[］\]]$/.test(s) || /^第[一二三四五六七八九十\d]+室$/.test(s) || /^[0-9０-９]+\s*階$/.test(s)) { out.push(`<h4 class="nsec">${mark(s.replace(/^[［\[]|[］\]]$/g, ''))}</h4>`); me = false; continue; }
+    if ((m = s.match(/^【\s*p\.?\s*(\d+)\s*】$/i))) { out.push(`<div data-ln="${i}" class="npg">${m[1]}ページ</div>`); me = false; continue; }
+    if ((m = s.match(/^[［\[]\s*(写真|絵|図|イラスト|地図)\s*[：:]\s*(.+?)[］\]]$/))) { out.push(`<div data-ln="${i}" class="nphoto">🖼 ${esc(m[1])}：${mark(m[2])}</div>`); continue; }
+    if (/^[［\[].+[］\]]$/.test(s) || /^第[一二三四五六七八九十\d]+室$/.test(s) || /^[0-9０-９]+\s*階$/.test(s)) { out.push(`<h4 data-ln="${i}" class="nsec">${mark(s.replace(/^[［\[]|[］\]]$/g, ''))}</h4>`); me = false; continue; }
     const next = (L[i + 1] || '').trim();
-    if ((m = s.match(/^[〇○◯●◎]\s*(.+)/)) || (!isItem(s) && s.length <= 12 && isItem(next) && !/[：:｜|。]/.test(s))) { const nm = m ? m[1] : s; me = /下村\s*良之介/.test(nm); out.push(`<div class="nart${me ? ' me' : ''}">${mark(nm)}</div>`); continue; }
-    if (isItem(s)) { const mm = s.match(/^\s*(\d+)\s*[.．、)）]?\s*(.*)$/); out.push(`<div class="nit${me ? ' me' : ''}"><span class="nno">${esc(mm[1])}</span><span>${mark(mm[2])}</span></div>`); continue; }
-    if (s.indexOf('｜') >= 0) { out.push(`<div class="nrow">${s.split('｜').map(c => `<span>${mark(c.trim())}</span>`).join('')}</div>`); continue; }
-    out.push(`<p class="npara">${mark(s)}</p>`); }
+    if ((m = s.match(/^[〇○◯●◎]\s*(.+)/)) || (!isItem(s) && s.length <= 12 && isItem(next) && !/[：:｜|。]/.test(s))) { const nm = m ? m[1] : s; me = /下村\s*良之介/.test(nm); out.push(`<div data-ln="${i}" class="nart${me ? ' me' : ''}">${mark(nm)}</div>`); continue; }
+    if (isItem(s)) { const mm = s.match(/^\s*(\d+)\s*[.．、)）]?\s*(.*)$/); out.push(`<div data-ln="${i}" class="nit${me ? ' me' : ''}"><span class="nno">${esc(mm[1])}</span><span>${mark(mm[2])}</span></div>`); continue; }
+    if (s.indexOf('｜') >= 0) { out.push(`<div data-ln="${i}" class="nrow">${s.split('｜').map(c => `<span>${mark(c.trim())}</span>`).join('')}</div>`); continue; }
+    out.push(`<p data-ln="${i}" class="npara">${mark(s)}</p>`); }
   return out.join('') + '<p class="hint" style="margin-top:12px">※AIが資料の文字を書き起こしたものです。読めなかった字は〓になっています。</p>';
 }
 /* 書類の写真：スマホの中（IndexedDB）に保存して次からすぐ出す。大きい写真は、先に小さい写真をぼかして出しておく */
@@ -6890,7 +6985,7 @@ document.addEventListener('click', async e => {
 });
 /* 資料ページの新しい見た目（年表と同じ、文字中心のシンプルな形）。false にすると元の見た目に戻る */
 const DOCUI2 = true;
-(function(){ const _o = sheetDocReview; sheetDocReview = function(id){ _o(id); { const sb = $('#sheetbox'); if (sb) { sb.classList.toggle('dv2', DOCUI2); const d = docById(id), st = d && d['状態']; sb.classList.toggle('dview', !!d && (st === '登録済み' || st === '登録しない' || !canEdit())); try { abRender(); } catch(e){} } } const bx = $('#sheetbox .btns'); if (bx && canEdit() && !$('#sheetbox [data-del]')) bx.insertAdjacentHTML('beforebegin', delBtn('doc', id, 'この書類')); docSplit(id); }; })();
+(function(){ const _o = sheetDocReview; sheetDocReview = function(id){ _o(id); { const sb = $('#sheetbox'); if (sb) { sb.classList.toggle('dv2', DOCUI2); const d = docById(id), st = d && d['状態']; sb.classList.toggle('dview', !!d && (st === '登録済み' || st === '登録しない' || !canEdit())); try { abRender(); } catch(e){} try { docRotUI(d); } catch(e){} } } const bx = $('#sheetbox .btns'); if (bx && canEdit() && !$('#sheetbox [data-del]')) bx.insertAdjacentHTML('beforebegin', delBtn('doc', id, 'この書類')); docSplit(id); }; })();
 /* 画面が広いときは、左に書類（PDF・写真）、右に確認・修正の画面を並べる */
 /* スマホの書類詳細：作品ページの「該当箇所を確認」と同じ見た目で、書類の1ページ目をはじめから表示する */
 /* 書類のページを正方形の枠に表示する部品：左右スワイプ・‹ › でページ送り、指2本で拡大（拡大中は指1本で動かす・2回タップで元に戻す）。拡大中はスワイプでページが変わらない */
