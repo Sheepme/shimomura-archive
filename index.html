@@ -218,7 +218,7 @@ nav button.on:after{content:"";position:absolute;top:0;left:30%;right:30%;height
 dl.info{display:grid;grid-template-columns:6.5em 1fr;margin:0}
 dl.info{grid-template-columns:6.5em minmax(0,1fr)}dl.info dt,dl.info dd{min-width:0}
 #page dl.info dd select,#page dl.info dd input,#page dl.info dd textarea{max-width:100%;min-width:0;box-sizing:border-box}
-#sheetbox.dview:not(.dse) .dsrot,#sheetbox.dview:not(.dse) .dsocr,#sheetbox.dview:not(.dse) #dvTtl,#sheetbox.dview:not(.dse) #dvChk,#sheetbox.dview:not(.dse) .dfsec>.hint:not(.dvedh),#sheetbox.dview:not(.dse) .dfsec .dfgo,#sheetbox.dview:not(.dse) .cmpbtn,#sheetbox.dse .dvedh,#sheetbox:not(.dview) .dvedh,#sheetbox.dview:not(.dse) .wfix,#sheetbox.dview:not(.dse) .wfixhint,#sheetbox.dview:not(.dse) #dvAgain{display:none!important} /* 書類の画面：見るだけのときは直す道具を出さない（10/11 開発 v19） */
+#sheetbox.dview:not(.dse) .dsrot,#sheetbox.dview:not(.dse) .dsocr,#sheetbox.dview:not(.dse) #dvTtl,#sheetbox.dview:not(.dse) #dvChk,#sheetbox.dview:not(.dse) .dfsec>.hint:not(.dvedh),#sheetbox.dse .dvedh,#sheetbox:not(.dview) .dvedh,#sheetbox.dview:not(.dse) .wfix,#sheetbox.dview:not(.dse) .wfixhint,#sheetbox.dview:not(.dse) #dvAgain{display:none!important} /* 書類の画面：見るだけのときは直す道具を出さない（10/11 開発 v19） */
 #page{overflow-x:hidden}
 dl.info dt,dl.info dd{padding:13px 0;border-bottom:1px solid var(--line);margin:0}
 dl.info dt{color:var(--sub);font-size:16px}
@@ -1515,7 +1515,7 @@ html body #main section.cy .cage{font-size:12px!important;color:var(--sub)!impor
 .dfx{border:0;border-radius:12px;padding:12px 14px;margin:10px 0;background:var(--paper);transition:background .2s}.dfx.done .dfrow,.dfx.done>b{opacity:.65}.dfx b{display:block;font-size:15px}
 .dfrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0}.dfrow span{background:var(--wash);border-radius:8px;padding:6px 8px;font-size:16px;word-break:break-all}.dfrow small{display:block;font-size:12px;color:var(--sub)}
 .dfbtn{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.dfbtn .act{margin:0}.dfill{margin:8px 0;font-size:14px;color:var(--sub)}.dfill p{margin:4px 0}.dtoc{display:flex;flex-direction:column;gap:2px;margin:6px 0 10px}.dtr{display:flex;gap:12px;align-items:flex-start;text-align:left;padding:10px 14px;border-radius:12px;background:var(--paper);border:0;font:inherit;color:var(--ink);font-size:15px;line-height:1.55}.dtr b{color:var(--ink)}.dtr small{color:var(--sub)}.dtoc{gap:6px}button.dtr{cursor:pointer;width:100%}.dtp{flex:0 0 auto;min-width:3.6em;color:var(--sub);font-variant-numeric:tabular-nums;font-size:14px;padding-top:1px}#bgsave{position:fixed;left:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:9500;display:flex;align-items:center;gap:8px;background:rgba(30,30,30,.88);color:#fff;font-size:13px;padding:8px 12px;border-radius:20px;box-shadow:0 2px 10px rgba(0,0,0,.2);pointer-events:none}#bgsave.hidden{display:none}#bgsave .ldspin{width:14px;height:14px;border-width:2px;border-color:rgba(255,255,255,.3);border-top-color:#fff}.dmodes{display:flex;gap:0;margin:4px 0 14px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
-#sheetbox.dview:not(.dse) .dfsec .dfsum{pointer-events:none}.dchk .dvedh{margin:8px 0 0;font-size:13px}
+.dchk .dvedh{margin:8px 0 0;font-size:13px}
 .nvnote .nvfind{animation:nvfind 1s ease-in-out infinite}@keyframes nvfind{50%{opacity:.45}}
 @media (max-width:899px){
 .noteview.nv2 .dtopv{position:sticky;top:var(--nvtop,0px);z-index:4;background:var(--bg)!important;margin:6px 0 10px;box-shadow:0 6px 10px -8px rgba(0,0,0,.25)}.noteview.nv2 .dtopv .dtpbar{background:var(--bg)}
@@ -1805,6 +1805,10 @@ body.rail .dwfoot{flex-direction:column;gap:6px}
 body.rail .dwme{justify-content:center;padding:6px 0}
 body.rail .dwme>span:not(.avatar){display:none}
 .cmpchip{position:relative}.cmpk{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#e0776b;color:#fff;font-style:normal;font-size:11px;font-weight:700;line-height:18px;text-align:center}.cwdx.on{box-shadow:0 0 0 1.5px #e0776b inset}.cwdec{margin:8px 0 6px;padding:12px;border-radius:12px;background:var(--wash);border:1px solid var(--line)}.cwq{margin:0 0 8px;font-weight:700;font-size:15px}.cwopts{display:grid;grid-template-columns:1fr 1fr;gap:8px}.cwopt{display:flex;flex-direction:column;gap:4px;text-align:left;padding:10px 12px;border-radius:12px;border:2px solid var(--line);background:var(--paper);color:var(--ink);font:inherit;cursor:pointer;min-height:76px}.cwopt small{font-size:11.5px;color:var(--sub)}.cwopt b{font-size:17px;line-height:1.35;overflow-wrap:anywhere}.cwopt em{font-style:normal;font-size:11.5px;color:var(--sub)}.cwopt.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink) inset}.cwopt.on small::before{content:'✓ ';color:var(--ink)}.cwgo{width:100%;margin:10px 0 0;font-size:15px}.cwgo:disabled{opacity:1;background:var(--wash2)!important;color:var(--sub)!important;border-color:transparent!important}.cwal{width:100%;margin:8px 0 0;font-size:13.5px}.cwlater{display:block;margin:8px auto 0;border:0;background:transparent;color:var(--sub);font:inherit;font-size:13px;cursor:pointer}
+.cwdx .cwroq,.cmpro .cwdx .cweq{display:none}.cmpro .cwdx .cwroq{display:inline}
+.cmpro [data-wfix],.cmpro .cwcand,.cmpro .cwsq{display:none!important}
+.cwro .roh{margin:0 0 8px;font-size:13px}.cwro .cwedit{width:100%;margin:0}
+.dfro .dfok,.dfro [data-wfix]{display:none!important}.dfro .dfcard{cursor:default;min-height:0}.dfroh{margin:6px 0 0}.dfroh .roh{text-align:center;font-size:13px}.dfroh .dfedit{width:100%}.cmpro .cwacts{grid-template-columns:1fr}
 .cwsus{margin:0 0 12px;padding:12px;border-radius:12px;background:color-mix(in srgb,#d9822b 14%,var(--paper));border:1px solid color-mix(in srgb,#d9822b 45%,transparent)}.cwsus>b{display:block;font-size:15px;color:#c56a12}.cwsus>small{display:block;margin-top:4px;font-size:13px;color:var(--ink);line-height:1.5}.cwsq{margin:10px 0 6px;font-size:12.5px;color:var(--sub)}.cwcand{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:6px 10px 6px 6px;margin-bottom:6px;border:0;border-radius:10px;background:var(--paper);color:var(--ink);font:inherit;cursor:pointer}.cwcand .dfwth{width:44px;height:44px;border-radius:8px;overflow:hidden;display:block;flex:0 0 auto}.cwcand .dfwth img{width:100%;height:100%;object-fit:cover}.cwcand>span:nth-child(2){flex:1;min-width:0;display:flex;flex-direction:column;font-size:14px}.cwcand small{color:var(--sub);font-size:12px}.cwcand em{font-style:normal;font-size:12.5px;font-weight:600;color:#c56a12;white-space:nowrap}.cwsusb{width:100%;margin:4px 0 0;font-size:13.5px}.cmpk.sus{background:#d9822b}.susw{color:#c56a12!important}.susok{color:#1e7a3c!important}
 
 body.cmpon #abTitle{visibility:hidden}
@@ -2936,7 +2940,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '6d0b763835', APP_URL = location.origin + location.pathname;
+const BUILD = 'a38bc35197', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5712,9 +5716,10 @@ function dfCard(d, x, i, inWork){ const did = esc(d['書類ID']), w = x.t === 'w
 function dfDone(did, msg){ return x => { setData(x); busy(false); render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
   if (!$('#sheet').classList.contains('hidden') && $('#sheetbox').querySelector(`.dfx[data-did="${did}"]`)) sheetDocReview(did); toast(msg); }; }
 const dfFail = e => { busy(false); alert('保存できませんでした：' + (e.message || e)); };
-function dfAct(t){ if (t.dataset.dfopen) { const [did0, si0] = t.dataset.dfopen.split('|'), d0 = docById(did0), x0 = d0 && (docRes(d0)['食い違い'] || [])[+si0];
-    if (x0 && x0.t === 'w') { const cv = document.querySelector('.noteview.cmpv'); if (cv && cv._did === did0 && cv._open) cv._open(x0.id, +si0); else cmpView(did0, x0.id, +si0); return true; } /* 作品の食い違いは、いつも「書類と作品を見比べる」画面で決める */
-    const scope = t.closest('#sheetbox, #page, .noteview') || document; dfReview([...scope.querySelectorAll('[data-dfopen]')].map(b => b.dataset.dfopen), t.dataset.dfopen); return true; }
+const roAt = t => !canEdit() || !!(t && t.closest && t.closest('#sheetbox.dview:not(.dse)')); /* 見るだけで開く（10/11 開発 v20） */
+function dfAct(t){ if (t.dataset.dfopen) { const ro0 = roAt(t); const [did0, si0] = t.dataset.dfopen.split('|'), d0 = docById(did0), x0 = d0 && (docRes(d0)['食い違い'] || [])[+si0];
+    if (x0 && x0.t === 'w') { const cv = document.querySelector('.noteview.cmpv'); if (cv && cv._did === did0 && cv._open) cv._open(x0.id, +si0); else cmpView(did0, x0.id, +si0, false, ro0); return true; } /* 作品の食い違いは、いつも「書類と作品を見比べる」画面で決める */
+    const scope = t.closest('#sheetbox, #page, .noteview') || document; dfReview([...scope.querySelectorAll('[data-dfopen]')].map(b => b.dataset.dfopen), t.dataset.dfopen, ro0); return true; }
   const c = t.closest('.dfx[data-did]'); if (!c) return false; const did = c.dataset.did, d = docById(did); if (!d) return false; const X = docRes(d)['食い違い'] || [];
   if (t.dataset.dfpick) { const [i, pk] = t.dataset.dfpick.split('|'), x = X[+i]; if (!x) return true;
     c.querySelectorAll('[data-dfpick]').forEach(o => o.classList.toggle('on', o === t)); const sv = c.querySelector('[data-dfsave]'); if (sv) { sv.disabled = false; sv.dataset.pk = pk;
@@ -5728,8 +5733,8 @@ function dfAct(t){ if (t.dataset.dfopen) { const [did0, si0] = t.dataset.dfopen.
     box.innerHTML = `<p class="hint" style="margin:8px 0 6px">どちらの書き方を正式にしますか？（もう一方は別名として覚えます）</p><div class="dfbtn"><button type="button" class="act" data-dfo="${i}|ledger">${esc(x.cur)}</button><button type="button" class="act" data-dfo="${i}|doc">${esc(x.doc)}</button></div>`; return true; }
   return false; }
 /* 食い違いを確かめる画面：書類を見て、2枚のカード（台帳／書類）を見比べ、「どっちが正しい？」を選んで保存 */
-function dfReview(list, cur){
-  const el = document.createElement('div'); el.className = 'noteview dfrv'; el._reopen = () => dfReview(list, cur); el.innerHTML = '<div class="nvin"></div>'; document.body.appendChild(el); hpush('n'); scrPush(el);
+function dfReview(list, cur, ro){ ro = !!ro || !canEdit();
+  const el = document.createElement('div'); el.className = 'noteview dfrv' + (ro ? ' dfro' : ''); el._reopen = () => dfReview(list, cur, ro); el.innerHTML = '<div class="nvin"></div>'; document.body.appendChild(el); hpush('n'); scrPush(el);
   const box = el.firstChild; let pos = Math.max(0, list.indexOf(cur));
   try { const pid = k => { const [a, b] = k.split('|'), dd = docById(a), xx = dd && (docRes(dd)['食い違い'] || [])[+b], o = dd && PIMG[docPdfFid(dd)], pg = o && o.pages[(xx && xx.at && xx.at.p) || 1]; return pg && pg.id; };
     pimgPrefetch([cur].concat(list.filter(k => k !== cur)).map(pid)); } catch(e){}
@@ -5741,15 +5746,16 @@ function dfReview(list, cur){
       <p class="dfrvlab">② どっちが正しい？<small class="dfswhint">左右にスワイプして見比べられます</small></p>
       <div class="dfcards">${[['ledger', '台帳（いまの記録）', x.cur || '（空）', ''], ['doc', '書類に書いてあること', x.doc, x.note || docTitle(d)]].map(([k, lab, v, sub]) => `<button type="button" class="dfcard" data-pk="${k}"><small>${lab}</small><b>${esc(v)}</b>${sub ? `<em>${esc(sub)}</em>` : ''}<span class="dfok">こちらが正しい</span></button>`).join('')}</div>
       <div class="dfdots"><i class="on"></i><i></i></div>
-      ${x.r ? `<p class="hint" style="text-align:center">この食い違いは確認済みです</p>` : `<button type="button" class="act main dfgo2" disabled>どちらかを選んでください</button>
+      ${x.r ? `<p class="hint" style="text-align:center">この食い違いは確認済みです</p>` : ro ? `<div class="dfroh">${roHint('dfedit', x)}</div>` : `<button type="button" class="act main dfgo2" disabled>どちらかを選んでください</button>
       ${x.t === 'w' && x.f === '作品名' ? `<button type="button" class="act dfal2" data-al="alias">どちらも正しい：「${esc(x.doc)}」を別名として登録</button>` : /日$|制作年|cm$/.test(x.f) ? '' : `<button type="button" class="act dfal2" data-al="same">どちらも同じもの（書き方の違い）</button>`}`}
-      <div class="dfrvnav"><button type="button" class="act" data-mv="-1" ${pos ? '' : 'disabled'}>‹ 前</button><button type="button" class="act" data-mv="0">あとで決める</button><button type="button" class="act" data-mv="1" ${pos < list.length - 1 ? '' : 'disabled'}>次 ›</button></div>
+      <div class="dfrvnav"><button type="button" class="act" data-mv="-1" ${pos ? '' : 'disabled'}>‹ 前</button><button type="button" class="act" data-mv="0">${ro ? '閉じる' : 'あとで決める'}</button><button type="button" class="act" data-mv="1" ${pos < list.length - 1 ? '' : 'disabled'}>次 ›</button></div>
       <p class="hint" style="text-align:center;margin-top:8px">${rest ? 'まだ決めていない食い違い：' + rest + '件' : 'すべて確認しました'}</p>`;
     hydrate(box);
     const dv = box.querySelector('.dfrvdoc'); if (dv) dfPreview(dv, d, x, true);
     const cards = box.querySelector('.dfcards'), dots = box.querySelectorAll('.dfdots i'), go = box.querySelector('.dfgo2'); let pk = '';
     cards.addEventListener('scroll', () => { const k = cards.scrollLeft > cards.clientWidth * .3 ? 1 : 0; dots.forEach((o, n) => o.classList.toggle('on', n === k)); }, { passive: true });
-    if (!x.r) cards.querySelectorAll('.dfcard').forEach(c => c.onclick = () => { pk = c.dataset.pk; cards.querySelectorAll('.dfcard').forEach(o => o.classList.toggle('on', o === c)); c.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    const eb = box.querySelector('.dfedit'); if (eb) eb.onclick = () => { ro = false; el.classList.remove('dfro'); roEdit(); draw(); };
+    if (!x.r && !ro) cards.querySelectorAll('.dfcard').forEach(c => c.onclick = () => { pk = c.dataset.pk; cards.querySelectorAll('.dfcard').forEach(o => o.classList.toggle('on', o === c)); c.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
       go.disabled = false; go.textContent = pk === 'doc' ? (x.loc ? '所在を「' + x.doc + '」に変えて保存' : '台帳を「' + x.doc + '」に直して保存') : '台帳「' + (x.cur || '（空）') + '」のまま保存'; });
     const after = msg => res => { setData(res); busy(false); render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
       if (!$('#sheet').classList.contains('hidden') && $('#sheetbox').querySelector(`.dfx[data-did="${did}"]`)) sheetDocReview(did); toast(msg);
@@ -5872,9 +5878,13 @@ function cmpAt(d, no){ const did = d['書類ID'], r = docRes(d), mine = x => x &
   const a = (r['食い違い'] || []).find(mine) || (r['補完'] || []).find(mine); if (a) return { p: a.at.p, box: a.at.box };
   for (const e of (S.events || [])) { if (String(e['作品番号']) !== String(no) || String(e['根拠・出典'] || '').indexOf(did) < 0 || !e['位置']) continue; try { const at = JSON.parse(e['位置']); if (at && at.p) return { p: at.p, box: at.box || null }; } catch(x){} }
   return null; }
-const cwDx = (x, i) => `<button type="button" class="cwdx" data-cmpdf="${i}"><small>書類では</small><b>${esc(x.doc)}</b><em>どっちが正しい？ ›</em></button>`;
+const cwDx = (x, i) => `<button type="button" class="cwdx" data-cmpdf="${i}"><small>書類では</small><b>${esc(x.doc)}</b><em><span class="cweq">どっちが正しい？ ›</span><span class="cwroq">書類の場所を見る ›</span></em></button>`;
 const cmpLeft = (d, no) => (docRes(d)['食い違い'] || []).filter(x => !x.r && x.t === 'w' && String(x.id) === String(no)).length;
 /* 食い違いの判定（見比べ画面の中で）：台帳／書類のどっちが正しい？ */
+const roEdit = () => { const sb = $('#sheetbox'); if (sb.classList.contains('dview') && !sb.classList.contains('dse')) { sb.classList.add('dse'); abRender(); } toast('編集にしました'); };
+const roHint = (cls, x) => `<p class="hint roh">見比べて確かめるだけの画面です。${canEdit() ? 'どちらが正しいか決めるときは、編集にしてください。' : ''}</p>${canEdit() ? `<button type="button" class="act main ${cls}">✎ 編集にして決める</button>` : ''}`;
+function cwRoHTML(x, i){ const FL = { '幅cm': '幅', '高さcm': '高さ', '所在': 'いまの場所' };
+  return `<div class="cwdec cwro" data-i="${i}"><p class="cwq">${esc(FL[x.f] || x.f)}：台帳「${esc(x.cur || '（空）')}」⇄ 書類「${esc(x.doc)}」</p>${x.note ? `<p class="hint" style="margin:0 0 6px">${esc(x.note)}</p>` : ''}${roHint('cwedit', x)}<button type="button" class="cwlater">閉じる</button></div>`; }
 function cwDecHTML(d, x, i){ const kd = x.t === 'w' && x.f === '作品名' ? 'alias' : /日$|制作年|cm$/.test(x.f) ? '' : 'same';
   const FL = { '幅cm': '幅', '高さcm': '高さ', '所在': 'いまの場所' }, u = /cm$/.test(x.f) ? ' cm' : '';
   return `<div class="cwdec" data-i="${i}"><p class="cwq">${esc(FL[x.f] || x.f)}は、どっちが正しい？</p><div class="cwopts">${[['ledger', '台帳', x.cur || '（空）', ''], ['doc', '書類', x.doc, x.note || '']].map(([k, lab, v, sub]) => `<button type="button" class="cwopt" data-pk="${k}"><small>${lab}</small><b>${esc(v)}${v && u && /\d$/.test(v) ? '<i>' + u + '</i>' : ''}</b>${sub ? `<em>${esc(sub)}</em>` : ''}</button>`).join('')}</div>
@@ -5895,8 +5905,8 @@ function cmpWork(d, no){ const w = workOf(no); if (!w) return '<p class="hint">�
     <dl class="cwdl">${row('作品名', w['作品名'], ['作品名'])}${row('制作年', w['制作年'], ['制作年'])}${row('サイズ', dimTxt(w, false, ' cm'), ['幅cm', '高さcm'])}${row('画材', w['画材'], ['画材'])}${row('種別', w['種別'], ['種別'])}${row('シリーズ', w['シリーズ'], ['シリーズ'])}${row('いまの場所', loc, ['所在'])}${extra.map(([x, i]) => `<div class="cwr df"><dt>${esc(x.f)}</dt><dd>${x.cur ? esc(x.cur) : '<span class="cwnil">未入力</span>'}${cwDx(x, i)}</dd></div>`).join('')}</dl>
     ${evs.length ? `<h4 class="cwh">この書類からの来歴</h4>${evs.map(e => `<button type="button" class="cwev" data-cmpev="${esc(e['出来事ID'])}"><span>${esc(e['日付'] || '')}</span><b>${esc(e['種類'] || '')}</b><span>${esc(e['相手先・場所'] || '')}</span></button>`).join('')}` : ''}
     <div class="cwacts"><button type="button" class="act" data-cmpopen="${esc(no)}">作品ページを開く ›</button><button type="button" class="act" data-wfix="${esc(did)}|${esc(no)}">作品が違う？</button></div>`; }
-function cmpView(did, no, fi, back){ const d = docById(did), d0 = d; if (!d) return; const nos = String(d['作品番号'] || '').split(',').map(x => x.trim()).filter(Boolean); if (!no || !nos.includes(String(no))) no = nos[0];
-  const el = document.createElement('div'); el.className = 'noteview cmpv'; el._reopen = () => cmpView(did, no, fi);
+function cmpView(did, no, fi, back, ro){ ro = !!ro || !canEdit(); const d = docById(did), d0 = d; if (!d) return; const nos = String(d['作品番号'] || '').split(',').map(x => x.trim()).filter(Boolean); if (!no || !nos.includes(String(no))) no = nos[0];
+  const el = document.createElement('div'); el.className = 'noteview cmpv' + (ro ? ' cmpro' : ''); el._reopen = () => cmpView(did, no, fi, false, ro);
   el.innerHTML = `<div class="cmpin"><button type="button" class="cmpback" aria-label="戻る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><div class="cmpdoc"></div><div class="cmpside"><div class="cmpws"></div><div class="cmpw"></div></div></div>`;
   document.body.appendChild(el); hpush('n'); scrPush(el); document.body.classList.add('cmpon'); if (back) { try { el.getAnimations().forEach(a => a.cancel()); } catch(e){} scrAnim(el, '-100', '0'); }
   const mo = new MutationObserver(() => { if (!el.isConnected) { mo.disconnect(); if (!document.querySelector('.noteview.cmpv')) document.body.classList.remove('cmpon'); pinDrawer(); } }); mo.observe(document.body, { childList: true }); pinDrawer();
@@ -5905,9 +5915,11 @@ function cmpView(did, no, fi, back){ const d = docById(did), d0 = d; if (!d) ret
   el._did = did; const W = el.querySelector('.cmpws');
   const chips = () => { const dd = docById(did) || d; W.innerHTML = nos.map(n => { const k = cmpLeft(dd, n); return `<button type="button" class="cmpchip${String(n) === String(no) ? ' on' : ''}" data-cmpw="${esc(n)}"><span class="dfwth">${(photoBy[n]||[]).length ? thumbHTML(n, 200) : ''}</span><span>${esc(nol(n))}<small>${esc((workOf(n)||{})['作品名'] || '無題')}</small></span>${docSus(dd, n) ? '<i class="cmpk sus">⚠</i>' : k ? `<i class="cmpk">${k}</i>` : ''}</button>`; }).join(''); hydrate(W); };
   const openDec = i => { const dd = docById(did) || d, x = (docRes(dd)['食い違い'] || [])[i]; if (!x) return; P.querySelectorAll('.cwdec').forEach(e => e.remove()); P.querySelectorAll('.cwdx.on').forEach(e => e.classList.remove('on'));
-    const b = P.querySelector(`[data-cmpdf="${i}"]`); if (!b) return; b.classList.add('on'); const row = b.closest('.cwr') || b; row.insertAdjacentHTML('afterend', cwDecHTML(dd, x, i)); const box = row.nextElementSibling;
+    const b = P.querySelector(`[data-cmpdf="${i}"]`); if (!b) return; b.classList.add('on'); const row = b.closest('.cwr') || b; row.insertAdjacentHTML('afterend', ro ? cwRoHTML(x, i) : cwDecHTML(dd, x, i)); const box = row.nextElementSibling;
     setTimeout(() => P.scrollTo({ top: Math.max(0, P.scrollTop + row.getBoundingClientRect().top - P.getBoundingClientRect().top - 8), behavior: 'smooth' }), 60);
     if (r.PDF && x.at && x.at.p) { const a = [x.at.p, x.at.box || null, x.at.box ? null : { msg: '「' + x.doc + '」のあたり' }]; if (V._goto) V._goto(...a); else V._pend = a; }
+    if (ro) { box.querySelector('.cwlater').onclick = () => { box.remove(); b.classList.remove('on'); }; const eb = box.querySelector('.cwedit');
+      if (eb) eb.onclick = () => { ro = false; el.classList.remove('cmpro'); roEdit(); openDec(i); }; return; } /* 見るだけ：場所を見せるだけ */
     let pk = ''; const go = box.querySelector('.cwgo');
     box.querySelectorAll('.cwopt').forEach(o => o.onclick = () => { pk = o.dataset.pk; box.querySelectorAll('.cwopt').forEach(z => z.classList.toggle('on', z === o)); go.disabled = false;
       go.textContent = pk === 'doc' ? (x.loc ? '所在を「' + x.doc + '」に変えて保存' : '台帳を「' + x.doc + '」に直して保存') : '台帳「' + (x.cur || '（空）') + '」のまま保存'; });
@@ -5932,7 +5944,7 @@ function cmpView(did, no, fi, back){ const d = docById(did), d0 = d; if (!d) ret
   el.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return;
     if (b.classList.contains('cmpback')) { e.stopPropagation(); scrBack(); return; }
     if (b.dataset.cmpw) { show(b.dataset.cmpw); return; }
-    if (b.dataset.cmpmv) { e.stopPropagation(); moveDocTo(did, no, b.dataset.cmpmv); return; }
+    if (b.dataset.cmpmv) { e.stopPropagation(); if (ro) return; moveDocTo(did, no, b.dataset.cmpmv); return; }
     if (b.dataset.cmpdf != null && b.classList.contains('cwdx')) { e.stopPropagation(); if (b.classList.contains('on')) { P.querySelectorAll('.cwdec').forEach(z => z.remove()); b.classList.remove('on'); } else openDec(+b.dataset.cmpdf); return; }
     if (b.dataset.cmpopen) { e.stopPropagation(); openWorkFromCmp(b.dataset.cmpopen, did); return; }
     if (b.dataset.cmpev) { e.stopPropagation(); const ev = (S.events || []).find(x => x['出来事ID'] === b.dataset.cmpev); let at = null; try { at = JSON.parse(ev && ev['位置'] || 'null'); } catch(x){} if (at && at.p && V._goto) V._goto(at.p, at.box || null, { msg: [ev['日付'], ev['種類'], ev['相手先・場所']].filter(Boolean).join(' ') + ' のところ' }); return; } }, true);
@@ -6515,7 +6527,7 @@ function sheetDocReview(id){ try { const d0 = docById(id); if (d0) pdfPrefetch([
       ${canEdit() && r.PDF && docPdfFid(d) && PIMG[docPdfFid(d)] ? `<button type="button" class="act pdfopen" data-pimgre="${esc(id)}">↻ ページの表示を作り直す（元のファイルと違うとき）</button>` : ''}</details>
       <p class="hint">${esc([r['日付'], r['相手先'] && r.PDF ? r['相手先'] : '', r['要約']].filter(Boolean).join('　'))}</p>
       ${r['要確認'] ? `<div class="dchk"><b>⚠ 要確認</b>${esc(r['要確認'])}<button type="button" class="act" id="dvChk">確認した</button>${canEdit() ? '<p class="hint dvedh">確認が済んだら、右上の「編集」から「確認した」を押せます</p>' : ''}</div>` : ''}
-      ${canEdit() && (r['食い違い']||[]).length ? `<div class="dfsec"><h3 class="sec" style="font-size:18px">台帳との食い違い</h3><p class="hint">押すと、書類と作品を並べて見比べる画面が開き、「どっちが正しい？」を決められます。</p><p class="hint dvedh">どちらが正しいか決めるときは、右上の「編集」を押してください</p>${r['食い違い'].map((x, i) => dfCard(d, x, i)).join('')}</div>` : ''}
+      ${canEdit() && (r['食い違い']||[]).length ? `<div class="dfsec"><h3 class="sec" style="font-size:18px">台帳との食い違い</h3><p class="hint">押すと、書類と作品を並べて見比べる画面が開き、「どっちが正しい？」を決められます。</p><p class="hint dvedh">押すと、書類と作品を並べて見比べられます。どちらが正しいか決めるときは、右上の「編集」を押してください。</p>${r['食い違い'].map((x, i) => dfCard(d, x, i)).join('')}</div>` : ''}
       ${(r['台帳にない作品'] || []).length ? `<details class="dfill dnf"><summary>この書類にだけある作品（台帳にない）${r['台帳にない作品'].length}点</summary><p class="hint">チャリティーの色紙など、台帳に入っていない作品です。確認はいりません（台帳に入れたいときは「新しい作品を登録」から）。</p>${r['台帳にない作品'].map(w => `<p>${esc(w['作品名'] || '（無題）')}${[w['制作年'], w['高さcm'] && w['幅cm'] ? w['高さcm'] + '×' + w['幅cm'] + 'cm' : '', w['画材'], w['メモ']].filter(Boolean).map(v => '　<small>' + esc(v) + '</small>').join('')}</p>`).join('')}</details>` : ''}
       ${docEvHTML(d)}${docTocHTML(d)}
       ${(r['補完']||[]).length ? `<details class="dfill"><summary>この書類から自動で埋めた項目（${r['補完'].length}件）</summary>${r['補完'].map(x => `<p>${esc(x.name)}：${esc(x.f)}　→　${esc(x.v)}</p>`).join('')}</details>` : ''}
@@ -10938,7 +10950,7 @@ document.addEventListener('click', e => {
   if (t.dataset.cmain){ S.cmain=!S.cmain; render(); return; }
   if (t.dataset.dec){ jumpDec(t.dataset.dec); return; }
   if (t.dataset.no && inDocSheet(t)){ openPageFromDoc(isOtNo(t.dataset.no) ? 'ot' : 'w', t.dataset.no, S.sheetDoc); return; } /* 作品の札は、どこでも作品ページへ（見比べるは「📑 見比べる」から） */
-  if (t.dataset.cmp){ const [did, no] = t.dataset.cmp.split('|'); cmpView(did, no); return; }
+  if (t.dataset.cmp){ const [did, no] = t.dataset.cmp.split('|'); cmpView(did, no, undefined, false, roAt(t)); return; }
   if (t.dataset.no){ if (t.closest('#sheetbox')) closeSheet(); if (t.closest('#aip') && !aiCol()) closeAI(); openWork(t.dataset.no); return; } // PCはチャットを右に残したまま、左に作品を開く
   if (t.id==='back'){ closeWork(); return; }
   if (t.dataset.fill !== undefined && S.cur){ if (!inlineEdit(t, S.cur, t.dataset.fill)) sheetEdit(S.cur, t.dataset.fill); return; } // 鉛筆を押すと、その場で直せる
