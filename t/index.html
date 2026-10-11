@@ -1515,6 +1515,7 @@ html body #main section.cy .cage{font-size:12px!important;color:var(--sub)!impor
 .dfx{border:0;border-radius:12px;padding:12px 14px;margin:10px 0;background:var(--paper);transition:background .2s}.dfx.done .dfrow,.dfx.done>b{opacity:.65}.dfx b{display:block;font-size:15px}
 .dfrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0}.dfrow span{background:var(--wash);border-radius:8px;padding:6px 8px;font-size:16px;word-break:break-all}.dfrow small{display:block;font-size:12px;color:var(--sub)}
 .dfbtn{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.dfbtn .act{margin:0}.dfill{margin:8px 0;font-size:14px;color:var(--sub)}.dfill p{margin:4px 0}.dtoc{display:flex;flex-direction:column;gap:2px;margin:6px 0 10px}.dtr{display:flex;gap:12px;align-items:flex-start;text-align:left;padding:10px 14px;border-radius:12px;background:var(--paper);border:0;font:inherit;color:var(--ink);font-size:15px;line-height:1.55}.dtr b{color:var(--ink)}.dtr small{color:var(--sub)}.dtoc{gap:6px}button.dtr{cursor:pointer;width:100%}.dtp{flex:0 0 auto;min-width:3.6em;color:var(--sub);font-variant-numeric:tabular-nums;font-size:14px;padding-top:1px}#bgsave{position:fixed;left:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:9500;display:flex;align-items:center;gap:8px;background:rgba(30,30,30,.88);color:#fff;font-size:13px;padding:8px 12px;border-radius:20px;box-shadow:0 2px 10px rgba(0,0,0,.2);pointer-events:none}#bgsave.hidden{display:none}#bgsave .ldspin{width:14px;height:14px;border-width:2px;border-color:rgba(255,255,255,.3);border-top-color:#fff}.dmodes{display:flex;gap:0;margin:4px 0 14px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.nvnote .nvfind{animation:nvfind 1s ease-in-out infinite}@keyframes nvfind{50%{opacity:.45}}
 @media (max-width:899px){
 .noteview.nv2 .dtopv{position:sticky;top:var(--nvtop,0px);z-index:4;background:var(--bg)!important;margin:6px 0 10px;box-shadow:0 6px 10px -8px rgba(0,0,0,.25)}.noteview.nv2 .dtopv .dtpbar{background:var(--bg)}
 .noteview.nv2 .dtopv .dtpsq{aspect-ratio:auto;height:40svh;transition:height .26s ease}
@@ -2929,7 +2930,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '3313716bdf', APP_URL = location.origin + location.pathname;
+const BUILD = '4dfef6c4bb', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6084,6 +6085,7 @@ async function noteView(id, startP, qq, emb){ const d = docById(id); if (!d) ret
   const q = qq || NOTEQ, k = q ? q.normalize('NFKC').toLowerCase() : '', qre = fzRe(q, 'i'), hit = t => !!(qre && qre.test(t));
   let cur = Math.max(0, k ? parts.findIndex(p => hit(p.t)) : 0);
   if (startP) { const j = parts.findIndex(p => String(p.n) === String(startP)); if (j >= 0) cur = j; }
+  if (ocrHas(d)) ocrOf(id); /* 文字の位置を先に読んでおく */
   const toc = {}; (docRes(d)['ページ'] || []).forEach(g => { toc[String(g.p)] = [g['種類'], g['説明']].filter(Boolean).join('：'); });
   const pdf = (docPages(d)[0] && docRes(d).PDF) ? docPages(d)[0] : '';
   const pager = () => parts.length < 2 || PV ? '' : `<div class="nvpager"><button type="button" class="act" data-np="-1" ${cur === 0 ? 'disabled' : ''}>‹ 前</button>
@@ -6137,11 +6139,12 @@ async function noteView(id, startP, qq, emb){ const d = docById(id); if (!d) ret
         if (b.dataset.nva === 'find') { const key = pn + '|' + raw.normalize('NFKC').replace(/\s+/g, '').slice(0, 60), dd = docById(id) || d, mem = (docRes(dd)['ノート位置'] || {})[key] || NLOC[id + '|' + key];
           const wide = PVM() || (emb && PV), show = at => wide ? PV.mark(at) : docShowAt(id, at, raw);
           if (mem && mem.p && !ocrHas(dd)) return show(mem);
-          const t0 = b.textContent; b.disabled = true; b.textContent = '探しています…';
-          try { if (ocrHas(dd)) { const o = await ocrOf(id), oa = o && ocrFind(o, pn, raw); if (oa) { show(oa); return; } if (!o) { toast('文字の位置を読み込めませんでした。もう一度押してください'); return; } } /* 読み込めなかっただけのときは AI を使わない（費用） */
+          const t0 = b.textContent; b.disabled = true; b.textContent = '探しています…'; const lnF = el.querySelector('.nvnote .nvon'); if (lnF) lnF.classList.add('nvfind');
+          try { if (ocrHas(dd)) { const o = await ocrOf(id), oa = o && ocrFind(o, pn, raw); if (oa) { await show(oa); return; } if (!o) { toast('文字の位置を読み込めませんでした。もう一度押してください'); return; } /* 読み込めなかっただけのときは AI を使わない（費用） */
+              if (b.hidden) { const lo = el.querySelector('.nvnote .nvon'); if (lo && !el.querySelector('.nvact [data-nva="find"]')) { const ac = el.querySelector('.nvact'); const h = '<button type="button" data-nva="find">📍 AI で探す</button>'; if (ac) ac.insertAdjacentHTML('afterbegin', h); else lo.insertAdjacentHTML('afterend', '<div class="nvact">' + h + '</div>'); } toast('原本の文字の中に、この行が見つかりませんでした'); return; } } /* 自動では AI を使わない。押したときだけ */
             if (mem && mem.p) { show(mem); return; }
             const at = await call('findDocText', id, pn, raw); if (at && at.p) { NLOC[id + '|' + key] = at; show(at); } else toast('書類の中で見つかりませんでした'); }
-          catch(x){ gasErr(x, '探せ'); } finally { b.disabled = false; b.textContent = t0; } return; }
+          catch(x){ gasErr(x, '探せ'); } finally { b.disabled = false; b.textContent = t0; el.querySelectorAll('.nvfind').forEach(x => x.classList.remove('nvfind')); } return; }
         if (b.dataset.nva === 'fix') { const act = el.querySelector('.nvact'); act.outerHTML = fixBox([raw], ['正しい文字']); const box = el.querySelector('.nvfix'), ta = box.querySelector('.nvfi'); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
           box.querySelector('[data-nvf="no"]').onclick = () => draw();
           box.querySelector('[data-nvf="ok"]').onclick = async () => { const v = ta.value.replace(/\s*\n\s*/g, ' ').trim(); if (!v || v === raw) return draw();
@@ -7272,7 +7275,7 @@ function pgPrev(host, fid, opt){ opt = opt || {}; const c = document.createEleme
   ['gesturestart', 'gesturechange'].forEach(k => sq.addEventListener(k, e => e.preventDefault()));
   go(opt.page || 1, true);
   /* そのページの、その場所に赤い印（ノートの行を押したとき。横に広い画面の左の列） */
-  const mark = async at => { if (!at || !at.p) return; lastAt = at; await go(+at.p); zReset(); const cw = sq.querySelector('.dtpcw'); sq.querySelectorAll('.pqmark').forEach(x => x.remove()); if (!cw || !(at.boxes || at.box)) return;
+  const mark = async at => { if (!at || !at.p) return; lastAt = at; await go(+at.p); for (let i = 0; i < 60 && !sq.querySelector('.dtpcw') && lastAt === at; i++) await new Promise(r => setTimeout(r, 500)); if (lastAt !== at) return; zReset(); const cw = sq.querySelector('.dtpcw'); sq.querySelectorAll('.pqmark').forEach(x => x.remove()); if (!cw || !(at.boxes || at.box)) return;
     (at.boxes || [at.box]).forEach(b => { const m = document.createElement('div'); m.className = 'pqmark dtmk';
       Object.assign(m.style, { left: `calc(${b[1] / 10}% - 4px)`, top: `calc(${b[0] / 10}% - 3px)`, width: `calc(${(b[3] - b[1]) / 10}% + 8px)`, height: `calc(${(b[2] - b[0]) / 10}% + 6px)` }); cw.appendChild(m); });
     /* 印の所へ寄る：印がプレビューの横幅の9割ほどに収まるまで拡大して、まん中へ（ページの外は見せない） */
@@ -11061,9 +11064,9 @@ async function pimgPrefetch(ids){ try { ids = [...new Set(ids)].filter(id => id 
     g.forEach(id => { PIU[id] = pr.then(m => { const u = m && m[id]; if (!u) throw new Error('no image'); return pimgKeep(id, u); }).catch(e => { delete PIU[id]; throw e; }); PIU[id].catch(() => {}); }); } } catch(e){} }
 function pimgUrl(id){ return PIU[id] || (PIU[id] = (async () => { const k = '1600_' + id; if (TH[k]) return TH[k]; const c = await thGet([k]); if (c[k]) return TH[k] = c[k];
   const m = await call('getThumbs', [id], 1600), u = m && m[id]; if (!u) throw new Error('no image'); return pimgKeep(id, u); })().catch(e => { delete PIU[id]; throw e; })); }
-function imgDoc(o){ return { numPages: o.n, img: true, getPage: async n => { const pg = o.pages[n]; let im = null; const load = () => im || (im = pimgUrl(pg.id).then(u => new Promise((ok, ng) => { const x = new Image(); x.onload = () => ok(x); x.onerror = ng; x.src = u; })));
-  return { getViewport: ({ scale }) => ({ width: pg.w * scale, height: pg.h * scale }), render: ({ canvasContext: c, viewport: vp }) => ({ promise: load().then(x => { c.fillStyle = '#fff'; c.fillRect(0, 0, vp.width, vp.height); c.drawImage(x, 0, 0, vp.width, vp.height); }) }), prefetch: load }; } }; }
-function pdfDocOf(fid){ const o = PIMG[fid]; if (o) return PDOCI[fid] || (PDOCI[fid] = Promise.resolve(imgDoc(o))); return pdfRealDoc(fid); }
+function imgDoc(o, fid){ return { numPages: o.n, img: true, getPage: async n => { const pg = o.pages[n]; let im = null; const load = () => im || (im = pimgUrl(pg.id).then(u => new Promise((ok, ng) => { const x = new Image(); x.onload = () => ok(x); x.onerror = ng; x.src = u; })));
+  return { getViewport: ({ scale }) => ({ width: pg.w * scale, height: pg.h * scale }), render: ({ canvasContext: c, viewport: vp }) => ({ promise: Promise.race([load(), new Promise((_, ng) => setTimeout(() => ng(new Error('slow')), 12000))]).then(x => { c.fillStyle = '#fff'; c.fillRect(0, 0, vp.width, vp.height); c.drawImage(x, 0, 0, vp.width, vp.height); }, async e => { if (!fid) throw e; const rd = await pdfRealDoc(fid), p = await rd.getPage(n), v0 = p.getViewport({ scale: 1 }); c.fillStyle = '#fff'; c.fillRect(0, 0, vp.width, vp.height); await p.render({ canvasContext: c, viewport: p.getViewport({ scale: vp.width / v0.width }) }).promise; }) }), prefetch: load }; } }; }
+function pdfDocOf(fid){ const o = PIMG[fid]; if (o) return PDOCI[fid] || (PDOCI[fid] = Promise.resolve(imgDoc(o, fid))); return pdfRealDoc(fid); }
 function pdfRealDoc(fid){ return PDOC[fid] || (PDOC[fid] = (async () => { const url = await pdfBlobUrl(fid); const [buf, lib] = await Promise.all([fetch(url).then(r => r.arrayBuffer()), pdfjs()]); return lib.getDocument({ data: buf }).promise; })().catch(e => { delete PDOC[fid]; throw e; })); }
 const pdfDesk = () => window.innerWidth >= 1000 && matchMedia('(pointer:fine)').matches;
 function pqHint(host, hint, page){ const old = host.querySelector('.pqhint'); if (old) old.remove(); if (!hint || !(hint.q || hint.msg)) return;
