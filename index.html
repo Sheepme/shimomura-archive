@@ -2767,6 +2767,16 @@ html[data-theme=dark] .evv .evdband{background:#3a3218;border-color:#6b5a22;colo
 .nvhits button{width:38px;height:34px;border:0;border-radius:999px;background:rgba(255,255,255,.14);color:#fff;font-size:17px;cursor:pointer}.nvhits button:active{background:rgba(255,255,255,.28)}
 .nvnote .nvhitcur{background:rgba(253,230,138,.45);border-radius:6px;box-shadow:0 0 0 4px rgba(253,230,138,.45)}
 @media (min-width:900px){.noteview.nv2 .nvhits{margin:18px max(28px,calc((100% - 1500px) / 2 + 28px)) 0 auto}}
+@keyframes fslin{from{transform:translateX(34%);opacity:0}to{transform:none;opacity:1}}
+@keyframes fslback{from{transform:translateX(-22%);opacity:0}to{transform:none;opacity:1}}
+.fcont.fslin{animation:fslin .3s cubic-bezier(.2,.75,.3,1) both}.fcont.fslback{animation:fslback .26s cubic-bezier(.2,.75,.3,1) both}
+@media (prefers-reduced-motion:reduce){.fcont.fslin,.fcont.fslback{animation:none}}
+.docs.fv2{overflow-x:clip}
+.fsplit .fsp2{display:grid;grid-template-columns:minmax(240px,300px) minmax(0,1fr);gap:28px;align-items:start}
+.fbl{position:sticky;top:var(--stk,70px);max-height:calc(100vh - var(--stk,70px) - 16px);overflow-y:auto;padding:2px 14px 12px 0;border-right:1px solid var(--line)}
+.fblh{font-size:13px;color:var(--sub);font-weight:600;margin:4px 8px 8px}
+.fbl .fr2{padding:11px 8px;border-radius:10px;border-bottom:0;gap:12px}.fbl .fr2+.fr2{margin-top:2px}
+.fbl .fr2.on{background:var(--wash2)}.fbl .fr2 b{font-size:16px}.fbl .fr2 small{font-size:12.5px}
 .fmeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:2px var(--gx,16px) 8px}
 .fmeta .fcnt{font-size:13px;color:var(--sub)}.fmeta .fcnt small{margin-left:4px}
 .fmeta .fmr{margin-left:auto;display:flex;align-items:center;gap:8px}
@@ -2895,7 +2905,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'c41f4f6479', APP_URL = location.origin + location.pathname;
+const BUILD = '4b217d4a9f', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3205,7 +3215,7 @@ function abRender0(){ const h = $('#abTitle'); if (!h) return;
     bc(base.concat((S.stack || []).map((x, i) => ({nm: pcName(x.t, x.id), ic: icOf(TK[x.t] || 'works'), at:`data-ci="${i + 1}"`}))), pcName(S.pcur.t, S.pcur.id));
     return; }
   const vcn = () => { const n = ({album: (S.works||[]).length, list: (S.works||[]).length, ex: (S.exhibits||[]).length, pb: (S.pubs||[]).length, ot: (S.others||[]).length, doc: dfOn() ? docTree().n : (S.docs||[]).length})[S.view]; return n === undefined ? '' : `<span class="abcn">${n}</span>`; }; // 題名の後ろに件数
-  if (dfOn() && (S.dpath || []).length >= 2) { const P = S.dpath, t = docTreeAt(P), lb = n => n === DF_NONE ? '未整理' : n; /* 書類：フォルダの中では「‹ ひとつ上」（作品の「‹ 美術館」と同じ） */
+  if (dfOn() && (S.dpath || []).length >= (innerWidth >= 900 ? 2 : 1)) { const P = S.dpath, t = docTreeAt(P), lb = n => n === DF_NONE ? '未整理' : n; /* 書類：フォルダの中では「‹ ひとつ上」（作品の「‹ 美術館」と同じ） */
     P.slice(0, -1).forEach((x, i) => base.push({nm: lb(x), ic:'📁', at:`data-bc="df${i + 1}"`})); bc(base, lb(P[P.length - 1]), t ? t.n : 0); return; }
   if (isW && SUBF[S.filter]) { // 作品アルバム › 美術館 › 館名（委託中 › 委託先 も同じ）
     const ms = (S.works||[]).filter(w => w['所在区分']===S.filter && (!S.mus || (w['所在']||SUBF[S.filter].none) === S.mus)).length;
@@ -3582,7 +3592,7 @@ function render0(){ setTimeout(() => { try { tedBar(); } catch(e){} }, 0);
   if (isViewer() && ['upd','inbox'].includes(S.view)) S.view = 'home'; /* 閲覧：更新記録・届いたものはない */
   if (isGuest() && ['home','help','upd','doc','ai','inbox'].includes(S.view)) { const h = S.view === 'home'; S.view = S.wmode = (S.wmode === 'list' ? 'list' : 'album'); if (h) setTimeout(() => { if (isGuest() && !EXV && !exvDeep.pend && $('#page').classList.contains('hidden')) exvOpen(); }, 0); } /* ゲスト：ホームは展示ビュー（閉じると作品アルバム）。連絡・使い方・書類・AI のページは出さない（10/7 開発 v11） */
   if (!S.user && !S.publicView) { $('#finder').classList.add('hidden'); $('#chronobar').classList.add('hidden'); $('#top').classList.add('hidden'); $('#askbar').classList.add('hidden'); if (S.view==='ai') S.view='album'; navOn(); return showLoginWall(); }
-  $('#chronobar').classList.toggle('hidden', !['chrono','ex','pb','ot'].includes(S.view) && !(S.view === 'doc' && (S.dmode !== 'list' || !canEdit())));
+  $('#chronobar').classList.toggle('hidden', !['chrono','ex','pb','ot'].includes(S.view));
   setTimeout(stkTop, 50);
   $('#finder').classList.toggle('hidden', ['ai','chrono','ex','pb','ot','home','doc','help','upd'].includes(S.view) || !S.works.length && !S.user && !S.publicView); $('#top').classList.toggle('hidden', S.view==='ai');
   navOn();
@@ -6144,13 +6154,16 @@ function renderDocFiles(){
     + (nNew ? `<button type="button" class="fchip warn" data-dmode="list">まだ読んでいない ${nNew}</button>` : '') + (nRev ? `<button type="button" class="fchip warn" data-dmode="list">確かめて登録 ${nRev}</button>` : '')
     + (nChk ? `<button type="button" class="fchip warn" data-dmode="list">⚠ 要確認 ${nChk}</button>` : '') + (() => { const n = susList().length; return n ? `<button type="button" class="fchip warn" data-suslist="1">⚠ 別の作品かも ${n}</button>` : ''; })() + (() => { const n = canEdit() ? pimgTodo().length : 0; return n ? `<button type="button" class="fchip ghost" data-pimgtool="1">⚡ ハイライト高速化 ${n}通</button>` : ''; })() + `<button type="button" class="fchip ghost" data-dmode="list">登録の作業 ›</button></div>`;
   /* 上のタブ：すべて・バインダー（作品と同じ形）。フォルダの中（2段目より下）にいるときは出さない（上のバーの ‹ でもどる） */
-  const binders = Object.keys(root.k).sort(dfSort), b0 = path[0] || '', lab = n => n === DF_NONE ? '未整理' : n;
-  const tab = (on, p, l, n) => `<button class="chip ${on ? 'on' : ''}" data-dfp="${esc(p)}">${esc(l)}<span class="cn">${n}</span></button>`;
-  $('#chronobar').innerHTML = path.length >= 2 ? '' : `<div class="chips dftabs">${tab(!b0, '', 'すべて', root.n)}${binders.map(n => tab(b0 === n, n, lab(n), root.k[n].n)).join('')}</div>`;
-  $('#chronobar').classList.toggle('hidden', path.length >= 2);
+  const binders = Object.keys(root.k).sort(dfSort), lab = n => n === DF_NONE ? '未整理' : n, wide = innerWidth >= 900;
+  $('#chronobar').innerHTML = ''; $('#chronobar').classList.add('hidden'); /* 上のタブはやめた（10/11 本人「ヘッダータブに入れると使いにくかった」） */
+  /* すべり込み：深くなったら右から、浅くなったら左から（パソコンで1つ目のバインダーを自動で選んだときは動かさない） */
+  const pl = S._dpl == null ? path.length : S._dpl; let auto = false;
+  if (wide && !path.length && binders.length && !k) { path = S.dpath = [binders[0]]; t = docTreeAt(path); auto = true; }
+  const anim = auto || (wide && Math.min(pl, path.length) < 1) ? '' : path.length > pl ? 'fslin' : path.length < pl ? 'fslback' : ''; S._dpl = path.length;
+  const b0 = path[0] || '';
   /* 中身：フォルダ（そのまま）→ 書類。探しているときは、下のフォルダの分もまとめて */
   let items = [];
-  if (k) { const walk = (x, pp) => { x.docs.forEach(d => items.push({ d, pp })); Object.keys(x.k).sort(dfSort).forEach(n => walk(x.k[n], pp.concat(lab(n)))); }; walk(t, []);
+  if (k) { const walk = (x, pp) => { x.docs.forEach(d => items.push({ d, pp })); Object.keys(x.k).sort(dfSort).forEach(n => walk(x.k[n], pp.concat(lab(n)))); }; walk(root, []); /* 探すときは、選んでいるバインダーに関係なく全体から（10/11 開発 v19） */
     items = items.filter(({ d }) => [docTitle(d), docRes(d)['要約'], docRes(d)['相手先'], docRes(d)['日付'], docRes(d)['書類の種類']].join(' ').normalize('NFKC').toLowerCase().indexOf(k) >= 0); }
   else { Object.keys(t.k).sort(dfSort).forEach(n => items.push({ f: n, c: t.k[n] })); t.docs.forEach(d => items.push({ d })); }
   const nm = x => docTitle(x.d), dt = x => String(docRes(x.d)['日付'] || ''), kd = x => docRes(x.d)['書類の種類'] || (docRes(x.d).PDF ? 'PDF' : '写真');
@@ -6175,7 +6188,9 @@ function renderDocFiles(){
   const body = !items.length ? (ft ? '' : `<p class="fempty">${k ? '見つかりませんでした' : '資料はまだありません'}</p>`)
     : icon ? `<div class="fg2" style="--dfc:${cols}">${items.map(tile).join('')}</div>` : `<div class="fl2">${items.map(row).join('')}</div>`;
   const spine = !k && b0 && b0 !== DF_NONE ? `<button type="button" class="fspine2" data-spine="${esc(path.join('/'))}">📦 このフォルダの背表紙を見る</button>` : '';
-  $('#main').innerHTML = `<div class="docs fwrap fv2">${work}<div class="fhd"><h2 class="ftt">${here}</h2><p class="fsub">${cnt}</p></div>${meta}${spine}${body}${ft ? '<div class="fft"></div>' : ''}</div>`;
+  const content = `<div class="fhd"><h2 class="ftt">${here}</h2><p class="fsub">${cnt}</p></div>${meta}${spine}${body}${ft ? '<div class="fft"></div>' : ''}`;
+  const side = wide ? `<aside class="fbl"><div class="fblh">バインダー</div>${binders.map(n => `<button type="button" class="fr2 ffold fblr ${b0 === n ? 'on' : ''}" data-dfp="${esc(n)}">${fIc(n, n === DF_NONE ? FIC.fold : FIC.bind)}<span class="ftx"><b>${esc(lab(n))}</b><small>${fsub(root.k[n])}</small></span></button>`).join('')}</aside>` : '';
+  $('#main').innerHTML = `<div class="docs fwrap fv2${wide ? ' fsplit' : ''}">${wide || !path.length || k ? work : ''}${wide ? `<div class="fsp2">${side}<section class="fcont ${anim}">${content}</section></div>` : `<section class="fcont ${anim}">${content}</section>`}</div>`;
   { const sel = $('#main .fsort'); if (sel) sel.onchange = () => { const v = sel.value; S.dfs = v === 'dnew' || v === 'dold' ? 'date' : v; S.dfsd = v === 'dnew' ? -1 : 1; render(); }; }
   $('#main').querySelectorAll('[data-dfz]').forEach(b => b.onclick = () => { S.dfz = dfCols() + (+b.dataset.dfz); try { localStorage.setItem('smr_dfz', String(S.dfz)); } catch(e){} render(); });
   hydrateDocs($('#main')); hydrate($('#main'));
