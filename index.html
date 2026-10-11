@@ -2718,6 +2718,17 @@ html[data-theme=dark] .evv .evdband{background:#3a3218;border-color:#6b5a22;colo
 /* 拡大しているあいだは、上の作品のボタン・下の前後・つまみ・高画質のボタンを隠して、写真を広く見せる（10/11 開発 v19） */
 #viewer.pzon .vbk,#viewer.pzon .vbar,#viewer.pzon .vrngw,#viewer.pzon #vorig{opacity:0;pointer-events:none}
 #viewer .vbk,#viewer .vbar,#viewer .vrngw,#viewer #vorig{transition:opacity .2s}
+@media (min-width:900px){
+.noteview.nv2 .nvin{max-width:1500px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);column-gap:32px;align-items:start;padding:0 28px}
+.noteview.nv2 .nvt{grid-column:1/-1}
+.noteview.nv2 .dtopv{grid-column:1;grid-row:2;position:sticky;top:0;margin:0}
+.noteview.nv2 .dtopv .dtpsq{aspect-ratio:auto;height:calc(100vh - var(--tb,0px) - var(--cap,0px) - 250px);min-height:360px}
+.noteview.nv2 .nvbody{grid-column:2;grid-row:2;min-width:0}
+.noteview.nv2 .nvbody .pdfopen{display:none}
+.docs .dlist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:start}
+.noteview.susv .nvin{max-width:1100px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12px;align-items:start}
+.noteview.susv .nvin>.nvt,.noteview.susv .nvin>.hint{grid-column:1/-1}
+}
 .fmeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:2px var(--gx,16px) 8px}
 .fmeta .fcnt{font-size:13px;color:var(--sub)}.fmeta .fcnt small{margin-left:4px}
 .fmeta .fmr{margin-left:auto;display:flex;align-items:center;gap:8px}
@@ -2846,7 +2857,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '1941496f85', APP_URL = location.origin + location.pathname;
+const BUILD = '9074764d73', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5912,7 +5923,7 @@ async function noteView(id, startP, qq){ const d = docById(id); if (!d) return;
   const pager = () => parts.length < 2 ? '' : `<div class="nvpager"><button type="button" class="act" data-np="-1" ${cur === 0 ? 'disabled' : ''}>‹ 前</button>
     <select class="nvsel">${parts.map((p, i) => `<option value="${i}" ${i === cur ? 'selected' : ''}>${p.n || i + 1} / ${parts[parts.length - 1].n || parts.length}ページ${toc[p.n] ? '　' + esc(toc[p.n].slice(0, 24)) : ''}${hit(p.t) ? '　●' : ''}</option>`).join('')}</select>
     <button type="button" class="act" data-np="1" ${cur === parts.length - 1 ? 'disabled' : ''}>次 ›</button></div>`;
-  let PV = null; if (pdf) PV = pgPrev(c => el.querySelector('.nvt').after(c), pdf, { page: +(parts[cur].n || 1) || 1, onPage: k => { const j = parts.findIndex(x => +x.n === k); if (j >= 0 && j !== cur) { cur = j; draw(true); } } }); /* ノートの上に、そのページの原本を表示 */
+  let PV = null; if (pdf) { el.classList.add('nv2'); PV = pgPrev(c => el.querySelector('.nvt').after(c), pdf, { page: +(parts[cur].n || 1) || 1, onPage: k => { const j = parts.findIndex(x => +x.n === k); if (j >= 0 && j !== cur) { cur = j; draw(true); } } }); } /* ノートの上に、そのページの原本を表示（横に広い画面では左の列） */
   const draw = (fromPv) => { const p = parts[cur], body = p.t.trim(); if (PV && !fromPv && p.n) PV.go(+p.n);
     el.querySelector('.nvbody').innerHTML = (toc[p.n] ? `<p class="nvtoc">${esc(toc[p.n])}</p>` : '') + `<div class="note nvnote">${body ? noteHTML(body, q).replace(/<p class="hint" style="margin-top:12px">[\s\S]*$/, '') : '<p class="hint">このページには文字がありません（写真・図など）。</p>'}</div>` + pager()
       + (pdf ? `<button type="button" class="act pdfopen" data-pdfopen="${esc(pdf)}" data-pdfp="${esc(p.n || '')}"${hit(p.t) ? ` data-pdfq="${esc(q)}" data-pdfl="${esc(((p.t.split('\n').find(l => qre.test(l)) || '').trim()).slice(0, 90))}"` : ''}>📄 原本（PDF）で見る${p.n ? '（' + esc(p.n) + 'ページ）' : ''}</button>` : '') + driveBtn(docPages(d)[0]) + '<p class="hint" style="margin-top:10px">※AIが資料の文字を書き起こしたものです。読めなかった字は〓になっています。</p>';
@@ -5928,9 +5939,10 @@ async function noteView(id, startP, qq){ const d = docById(id); if (!d) return;
       const b = t.closest('[data-nva]');
       if (b) { e.stopPropagation(); const ln = el.querySelector('.nvnote .nvon'); if (!ln) return; const body = parts[cur].t.trim(), raw = (body.split('\n')[+ln.dataset.ln] || '').trim(), pn = +(parts[cur].n || 1) || 1;
         if (b.dataset.nva === 'find') { const key = pn + '|' + raw.normalize('NFKC').replace(/\s+/g, '').slice(0, 60), dd = docById(id) || d, mem = (docRes(dd)['ノート位置'] || {})[key] || NLOC[id + '|' + key];
-          if (mem && mem.p) return docShowAt(id, mem, raw);
+          const wide = PV && innerWidth >= 900 && el.classList.contains('nv2'), show = at => wide ? PV.mark(at) : docShowAt(id, at, raw);
+          if (mem && mem.p) return show(mem);
           const t0 = b.textContent; b.disabled = true; b.textContent = '探しています…';
-          try { const at = await call('findDocText', id, pn, raw); if (at && at.p) { NLOC[id + '|' + key] = at; docShowAt(id, at, raw); } else toast('書類の中で見つかりませんでした'); }
+          try { const at = await call('findDocText', id, pn, raw); if (at && at.p) { NLOC[id + '|' + key] = at; show(at); } else toast('書類の中で見つかりませんでした'); }
           catch(x){ gasErr(x, '探せ'); } finally { b.disabled = false; b.textContent = t0; } return; }
         if (b.dataset.nva === 'fix') { const act = el.querySelector('.nvact'); act.outerHTML = fixBox([raw], ['正しい文字']); const box = el.querySelector('.nvfix'), ta = box.querySelector('.nvfi'); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
           box.querySelector('[data-nvf="no"]').onclick = () => draw();
@@ -7012,7 +7024,7 @@ function pgPrev(host, fid, opt){ opt = opt || {}; const c = document.createEleme
   const zReset = () => { Z = { s: 1, x: 0, y: 0 }; zApply(); };
   const go = async (k, quiet) => { const my = ++tok; try { if (!doc) doc = await pdfDocOf(fid); k = Math.min(doc.numPages, Math.max(1, k)); if (k === n && sq.querySelector('canvas')) return; n = k; lab.textContent = 'p.' + n + ' / ' + doc.numPages; big.dataset.pdfp = n; if (rg) { rg.max = doc.numPages; rg.parentNode.hidden = doc.numPages < 2; if (document.activeElement !== rg) rg.value = n; }
       c.querySelector('[data-tp="-1"]').disabled = n <= 1; c.querySelector('[data-tp="1"]').disabled = n >= doc.numPages; if (!quiet && opt.onPage) opt.onPage(n);
-      const pg = await doc.getPage(n), v0 = pg.getViewport({ scale: 1 }), W = sq.clientWidth || 320, dpr = Math.min(2, window.devicePixelRatio || 1), sc = Math.min(W / v0.width, W / v0.height), vp = pg.getViewport({ scale: sc * dpr * 1.5 });
+      const pg = await doc.getPage(n), v0 = pg.getViewport({ scale: 1 }), W = sq.clientWidth || 320, H = sq.clientHeight || W, dpr = Math.min(2, window.devicePixelRatio || 1), sc = Math.min(W / v0.width, H / v0.height), vp = pg.getViewport({ scale: sc * dpr * 1.5 });
       const cv = document.createElement('canvas'); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height); cv.style.width = Math.round(v0.width * sc) + 'px'; cv.style.height = Math.round(v0.height * sc) + 'px';
       await pg.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise; if (my !== tok) return; sq.innerHTML = ''; sq.appendChild(cv); Z = { s: 1, x: 0, y: 0 };
       if (n < doc.numPages) doc.getPage(n + 1).then(x => x.prefetch && x.prefetch()).catch(() => {}); }
@@ -7032,7 +7044,12 @@ function pgPrev(host, fid, opt){ opt = opt || {}; const c = document.createEleme
       else if (Z.s === 1 && Math.abs(st.dx) > 50 && Math.abs(st.dx) > Math.abs(st.dy) * 1.5) go(n + (st.dx < 0 ? 1 : -1)); }
     if (Z.s < 1.05) zReset(); st = null; });
   ['gesturestart', 'gesturechange'].forEach(k => sq.addEventListener(k, e => e.preventDefault()));
-  go(opt.page || 1, true); return { go: k => go(k, true), el: c }; }
+  go(opt.page || 1, true);
+  /* そのページの、その場所に赤い印（ノートの行を押したとき。横に広い画面の左の列） */
+  const mark = async at => { if (!at || !at.p) return; await go(+at.p); zReset(); const cv = sq.querySelector('canvas'); sq.querySelectorAll('.pqmark').forEach(x => x.remove()); if (!cv || !at.box) return;
+    const r = cv.getBoundingClientRect(), q = sq.getBoundingClientRect(), b = at.box, m = document.createElement('div'); m.className = 'pqmark dtmk'; sq.style.position = 'relative';
+    Object.assign(m.style, { left: (r.left - q.left + b[1] / 1000 * r.width - 4) + 'px', top: (r.top - q.top + b[0] / 1000 * r.height - 3) + 'px', width: ((b[3] - b[1]) / 1000 * r.width + 8) + 'px', height: ((b[2] - b[0]) / 1000 * r.height + 6) + 'px' }); sq.appendChild(m); };
+  return { go: k => go(k, true), mark, el: c }; }
 function docTopPreview(d){ const r = docRes(d), box = $('#sheetbox'); if (!box || box.querySelector('.dtopv, .dcgalw') || !docPages(d).length) return;
   box.querySelectorAll('#dvImgs,#dvImgsBox').forEach(x => x.remove());
   box.querySelectorAll('.dpages.rv').forEach(x => { const h = x.nextElementSibling; if (h && h.classList.contains('hint') && /大きく見られます/.test(h.textContent)) h.remove(); x.remove(); }); /* 上に大きいプレビューがあるので、下の小さなページ一覧は出さない */
