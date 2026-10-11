@@ -69,7 +69,7 @@
     return once();
   }
   var SAFE = ['startLogin','appBuild','getData','getThumbs','getDocThumbs','getOriginal','getLog','getArchive','getAIHistory','tts','checkMemo',
-    'updateWork','setFlag','updateEvent','setLocConfirmed','setMainPhoto','setDocTitle','setDocState','updateExhibit','updatePub','updateOther','saveVenue','getPdf','getSpine','pdfJobStatus','pendingPdfs','resolveDiff','setDocCheck','readPdf','getDocText','searchDocs'];
+    'updateWork','setFlag','updateEvent','setLocConfirmed','setMainPhoto','setDocTitle','setDocState','updateExhibit','updatePub','updateOther','saveVenue','getPdf','getSpine','pdfJobStatus','pendingPdfs','resolveDiff','setDocCheck','readPdf','getDocText','searchDocs','getOcr'];
   function runner(ok, ng){ return new Proxy({}, { get: function(_, k){
     if (k === 'withSuccessHandler') return function(f){ return runner(f, ng); };
     if (k === 'withFailureHandler') return function(f){ return runner(ok, f); };
@@ -2911,7 +2911,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '064c6e29fd', APP_URL = location.origin + location.pathname;
+const BUILD = '7500da5866', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3184,6 +3184,7 @@ async function docOcrOne(did){ const d = docById(did); if (!d) return;
   try { const r = await call('ocrOne', did); busy(false); if (r && r.docs) setData(r); const o = r && r.ocr;
     toast(o ? (o.part ? `途中まで作りました（${o.done} / ${o.n}ページ）。もう一度押すと続きから` : `文字の位置を作りました（${o.n}ページ）`) : '文字の位置を作りました'); try { render(); } catch(e){} sheetDocReview(did); }
   catch(e){ busy(false); const m = String(e && e.message || e); if (ocrKeyErr(m)) { if (await ocrKeyAsk()) docOcrOne(did); return; }
+    if (e && e.net) { try { busy(true, '結果を確かめています…'); setData(await call('getData')); } catch(x){} busy(false); if (ocrHas(docById(did))) { toast('文字の位置を作りました'); try { render(); } catch(x){} sheetDocReview(did); return; } } /* Google 側の一時的な404：作れていることがある */
     alert(/この操作はできません|ocrOne/.test(m) ? 'まだ Google 側の更新（デプロイ）が済んでいません。デプロイのあとで使えます' : '文字の位置を作れませんでした。\n' + m); } }
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('#sheetbox [data-docr]'); if (!b) return; e.preventDefault(); docOcrOne(S.sheetDoc); });
 const docCurPage = () => { const t = ($('#sheetbox .dsv .pqpg') || $('#sheetbox .dcgalw .pbcnt') || {}).textContent || ''; return parseInt(t, 10) || 1; };

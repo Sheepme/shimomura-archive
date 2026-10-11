@@ -69,7 +69,7 @@
     return once();
   }
   var SAFE = ['startLogin','appBuild','getData','getThumbs','getDocThumbs','getOriginal','getLog','getArchive','getAIHistory','tts','checkMemo',
-    'updateWork','setFlag','updateEvent','setLocConfirmed','setMainPhoto','setDocTitle','setDocState','updateExhibit','updatePub','updateOther','saveVenue','getPdf','getSpine','pdfJobStatus','pendingPdfs','resolveDiff','setDocCheck','readPdf','getDocText','searchDocs'];
+    'updateWork','setFlag','updateEvent','setLocConfirmed','setMainPhoto','setDocTitle','setDocState','updateExhibit','updatePub','updateOther','saveVenue','getPdf','getSpine','pdfJobStatus','pendingPdfs','resolveDiff','setDocCheck','readPdf','getDocText','searchDocs','getOcr'];
   function runner(ok, ng){ return new Proxy({}, { get: function(_, k){
     if (k === 'withSuccessHandler') return function(f){ return runner(f, ng); };
     if (k === 'withFailureHandler') return function(f){ return runner(ok, f); };
@@ -2903,7 +2903,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'fba38c648e', APP_URL = location.origin + location.pathname;
+const BUILD = 'cad7fa0c19', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
