@@ -2919,7 +2919,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '7986b423f1', APP_URL = location.origin + location.pathname;
+const BUILD = '9997af7199', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6092,9 +6092,7 @@ async function noteView(id, startP, qq, emb){ const d = docById(id); if (!d) ret
       if (pvS === 'L') { if (Math.abs(st - pvAt) > 160) setPv(room > 420 ? 'S' : 'N'); return; }
       if (pvS === 'N' && st - pvAt > 60 && room > 420) setPv('S'); else if (pvS === 'S' && st < pvAt) pvAt = st; else if (pvS === 'N' && st < pvAt) pvAt = st; }, { passive: true });
     PV.onTap = () => { if (innerWidth >= 900) return; if (pvS === 'L') setPv(el.scrollTop > 90 && el.scrollHeight - el.clientHeight > 420 ? 'S' : 'N'); else setPv('L'); };
-    const mk0 = PV.mark; PV.mark = async at => { if (innerWidth < 900 && pvS === 'S') { setPv('N'); await new Promise(r => setTimeout(r, 320));
-        const ln = el.querySelector('.nvnote .nvon'); if (ln) { pvLock = Date.now() + 400; const r = ln.getBoundingClientRect(), pb = PV.el.getBoundingClientRect().bottom; if (r.top < pb + 8 || r.bottom > el.clientHeight) el.scrollTop += r.top - pb - 48; } } /* 押した行が原本の下に隠れないように */
-      return mk0(at); }; }
+  }
   const draw = (fromPv) => { const p = parts[cur], body = p.t.trim(); if (PV && !fromPv && p.n) PV.go(+p.n);
     el.querySelector('.nvbody').innerHTML = (toc[p.n] ? `<p class="nvtoc">${esc(toc[p.n])}</p>` : '') + `<div class="note nvnote">${body ? noteHTML(body, q).replace(/<p class="hint" style="margin-top:12px">[\s\S]*$/, '') : '<p class="hint">このページには文字がありません（写真・図など）。</p>'}</div>` + pager()
       + (pdf && !emb ? `<button type="button" class="act pdfopen" data-pdfopen="${esc(pdf)}" data-pdfp="${esc(p.n || '')}"${hit(p.t) ? ` data-pdfq="${esc(q)}" data-pdfl="${esc(((p.t.split('\n').find(l => qre.test(l)) || '').trim()).slice(0, 90))}"` : ''}>📄 原本（PDF）で見る${p.n ? '（' + esc(p.n) + 'ページ）' : ''}</button>` : '') + (emb ? '' : driveBtn(docPages(d)[0])) + (emb && emb.src === 'ocr' ? '<p class="hint" style="margin-top:10px">※Google の OCR で読みとった文字です（表や縦書きは、並びが崩れることがあります）。</p>' : '<p class="hint" style="margin-top:10px">※AIが資料の文字を書き起こしたものです。読めなかった字は〓になっています。</p>');
@@ -7251,7 +7249,7 @@ function pgPrev(host, fid, opt){ opt = opt || {}; const c = document.createEleme
     else if (st.m === 'one' && t0.length === 1) { st.dx = t0[0].clientX - st.px; st.dy = t0[0].clientY - st.py; if (Z.s > 1) { e.preventDefault(); Z.x = st.x0 + st.dx; Z.y = st.y0 + st.dy; zApply(); } else if (Math.abs(st.dx) > Math.abs(st.dy)) e.preventDefault(); } }, { passive: false });
   sq.addEventListener('touchend', e => { e.stopPropagation(); if (!st) return;
     if (st.m === 'one' && !e.touches.length) { const ad = Math.abs(st.dx) + Math.abs(st.dy);
-      if (ad < 8) { const tn = Date.now(); if (tn - lastTap < 320) { clearTimeout(tapT); if (Z.s > 1) zReset(); else { Z.s = 2.5; zApply(); } lastTap = 0; } else { lastTap = tn; clearTimeout(tapT); tapT = setTimeout(() => { if (lastTap === tn && Z.s === 1 && api.onTap) api.onTap(); }, 330); } }
+      if (ad < 8) { const tn = Date.now(); if (tn - lastTap < 320) { clearTimeout(tapT); if (Z.s > 1) zReset(); else { Z.s = 2.5; zApply(); } lastTap = 0; } else { lastTap = tn; clearTimeout(tapT); tapT = setTimeout(() => { if (lastTap === tn && api.onTap) api.onTap(); }, 330); } }
       else if (Z.s === 1 && Math.abs(st.dx) > 50 && Math.abs(st.dx) > Math.abs(st.dy) * 1.5) go(n + (st.dx < 0 ? 1 : -1)); }
     if (Z.s < 1.05) zReset(); st = null; });
   ['gesturestart', 'gesturechange'].forEach(k => sq.addEventListener(k, e => e.preventDefault()));
@@ -7259,7 +7257,14 @@ function pgPrev(host, fid, opt){ opt = opt || {}; const c = document.createEleme
   /* そのページの、その場所に赤い印（ノートの行を押したとき。横に広い画面の左の列） */
   const mark = async at => { if (!at || !at.p) return; lastAt = at; await go(+at.p); zReset(); const cw = sq.querySelector('.dtpcw'); sq.querySelectorAll('.pqmark').forEach(x => x.remove()); if (!cw || !(at.boxes || at.box)) return;
     (at.boxes || [at.box]).forEach(b => { const m = document.createElement('div'); m.className = 'pqmark dtmk';
-      Object.assign(m.style, { left: `calc(${b[1] / 10}% - 4px)`, top: `calc(${b[0] / 10}% - 3px)`, width: `calc(${(b[3] - b[1]) / 10}% + 8px)`, height: `calc(${(b[2] - b[0]) / 10}% + 6px)` }); cw.appendChild(m); }); };
+      Object.assign(m.style, { left: `calc(${b[1] / 10}% - 4px)`, top: `calc(${b[0] / 10}% - 3px)`, width: `calc(${(b[3] - b[1]) / 10}% + 8px)`, height: `calc(${(b[2] - b[0]) / 10}% + 6px)` }); cw.appendChild(m); });
+    /* 印の所へ寄る：印がプレビューの横幅の9割ほどに収まるまで拡大して、まん中へ（ページの外は見せない） */
+    const bs = at.boxes || [at.box], u = bs.reduce((a, b) => [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[2], b[2]), Math.max(a[3], b[3])]);
+    const cwW = cw.offsetWidth, cwH = cw.offsetHeight, W = sq.clientWidth, H = sq.clientHeight; if (!cwW || !cwH || !W || !H) return;
+    const bw = Math.max(8, (u[3] - u[1]) / 1000 * cwW), bh = Math.max(8, (u[2] - u[0]) / 1000 * cwH), sc = Math.max(1, Math.min(4, W * .88 / bw, H * .6 / bh));
+    let X = -sc * ((u[1] + u[3]) / 2000 - .5) * cwW, Y = -sc * ((u[0] + u[2]) / 2000 - .5) * cwH;
+    const lx = Math.max(0, (sc * cwW - W) / 2), ly = Math.max(0, (sc * cwH - H) / 2); X = Math.max(-lx, Math.min(lx, X)); Y = Math.max(-ly, Math.min(ly, Y));
+    Z = { s: sc, x: X, y: Y }; zApply(); };
   const refit = async () => { if (!doc) return; const k = n || opt.page || 1; n = 0; await go(k, true); if (lastAt && +lastAt.p === k) await mark(lastAt); };
   const api = { go: k => go(k, true), mark, el: c, refit }; return api; }
 function docTopPreview(d){ const r = docRes(d), box = $('#sheetbox'); if (!box || box.querySelector('.dtopv, .dcgalw') || !docPages(d).length) return;
