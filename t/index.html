@@ -2911,7 +2911,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '7500da5866', APP_URL = location.origin + location.pathname;
+const BUILD = 'cc0d9eded0', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6107,7 +6107,7 @@ async function noteView(id, startP, qq, emb){ const d = docById(id); if (!d) ret
           const wide = PVM() || (emb && PV), show = at => wide ? PV.mark(at) : docShowAt(id, at, raw);
           if (mem && mem.p && !ocrHas(dd)) return show(mem);
           const t0 = b.textContent; b.disabled = true; b.textContent = '探しています…';
-          try { if (ocrHas(dd)) { const o = await ocrOf(id), oa = o && ocrFind(o, pn, raw); if (oa) { show(oa); return; } }
+          try { if (ocrHas(dd)) { const o = await ocrOf(id), oa = o && ocrFind(o, pn, raw); if (oa) { show(oa); return; } if (!o) { toast('文字の位置を読み込めませんでした。もう一度押してください'); return; } } /* 読み込めなかっただけのときは AI を使わない（費用） */
             if (mem && mem.p) { show(mem); return; }
             const at = await call('findDocText', id, pn, raw); if (at && at.p) { NLOC[id + '|' + key] = at; show(at); } else toast('書類の中で見つかりませんでした'); }
           catch(x){ gasErr(x, '探せ'); } finally { b.disabled = false; b.textContent = t0; } return; }
