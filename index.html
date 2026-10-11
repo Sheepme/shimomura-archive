@@ -1807,6 +1807,7 @@ body.rail .dwme>span:not(.avatar){display:none}
 .cmpchip{position:relative}.cmpk{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#e0776b;color:#fff;font-style:normal;font-size:11px;font-weight:700;line-height:18px;text-align:center}.cwdx.on{box-shadow:0 0 0 1.5px #e0776b inset}.cwdec{margin:8px 0 6px;padding:12px;border-radius:12px;background:var(--wash);border:1px solid var(--line)}.cwq{margin:0 0 8px;font-weight:700;font-size:15px}.cwopts{display:grid;grid-template-columns:1fr 1fr;gap:8px}.cwopt{display:flex;flex-direction:column;gap:4px;text-align:left;padding:10px 12px;border-radius:12px;border:2px solid var(--line);background:var(--paper);color:var(--ink);font:inherit;cursor:pointer;min-height:76px}.cwopt small{font-size:11.5px;color:var(--sub)}.cwopt b{font-size:17px;line-height:1.35;overflow-wrap:anywhere}.cwopt em{font-style:normal;font-size:11.5px;color:var(--sub)}.cwopt.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink) inset}.cwopt.on small::before{content:'✓ ';color:var(--ink)}.cwgo{width:100%;margin:10px 0 0;font-size:15px}.cwgo:disabled{opacity:1;background:var(--wash2)!important;color:var(--sub)!important;border-color:transparent!important}.cwal{width:100%;margin:8px 0 0;font-size:13.5px}.cwlater{display:block;margin:8px auto 0;border:0;background:transparent;color:var(--sub);font:inherit;font-size:13px;cursor:pointer}
 .cwdx .cwroq,.cmpro .cwdx .cweq{display:none}.cmpro .cwdx .cwroq{display:inline}
 .cmpro [data-wfix],.cmpro .cwcand,.cmpro .cwsq{display:none!important}
+.act.roed,:root[data-theme] .act.roed{background:var(--edit)!important;border-color:var(--edit)!important;color:#fff!important;font-weight:700}html[data-theme=dark] .act.roed{color:#2a1608!important}.act.roed:active{filter:brightness(.92)}
 .cwro .roh{margin:0 0 8px;font-size:13px}.cwro .cwedit{width:100%;margin:0}
 .dfro .dfok,.dfro [data-wfix]{display:none!important}.dfro .dfcard{cursor:default;min-height:0}.dfroh{margin:6px 0 0}.dfroh .roh{text-align:center;font-size:13px}.dfroh .dfedit{width:100%}.cmpro .cwacts{grid-template-columns:1fr}
 .cwsus{margin:0 0 12px;padding:12px;border-radius:12px;background:color-mix(in srgb,#d9822b 14%,var(--paper));border:1px solid color-mix(in srgb,#d9822b 45%,transparent)}.cwsus>b{display:block;font-size:15px;color:#c56a12}.cwsus>small{display:block;margin-top:4px;font-size:13px;color:var(--ink);line-height:1.5}.cwsq{margin:10px 0 6px;font-size:12.5px;color:var(--sub)}.cwcand{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:6px 10px 6px 6px;margin-bottom:6px;border:0;border-radius:10px;background:var(--paper);color:var(--ink);font:inherit;cursor:pointer}.cwcand .dfwth{width:44px;height:44px;border-radius:8px;overflow:hidden;display:block;flex:0 0 auto}.cwcand .dfwth img{width:100%;height:100%;object-fit:cover}.cwcand>span:nth-child(2){flex:1;min-width:0;display:flex;flex-direction:column;font-size:14px}.cwcand small{color:var(--sub);font-size:12px}.cwcand em{font-style:normal;font-size:12.5px;font-weight:600;color:#c56a12;white-space:nowrap}.cwsusb{width:100%;margin:4px 0 0;font-size:13.5px}.cmpk.sus{background:#d9822b}.susw{color:#c56a12!important}.susok{color:#1e7a3c!important}
@@ -2940,7 +2941,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'a38bc35197', APP_URL = location.origin + location.pathname;
+const BUILD = '4a2092e23c', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5881,8 +5882,8 @@ function cmpAt(d, no){ const did = d['書類ID'], r = docRes(d), mine = x => x &
 const cwDx = (x, i) => `<button type="button" class="cwdx" data-cmpdf="${i}"><small>書類では</small><b>${esc(x.doc)}</b><em><span class="cweq">どっちが正しい？ ›</span><span class="cwroq">書類の場所を見る ›</span></em></button>`;
 const cmpLeft = (d, no) => (docRes(d)['食い違い'] || []).filter(x => !x.r && x.t === 'w' && String(x.id) === String(no)).length;
 /* 食い違いの判定（見比べ画面の中で）：台帳／書類のどっちが正しい？ */
-const roEdit = () => { const sb = $('#sheetbox'); if (sb.classList.contains('dview') && !sb.classList.contains('dse')) { sb.classList.add('dse'); abRender(); } toast('編集にしました'); };
-const roHint = (cls, x) => `<p class="hint roh">見比べて確かめるだけの画面です。${canEdit() ? 'どちらが正しいか決めるときは、編集にしてください。' : ''}</p>${canEdit() ? `<button type="button" class="act main ${cls}">✎ 編集にして決める</button>` : ''}`;
+const roEdit = () => { const sb = $('#sheetbox'); if (sb.classList.contains('dview') && !sb.classList.contains('dse')) { sb.classList.add('dse'); abRender(); } toast('編集モードにしました'); };
+const roHint = (cls, x) => `<p class="hint roh">見比べて確かめるだけの画面です。${canEdit() ? 'どちらが正しいか決めるときは、編集モードにしてください。' : ''}</p>${canEdit() ? `<button type="button" class="act main roed ${cls}">✎ 編集モードにする</button>` : ''}`;
 function cwRoHTML(x, i){ const FL = { '幅cm': '幅', '高さcm': '高さ', '所在': 'いまの場所' };
   return `<div class="cwdec cwro" data-i="${i}"><p class="cwq">${esc(FL[x.f] || x.f)}：台帳「${esc(x.cur || '（空）')}」⇄ 書類「${esc(x.doc)}」</p>${x.note ? `<p class="hint" style="margin:0 0 6px">${esc(x.note)}</p>` : ''}${roHint('cwedit', x)}<button type="button" class="cwlater">閉じる</button></div>`; }
 function cwDecHTML(d, x, i){ const kd = x.t === 'w' && x.f === '作品名' ? 'alias' : /日$|制作年|cm$/.test(x.f) ? '' : 'same';
