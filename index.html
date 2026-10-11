@@ -2657,7 +2657,9 @@ body.exvopen #toast:not(.hidden){z-index:9600!important} /* 展示ビューの�
 /* 開発 v19：上の見出し「‹ 戻り先」・詳細の「見る／編集」 */
 #top #btnBack#btnBack{display:none!important}
 #abTitle .abbk{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;cursor:pointer;color:var(--ink)}
-#abTitle .abup{margin-right:4px;padding:0 6px 0 2px;font-weight:700;cursor:pointer}
+#abTitle .abup{display:inline-flex;align-items:center;gap:3px;flex:0 0 auto;max-width:44%;min-width:0;margin-right:10px;padding:5px 11px 5px 7px;border-radius:999px;background:var(--wash);color:var(--sub);font-size:14px;font-weight:600;line-height:1.2;cursor:pointer;white-space:nowrap}
+#abTitle .abup i{font-style:normal;font-size:18px;line-height:1;font-weight:700;margin-top:-2px}#abTitle .abup .abupn{min-width:0;overflow:hidden;text-overflow:ellipsis}#abTitle .abup:active{background:var(--wash2)}
+#top .appbar h1.bcI .cp.abup,#top .appbar h1.bcD .cp.abup{display:inline-flex;flex:0 0 auto;overflow:hidden} /* 長い名前で切りつめるときも「‹ ひとつ上」は残す */
 .abedit{flex:none;margin:0 2px 0 8px;padding:6px 16px;border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--ink);font-size:15px;font-weight:700;line-height:1.3;cursor:pointer;white-space:nowrap}
 .abedit.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .abedit.hidden{display:none!important}
@@ -2941,7 +2943,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '4a2092e23c', APP_URL = location.origin + location.pathname;
+const BUILD = '4c97832178', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3183,7 +3185,8 @@ function abV19(){ const h = $('#abTitle'); if (!h || h.className.indexOf('st-') 
   if (nm) h.innerHTML = `<span class="abbk" role="button" tabindex="0" aria-label="${esc(nm)}にもどる">${esc(nm)}</span>`;
   else if (S.view !== 'home') { const cur = h.querySelector('.crumb.cur'), cn = h.querySelector('.abcn'), cps = [...h.querySelectorAll('.crumb.cp')].filter(c => !c.classList.contains('chome')), up = cps.length ? cps[cps.length - 1] : null;
     const at = up ? [...up.attributes].filter(a => /^data-/.test(a.name)).map(a => `${a.name}="${esc(a.value)}"`).join(' ') : '';
-    h.innerHTML = (up ? `<span class="crumb cp abup" ${at} aria-label="${esc(up.getAttribute('aria-label') || '')}にもどる">‹</span>` : '') + `<span class="crumb cur">${esc(cur ? cur.textContent : (h.dataset.t || ''))}</span>` + (cn ? cn.outerHTML : ''); }
+    const upn = up ? (up.getAttribute('aria-label') || '').trim() || 'もどる' : '';
+    h.innerHTML = (up ? `<span class="crumb cp abup" ${at} role="button" aria-label="${esc(upn)}にもどる"><i aria-hidden="true">‹</i><span class="abupn">${esc(upn)}</span></span>` : '') + `<span class="crumb cur">${esc(cur ? cur.textContent : (h.dataset.t || ''))}</span>` + (cn ? cn.outerHTML : ''); }
   edBtnSync(); }
 function edBtnSync(){ const b = $('#abEdit'); if (!b) return; const pgOpen = !$('#page').classList.contains('hidden') && S.pcur;
   const on = !!(pgOpen && !SCR.length && ['w', 'ot', 'ex', 'pb'].includes(S.pcur.t) && canEdit()), ds = dsCtx(), dse = ds && $('#sheetbox').classList.contains('dse');
