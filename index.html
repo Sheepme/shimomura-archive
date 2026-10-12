@@ -2964,7 +2964,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '02822fa596', APP_URL = location.origin + location.pathname;
+const BUILD = '2b89454877', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6450,6 +6450,9 @@ function renderDocFiles(){
   const sk = S.dfs || 'name', sd = S.dfsd || 1, F = items.filter(x => x.f), D = items.filter(x => x.d);
   D.sort((a, b) => sd * (sk === 'date' ? dt(a).localeCompare(dt(b)) || nm(a).localeCompare(nm(b), 'ja', { numeric: true }) : sk === 'kind' ? kd(a).localeCompare(kd(b), 'ja') || nm(a).localeCompare(nm(b), 'ja', { numeric: true })
     : (a.pp || []).join('/').localeCompare((b.pp || []).join('/'), 'ja', { numeric: true }) || String(a.d['書類ID']).localeCompare(String(b.d['書類ID']), 'ja', { numeric: true })));
+  if (sk === 'date') { const span = c => { let lo = '', hi = ''; const w = x => { x.docs.forEach(d => { const v = String(docRes(d)['日付'] || '').normalize('NFKC').trim(); if (!v) return; if (!lo || v < lo) lo = v; if (!hi || v > hi) hi = v; }); Object.values(x.k).forEach(w); }; w(c); return [lo, hi]; };
+    const fk = x => x._k != null ? x._k : (x._k = span(x.c)[sd < 0 ? 1 : 0]);
+    F.sort((a, b) => { const A = fk(a), B = fk(b); if (!A !== !B) return A ? -1 : 1; return (A && B ? sd * A.localeCompare(B) : 0) || dfSort(a.f, b.f); }); } /* フォルダも日付で（10/12 開発 v20 本人「並べ順が機能してない」） */
   items = F.concat(D);
   const fico = x => fIc(x.f, path.length || x.f === DF_NONE ? FIC.fold : FIC.bind), fsub = c => { const w = dfWarnN(c), sub = Object.keys(c.k).length; return `${sub ? 'フォルダ ' + sub + '・' : ''}ファイル ${c.n}${w ? '　<em class="dfw">⚠ ' + w + '</em>' : ''}`; }; /* 本人 16:18：バインダー（本棚の大きな分け方）› フォルダ（1枚の袋）› ファイル（スキャンしたひとかたまり） */
   const row = x => { if (x.f) return `<button type="button" class="fr2 ffold" data-dfo="${esc(x.f)}">${fico(x)}<span class="ftx"><b>${esc(lab(x.f))}</b><small>${fsub(x.c)}</small></span><span class="fgo">›</span></button>`;
