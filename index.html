@@ -2964,7 +2964,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'adf568826f', APP_URL = location.origin + location.pathname;
+const BUILD = '02822fa596', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -2972,6 +2972,9 @@ function checkBuild(){
     // 入力中でなければ、そのまま新しい版に切り替える（古い画面が残らないように）
     const busyEdit = CALLS.n > 0 || !$('#loading').classList.contains('hidden') || (!$('#sheet').classList.contains('hidden') && !!$('#sheetbox').querySelector('#ok, textarea, input:not([type=hidden]):not([type=search]), select')) || /* 書類の詳細など、見るだけの画面は入力中に数えない */ (document.activeElement && /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) || S.aiOpen || !!document.querySelector('.quiz:not(.hidden)') || !!document.getElementById('crop') || AC.run;
     let tried = ''; try { tried = sessionStorage.getItem('smr_upd') || ''; } catch(e){}
+    { let from = '', un = 0, ut = 0; try { from = sessionStorage.getItem('smr_updfrom') || ''; un = +sessionStorage.getItem('smr_updn') || 0; ut = +sessionStorage.getItem('smr_updT') || 0; } catch(e){}
+      if (from === BUILD && Date.now() - ut < 15 * 60000) { /* 更新したのに、まだ同じ古い版：新しい版の配信がまだ届いていない。お知らせは出さず、少し待って自動でもう一度（3回まで） */
+        if (un < 3 && !busyEdit) { lastBuildChk = 0; setTimeout(() => { if (!$('#updBar')) updGo(); }, 45000 * un); } return; } }
     if (!busyEdit && tried !== b) { try { sessionStorage.setItem('smr_upd', b); } catch(e){} updGo(); return; }
     let snz = 0; try { snz = +sessionStorage.getItem('smr_updsnz') || 0; } catch(e){} if (Date.now() - snz < 30 * 60000) return; /* 「あとで」を押したら30分は出さない */
     /* 新しい版のお知らせ：ヘッダーの下に浮かぶカード（どの画面の上でも押せる） */
@@ -9497,7 +9500,10 @@ const HIST = { skip: 0, idx: 0, noPush: 0, bounce: 0 };
 /* この画面（ページを読み込んだ1回分）の印と、読み込んだ時刻。「アプリを更新」のあと、端スワイプで更新前の画面にもどらないように（10/11 開発 v19 本人） */
 const HSID = Math.random().toString(36).slice(2, 9), LOADT = Date.now();
 const updT = () => { try { return +sessionStorage.getItem('smr_updT') || 0; } catch(e){ return 0; } };
-function updGo(){ try { sessionStorage.setItem('smr_updT', String(Date.now())); } catch(e){} location.replace(APP_URL + '?r=' + Date.now()); }
+function updGo(){ try { sessionStorage.setItem('smr_updT', String(Date.now())); if (sessionStorage.getItem('smr_updfrom') !== BUILD) sessionStorage.setItem('smr_updn', '0'); sessionStorage.setItem('smr_updfrom', BUILD); sessionStorage.setItem('smr_updn', String((+sessionStorage.getItem('smr_updn') || 0) + 1)); } catch(e){}
+  const go = () => location.replace(APP_URL + '?r=' + Date.now());
+  try { if (window.caches) { const k = new URL('index.html', location.href.split(/[?#]/)[0].replace(/[^/]*$/, '')).href; Promise.race([caches.open('smr-shell-1').then(c => c.delete(k)), new Promise(ok => setTimeout(ok, 800))]).then(go, go); return; } } catch(e){} /* 端末の控え（sw.js）を消して、必ずネットから新しい画面を取る（10/12 開発 v20） */
+  go(); }
 try { const T = updT(), st = history.state; if (T && st && st.t && st.t < T) history.forward(); } catch(e){} /* 更新より前の履歴から開かれた → 更新後へもどす */
 addEventListener('pageshow', e => { if (e.persisted && updT() > LOADT) { try { history.forward(); } catch(x){} } }); /* 更新前の画面がそのまま出てきた → 更新後へもどす */
 function hist_(){ try { return google.script.history; } catch(e){ return null; } }
