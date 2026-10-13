@@ -2964,7 +2964,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '2b89454877', APP_URL = location.origin + location.pathname;
+const BUILD = '75e2ec69a2', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3497,7 +3497,17 @@ function filtered(){
     a.sort((x,y) => (photoBy[x['作品番号']] ? 0 : 1) - (photoBy[y['作品番号']] ? 0 : 1) || k(x['作品番号']) - k(y['作品番号'])); }
   if (S.sort==='year') a.sort((x,y)=>yearOf(x['制作年'])-yearOf(y['制作年']));
   if (S.sort==='upd') a.sort((x,y)=>lastAct(y).localeCompare(lastAct(x)));
+  if (q) { const rk = srchNoRank(q), R = new Map(a.map(w => [w, rk(w)])); a.sort((x, y) => R.get(x) - R.get(y) || (R.get(x) < 4 ? String(x['作品番号']).localeCompare(String(y['作品番号']), 'ja', {numeric:true}) : 0)); } /* 作品番号が合う作品を上に（番号の順。ほかの作品の順はそのまま） */
   return a;
+}
+/* 10/13 本人「作品番号の検索結果を上位に」：0＝番号がそのまま（12 → 012）・1＝枝番（251 → 251-1）か前の番号・2＝番号の頭が同じ（12 → 120）・3＝番号の中にある（12 → 112）・4＝そのほか。言葉がいくつかなら、いちばん合うもの */
+function srchNoRank(q){
+  const T = q.split(/\s+/).filter(Boolean).map(t => ({ t, d: t.match(/^([a-z]?)\s*-?\s*0*(\d+)$/) }));
+  const one = (lo, t, d) => { if (lo === t) return 0; const m = lo.match(/^([a-z]?)0*(\d+)(.*)$/);
+    if (d && m && (!d[1] || d[1] === m[1])) { if (m[2] === d[2]) return m[3] ? 1 : 0; if (m[2].startsWith(d[2])) return 2; }
+    return lo.includes(t) ? 3 : 4; };
+  return w => { const no = String(w['作品番号'] || '').normalize('NFKC').toLowerCase(), olds = (OLDS[w['作品番号']] || []).map(x => String(x).normalize('NFKC').toLowerCase());
+    let r = 4; T.forEach(({ t, d }) => { r = Math.min(r, one(no, t, d)); olds.forEach(o => { if (one(o, t, d) <= 1) r = Math.min(r, 1); }); }); return r; };
 }
 /* ---------- 写真（サーバー経由で読み込む） ---------- */
 const TH = {}; let thQueue = new Map(), thTimer = null;
