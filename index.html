@@ -2964,7 +2964,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '75e2ec69a2', APP_URL = location.origin + location.pathname;
+const BUILD = '2fd9c56370', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -6361,6 +6361,12 @@ function pdfPrefetch(fids){ try { if (navigator.connection && navigator.connecti
   const next = () => { const f = PFQ.q.shift(); if (!f) { PFQ.on = false; return; } pdfDocOf(f).then(async dc => { if (dc.img) for (let i = 1; i <= dc.numPages; i++) await (await dc.getPage(i)).prefetch().catch(() => {}); }).catch(() => {}).then(() => setTimeout(next, 300)); }; /* PDFの部品（pdf.js）も一緒に準備 */
   setTimeout(next, 800); }
 const docPdfFid = d => { const r = docRes(d); return r.PDF ? docPages(d)[0] : ''; };
+/* 書類のページ数（10/15 開発 v21 本人「書類ページのリスト、各ファイルのページ数を表示」）：写真の書類＝写真の枚数、PDF＝ページ画像（PIMG）の数。
+   ページ画像がまだの PDF は、一度開いたときに数えて端末に覚える（smr_dnp）。わからないときは出さない */
+let DNP = {}; try { DNP = JSON.parse(localStorage.getItem('smr_dnp') || '{}') || {}; } catch(e){ DNP = {}; }
+function dnpKeep(fid, n){ if (!fid || !n || DNP[fid] === n) return; DNP[fid] = n; try { localStorage.setItem('smr_dnp', JSON.stringify(DNP)); } catch(e){} }
+function docNP(d){ const f = docPages(d); if (!docRes(d).PDF) return f.length; const fid = f[0], o = fid && PIMG[fid]; return o ? o.n : (DNP[fid] || 0); }
+const docNPTxt = d => { const n = docNP(d); return n ? n + 'ページ' : ''; };
 function prefetchWorkPdfs(no){ try { const ids = new Set(); (S.events || []).forEach(e => { if (String(e['作品番号']) === String(no)) String(e['根拠・出典'] || '').replace(/D-\d+/g, m => ids.add(m)); });
   (S.docs || []).forEach(d => { if (String(d['作品番号'] || '').split(',').map(x => x.trim()).some(n => noSet(no).includes(n))) ids.add(d['書類ID']); });
   pdfPrefetch([...ids].map(id => docById(id)).filter(Boolean).map(docPdfFid)); } catch(e){} }
@@ -6467,9 +6473,9 @@ function renderDocFiles(){
   const fico = x => fIc(x.f, path.length || x.f === DF_NONE ? FIC.fold : FIC.bind), fsub = c => { const w = dfWarnN(c), sub = Object.keys(c.k).length; return `${sub ? 'フォルダ ' + sub + '・' : ''}ファイル ${c.n}${w ? '　<em class="dfw">⚠ ' + w + '</em>' : ''}`; }; /* 本人 16:18：バインダー（本棚の大きな分け方）› フォルダ（1枚の袋）› ファイル（スキャンしたひとかたまり） */
   const row = x => { if (x.f) return `<button type="button" class="fr2 ffold" data-dfo="${esc(x.f)}">${fico(x)}<span class="ftx"><b>${esc(lab(x.f))}</b><small>${fsub(x.c)}</small></span><span class="fgo">›</span></button>`;
     const d = x.d, r = docRes(d), w = docWarn(d), where = (x.pp || []).join(' › ');
-    return `<button type="button" class="fr2" data-doc="${esc(d['書類ID'])}">${r.PDF ? FIC.doc : FIC.img}<span class="ftx"><b>${esc(docTitle(d))}</b><small>${w ? '<em class="dfw" title="' + esc(w) + '">⚠</em> ' : ''}${esc([dt(x), kd(x), where].filter(Boolean).join('・'))}${d['全文あり'] ? ' <em class="fnt">全文</em>' : ''}</small></span><span class="fgo">›</span></button>`; };
+    return `<button type="button" class="fr2" data-doc="${esc(d['書類ID'])}">${r.PDF ? FIC.doc : FIC.img}<span class="ftx"><b>${esc(docTitle(d))}</b><small>${w ? '<em class="dfw" title="' + esc(w) + '">⚠</em> ' : ''}${esc([dt(x), kd(x), docNPTxt(d), where].filter(Boolean).join('・'))}${d['全文あり'] ? ' <em class="fnt">全文</em>' : ''}</small></span><span class="fgo">›</span></button>`; };
   const tile = x => { if (x.f) return `<button type="button" class="ft2 ffold" data-dfo="${esc(x.f)}"><span class="ft2im fic">${fico(x)}</span><b>${esc(lab(x.f))}</b><small>${fsub(x.c)}</small></button>`;
-    const d = x.d, pg = docPages(d), w = docWarn(d); return `<button type="button" class="ft2" data-doc="${esc(d['書類ID'])}"><span class="ft2im">${pg[0] ? docImg(pg[0], dfCols() <= 2 ? 600 : 400) : FIC.doc}</span><b>${esc(docTitle(d))}</b><small>${w ? '<em class="dfw">⚠</em> ' : ''}${esc(dt(x) || kd(x))}</small></button>`; };
+    const d = x.d, pg = docPages(d), w = docWarn(d); return `<button type="button" class="ft2" data-doc="${esc(d['書類ID'])}"><span class="ft2im">${pg[0] ? docImg(pg[0], dfCols() <= 2 ? 600 : 400) : FIC.doc}</span><b>${esc(docTitle(d))}</b><small>${w ? '<em class="dfw">⚠</em> ' : ''}${esc([dt(x) || kd(x), docNPTxt(d)].filter(Boolean).join('・'))}</small></button>`; };
   /* 見出し：いまの場所（年表・画集のページと同じトーン） */
   const here = k ? `「${esc(q)}」` : esc(path.length ? lab(path[path.length - 1]) : '資料ファイル');
   const cnt = k ? `名前に ${D.length}件` : `${F.length ? (path.length ? 'フォルダ ' : 'バインダー ') + F.length + '・' : ''}ファイル ${t.n}${path.length > 1 ? '　<span class="fwhere">' + esc(path.slice(0, -1).map(lab).join(' › ')) + ' の中</span>' : ''}`;
@@ -11247,7 +11253,7 @@ function pimgUrl(id){ return PIU[id] || (PIU[id] = (async () => { const k = '160
 function imgDoc(o, fid){ return { numPages: o.n, img: true, getPage: async n => { const pg = o.pages[n]; let im = null; const load = () => im || (im = pimgUrl(pg.id).then(u => new Promise((ok, ng) => { const x = new Image(); x.onload = () => ok(x); x.onerror = ng; x.src = u; })));
   return { getViewport: ({ scale }) => ({ width: pg.w * scale, height: pg.h * scale }), render: ({ canvasContext: c, viewport: vp }) => ({ promise: Promise.race([load(), new Promise((_, ng) => setTimeout(() => ng(new Error('slow')), 12000))]).then(x => { c.fillStyle = '#fff'; c.fillRect(0, 0, vp.width, vp.height); c.drawImage(x, 0, 0, vp.width, vp.height); }, async e => { if (!fid) throw e; const rd = await pdfRealDoc(fid), p = await rd.getPage(n), v0 = p.getViewport({ scale: 1 }); c.fillStyle = '#fff'; c.fillRect(0, 0, vp.width, vp.height); await p.render({ canvasContext: c, viewport: p.getViewport({ scale: vp.width / v0.width }) }).promise; }) }), prefetch: load }; } }; }
 function pdfDocOf(fid){ const o = PIMG[fid]; if (o) return PDOCI[fid] || (PDOCI[fid] = Promise.resolve(imgDoc(o, fid))); return pdfRealDoc(fid); }
-function pdfRealDoc(fid){ return PDOC[fid] || (PDOC[fid] = (async () => { const url = await pdfBlobUrl(fid); const [buf, lib] = await Promise.all([fetch(url).then(r => r.arrayBuffer()), pdfjs()]); return lib.getDocument({ data: buf }).promise; })().catch(e => { delete PDOC[fid]; throw e; })); }
+function pdfRealDoc(fid){ return PDOC[fid] || (PDOC[fid] = (async () => { const url = await pdfBlobUrl(fid); const [buf, lib] = await Promise.all([fetch(url).then(r => r.arrayBuffer()), pdfjs()]); return lib.getDocument({ data: buf }).promise.then(dc => { dnpKeep(fid, dc.numPages); return dc; }); })().catch(e => { delete PDOC[fid]; throw e; })); }
 const pdfDesk = () => window.innerWidth >= 1000 && matchMedia('(pointer:fine)').matches;
 function pqHint(host, hint, page){ const old = host.querySelector('.pqhint'); if (old) old.remove(); if (!hint || !(hint.q || hint.msg)) return;
   const hre = hint.q ? fzRe(esc(hint.q), 'gi') : null;
