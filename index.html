@@ -218,7 +218,7 @@ nav button.on:after{content:"";position:absolute;top:0;left:30%;right:30%;height
 dl.info{display:grid;grid-template-columns:6.5em 1fr;margin:0}
 dl.info{grid-template-columns:6.5em minmax(0,1fr)}dl.info dt,dl.info dd{min-width:0}
 #page dl.info dd select,#page dl.info dd input,#page dl.info dd textarea{max-width:100%;min-width:0;box-sizing:border-box}
-#sheetbox.dview:not(.dse) .dsrot,#sheetbox.dview:not(.dse) .dsocr,#sheetbox.dview:not(.dse) #dvTtl,#sheetbox.dview:not(.dse) #dvChk,#sheetbox.dview:not(.dse) .dfsec>.hint:not(.dvedh),#sheetbox.dse .dvedh,#sheetbox:not(.dview) .dvedh,#sheetbox.dview:not(.dse) .wfix,#sheetbox.dview:not(.dse) .wfixhint,#sheetbox.dview:not(.dse) #dvAgain{display:none!important} /* 書類の画面：見るだけのときは直す道具を出さない（10/11 開発 v19） */
+#sheetbox.dview:not(.dse) .dsrot,#sheetbox.dview:not(.dse) .dsocr,#sheetbox.dview:not(.dse) #dvTtl,#sheetbox.dview:not(.dse) #dvChk,#sheetbox.dview:not(.dse) .dfsec>.hint:not(.dvedh),#sheetbox.dse .dvedh,#sheetbox:not(.dview) .dvedh,#sheetbox.dview:not(.dse) .wfix,#sheetbox.dview:not(.dse) .wadd,body.easy .waddw,#sheetbox.dview:not(.dse) .wfixhint,#sheetbox.dview:not(.dse) #dvAgain{display:none!important} /* 書類の画面：見るだけのときは直す道具を出さない（10/11 開発 v19） */
 #page{overflow-x:hidden}
 dl.info dt,dl.info dd{padding:13px 0;border-bottom:1px solid var(--line);margin:0}
 dl.info dt{color:var(--sub);font-size:16px}
@@ -298,7 +298,7 @@ html,body{touch-action:pan-x pan-y}.docview,.docview *{touch-action:pan-x pan-y}
 .strip{display:flex;gap:8px;overflow-x:auto;margin-top:10px;padding-bottom:6px}
 .st{flex:none;width:76px;height:92px;background:var(--wash);border:0;padding:6px;display:flex;align-items:center;justify-content:center;border-radius:0;color:var(--faint);font-size:12px}
 .st img{max-width:100%;max-height:100%;object-fit:contain;display:block}
-.wl2{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.wl2{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.waddw .wadd{width:100%;margin-top:10px}
 .wchip{border:1px solid var(--line);background:var(--paper);padding:4px 10px;font-size:15px;border-radius:999px;text-align:left}
 .wchip:hover{border-color:var(--ink)}
 .golink{display:inline-block;border:0;border-bottom:1px solid var(--ink);background:none;padding:0;margin:6px 14px 0 0;font-size:15px;letter-spacing:.04em;border-radius:0;color:var(--ink)}
@@ -2964,7 +2964,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '2fd9c56370', APP_URL = location.origin + location.pathname;
+const BUILD = 'a3a52fc3f5', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5458,6 +5458,11 @@ const evKind = e => { let k = String(e['種類']||'').trim(); const c = String(e
   return EV_SAME[k] || k; };
 const evYear = e => (String(e['日付']||'').match(/\d{4}/)||[''])[0];
 const evDocs = e => [...new Set((String(e['根拠・出典']||'').match(/D\d{6,}[0-9A-Za-z-]*/g) || []))];
+/* 作品ページの来歴で見せる書類：出典の書類に加えて、同じ展覧会の書類で、この作品にひも付けた（または 🖍 で囲んだ）もの（10/16 開発 v21） */
+const evDocsW = e => { const L = evDocs(e), x = String(e['展覧会ID'] || ''), no = String(e['作品番号'] || ''); if (!x || !no) return L;
+  (S.docs || []).forEach(d => { const id = d['書類ID']; if (L.includes(id) || d['状態'] !== '登録済み') return;
+    if (!String(d['作品番号'] || '').split(',').map(v => v.trim()).includes(no) && !mlinkAt(no, id)) return;
+    if (String(docRes(d)['展覧会ID'] || '').split(',').includes(x)) L.push(id); }); return L; };
 const evLinkId = e => e['展覧会ID'] || e['資料ID'] || '';
 function evPlaceCore(v){ return evNorm(v).replace(/^(パリ市?|京都市?|東京都?|大阪市?)/, ''); }
 function evSamePlace(x, y){ // 同じ相手先か（言語ちがい・前置きちがいも拾う）
@@ -5733,7 +5738,7 @@ function wdHighlight(btn){ const [did, no] = btn.dataset.wdhl.split('|'), d = do
 /* 作品の来歴：「該当箇所を確認 ↓」で、その下に書類の該当箇所（ハイライト）を開く。書類が複数あれば切り替え */
 function evSrc(btn){ const e = (S.events || []).find(x => x['出来事ID'] === btn.dataset.evsrc), box = btn.nextElementSibling; if (!e || !box) return;
   if (btn.classList.contains('on')) { btn.classList.remove('on'); btn.textContent = '該当箇所を確認 ↓'; box.className = 'evsrcbox'; box.innerHTML = ''; return; }
-  const docs = evDocs(e).map(docById).filter(d => d && docRes(d).PDF); if (!docs.length) return toast('この来歴にはPDFの書類がありません');
+  const docs = evDocsW(e).map(docById).filter(d => d && docRes(d).PDF); if (!docs.length) return toast('この来歴にはPDFの書類がありません');
   let at = null; try { at = JSON.parse(e['位置'] || 'null'); } catch(x){} if (!(at && at.p)) at = mlinkAt(e['作品番号'], docs[0]['書類ID']);
   btn.classList.add('on'); btn.textContent = '閉じる ↑'; box.className = 'dfx evx evsrcbox open';
   box.innerHTML = (docs.length > 1 ? `<div class="evsdocs">${docs.map((d, i) => `<button type="button" data-evsd="${esc(d['書類ID'])}">${esc(docTitle(d))}</button>`).join('')}</div>` : `<p class="evsdt">📄 ${esc(docTitle(docs[0]))}</p>`) + '<span data-dfhl="evs" hidden></span>' + `<button type="button" class="wfix evfix" data-evedit="${esc(e['出来事ID'])}">日付・内容が違う？</button>`;
@@ -5810,27 +5815,28 @@ function dfReview(list, cur, ro){ ro = !!ro || !canEdit();
   draw();
 }
 /* AIの読み違いを手で直す：書類にひも付いた作品を、正しい作品に付け替える（またはひも付けを外す） */
-function dfMoveWork(did, oldNo){ const d = docById(did), ow = workOf(oldNo); if (!d) return;
+function dfMoveWork(did, oldNo){ const d = docById(did), ow = workOf(oldNo), add = !oldNo; if (!d) return;
+  const linked = String(d['作品番号'] || '').split(',').map(x => x.trim()).filter(Boolean), rel = add ? docRelWorks(d) : {};
   const el = document.createElement('div'); el.className = 'noteview wpick'; el.innerHTML = `<div class="nvin">
-    <h2 class="nvt">作品を付け替える</h2><p class="hint">📄 ${esc(docTitle(d))}<br>AIは「${esc(nol(oldNo))} ${esc((ow||{})['作品名'] || '')}」と読みましたが、正しい作品を選んでください。前の作品に自動で入れた値は元に戻ります。</p>
-    <div class="wpcur"><span class="dfwth">${(photoBy[oldNo]||[]).length ? thumbHTML(oldNo, 200) : '<span class="dfwnp">写真なし</span>'}</span><span><small>いまのひも付け</small><b>${esc(nol(oldNo))} ${esc((ow||{})['作品名'] || '無題')}</b></span></div>
+    <h2 class="nvt">${add ? '作品をひも付ける' : '作品を付け替える'}</h2><p class="hint">📄 ${esc(docTitle(d))}<br>${add ? 'この書類に書かれている作品を選んでください。' : `AIは「${esc(nol(oldNo))} ${esc((ow||{})['作品名'] || '')}」と読みましたが、正しい作品を選んでください。前の作品に自動で入れた値は元に戻ります。`}</p>
+    ${add ? '' : `<div class="wpcur"><span class="dfwth">${(photoBy[oldNo]||[]).length ? thumbHTML(oldNo, 200) : '<span class="dfwnp">写真なし</span>'}</span><span><small>いまのひも付け</small><b>${esc(nol(oldNo))} ${esc((ow||{})['作品名'] || '無題')}</b></span></div>`}
     <input type="search" class="wpq" placeholder="作品名・番号・年で探す" enterkeyhint="search">
-    <p class="hint wpmh">押して選びます。書類の1行に2つ以上の作品がまとめて書かれているとき（対の屏風「金・銀」など）は、複数選べます。</p>
-    <div class="wplist"></div><div class="wpbar"><button type="button" class="act main wpgo" disabled>付け替える作品を選んでください</button></div>
-    <button type="button" class="act wpnone">どの作品でもない（ひも付けを外す）</button></div>`;
+    <p class="hint wpmh">押して選びます。${add ? '2つ以上選べます。' : ''}書類の1行に2つ以上の作品がまとめて書かれているとき（対の屏風「金・銀」など）は、複数選べます。</p>
+    <div class="wplist"></div><div class="wpbar"><button type="button" class="act main wpgo" disabled>${add ? 'ひも付ける作品を選んでください' : '付け替える作品を選んでください'}</button></div>
+    ${add ? '' : '<button type="button" class="act wpnone">どの作品でもない（ひも付けを外す）</button>'}</div>`;
   document.body.appendChild(el); hpush('n'); scrPush(el);
   const q = el.querySelector('.wpq'), L = el.querySelector('.wplist'), SEL = [], gb = el.querySelector('.wpgo');
   const draw = () => { const k = q.value.normalize('NFKC').trim().toLowerCase().replace(/^no\.?\s*/, '');
-    const all = S.works.concat(S.others || []).filter(w => String(w['作品番号']) !== String(oldNo) && w['所在区分'] !== '統合済み');
-    const sug0 = k ? [] : wkCands(docVals(d, oldNo), oldNo, 3), smA = k ? [] : wkSame(oldNo, docVals(d, oldNo)), sm = smA.filter(w => !sug0.includes(w)), sug = sug0.concat(sm), hit = sug.concat((k ? all.filter(w => [w['作品番号'], w['作品名'], w['作品名メモ'], w['制作年'], w['所在']].join(' ').normalize('NFKC').toLowerCase().includes(k)) : all).filter(w => !sug.includes(w))).slice(0, 60);
-    L.innerHTML = hit.length ? hit.map(w => { const no = w['作品番号']; return `<button type="button" class="wprow${SEL.includes(String(no)) ? ' on' : ''}" data-wp="${esc(no)}"><span class="dfwth">${(photoBy[no]||[]).length ? thumbHTML(no, 200) : '<span class="dfwnp">写真なし</span>'}</span><span class="wpt"><b>${esc(nol(no))}　${esc(w['作品名'] || '無題')}</b><small>${esc([w['制作年'], dimTxt(w), w['画材']].filter(Boolean).join('・'))}</small>${smA.includes(w) ? `<small class="susw">同じ名前の作品${sug0.includes(w) ? '（書類の内容に近い）' : ''}</small>` : sug.includes(w) ? '<small class="susok">書類の内容に近い作品</small>' : ''}</span><em class="wpck">${SEL.includes(String(no)) ? '✓' : ''}</em></button>`; }).join('') : '<p class="hint">見つかりませんでした</p>';
+    const all = S.works.concat(S.others || []).filter(w => String(w['作品番号']) !== String(oldNo) && !(add && linked.includes(String(w['作品番号']))) && w['所在区分'] !== '統合済み');
+    const sug0 = k ? [] : add ? all.filter(w => rel[w['作品番号']]) : wkCands(docVals(d, oldNo), oldNo, 3), smA = k || add ? [] : wkSame(oldNo, docVals(d, oldNo)), sm = smA.filter(w => !sug0.includes(w)), sug = sug0.concat(sm), hit = sug.concat((k ? all.filter(w => [w['作品番号'], w['作品名'], w['作品名メモ'], w['制作年'], w['所在']].join(' ').normalize('NFKC').toLowerCase().includes(k)) : all).filter(w => !sug.includes(w))).slice(0, 60);
+    L.innerHTML = hit.length ? hit.map(w => { const no = w['作品番号']; return `<button type="button" class="wprow${SEL.includes(String(no)) ? ' on' : ''}" data-wp="${esc(no)}"><span class="dfwth">${(photoBy[no]||[]).length ? thumbHTML(no, 200) : '<span class="dfwnp">写真なし</span>'}</span><span class="wpt"><b>${esc(nol(no))}　${esc(w['作品名'] || '無題')}</b><small>${esc([w['制作年'], dimTxt(w), w['画材']].filter(Boolean).join('・'))}</small>${smA.includes(w) ? `<small class="susw">同じ名前の作品${sug0.includes(w) ? '（書類の内容に近い）' : ''}</small>` : sug.includes(w) ? `<small class="susok">${add ? esc(rel[w['作品番号']] || '') : '書類の内容に近い作品'}</small>` : ''}</span><em class="wpck">${SEL.includes(String(no)) ? '✓' : ''}</em></button>`; }).join('') : '<p class="hint">見つかりませんでした</p>';
     hydrate(L); };
   q.oninput = () => { clearTimeout(q._t); q._t = setTimeout(draw, 200); }; draw(); setTimeout(() => q.focus(), 300);
-  const go = newNo => moveDocTo(did, oldNo, newNo); 
-  const sync = () => { gb.disabled = !SEL.length; gb.textContent = !SEL.length ? '付け替える作品を選んでください' : SEL.length === 1 ? nol(SEL[0]) + ' に付け替える' : SEL.map(nol).join('・') + '（' + SEL.length + '作品）に付け替える'; };
+  const go = newNo => add ? moveDocAdd(did, newNo) : moveDocTo(did, oldNo, newNo); 
+  const sync = () => { gb.disabled = !SEL.length; gb.textContent = add ? (SEL.length ? SEL.map(nol).join('・') + ' をひも付ける' : 'ひも付ける作品を選んでください') : !SEL.length ? '付け替える作品を選んでください' : SEL.length === 1 ? nol(SEL[0]) + ' に付け替える' : SEL.map(nol).join('・') + '（' + SEL.length + '作品）に付け替える'; };
   gb.onclick = () => { if (SEL.length) go(SEL.join(',')); };
   L.addEventListener('click', e => { const b = e.target.closest('[data-wp]'); if (!b) return; const n = String(b.dataset.wp), k = SEL.indexOf(n); if (k >= 0) SEL.splice(k, 1); else SEL.push(n); b.classList.toggle('on', k < 0); b.querySelector('.wpck').textContent = k < 0 ? '✓' : ''; sync(); });
-  el.querySelector('.wpnone').onclick = () => go('');
+  if (!add) el.querySelector('.wpnone').onclick = () => go('');
 }
 /* 作品ページ：この作品についての、まだ決めていない食い違い */
 function workDiffsHTML(no){ const L = []; (S.docs || []).forEach(d => { if (d['状態'] !== '登録済み') return; (docRes(d)['食い違い'] || []).forEach((x, i) => { if (!x.r && x.t === 'w' && String(x.id) === String(no)) L.push(dfCard(d, x, i, true)); }); });
@@ -5914,13 +5920,21 @@ function openSusList(){ const L = susList(); const el = document.createElement('
   el.innerHTML = `<div class="nvin"><h2 class="nvt">別の作品かもしれない書類</h2><p class="hint">書類にひも付いた作品と、書類に書かれたサイズ・名前・制作年が大きく違うものです。押すと書類と作品を並べて見比べられます。</p>${L.length ? L.map(({ d, no, m }) => `<button type="button" class="wprow" data-cmp="${esc(d['書類ID'])}|${esc(no)}"><span class="dfwth">${(photoBy[no]||[]).length ? thumbHTML(no, 200) : '<span class="dfwnp">写真なし</span>'}</span><span class="wpt"><b>${esc(nol(no))}　${esc((workOf(no)||{})['作品名'] || '無題')}</b><small>📄 ${esc(docTitle(d))}</small><small class="susw">⚠ ${esc(m.why.join('・'))}</small></span><em>見比べる ›</em></button>`).join('') : '<p class="hint">見つかりませんでした</p>'}</div>`;
   document.body.appendChild(el); hpush('n'); scrPush(el); hydrate(el); }
 /* 書類のひも付けを付け替える（確認してからサーバーへ） */
-async function moveDocTo(did, oldNo, newNo){ const ow = workOf(oldNo), NN = String(newNo || '').split(',').filter(Boolean), nm = NN.map(n => nol(n) + ' ' + ((workOf(n)||{})['作品名'] || '')).join('\n');
-  if (!confirm(newNo ? `この書類のひも付けを\n${nol(oldNo)} ${(ow||{})['作品名'] || ''}\n　↓\n${nm}\nに付け替えます。${NN.length > 1 ? '\n（書類の1行に、' + NN.length + 'つの作品がまとめて書かれているものとして登録します）' : ''}よろしいですか？` : `この書類から ${nol(oldNo)} ${(ow||{})['作品名'] || ''} のひも付けを外します。よろしいですか？`)) return false;
-  busy(true, '付け替えています…');
+/* この書類と関係のありそうな作品（ひも付ける画面の候補）：🖍 で囲んでメモに貼った・この書類からの来歴・この書類の展覧会に出品（10/16 開発 v21） */
+function docRelWorks(d){ const id = d['書類ID'], R = {}, ex = String(docRes(d)['展覧会ID'] || '').split(',').filter(Boolean);
+  S.works.concat(S.others || []).forEach(w => { if (mlinkAt(w['作品番号'], id)) R[w['作品番号']] = 'この書類で囲んでメモに貼った作品'; });
+  (S.events || []).forEach(e => { const no = e['作品番号']; if (!no || R[no]) return; if (String(e['根拠・出典'] || '').indexOf(id) >= 0) R[no] = 'この書類からの来歴がある作品'; else if (e['展覧会ID'] && ex.includes(String(e['展覧会ID']))) R[no] = 'この書類の展覧会に出品した作品'; });
+  return R; }
+async function moveDocAdd(did, newNo){ const NN = String(newNo || '').split(',').filter(Boolean); if (!NN.length) return false;
+  if (!confirm(`この書類に\n${NN.map(n => nol(n) + ' ' + ((workOf(n)||{})['作品名'] || '無題')).join('\n')}\nをひも付けます。よろしいですか？`)) return false;
+  return moveDocTo(did, '__none__', newNo, true); }
+async function moveDocTo(did, oldNo, newNo, ok){ const ow = workOf(oldNo), NN = String(newNo || '').split(',').filter(Boolean), nm = NN.map(n => nol(n) + ' ' + ((workOf(n)||{})['作品名'] || '')).join('\n');
+  if (!ok && !confirm(newNo ? `この書類のひも付けを\n${nol(oldNo)} ${(ow||{})['作品名'] || ''}\n　↓\n${nm}\nに付け替えます。${NN.length > 1 ? '\n（書類の1行に、' + NN.length + 'つの作品がまとめて書かれているものとして登録します）' : ''}よろしいですか？` : `この書類から ${nol(oldNo)} ${(ow||{})['作品名'] || ''} のひも付けを外します。よろしいですか？`)) return false;
+  busy(true, oldNo === '__none__' ? 'ひも付けています…' : '付け替えています…');
   try { const res = await call('moveDocWork', did, oldNo, newNo || ''); setData(res); busy(false);
     for (let n = 0; n < 4 && SCR.length && (SCR[SCR.length - 1].classList.contains('noteview')); n++) scrBack();
     render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
-    if (!$('#sheet').classList.contains('hidden')) sheetDocReview(did); toast(newNo ? NN.map(nol).join('・') + ' に付け替えました' : 'ひも付けを外しました'); return true; }
+    if (!$('#sheet').classList.contains('hidden')) sheetDocReview(did); toast(newNo ? NN.map(nol).join('・') + (oldNo === '__none__' ? ' をひも付けました' : ' に付け替えました') : 'ひも付けを外しました'); return true; }
   catch(e){ busy(false); alert('付け替えられませんでした：' + (e.message || e)); return false; } }
 function cmpAt(d, no){ const did = d['書類ID'], r = docRes(d), mine = x => x && x.t === 'w' && String(x.id) === String(no) && x.at && x.at.box;
   const a = (r['食い違い'] || []).find(mine) || (r['補完'] || []).find(mine); if (a) return { p: a.at.p, box: a.at.box };
@@ -6612,6 +6626,11 @@ const noOf = v => { const t = String(v||'').normalize('NFKC'), o = t.match(/(?:^
   const m = t.match(/(?:No\.?\s*)?(\d{1,4})(?:\s*[-‐‑−–ー]\s*(\d{1,3})(?!\d))?/i); if (!m) return ''; const n = m[1], p = ('000' + n).slice(-3);
   if (m[2]) { const b = [n + '-' + m[2], p + '-' + m[2]].find(x => workOf(x)); if (b) return b; const o = mrgTo(n + '-' + m[2]) || mrgTo(p + '-' + m[2]); if (o) return o; } /* 枝番のある作品（427-1 など）。10/7 本人「メモに 427-1 を入れたら見つからない」 */
   return workOf(n) ? n : workOf(p) ? p : (mrgTo(n) || mrgTo(p) || ''); }; /* 旧番号（統合した前の番号）なら、いまの番号へ */
+/* 書類の画面の「登録した作品」（10/16 開発 v21：作品をひも付けるボタン。🖍 で貼ったあと、ここだけ描き直す） */
+function dvWorksHTML(d){ const id = d['書類ID'], r = docRes(d), st = d['状態'], nos = String(d['作品番号']||'').split(',').filter(Boolean);
+  const add = more => canEdit() && st==='登録済み' ? `<div class="waddw"><button type="button" class="act wadd" data-wadd="${esc(id)}">＋ ${more ? 'ほかの作品もひも付ける' : '作品をひも付ける'}</button>${more ? '' : '<p class="hint dvedh">作品をひも付けるときは、右上の「編集」を押してください。</p>'}</div>` : '';
+  return st==='登録済み' && r.PDF && !nos.length ? '<p class="hint">作品のひも付けはありません</p>' + add(false) : st==='登録済み' ? `<h3 class="sec" style="font-size:18px">登録した作品</h3>${nos.length ? `<button type="button" class="act main cmpbtn" data-cmp="${esc(id)}|${esc(nos[0])}">📑 書類と作品を見比べる</button>` : ''}<div class="wl2">${nos.map(no => { const sn = wkSame(no).length; return `<span class="wfixw"><button class="wchip" data-no="${esc(no)}">${esc(wLabel(no) || nol(no))}</button><button type="button" class="wfix${sn ? ' wfamb' : ''}" data-wfix="${esc(id)}|${esc(no)}">${sn ? '⚠ 同じ名前が ' + sn + '点・' : ''}この作品ではない？</button></span>`; }).join('')}</div><p class="hint wfixhint">AIが別の作品と読み違えていたら「この作品ではない？」から正しい作品に付け替えられます。</p>${add(nos.length)}`
+        : st==='登録しない' ? '<p class="hint">この書類は「登録しない」にしました。</p><button class="act" id="dvAgain" style="width:100%">やっぱり登録する</button>' : ''; }
 function sheetDocReview(id){ try { const d0 = docById(id); if (d0) pdfPrefetch([docPdfFid(d0)]); } catch(e){}
   const d = docById(id); if (!d) return;
   const r = docRes(d), pg = docPages(d), st = d['状態'];
@@ -6630,13 +6649,12 @@ function sheetDocReview(id){ try { const d0 = docById(id); if (d0) pdfPrefetch([
       ${(r['台帳にない作品'] || []).length ? `<details class="dfill dnf"><summary>この書類にだけある作品（台帳にない）${r['台帳にない作品'].length}点</summary><p class="hint">チャリティーの色紙など、台帳に入っていない作品です。確認はいりません（台帳に入れたいときは「新しい作品を登録」から）。</p>${r['台帳にない作品'].map(w => `<p>${esc(w['作品名'] || '（無題）')}${[w['制作年'], w['高さcm'] && w['幅cm'] ? w['高さcm'] + '×' + w['幅cm'] + 'cm' : '', w['画材'], w['メモ']].filter(Boolean).map(v => '　<small>' + esc(v) + '</small>').join('')}</p>`).join('')}</details>` : ''}
       ${docEvHTML(d)}${docTocHTML(d)}
       ${(r['補完']||[]).length ? `<details class="dfill"><summary>この書類から自動で埋めた項目（${r['補完'].length}件）</summary>${r['補完'].map(x => `<p>${esc(x.name)}：${esc(x.f)}　→　${esc(x.v)}</p>`).join('')}</details>` : ''}
-      ${d['メモ'] ? `<p class="hint dmemo">📝 ${esc(String(d['メモ']).replace(/作品の付け替え：No\.__none__ → /g, '作品のひも付けを追加：'))}</p>` : ''}
+      ${d['メモ'] ? `<p class="hint dmemo">📝 ${esc(String(d['メモ']).replace(/作品の付け替え：No\.__none__ → ([^\n（]*)（AIの読み違いを手で修正）/g, '作品のひも付けを追加：$1').replace(/作品の付け替え：No\.__none__ → /g, '作品のひも付けを追加：'))}</p>` : ''}
       ${d['保管番号'] ? `<button type="button" class="act pdfopen" data-dfgo="${esc(d['保管番号'])}">📁 このファイルを開く（同じフォルダの資料）</button>` : ''}
       ${String(r['展覧会ID']||'').split(',').filter((x, i, a) => x && a.indexOf(x) === i && (S.exhibits||[]).some(e => e['展覧会ID']===x)).map(x => `<p><button type="button" class="golink" data-ex="${esc(x)}">展覧会：${esc((S.exhibits.find(e => e['展覧会ID']===x)||{})['名称']||x)} ›</button></p>`).join('')}
       ${contactsHTML([d])}
       ${String(r['資料ID']||'').split(',').filter(x => (S.pubs||[]).some(p => p['資料ID']===x)).map(x => `<p><button type="button" class="golink" data-pb="${esc(x)}">画集・本：${esc((S.pubs.find(p => p['資料ID']===x)||{})['タイトル']||x)} ›</button></p>`).join('')}
-      ${st==='登録済み' && r.PDF && !nos.length ? '<p class="hint">作品のひも付けはありません</p>' : st==='登録済み' ? `<h3 class="sec" style="font-size:18px">登録した作品</h3>${nos.length ? `<button type="button" class="act main cmpbtn" data-cmp="${esc(id)}|${esc(nos[0])}">📑 書類と作品を見比べる</button>` : ''}<div class="wl2">${nos.map(no => { const sn = wkSame(no).length; return `<span class="wfixw"><button class="wchip" data-no="${esc(no)}">${esc(wLabel(no) || nol(no))}</button><button type="button" class="wfix${sn ? ' wfamb' : ''}" data-wfix="${esc(id)}|${esc(no)}">${sn ? '⚠ 同じ名前が ' + sn + '点・' : ''}この作品ではない？</button></span>`; }).join('')}</div><p class="hint wfixhint">AIが別の作品と読み違えていたら「この作品ではない？」から正しい作品に付け替えられます。</p>`
-        : st==='登録しない' ? '<p class="hint">この書類は「登録しない」にしました。</p><button class="act" id="dvAgain" style="width:100%">やっぱり登録する</button>' : ''}
+      <div class="dvworks" data-did="${esc(id)}">${dvWorksHTML(d)}</div>
       `); /* 書類は見るページなので、下の「閉じる」バー（編集画面の形）は出さない。戻るは左上の「<」 */
     wireDocImgs(); hydrateDocs($('#sheetbox'));
     /* 展覧会・資料へのリンクは、全体のクリック処理で「書類から開く（戻ると書類へ）」にする */
@@ -7664,7 +7682,7 @@ function openWork(no, keepScroll, restoreSc){
           ${e['展覧会ID'] && exById[e['展覧会ID']] ? `<button class="golink" data-ex="${esc(e['展覧会ID'])}">展覧会のページ ›</button>` : ''}${e['資料ID'] && pbById[e['資料ID']] ? `<button class="golink" data-pb="${esc(e['資料ID'])}">${esc(pbById[e['資料ID']]['種類']||'資料')}のページ ›</button>` : ''}
           ${e['内容'] && e['内容']!==e['相手先・場所'] && e['内容']!=='制作' ? `<div class="pl">${escU(e['内容'])}</div>`:''}
           ${e['担当者・連絡先'] ? `<div class="pl">担当者：${esc(e['担当者・連絡先'])}</div>` : ''}
-          ${canEdit() && evDocs(e).some(id => docById(id) && docRes(docById(id)).PDF) ? `<button type="button" class="evsrc" data-evsrc="${esc(e['出来事ID'])}">該当箇所を確認 ↓</button><div class="evsrcbox"></div>` : ''}${canEdit() ? evDocs(e).filter(id => docById(id)).map((id, n, all) => `<button class="golink" data-doc="${esc(id)}">書類${all.length > 1 ? (n + 1) : ''}を見る ›</button>`).join('') : ''}<div class="src">${escU([evDocs(e).length ? (evDocs(e).length > 1 ? '書類' + evDocs(e).length + '通より' : '書類より') : e['根拠・出典'], e['確かさ'], e['登録者']!=='旧リストから移行'?e['登録者']:''].filter(Boolean).join(' · '))}</div>
+          ${canEdit() && evDocsW(e).some(id => docById(id) && docRes(docById(id)).PDF) ? `<button type="button" class="evsrc" data-evsrc="${esc(e['出来事ID'])}">該当箇所を確認 ↓</button><div class="evsrcbox"></div>` : ''}${canEdit() ? evDocsW(e).filter(id => docById(id)).map((id, n, all) => `<button class="golink" data-doc="${esc(id)}">書類${all.length > 1 ? (n + 1) : ''}を見る ›</button>`).join('') : ''}<div class="src">${escU([evDocs(e).length ? (evDocs(e).length > 1 ? '書類' + evDocs(e).length + '通より' : '書類より') : e['根拠・出典'], e['確かさ'], e['登録者']!=='旧リストから移行'?e['登録者']:''].filter(Boolean).join(' · '))}</div>
           ${canEdit() && !e._from?`<button class="pen" data-evedit="${esc(e['出来事ID'])}" aria-label="このできごとを直す"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.6"/></svg></button>`:''}
         </div></li>`; }).join('')}</ul>` : '<p style="color:var(--sub)">まだ記録がありません</p>'}
       ${canEdit() ? '<div class="edonly">' + workDiffsHTML(no) + '</div>' + workDocsHTML(no) : ''}
@@ -8093,9 +8111,21 @@ async function mlinkSave(no, tok){ const w = workOf(no); if (!w) return toast('�
   const patch = { '補足': old ? old + ' ' + tok : tok }; Object.assign(w, patch); index();
   if (S.pcur && S.pcur.t === 'w' && String(S.pcur.id) === String(no)) openWork(no, true);
   toast('No.' + no + ' のメモに貼りました'); BGS.n++; bgShow('保存しています…');
-  try { try { await call('updateWorkQ', no, patch); } catch(e){ if (!/この操作はできません/.test(e.message || e)) throw e; await call('updateWork', no, patch); } }
+  try { try { await call('updateWorkQ', no, patch); } catch(e){ if (!/この操作はできません/.test(e.message || e)) throw e; await call('updateWork', no, patch); } mlinkLink(no, tok); }
   catch(e){ alert('保存できませんでした。もう一度やり直してください。\n' + (e.message || e)); refreshData().catch(() => {}); }
   finally { BGS.n--; bgShow(); } }
+/* 🖍 で作品のメモに貼ったら、その書類も作品にひも付ける（作品ページの「この作品の書類」に出す。10/16 開発 v21 本人「作品ページに表示されない」）。
+   続けて貼ってもよいように1つずつ順に送る。書類の画面は作り直さず（囲んでいる途中のため）、「登録した作品」の所だけ描き直す */
+let MLQ = Promise.resolve();
+function mlinkLink(no, tok){ const m = String(tok).match(/［資料\s+([^\s［］]+)/), did = m && m[1], has = d => String(d['作品番号'] || '').split(',').map(x => x.trim()).includes(String(no));
+  const d0 = did && docById(did); if (!d0 || d0['状態'] !== '登録済み' || isOtNo(no) || has(d0)) return;
+  MLQ = MLQ.then(async () => { const d = docById(did); if (!d || has(d)) return; BGS.n++; bgShow('書類をひも付けています…');
+    try { const res = await call('moveDocWork', did, '__none__', String(no)), nd = ((res && res.docs) || []).find(x => x['書類ID'] === did); if (nd) Object.assign(d, nd);
+      toast('この書類を ' + nol(no) + ' にもひも付けました');
+      const box = document.querySelector(`#sheetbox .dvworks[data-did="${CSS.escape(did)}"]`); if (box) box.innerHTML = dvWorksHTML(d);
+      if (S.pcur && S.pcur.t === 'w' && String(S.pcur.id) === String(no) && !$('#page').classList.contains('hidden')) openWork(no, true); }
+    catch(e){ toast('書類のひも付けはできませんでした（メモには貼ってあります）'); }
+    finally { BGS.n--; bgShow(); } }); }
 const dd2 = (k, v) => v ? `<dt>${k}</dt><dd>${v}</dd>` : '';
 /* ---------- 展覧会・画集の編集 ---------- */
 const EX_T = ['個展','グループ展','パンリアル展','公募展','回顧展・遺作展','収蔵品展','その他'];
@@ -11035,6 +11065,7 @@ document.addEventListener('click', e => {
   if (t.dataset.evsd){ const box = t.closest('.evsrcbox'); if (box && box._show) box._show(t.dataset.evsd); return; }
   if (t.dataset.cmpe){ const [did, no, ev] = t.dataset.cmpe.split('|'); cmpView(did, no); setTimeout(() => { const b = document.querySelector(`.cmpv [data-cmpev="${ev}"]`); if (b) b.click(); }, 700); return; } /* 来歴から：書類と作品を並べて、その出来事のところを光らせる */
   if (t.dataset.evhl2){ evHighlight(t); return; }
+  if (t.dataset.wadd){ dfMoveWork(t.dataset.wadd, ''); return; } /* 書類に作品をひも付ける（10/16 開発 v21） */
   if (t.dataset.wfix){ const [did, no] = t.dataset.wfix.split('|'); dfMoveWork(did, no); return; }
   if (t.dataset.suslist){ openSusList(); return; }
   if (t.dataset.pimgtool){ openPimgTool(); return; }
