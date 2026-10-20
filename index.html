@@ -303,6 +303,7 @@ html,body{touch-action:pan-x pan-y}.docview,.docview *{touch-action:pan-x pan-y}
 .lypage .lytop{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin:12px 0 6px}
 .lyplan{width:min(44vw,230px);height:auto;flex:0 0 auto;overflow:visible}
 .lyplan .lyroom{fill:var(--wash);stroke:var(--sub);stroke-width:8}
+.lyplan .lydoor{fill:var(--bg);stroke:none}.lypage .lyexv{margin:4px 0 2px}
 .lyplan text{font-size:62px;fill:var(--sub);text-anchor:middle;dominant-baseline:middle}
 .lyplan .lypt text{fill:var(--ink);cursor:pointer}
 .lyplan .lypm{font-size:56px;fill:var(--faint)}
@@ -3010,7 +3011,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '0e0ab6b194', APP_URL = location.origin + location.pathname;
+const BUILD = '3a9c42277e', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -12325,7 +12326,8 @@ function exvSet(k, mus, q){ const b = [S.filter, S.mus, S.q]; S.filter = k; S.mu
 /* ---------- 配置図（展示風景の再現）（10/20 開発 v22 本人「鳥たちの神殿は、美術館の1部屋の3面を使った作品。いくつもの作品番号に分かれ、1パーツだけ寄贈・販売したもの、劣化で破棄したものも多く、全部でいくつかも不明。
    展示風景の写真はあるが、どれがどのパーツか分かりにくい。作品群をまとめて、当時の展示風景をミニマムに再現し、配置と今の保管場所をつかみたい」）
    Google 側のシート「配置図」：配置ID・名前・展覧会ID・中身（JSON）・メモ。中身：{ room:{w 間口（奥の壁の長さ）, d 奥行き（左右の壁の長さ）, h 天井（cm）}, place, date, works:[作品群の番号],
-     walls:[{k:'L'左|'C'奥|'R'右|'F'入口, on, top 板の上の端の床からの高さ, slots:[{id, w, h（cm）, est 写真からの推定, j 左の板とくっつく, no 作品番号, st '廃棄'|'譲渡'（台帳にない）, to 相手先, m メモ}]}] }
+     door:{x 左の壁から入口の左の端まで, w, h}, room.h2・d2 入口側の低い天井の高さと奥行き,
+     walls:[{k:'L'左|'C'奥|'R'右|'F'入口, on, base 板の下の端の床からの高さ（板の下の端をそろえる。前は top＝上の端）, slots:[{id, w, h（cm）, est 写真からの推定, j 左の板とくっつく, no 作品番号, st '廃棄'|'譲渡'（台帳にない）, to 相手先, m メモ}]}] }
    板は、部屋の中から壁に向かって見た左から順。くっついた板は1つのかたまりで、かたまりのあいだは同じ間かく（位置は目安）。資料写真は写真の表に、作品番号の代わりに配置ID で入れる ---------- */
 const LYW = { L: '左の壁', C: '奥の壁', R: '右の壁', F: '入口の壁' }, LYS = { L: '左', C: '奥', R: '右', F: '入口' };
 const LYEND = { L: ['← 入口側', '奥 →'], C: ['← 左の壁', '右の壁 →'], R: ['← 奥', '入口側 →'], F: ['← 右の壁', '左の壁 →'] };
@@ -12336,10 +12338,14 @@ const lyRow = id => (S.layouts || []).find(r => r['配置ID'] === id) || null;
 const lyClone = o => JSON.parse(JSON.stringify(o));
 function lyNorm(o){ o = o && typeof o === 'object' ? o : {}; o.room = Object.assign({ w: 990, d: 1570, h: 460 }, o.room || {}); o.works = [...new Set((o.works || []).map(String).filter(Boolean))];
   const W = {}; (o.walls || []).forEach(w => { if (w && LYW[w.k]) W[w.k] = w; });
-  o.walls = ['L', 'C', 'R', 'F'].map(k => Object.assign({ k, top: 320, on: k !== 'F', slots: [] }, W[k] || {}));
+  o.walls = ['L', 'C', 'R', 'F'].map(k => { const w = Object.assign({ k, on: k !== 'F', slots: [] }, W[k] || {}); if (w.base == null && w.top == null) w.base = 85; return w; }); /* 10/20 本人「高さが写真と違う」：板は下の端をそろえて掛けていた（床から約85cm） */
   o.walls.forEach(w => { w.slots = (w.slots || []).map(s => Object.assign({ id: lyNid(), w: 125, h: 80 }, s)); if (w.slots.length) w.on = true; }); return o; }
 function lyBody(r){ if (!r) return lyNorm({}); const id = r['配置ID'], k = String(r['更新日時'] || '') + '|' + String(r['中身'] || '').length + '|' + String(r['中身'] || '').slice(-40);
   if (LYP[id] && LYP[id].k === k) return LYP[id].o; let o = {}; try { o = JSON.parse(r['中身'] || '{}'); } catch(e){} o = lyNorm(o); LYP[id] = { k, o }; return o; }
+/* 板の下の端の床からの高さ（cm）。前の形（top＝上の端をそろえる）も読む */
+const lyBot = (w, s) => w.base != null ? +w.base : (+w.top || 320) - (+s.h || 0);
+/* 入口（扉なし）：左の壁から入口の左の端まで・幅・高さ（cm）。なければ入口の壁のまん中 */
+const lyDoor = o => { const d = o.door || {}, W = +o.room.w || 990, w = +d.w > 0 ? +d.w : 200, h = +d.h > 0 ? +d.h : 250; return { x: Math.max(0, Math.min(W - w, d.x != null && d.x !== '' ? +d.x : (W - w) / 2)), w, h }; };
 const lyLen = (o, k) => +(k === 'C' || k === 'F' ? o.room.w : o.room.d) || 1000;
 const lyWalls = o => o.walls.filter(w => w.on);
 const lyLab = (w, i) => LYS[w.k] + (i + 1);
@@ -12361,10 +12367,10 @@ function lyMembers(o){ const M = new Map(); o.works.forEach(no => M.set(String(n
   lyWalls(o).forEach(w => w.slots.forEach((s, i) => { if (!s.no) return; const k = String(s.no); if (!M.has(k)) M.set(k, []); M.get(k).push(lyLab(w, i)); }));
   return [...M.entries()].map(([no, labs]) => ({ no, labs, w: workOf(no) })).sort((a, b) => a.no.localeCompare(b.no, 'ja', { numeric: true })); }
 /* 壁を正面から見た図（cm の座標）。op：{id 配置ID, cur 選んでいる板, no 光らせる作品, mini 小さく, nolink 押せない, Lmax そろえる壁の長さ} */
-function lyElevSVG(o, w, op){ op = op || {}; const { P, L } = lyPos(o, w), top = +w.top || 320, mh = Math.max(40, ...w.slots.map(s => +s.h || 0));
-  const Y = Math.max(top + 45, mh + 60), sty = op.mini ? 'width:100%' : `width:100%;min-width:${Math.round(L * .5)}px`;
+function lyElevSVG(o, w, op){ op = op || {}; const { P, L } = lyPos(o, w), tp = Math.max(100, ...w.slots.map(s => lyBot(w, s) + (+s.h || 0)));
+  const Y = tp + 45, sty = op.mini ? 'width:100%' : `width:100%;min-width:${Math.round(L * .5)}px`;
   const fs = s => Math.max(9, Math.min(24, (+s.h || 80) * .27, (+s.w || 100) * .21));
-  const g = w.slots.map((s, i) => { const x = P[s.id], y = Y - top, c = lyCat(s), on = (op.cur && op.cur === s.id) || (op.no && String(s.no) === String(op.no)), f = fs(s), cx = x + (+s.w || 0) / 2, dark = c === 'none' || c === 'unk';
+  const g = w.slots.map((s, i) => { const x = P[s.id], y = Y - lyBot(w, s) - (+s.h || 0), c = lyCat(s), on = (op.cur && op.cur === s.id) || (op.no && String(s.no) === String(op.no)), f = fs(s), cx = x + (+s.w || 0) / 2, dark = c === 'none' || c === 'unk';
     const t2 = s.no ? String(s.no) : s.st === '廃棄' ? '廃棄' : s.st === '譲渡' ? '譲渡' : '';
     return `<g${op.nolink ? '' : ` data-lys="${esc(op.id)}|${esc(s.id)}"`}><rect class="lyb c-${c}${s.est ? ' est' : ''}${on ? ' cur' : ''}" x="${x.toFixed(1)}" y="${y}" width="${+s.w || 0}" height="${+s.h || 0}"/>${op.mini ? '' : `<text class="${dark ? 'dk' : ''}" x="${cx.toFixed(1)}" y="${(y + f * 1.15).toFixed(1)}" font-size="${f.toFixed(1)}">${esc(lyLab(w, i))}</text>${t2 ? `<text class="${dark ? 'dk' : ''} b" x="${cx.toFixed(1)}" y="${(y + f * 2.35).toFixed(1)}" font-size="${f.toFixed(1)}">${esc(t2)}</text>` : ''}`}</g>`; }).join('');
   const e = LYEND[w.k], ef = op.mini ? 40 : 22;
@@ -12377,8 +12383,9 @@ function lyPlanSVG(o, id){ const W = +o.room.w || 990, D = +o.room.d || 1570, t 
     if (w.k === 'C') { x = p; y = 0; rw = sw; rh = t; } else if (w.k === 'L') { x = 0; y = D - p - sw; rw = t; rh = sw; } else if (w.k === 'R') { x = W - t; y = p; rw = t; rh = sw; } else { x = W - p - sw; y = D - t; rw = sw; rh = t; }
     g += `<rect class="lyb c-${lyCat(s)}${s.est ? ' est' : ''}" data-lys="${esc(id)}|${esc(s.id)}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${rw.toFixed(1)}" height="${rh.toFixed(1)}"/>`; }); });
   const tx = (x, y, s, k, r) => `<text x="${x}" y="${y}"${k ? ` data-lyw="${k}"` : ''}${r ? ` transform="rotate(${r} ${x} ${y})"` : ''}>${s}</text>`;
-  return `<svg class="lyplan" viewBox="${-M} ${-M} ${W + 2 * M} ${D + 2 * M}" role="img" aria-label="展示室の見取り図"><rect class="lyroom" x="0" y="0" width="${W}" height="${D}"/>${g}
-    <g class="lypt">${tx(W / 2, -50, '奥の壁', 'C')}${tx(-55, D / 2, '左の壁', 'L', -90)}${tx(W + 55, D / 2, '右の壁', 'R', 90)}${tx(W / 2, D + 95, '入口側', 'F')}</g><text class="lypm" x="${W / 2}" y="${D / 2}">${lyM(W)} × ${lyM(D)}</text></svg>`; }
+  const dr = lyDoor(o);
+  return `<svg class="lyplan" viewBox="${-M} ${-M} ${W + 2 * M} ${D + 2 * M}" role="img" aria-label="展示室の見取り図"><rect class="lyroom" x="0" y="0" width="${W}" height="${D}"/><rect class="lydoor" x="${dr.x}" y="${D - 14}" width="${dr.w}" height="28"/>${g}
+    <g class="lypt">${tx(W / 2, -50, '奥の壁', 'C')}${tx(-55, D / 2, '左の壁', 'L', -90)}${tx(W + 55, D / 2, '右の壁', 'R', 90)}${tx(dr.x + dr.w / 2, D + 95, '入口', 'F')}</g><text class="lypm" x="${W / 2}" y="${D / 2}">${lyM(W)} × ${lyM(D)}</text></svg>`; }
 function lyCounts(o){ const n = {}; lyWalls(o).forEach(w => w.slots.forEach(s => { const c = lyCat(s); n[c] = (n[c] || 0) + 1; })); return n; }
 const lyLegend = n => `<div class="lylg">${LYC.map(([k, t]) => `<span><i class="lydot c-${k}"></i>${t}${n && n[k] ? `<b>${n[k]}枚</b>` : ''}</span>`).join('')}<span class="lyest"><i class="lydot est"></i>点線：大きさは写真からの推定</span></div>`;
 let LU = null; /* さっきの変更（3分は「もどす」） */
@@ -12391,7 +12398,7 @@ function openLay(id, keepScroll, restoreSc){ const r = lyRow(id); if (!r) return
     <div class="pagebody one lypage"><div class="eyebrow">配置図（展示風景の再現）</div>
     <h2 class="title">${esc(r['名前'] || '配置図')}</h2>${where ? `<div class="tombstone">${esc(where)}</div>` : ''}
     <p class="hint">展示室 間口 ${lyM(o.room.w)} × 奥行き ${lyM(o.room.d)}${o.room.h ? '・天井 ' + lyM(o.room.h) : ''}。いま分かっている板 ${all.length}枚・作品群 ${mem.length}点${unpl ? '（そのうち板の決まっていない作品 ' + unpl + '点）' : ''}。板の位置と大きさは目安です。</p>
-    <div class="lytop">${lyPlanSVG(o, id)}${lyLegend(lyCounts(o))}</div>
+    <div class="lytop">${lyPlanSVG(o, id)}${lyLegend(lyCounts(o))}</div>${typeof exvIsAdm === 'function' && exvIsAdm() && all.length ? `<button type="button" class="act lyexv" data-lyexv="${esc(id)}">展示ビューで部屋を見る</button>` : ''}
     <h3 class="sec">壁ごとの並び</h3><p class="hint">部屋の中から壁に向かって見た並びです。板を押すと、その板の作品と今の場所が出ます。${ce ? '作品を決める・板を足すときは、右上の「編集」を押してから板を押してください。' : ''}</p>
     ${ws.map(w => `<div class="lywall" id="lyw-${w.k}"><div class="lywh"><b>${LYW[w.k]}</b><small>${lyM(lyLen(o, w.k))}・板 ${w.slots.length}枚</small></div>
       ${w.slots.length ? `<div class="lyel" style="width:${(lyLen(o, w.k) / Lmax * 100).toFixed(2)}%">${lyElevSVG(o, w, { id })}</div>` : '<p class="hint">板はまだありません。</p>'}${lyPos(o, w).over ? '<p class="hint lywarn">板の幅の合計が、壁の長さより長くなっています。板の大きさを見直してください。</p>' : ''}
@@ -12480,11 +12487,14 @@ function lyRoom(id){ const r = lyRow(id); if (!r) return; const o = lyBody(r), v
     <label class="lyf"><span>配置図の名前</span><input id="lyNm" value="${v(r['名前'])}"></label>
     <div class="lyf3"><label><span>間口（奥の壁）</span><input id="lyRw" inputmode="decimal" value="${v(o.room.w)}"></label><label><span>奥行き（左右の壁）</span><input id="lyRd" inputmode="decimal" value="${v(o.room.d)}"></label><label><span>天井の高さ</span><input id="lyRh" inputmode="decimal" value="${v(o.room.h)}"></label></div>
     ${r['展覧会ID'] ? '' : `<label class="lyf"><span>場所</span><input id="lyPl" value="${v(o.place)}"></label><label class="lyf"><span>時期</span><input id="lyDt" value="${v(o.date)}"></label>`}
-    <b>壁（使う壁と、板の上の端の高さ）</b>${o.walls.map(w => `<div class="lywr"><label><input type="checkbox" data-lywon="${w.k}"${w.on ? ' checked' : ''}${w.slots.length ? ' disabled' : ''}> ${LYW[w.k]}</label><span>板の上の端：床から <input data-lywtop="${w.k}" inputmode="decimal" value="${v(w.top)}"> cm</span></div>`).join('')}
+    <div class="lyf3"><label><span>入口側の低い天井の高さ</span><input id="lyRh2" inputmode="decimal" value="${v(o.room.h2)}" placeholder="なし"></label><label><span>低い天井の奥行き（入口から）</span><input id="lyRd2" inputmode="decimal" value="${v(o.room.d2)}"></label><span></span></div>
+    <b>入口（扉なし）</b><div class="lyf3"><label><span>左の壁から入口まで</span><input id="lyDx" inputmode="decimal" value="${v(lyDoor(o).x)}"></label><label><span>入口の幅</span><input id="lyDw" inputmode="decimal" value="${v(lyDoor(o).w)}"></label><label><span>入口の高さ</span><input id="lyDh" inputmode="decimal" value="${v(lyDoor(o).h)}"></label></div>
+    <b>壁（使う壁と、板の下の端の高さ）</b>${o.walls.map(w => `<div class="lywr"><label><input type="checkbox" data-lywon="${w.k}"${w.on ? ' checked' : ''}${w.slots.length ? ' disabled' : ''}> ${LYW[w.k]}</label><span>板の下の端：床から <input data-lywbot="${w.k}" inputmode="decimal" value="${v(w.base != null ? w.base : '')}" placeholder="${w.base != null ? '' : '上の端 ' + v(w.top) + ' でそろえている'}"> cm</span></div>`).join('')}
     <div class="btns"><button type="button" data-close>やめる</button><button type="button" class="primary" id="lyRoomOk">保存</button></div>`);
   $('#lyRoomOk').onclick = async () => { const o2 = lyClone(o), n = s => { const x = parseFloat(String(s || '').normalize('NFKC')); return x > 0 ? Math.round(x * 10) / 10 : 0; }, val = id => (($('#' + id) || {}).value || '');
-    o2.room = { w: n(val('lyRw')) || o.room.w, d: n(val('lyRd')) || o.room.d, h: n(val('lyRh')) || o.room.h }; if ($('#lyPl')) { o2.place = val('lyPl').trim(); o2.date = val('lyDt').trim(); }
-    o2.walls.forEach(w => { const c = document.querySelector(`[data-lywon="${w.k}"]`), t = document.querySelector(`[data-lywtop="${w.k}"]`); w.on = !!(c && c.checked) || w.slots.length > 0; const tv = n(t && t.value); if (tv) w.top = tv; });
+    o2.room = { w: n(val('lyRw')) || o.room.w, d: n(val('lyRd')) || o.room.d, h: n(val('lyRh')) || o.room.h }; const h2 = n(val('lyRh2')), d2 = n(val('lyRd2')); if (h2 && d2) { o2.room.h2 = h2; o2.room.d2 = d2; } if ($('#lyPl')) { o2.place = val('lyPl').trim(); o2.date = val('lyDt').trim(); }
+    { const dx = parseFloat(String(val('lyDx')).normalize('NFKC')), dw = n(val('lyDw')), dh = n(val('lyDh')); o2.door = { x: dx >= 0 ? Math.round(dx * 10) / 10 : lyDoor(o).x, w: dw || lyDoor(o).w, h: dh || lyDoor(o).h }; }
+    o2.walls.forEach(w => { const c = document.querySelector(`[data-lywon="${w.k}"]`), t = document.querySelector(`[data-lywbot="${w.k}"]`); w.on = !!(c && c.checked) || w.slots.length > 0; const tv = t ? parseFloat(String(t.value || '').normalize('NFKC')) : NaN; if (tv >= 0) { w.base = Math.round(tv * 10) / 10; delete w.top; } });
     if (await lySave(id, o2, '部屋の大きさ・壁の設定', { name: val('lyNm').trim() || r['名前'] })) { closeSheet(); toast('保存しました'); lyRefresh(id); } }; }
 /* 作品ページの欄・展覧会のページの欄 */
 function lyOfNo(no){ no = String(no); return (S.layouts || []).filter(r => { const o = lyBody(r); return o.works.includes(no) || o.walls.some(w => w.slots.some(s => String(s.no) === no)); }); }
@@ -12513,6 +12523,7 @@ document.addEventListener('click', e => { const t = e.target; if (!t || !t.close
   const rm = t.closest('[data-lyroom]'); if (rm) { lyRoom(rm.dataset.lyroom); return; }
   const ud = t.closest('[data-lyundo]'); if (ud) { lyUndo(ud.dataset.lyundo); return; }
   const nw = t.closest('[data-lynew]'); if (nw) { lyNew(nw.dataset.lynew); return; }
+  const xv = t.closest('[data-lyexv]'); if (xv) { exvOpen('ly:' + xv.dataset.lyexv); return; }
   if (!LYE || !t.closest('#lyss')) return;
   const pk = t.closest('[data-lypick]'); if (pk) { lyRead(); const d = LYE.d; d.no = pk.dataset.lypick; delete d.st; delete d.to; lySlotDraw(); return; }
   const st = t.closest('[data-lyst]'); if (st) { lyRead(); const d = LYE.d; delete d.no; if (st.dataset.lyst) d.st = st.dataset.lyst; else { delete d.st; delete d.to; } lySlotDraw(); return; }
@@ -12687,9 +12698,12 @@ document.addEventListener('click', e => { const t = e.target; if (!t || !t.close
   if (t.closest('[data-slsave]')) { slaySave(false); return; }
   if (t.closest('[data-sldel]')) { slaySave(true); return; } });
 function exvWorks(noF){ const L = [], keep = noF ? null : exvKeep();
+  /* 配置図の部屋（10/20 開発 v22）：板のある配置図。板に入れた作品は部屋の中に掛けるので、並びからは外す */
+  const LYR = (S.layouts || []).map(r => { const o = lyBody(r); return { r, o, mem: lyMembers(o).filter(m => m.w), asg: [...new Set(lyWalls(o).flatMap(w => w.slots.map(x => String(x.no || '')).filter(Boolean)))] }; })
+    .filter(R => lyWalls(R.o).some(w => w.slots.length) && (!keep || R.mem.some(m => keep.has(m.no)))), LYH = new Set(LYR.flatMap(R => R.asg));
   const GIN = new Set(); (S.groups || []).forEach(g => grpL(g).forEach(x => { if (x) GIN.add(x); })); /* 組のパーツは、下で1つの作品にまとめる */
   (EXVSET ? (S.works || []).concat((S.others || []).filter(w => keep && keep.has(String(w['作品番号'])))) : (S.works || [])).forEach(w => { const no = w['作品番号'], p = (photoBy[no] || [])[0], id = p && p['ファイルID']; /* 画集・展覧会ごとのときは、その他の作品（版画など）も */
-    if (GIN.has(String(no)) || !id || (keep && !keep.has(String(no))) || /廃棄|統合済み/.test(String(w['所在'] || '') + ' ' + String(w['状態'] || ''))) return;
+    if (GIN.has(String(no)) || LYH.has(String(no)) || !id || (keep && !keep.has(String(no))) || /廃棄|統合済み/.test(String(w['所在'] || '') + ' ' + String(w['状態'] || ''))) return;
     const d = dimMain(w), h0 = +d['高さcm'] || 0, wd0 = +d['幅cm'] || 0;
     const pn = pnSpec(w), pnIds = pn && pn.ids.length ? pn.ids.map(i => ((photoBy[no] || []).find(x => x['写真ID'] === i) || {})['ファイルID']) : [], pnOk = pn && h0 > 0 && wd0 > 0 && (!pnIds.length || (pnIds.every(Boolean) && pn.n % pnIds.length === 0));
     const set = pnOk ? { n: pn.n, ids: pnIds.length ? pnIds : [id], per: pn.n / (pnIds.length || 1), cols: pn.cols, gap: pn.gap, vgap: pn.vgap, pw: wd0, ph: h0, pan: true } : null; /* 何面かで1組は「展示ビューの設定」（枚数・展示の形）で決める。前は補足などの「◯面」を読んで自動で分けていた（10/10 本人：No.338 祭が2枚に分かれたため、自動はやめた） */
@@ -12703,6 +12717,9 @@ function exvWorks(noF){ const L = [], keep = noF ? null : exvKeep();
     reg.forEach(x => { x.pd = { no: x.no, w: x.w, h: x.h, wd: x.wd, est: x.est, frame: szKind(x.w) === 'frame', cp: x.cp }; });
     L.push({ no: reg[0].no, nos: reg.map(x => String(x.no)), w: Object.assign({}, w0, { '作品名': grpName(g) }), id: p0 ? p0.id : '', grp: { gid: g['組ID'], name: grpName(g), slots: sl, reg, x: xs, W: X, H, gap: gg, sep: grpSep(g) }, set: null,
       y: Math.min(...reg.map(x => yearOf(x.w['制作年']))), s: String(w0['シリーズ'] || '').trim(), h: H, wd: X, est: false, frame: false, b: false, k: false, cp: null }); });
+  LYR.forEach(R => { const { r, o } = R, x = r['展覧会ID'] ? exById[r['展覧会ID']] : null, y = parseInt(String((x && x['開始日']) || o.date || '').replace(/[^0-9]/g, '').slice(0, 4), 10) || 9999, dr = lyDoor(o);
+    L.push({ no: 'ly:' + r['配置ID'], nos: R.asg, w: { '作品名': (r['名前'] || '配置図') + '（展示室）', '制作年': y < 9999 ? y + '年' : '' }, id: '', room: { id: r['配置ID'], r, o, x, door: dr, ws: R.mem.map(m => m.w), k: String(r['更新日時'] || '') + '|' + String(r['中身'] || '').length },
+      set: null, yb: 0, y, s: '', h: dr.h, wd: dr.w, est: false, frame: false, b: false, k: false, cp: null }); });
   const gy = {}; L.forEach(d => { if (d.s) gy[d.s] = Math.min(gy[d.s] == null ? 99999 : gy[d.s], d.y); }); /* シリーズは、いちばん古い作品の年のところにまとめる */
   const SL = {}; (S.slays || []).forEach(r => { const nm = String(r['シリーズ'] || '').trim(); if (nm) SL[nm] = slayCfg(r); }); /* シリーズの並べ方（並び順・列数・すき間） */
   const sOrd = d => { const c = d.s && SL[d.s]; if (!c) return 0; const i = c.list.indexOf(String(d.no)); return i < 0 ? 9999 : i; };
@@ -12853,9 +12870,9 @@ document.addEventListener('click', e => { const t = e.target;
 function exvLocTxt(ws){ const a = ws.map(w => String((w && (w['所在区分'] === '自宅' ? '自宅' : (w['所在'] || w['所在区分']))) || '').trim() || '不明'), u = [...new Set(a)]; if (!u.length) return ''; /* 自宅は「自宅」だけ（中の場所は出さない。10/7 本人） */
   if (u.length === 1) return /^(不明|わからない)$/.test(u[0]) ? '場所不明' : u[0];
   const C = {}; a.forEach(x => { if (!/^(不明|わからない)$/.test(x)) C[x] = (C[x] || 0) + 1; }); const k = Object.keys(C).sort((p, q) => C[q] - C[p])[0]; return k ? k + 'など' : '場所不明'; }
-const exvLocOf = d => exvLocTxt(d.grp ? d.grp.reg.map(x => x.w) : d.tri ? d.tri.nos.map(grpW).filter(Boolean) : [d.w]);
+const exvLocOf = d => exvLocTxt(d.room ? d.room.ws : d.grp ? d.grp.reg.map(x => x.w) : d.tri ? d.tri.nos.map(grpW).filter(Boolean) : [d.w]);
 const exvHas = (d, no) => String(d.no) === String(no) || !!(d.nos && d.nos.includes(String(no))); /* 組はどのパーツの番号でも */
-const exvSig = L => L.map(d => [d.no, d.id, (d.yb != null ? 'y' + d.yb + '/' : '') + (d.seg ? 's' + d.seg.length + '/' + (exvSegG(d.w) == null ? '' : exvSegG(d.w)) + '/' : '') + (d.set ? d.set.ids.join(',') + '/' + (d.set.cols || '') + '/' + (d.set.per || '') + '/' + (d.set.gap || 0) + '/' + (d.set.vgap || 0) : ''), d.grp ? d.grp.name + '#' + (d.grp.gap || 0) + (d.grp.sep ? 's' : '') + '#' + d.grp.slots.map(x => [x.no, x.id, x.h, x.wd].join(':')).join(',') : '', d.slay ? d.slay.cols + '/' + d.slay.gap + '/' + d.slay.vgap + '/' + (d.slay.hand ? 'h/' : '') + d.slay.list.join(',') : '', d.h, d.wd, d.y, d.s, d.b ? 1 : 0, d.k ? 1 : 0, d.frame ? 1 : 0, d.w['作品名'], d.w['制作年'], d.w['画材'], d.w['仕立て'], d.w['所在'], d.cp ? d.cp.mu : ''].join('|')).join('\n');
+const exvSig = L => L.map(d => [d.no, d.id, d.room ? d.room.k : '', (d.yb != null ? 'y' + d.yb + '/' : '') + (d.seg ? 's' + d.seg.length + '/' + (exvSegG(d.w) == null ? '' : exvSegG(d.w)) + '/' : '') + (d.set ? d.set.ids.join(',') + '/' + (d.set.cols || '') + '/' + (d.set.per || '') + '/' + (d.set.gap || 0) + '/' + (d.set.vgap || 0) : ''), d.grp ? d.grp.name + '#' + (d.grp.gap || 0) + (d.grp.sep ? 's' : '') + '#' + d.grp.slots.map(x => [x.no, x.id, x.h, x.wd].join(':')).join(',') : '', d.slay ? d.slay.cols + '/' + d.slay.gap + '/' + d.slay.vgap + '/' + (d.slay.hand ? 'h/' : '') + d.slay.list.join(',') : '', d.h, d.wd, d.y, d.s, d.b ? 1 : 0, d.k ? 1 : 0, d.frame ? 1 : 0, d.w['作品名'], d.w['制作年'], d.w['画材'], d.w['仕立て'], d.w['所在'], d.cp ? d.cp.mu : ''].join('|')).join('\n');
 function exvSync(){ if (!EXV || !EXV.sig || !EXV.curNo || EXV.syncT) return; let L; try { L = exvWorks(); } catch(e){ return; } if (!L.length || exvSig(L) === EXV.sig) return;
   const go = () => { if (!EXV || !EXV.curNo) return; EXV.syncT = 0; if (EXV.busy()) { EXV.syncT = setTimeout(go, 1500); return; } /* 動いている・さわっている間は待つ */
     const no = EXV.curNo(), c = EXV.close, st = no != null && L.some(d => exvHas(d, no)) ? String(no) : 0; try { c(); } catch(e){} exvOpen(st, true); }; /* 履歴は増やさない */
@@ -12981,6 +12998,8 @@ async function exvOpen(start, noPush, set){
   catch(e){ const wt = root.querySelector('.xwait'); if (wt) wt.textContent = (e && e.message) || '展示ビューを開けませんでした'; }
 }
 /* 作品ページへ：展示ビューを閉じ（履歴の「展示ビュー」はそのまま作品ページの分に）、作品ページを開く。作品ページを閉じると、同じ作品から展示ビューにもどる（closeWork の 'exv'） */
+/* 展示ビューの部屋のキャプション「配置図へ」：配置図のページを開き、閉じると展示ビューの部屋にもどる（10/20 開発 v22） */
+function exvToLay(id, i){ const set = EXVSET; if (EXV) { const c = EXV.close; try { c(); } catch(e){} } openLay(id); S.stack = [{ t: 'exv', i, no: 'ly:' + id, set }]; try { scrHead(); abSync(); } catch(e){} }
 function exvToWork(no, i){ const set = EXVSET; if (EXV) { const c = EXV.close; try { c(); } catch(e){} } /* 展覧会・画集ごとの展示ビューも覚えておく（close で消えるので先に） */
   OWC = true; try { openWork(no); } finally { OWC = false; } S.stack = [{ t: 'exv', i, no: String(no), set }]; try { scrHead(); abSync(); } catch(e){} }
 /* 共有のリンク（?exv=作品番号）で開いたとき：ログインしてデータがそろったら、その作品から展示ビュー（applyStart と restoreNav から呼ぶ） */
@@ -13050,7 +13069,7 @@ function exvBuild(root, L, start){
   const pick = (pool, kind) => { const near = []; specs.forEach((s, i) => { if (s.k === kind && Math.abs(s.x - st.x) < 30) near.push([Math.abs(s.x - st.x), i]); }); const use = near.sort((a, b) => a[0] - b[0]).slice(0, pool.length).map(a => a[1]);
     pool.forEach(l => { if (!use.includes(l.si)) { l.si = -1; l.intensity = 0; } });
     use.forEach(si => { if (pool.some(l => l.si === si)) return; const l = pool.find(l => l.si < 0), s = specs[si]; l.si = si; l.position.set(s.lx, s.ly, s.lz); l.target.position.set(s.tx, s.ty, 0); l.target.updateMatrixWorld(); l.angle = s.a; l.penumbra = s.pen; l.intensity = s.I; l.color.copy(s.c); }); };
-  const pickLights = () => { pick(LK, 'k'); pick(LFL, 'f'); const sm = v => v <= 0 ? 0 : v >= 1 ? 1 : v * v * (3 - 2 * v), eS = sm(ELF / 0.55), eA = sm((ELF - 0.4) / 0.6); /* 入口の電気：スポットが先に（0〜55%）、全体はあとから（40〜100%） */ const fS = (0.16 + 0.84 * LF) * eS; LS.forEach(l => { if (l.si >= 0) l.intensity = specs[l.si].I * fS; }); HEMI.intensity = 0.5 * (0.42 + 0.58 * LF) * (0.1 + 0.9 * eA); if (ENL.m) ENL.m.envMapIntensity = 0.85 * (0.03 + 0.97 * (0.5 * eS + 0.5 * eA)) * (0.35 + 0.65 * LF);
+  const pickLights = () => { pick(LK, 'k'); pick(LFL, 'f'); const sm = v => v <= 0 ? 0 : v >= 1 ? 1 : v * v * (3 - 2 * v), eS = sm(ELF / 0.55), eA = sm((ELF - 0.4) / 0.6); /* 入口の電気：スポットが先に（0〜55%）、全体はあとから（40〜100%） */ const fS = (0.16 + 0.84 * LF) * eS; LS.forEach(l => { if (l.si >= 0) l.intensity = specs[l.si].I * fS; }); HEMI.intensity = 0.5 * (0.42 + 0.58 * LF) * (0.1 + 0.9 * eA); { const fR = (0.42 + 0.58 * LF) * (0.1 + 0.9 * eA); RMM.forEach(([m, b]) => m.color.setScalar(b * fR)); } /* 配置図の部屋（照明の計算をしない面）も同じように */ if (ENL.m) ENL.m.envMapIntensity = 0.85 * (0.03 + 0.97 * (0.5 * eS + 0.5 * eA)) * (0.35 + 0.65 * LF);
  const vz = st.z + 0.5, vy = 1.9; VL.position.set(st.x + 0.3, st.y + vy, vz); VL.target.position.set(st.x, st.y - 0.1, 0); VL.target.updateMatrixWorld();
     VL.intensity = 0.12 * (0.3 + 0.7 * LF) * eA; VL.angle = Math.min(1.1, Math.max(0.3, Math.atan(st.z * TN * Math.max(1, cam.aspect) * 1.5 / Math.hypot(vy, vz)))); };
 
@@ -13059,7 +13078,7 @@ function exvBuild(root, L, start){
   const LW = 6000, LH = 40, cmap = mkTex(cc), bmap = mkTex(wpt, false); [cmap, bmap].forEach(t => { t.wrapS = t.wrapT = T3.RepeatWrapping; t.repeat.set(LW / 1.2, LH / 1.2); });
   /* 壁は1枚の面。入口の凹みのところだけ四角く穴をあける（hl：穴の左・下・右・上。壁の原点は x=0・高さ CY なので、穴の数字が小さく正確） */
   const wallGeo = hl => { const s = new T3.Shape(); s.moveTo(-20, -LH / 2); s.lineTo(LW - 20, -LH / 2); s.lineTo(LW - 20, LH / 2); s.lineTo(-20, LH / 2); s.closePath();
-    if (hl) { const h = new T3.Path(); h.moveTo(hl[0], hl[1]); h.lineTo(hl[2], hl[1]); h.lineTo(hl[2], hl[3]); h.lineTo(hl[0], hl[3]); h.closePath(); s.holes.push(h); }
+    (hl ? (Array.isArray(hl[0]) ? hl : [hl]) : []).forEach(q => { const h = new T3.Path(); h.moveTo(q[0], q[1]); h.lineTo(q[2], q[1]); h.lineTo(q[2], q[3]); h.lineTo(q[0], q[3]); h.closePath(); s.holes.push(h); }); /* 穴はいくつでも（配置図の部屋の入口。10/20 開発 v22） */
     const g = new T3.ShapeGeometry(s), p = g.attributes.position, uv = g.attributes.uv; for (let i = 0; i < p.count; i++) uv.setXY(i, (p.getX(i) + 20) / LW, (p.getY(i) + LH / 2) / LH); uv.needsUpdate = true; return g; };
   const wall = new T3.Mesh(wallGeo(null), new T3.MeshStandardMaterial({ map: cmap, bumpMap: bmap, bumpScale: 0.006, roughness: 0.96, dithering: true }));
   wall.position.set(0, CY, 0); wall.receiveShadow = true; sc.add(wall);
@@ -13090,6 +13109,50 @@ function exvBuild(root, L, start){
 
   /* 作品 */
   const EXWC = '#d8d7d5', PHL = new T3.Color('#d8d7d5').convertSRGBToLinear(); /* 写真がまだの作品（キャンバス）：色は壁と同じ（ほぼ無彩色）、濃さは前の #dcd6cd と同じくらい（10/7 開発 v11 本人 16:20・16:46） */
+  /* 配置図の部屋（10/20 開発 v22 本人「展示ビューにも同じ部屋を。構造のみ美術館に合わせる・配色はこのまま。作品の並びに入り口（扉はなし）があり、奥に部屋の中が見えてるイメージ」）：
+     並びの壁に入口の穴（wallHoles）をあけ、その奥に展示室（間口・奥行き・天井の高さと入口側の低い天井・入口の位置は配置図の「部屋の大きさ・壁の設定」）。色は展示ビューの壁・床のまま。
+     部屋の中は照明の計算をしない面（MeshBasic）に明るさのむらを描いておく（並びのスポットが壁を通りぬけて部屋を照らさないように）。板は配置図の位置・大きさ（下の端をそろえる）。
+     作品が決まっていれば写真（roomLoad）、まだなら紙の色に板の名前 */
+  const RMM = [];
+  const roomMk = (d, it, g) => { const R = d.room, o = R.o, dr = R.door, Wr = o.room.w / 100, Dr = o.room.d / 100, Hh = (+o.room.h || 460) / 100, Hl = Math.min(Hh, (+o.room.h2 || +o.room.h || 460) / 100), dl = Hl < Hh ? Math.min(Dr - 1, Math.max(0, (+o.room.d2 || 0) / 100)) : 0;
+    const dW = dr.w / 100, dH = Math.min(dr.h / 100, (dl > 0 ? Hl : Hh) - 0.05), x0 = -(dr.x / 100 + dW / 2), x1 = x0 + Wr, xc = (x0 + x1) / 2, TK = 0.15;
+    const vg = st2 => { const [c, x] = cvs(4, 256), gr = x.createLinearGradient(0, 0, 0, 256); st2.forEach(([q, v]) => gr.addColorStop(q, 'rgb(' + v + ',' + v + ',' + Math.round(v * 0.985) + ')')); x.fillStyle = gr; x.fillRect(0, 0, 4, 256); return mkTex(c); };
+    const wT = vg([[0, 212], [0.22, 236], [0.6, 247], [0.9, 238], [1, 224]]); /* 壁：天井ぎわと床ぎわを少し暗く（上が 0） */
+    const bm = (b, map, o2) => { const m = new T3.MeshBasicMaterial(Object.assign({ map: map || null, side: T3.DoubleSide, dithering: true }, o2 || {})); m.color.setScalar(b); RMM.push([m, b]); return m; };
+    const q = (w, h, px, py, pz, rx, ry, m) => { const p = new T3.Mesh(new T3.PlaneGeometry(w, h), m); p.position.set(px, py, pz); p.rotation.set(rx || 0, ry || 0, 0); g.add(p); return p; };
+    const mW = bm(0.97, wT), mWs = bm(0.9, wT), mWf = bm(0.83, wT), mC = bm(0.8), mC2 = bm(0.88), mJ = bm(0.86), fw = wdt.clone(); fw.needsUpdate = true; fw.repeat.set(Wr / 2.4, Dr / 2.4); const mF = bm(0.84, fw);
+    q(Wr, Dr - 0.002, xc, 0, -Dr / 2 - 0.001, -Math.PI / 2, 0, mF); /* 床（並びと同じ木） */
+    const Ds = Dr - TK, zs = -(TK + Dr) / 2; q(Wr, Hh, xc, Hh / 2, -Dr, 0, 0, mW); q(Ds, Hh, x0, Hh / 2, zs, 0, Math.PI / 2, mWs); q(Ds, Hh, x1, Hh / 2, zs, 0, -Math.PI / 2, mWs); /* 奥の壁・左右の壁（左右は入口の壁の裏から。並びの壁と同じ面に端が来ると、線がちらつく） */
+    const hE = dl > 0 ? Hl : Hh, rw = x1 - dW / 2; /* 入口の壁（部屋の側）：入口のまわりの3枚と、入口の厚み */
+    if (dr.x > 0) q(dr.x / 100, hE, x0 + dr.x / 200, hE / 2, -TK, 0, Math.PI, mWf); if (rw > 0.001) q(rw, hE, dW / 2 + rw / 2, hE / 2, -TK, 0, Math.PI, mWf); if (hE > dH) q(dW, hE - dH, 0, (dH + hE) / 2, -TK, 0, Math.PI, mWf);
+    q(TK, dH, -dW / 2, dH / 2, -TK / 2, 0, Math.PI / 2, mJ); q(TK, dH, dW / 2, dH / 2, -TK / 2, 0, -Math.PI / 2, mJ); q(dW, TK, 0, dH, -TK / 2, Math.PI / 2, 0, mJ);
+    if (dl > 0) { q(Wr, dl - TK, xc, Hl, -(TK + dl) / 2, Math.PI / 2, 0, mC); q(Wr, Hh - Hl, xc, (Hl + Hh) / 2, -dl, 0, 0, mWf); /* 入口側の低い天井と、段の面 */
+      if (dl > 1) { const dm = bm(1), cg = new T3.CircleGeometry(0.08, 18); for (let xx = x0 + 1.1; xx < x1 - 0.5; xx += 1.75) for (let zz = -TK - 0.85; zz > -dl + 0.35; zz -= 1.6) { const c = new T3.Mesh(cg, dm); c.position.set(xx, Hl - 0.003, zz); c.rotation.x = Math.PI / 2; g.add(c); } } } /* 小さな照明 */
+    const dh = Dr - dl; q(Wr, dh, xc, Hh, -(dl + dh / 2), Math.PI / 2, 0, mC2); /* 高い天井 */
+    q(Math.max(1, Wr - 1.8), Math.max(1, dh - 1.8), xc, Hh - 0.004, -(dl + dh / 2), Math.PI / 2, 0, bm(1)); /* 天井の光る面 */
+    const aoM = new T3.MeshBasicMaterial({ map: grad(0.17, false), transparent: true, depthWrite: false }); [[Wr, xc, -Dr + 0.003, 0], [Ds, x0 + 0.003, zs, Math.PI / 2], [Ds, x1 - 0.003, zs, -Math.PI / 2]].forEach(([ln, px, pz, ry]) => q(ln, 0.44, px, 0.22, pz, 0, ry, aoM)); /* 壁の下の陰 */
+    const sdM = bm(0.6), shM = new T3.MeshBasicMaterial({ color: 0, transparent: true, opacity: 0.14, depthWrite: false }); it.rmP = [];
+    lyWalls(o).forEach(w => { const { P } = lyPos(o, w); w.slots.forEach((sl, i) => { const pw = (+sl.w || 0) / 100, ph = (+sl.h || 0) / 100; if (!(pw > 0 && ph > 0)) return; const a = (P[sl.id] || 0) / 100 + pw / 2, yb = lyBot(w, sl) / 100, pg = new T3.Group();
+      if (w.k === 'C') pg.position.set(x0 + a, 0, -Dr); else if (w.k === 'L') { pg.position.set(x0, 0, -a); pg.rotation.y = Math.PI / 2; } else if (w.k === 'R') { pg.position.set(x1, 0, -Dr + a); pg.rotation.y = -Math.PI / 2; } else { pg.position.set(x1 - a, 0, -TK); pg.rotation.y = Math.PI; }
+      const N = 512, cw = pw >= ph ? N : Math.max(8, Math.round(N * pw / ph)), ch = pw >= ph ? Math.max(8, Math.round(N * ph / pw)) : N, [c, x] = cvs(cw, ch), tx = mkTex(c), lab = lyLab(w, i);
+      x.fillStyle = EXWC; x.fillRect(0, 0, cw, ch); x.fillStyle = '#b3aea6'; x.font = '400 ' + Math.round(Math.min(cw, ch) * 0.16) + 'px ' + FONT; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(lab, cw / 2, ch / 2); tx.needsUpdate = true;
+      const pn = new T3.Mesh(new T3.BoxGeometry(pw, ph, 0.03), [sdM, sdM, sdM, sdM, bm(0.94, tx), sdM]); pn.position.set(0, yb + ph / 2, 0.016); const sh = new T3.Mesh(new T3.PlaneGeometry(pw + 0.035, ph + 0.035), shM); sh.position.set(0, yb + ph / 2 - 0.012, 0.002);
+      pg.add(sh, pn); g.add(pg); it.rmP.push({ w, i, sl, x, tx, cw, ch }); }); });
+    const aoD = new T3.Mesh(new T3.PlaneGeometry(0.01, 0.01), new T3.MeshBasicMaterial({ transparent: true, opacity: 0 })); aoD.raycast = () => {}; g.add(aoD);
+    g.position.y = 0; Object.assign(it, { W: dW + 1.2, ao: aoD, aoMk: () => null }); };
+  /* 板に入れた作品の写真：同じ作品が続く板（同じ壁でとなり）は、1枚の写真を板の幅で分ける */
+  const roomLoad = it => { if (it.rmL) return; it.rmL = 1; const runs = [];
+    (it.rmP || []).forEach(p => { const no = String(p.sl.no || ''), l = runs[runs.length - 1]; if (!no) return; if (l && l.no === no && l.k === p.w.k && l.i1 === p.i - 1) { l.ps.push(p); l.i1 = p.i; } else runs.push({ no, k: p.w.k, i1: p.i, ps: [p] }); });
+    runs.forEach(R2 => { const ph = (photoBy[R2.no] || []).find(x => x['ファイルID'] && x['種類'] !== '記録写真'), id = ph && ph['ファイルID']; if (!id || HIDPH(id)) return;
+      exvThumb(id, 800, 30000).then(src => src ? loadImg(src) : null).then(im => { if (!im || dead) return; const iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height; if (!iw || !ih) return;
+        const TW = R2.ps.reduce((a, p) => a + (+p.sl.w || 0), 0), TH2 = Math.max(...R2.ps.map(p => +p.sl.h || 0)), tr = TW / TH2, ir = iw / ih; let sx = 0, sy = 0, sw = iw, sh = ih;
+        if (Math.abs(ir / tr - 1) > 0.06) { if (ir > tr) { sw = ih * tr; sx = (iw - sw) / 2; } else { sh = iw / tr; sy = (ih - sh) / 2; } } /* 形が合わないときは、まん中を切り出す */
+        let off = 0; R2.ps.forEach(p => { const f = (+p.sl.w || 0) / TW; p.x.clearRect(0, 0, p.cw, p.ch); p.x.drawImage(im, sx + sw * off, sy, sw * f, sh, 0, 0, p.cw, p.ch); off += f; p.tx.needsUpdate = true; }); redraw(); }).catch(() => {}); }); };
+  /* 並びの壁の穴（部屋の入口）と、壁ぎわの陰の帯を入口のところで切る */
+  const aoCut = m => { (m.userData.parts || []).forEach(p => { sc.remove(p); p.geometry.dispose(); }); m.userData.parts = []; if (!RMH.length) { m.visible = true; return; } m.visible = false; let a = -20;
+    RMH.map(h => [h[0], h[2]]).sort((p, q) => p[0] - q[0]).concat([[LW - 20, LW - 20]]).forEach(([l, rr]) => { if (l - a > 0.01) { const p = new T3.Mesh(new T3.PlaneGeometry(l - a, m.geometry.parameters.height), m.material); p.rotation.copy(m.rotation); p.position.set((a + l) / 2, m.position.y, m.position.z); p.raycast = () => {}; sc.add(p); m.userData.parts.push(p); } a = Math.max(a, rr); }); };
+  const wallHoles = () => { RMH = items.filter(it => it.d.room).map(it => { const dr = it.d.room.door, x = it.g.position.x, w = dr.w / 100, o = it.d.room.o, hm = ((+o.room.h2 || +o.room.h || 460) / 100) - 0.05; return [x - w / 2, -CY - 0.05, x + w / 2, Math.min(dr.h / 100, hm) - CY]; });
+    wall.geometry.dispose(); wall.geometry = wallGeo([NHL].concat(RMH).filter(Boolean)); aoCut(aoW); aoCut(aoF); };
   const items = L.map((d, i) => { const w = d.wd / 100, h = d.h / 100, g = new T3.Group(), [cv, x0] = cvs(16, 16); x0.fillStyle = EXWC; x0.fillRect(0, 0, 16, 16);
     const base = mkTex(cv), it = { d, w, h, g, cv, tx: [base], req: 0, wm: w, hm: h, rv: { value: 1 }, yc: d.yb != null && !d.b && !d.grp && !d.tri ? d.yb / 100 + h / 2 : null }; /* 設置の高さ（展示の形「床から◯」）。なければ絵のまん中を CY に */
     it.dt = { tex: { value: null }, rect: { value: new T3.Vector4(0, 0, 0, 0) }, on: { value: 0 }, key: '' }; /* 近づいたときの細かい部分（detUp） */
@@ -13098,7 +13161,8 @@ function exvBuild(root, L, start){
       m.onBeforeCompile = sh => { sh.uniforms.uRv = it.rv; sh.uniforms.uPh = { value: PHL }; sh.uniforms.uDet = it.dt.tex; sh.uniforms.uDR = it.dt.rect; sh.uniforms.uDOn = it.dt.on;
         sh.fragmentShader = 'uniform float uRv;\nuniform vec3 uPh;\nuniform sampler2D uDet;\nuniform vec4 uDR;\nuniform float uDOn;\n' + sh.fragmentShader.replace('#include <map_fragment>', '#ifdef USE_MAP\n\tvec4 texelColor = texture2D( map, vUv );\n\tif ( uDOn > 0.5 && vUv.x >= uDR.x && vUv.x <= uDR.z && vUv.y >= uDR.y && vUv.y <= uDR.w ) texelColor = texture2D( uDet, ( vUv - uDR.xy ) / ( uDR.zw - uDR.xy ) );\n\ttexelColor = mapTexelToLinear( texelColor );\n\tdiffuseColor *= vec4( mix( uPh, texelColor.rgb, uRv ), texelColor.a );\n#endif'); };
       m.customProgramCacheKey = () => 'exvArtFade2'; return m; };
-    if (d.grp) { /* 組（パーツ）：パーツをすき間なしで横にくっつける。写真は全部を1枚の絵にまとめて（grpCompose）、パーツごとに貼り分ける。台帳にない・写真のないパーツは、紙に番号 */
+    if (d.room) roomMk(d, it, g); /* 配置図の部屋（10/20 開発 v22） */
+    else if (d.grp) { /* 組（パーツ）：パーツをすき間なしで横にくっつける。写真は全部を1枚の絵にまとめて（grpCompose）、パーツごとに貼り分ける。台帳にない・写真のないパーツは、紙に番号 */
       const G = d.grp, sF = Math.sqrt(w * h), dep = Math.min(0.05, Math.max(0.022, 0.018 + 0.02 * sF)), off = -0.003, cb = 0.012 + dep * 0.4;
       G.slots.forEach((sl, j) => { const pw = sl.wd / 100, ph = sl.h / 100, t = j ? base.clone() : base; if (j) { t.needsUpdate = true; it.tx.push(t); } t.repeat.set(sl.wd / G.W, sl.h / G.H); t.offset.set(G.x[j] / G.W, (G.H - sl.h) / (2 * G.H));
         const pn = new T3.Mesh(new T3.BoxGeometry(pw, ph, dep), [side, side, side, side, artM(t), side]); pn.position.set(-w / 2 + (G.x[j] + sl.wd / 2) / 100, 0, off + dep / 2); pn.castShadow = true; g.add(pn, cStrip(pw + 0.004, cb, 0.46, pn.position.x, -ph / 2 - cb / 2 + 0.001, 0)); });
@@ -13196,7 +13260,8 @@ function exvBuild(root, L, start){
   const ND = 0.07, nM = new T3.MeshStandardMaterial({ color: '#f9f8f5', roughness: 0.96, dithering: true }), nG = new T3.Group(); sc.add(nG);
   const nP = [0, 1, 2, 3, 4].map(() => { const m = new T3.Mesh(new T3.PlaneGeometry(1, 1), nM); m.receiveShadow = true; m.raycast = () => {}; nG.add(m); return m; });
   const nSh = new T3.Mesh(new T3.PlaneGeometry(1, 1), new T3.MeshBasicMaterial({ map: grad(0.26, true, [[0, 1], [0.18, 0.62], [0.45, 0.24], [0.75, 0.06], [1, 0]]), transparent: true, depthWrite: false })); nSh.raycast = () => {}; nG.add(nSh);
-  const niche = (NW, NH, cy) => { nG.visible = !!NW; wall.geometry.dispose(); wall.geometry = wallGeo(NW ? [0, cy - NH / 2 - CY, NW, cy + NH / 2 - CY] : null); if (!NW) return;
+  let NHL = null, RMH = []; /* 壁の穴：入口の凹み（NHL）と、配置図の部屋の入口（RMH） */
+  const niche = (NW, NH, cy) => { nG.visible = !!NW; wall.geometry.dispose(); NHL = NW ? [0, cy - NH / 2 - CY, NW, cy + NH / 2 - CY] : null; wall.geometry = wallGeo([NHL].concat(RMH).filter(Boolean)); if (!NW) return;
     const [bk, tp, bt, lf, rt] = nP, e = 0.002, zd = -(ND + e) / 2; /* すき間が出ないよう、少しずつ重ねる（重なりは壁の裏や奥の面の裏にかくれる） */
     bk.scale.set(NW + 2 * e, NH + 2 * e, 1); bk.position.set(NW / 2, cy, -ND);
     tp.scale.set(NW + 2 * e, ND + e, 1); tp.rotation.set(Math.PI / 2, 0, 0); tp.position.set(NW / 2, cy + NH / 2, zd);
@@ -13226,7 +13291,9 @@ function exvBuild(root, L, start){
     const mt = String(w0['画材'] || '').trim(), hs = R.map(x => +x.h), ws = R.map(x => +x.wd), ex = !R.some(x => x.est) && Math.max(...hs) - Math.min(...hs) <= 1 && Math.max(...ws) - Math.min(...ws) <= 1;
     const sz = (ex ? '各 H ' + md(hs).toFixed(1) + ' × W ' + md(ws).toFixed(1) : '各 約 H ' + Math.round(md(hs)) + ' × W ' + Math.round(md(ws))) + ' cm（全' + G.slots.length + 'パーツ）', ow = R.map(x => exvOwner(x.w)), cp = (R.find(x => x.cp) || {}).cp;
     return [[R.length > 2 ? R[0].no + '〜' + R[R.length - 1].no : R.map(x => x.no).join('・'), 10.5, 400, '#8a8379', 6, 1], [G.name || '無題', 17, 500, '#2a2724', 6, 1.5], [yr, 11.5, 400, '#46413b', 2.5, 0.4], [mt && !sm(x => String(x.w['画材'] || '').trim()) ? mt + ' など' : mt, 11.5, 400, '#46413b', 2.5, 0.4], [sz, 11.5, 400, '#46413b', 2.5, 0.4], [ow.every(o => o === ow[0]) ? ow[0] : ow[0] + ' など', 11.5, 400, '#46413b', cp ? 4 : 0, 0.4]].concat(cp ? [[cpBookTxt(cp) ? '画像 ' + cpBookTxt(cp) : '画像 © ' + String(cp.mu || '').replace(/^[@＠]/, ''), 9.5, 400, '#8a8379', 0, 0.4]] : []); };
-  const capLines = it => { if (it.d.grp) { if (!it.d.grp.sep && it.d.grp.reg.length > 1) return grpCapLines(it.d.grp); it = { d: it.d.grp.reg[0].pd }; } const w = it.d.w, sz = it.d.tri ? '各 H ' + (+it.d.h).toFixed(1) + ' × W ' + (+it.d.wd).toFixed(1) + ' cm（3点・背中合わせ）' : it.d.set && it.d.set.pan ? '各 H ' + (+it.d.set.ph).toFixed(1) + ' × W ' + (+it.d.set.pw).toFixed(1) + ' cm × ' + it.d.set.n + '枚' : it.d.set ? '各 H ' + (+it.d.set.ph).toFixed(1) + ' × W ' + (+it.d.set.pw).toFixed(1) + ' cm（' + it.d.set.n + '面）' : it.d.est ? '約 H ' + it.d.h + ' × W ' + it.d.wd + ' cm（推定）' : 'H ' + (+it.d.h).toFixed(1) + ' × W ' + (+it.d.wd).toFixed(1) + ' cm' + (it.d.frame ? '（額込み）' : '');
+  const capLines = it => { if (it.d.room) { const R = it.d.room, o = R.o, x = R.x, n = lyWalls(o).reduce((a, w) => a + w.slots.length, 0), mem = lyMembers(o).length; /* 配置図の部屋 */
+      return [['展示室の再現', 10.5, 400, '#8a8379', 6, 1], [R.r['名前'] || '配置図', 17, 500, '#2a2724', 6, 1.5], [x ? (x['名称'] || '') + (x['開始日'] ? '（' + String(x['開始日']).slice(0, 4) + '年）' : '') : o.date || '', 11.5, 400, '#46413b', 2.5, 0.4], [x ? x['会場'] || '' : o.place || '', 11.5, 400, '#46413b', 2.5, 0.4], ['間口 ' + lyM(o.room.w) + ' × 奥行き ' + lyM(o.room.d), 11.5, 400, '#46413b', 2.5, 0.4], ['板 ' + n + '枚・作品群 ' + mem + '点', 11.5, 400, '#46413b', 0, 0.4]]; }
+    if (it.d.grp) { if (!it.d.grp.sep && it.d.grp.reg.length > 1) return grpCapLines(it.d.grp); it = { d: it.d.grp.reg[0].pd }; } const w = it.d.w, sz = it.d.tri ? '各 H ' + (+it.d.h).toFixed(1) + ' × W ' + (+it.d.wd).toFixed(1) + ' cm（3点・背中合わせ）' : it.d.set && it.d.set.pan ? '各 H ' + (+it.d.set.ph).toFixed(1) + ' × W ' + (+it.d.set.pw).toFixed(1) + ' cm × ' + it.d.set.n + '枚' : it.d.set ? '各 H ' + (+it.d.set.ph).toFixed(1) + ' × W ' + (+it.d.set.pw).toFixed(1) + ' cm（' + it.d.set.n + '面）' : it.d.est ? '約 H ' + it.d.h + ' × W ' + it.d.wd + ' cm（推定）' : 'H ' + (+it.d.h).toFixed(1) + ' × W ' + (+it.d.wd).toFixed(1) + ' cm' + (it.d.frame ? '（額込み）' : '');
     return [[it.d.tri ? it.d.tri.nos.join('・') : String(it.d.no), 10.5, 400, '#8a8379', 6, 1], [String(w['作品名'] || '').trim() || '無題', 17, 500, '#2a2724', 6, 1.5], [exvYearTxt(w), 11.5, 400, '#46413b', 2.5, 0.4], [String(w['画材'] || '').trim(), 11.5, 400, '#46413b', 2.5, 0.4], [sz, 11.5, 400, '#46413b', 2.5, 0.4], [exvOwner(w), 11.5, 400, '#46413b', it.d.cp ? 4 : 0, 0.4]].concat(it.d.cp ? [[cpBookTxt(it.d.cp) ? '画像 ' + cpBookTxt(it.d.cp) : '画像 © ' + String(it.d.cp.mu || '').replace(/^[@＠]/, ''), 9.5, 400, '#8a8379', 0, 0.4]] : []); };
   const paint = (it, im) => { const iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height; if (!iw || !it.req) return; const was = it.pt; it.pt = 1; it.fail = 0;
     if (!was) { const dk = !RM && (LFt < 1 || LF < 0.98); it.fd = dk ? 1 : 0; it.rv.value = dk ? 0 : 1; } /* 部屋を暗くしているあいだに初めて届いた写真は、明かりがつくまで見せない。もう出ていた写真（細かい画像への描き直し）は、そのまま明かりだけ（17:20 本人） */
@@ -13269,9 +13336,10 @@ function exvBuild(root, L, start){
     it.hi = 1; };
   const paintX = (it, im, lv) => { if (it.hd && lv < it.hd) return; return it.d.set ? setPaint(it, im, lv) : paint(it, im); }; /* 何面かの組は、全部の面がそろってから */
   const warm = it => { if (it.req) return; it.req = 1; if (it.gh) { it.pt = 1; it.hi = 1; return; } /* 三面の2・3点目 */
-    if (!it.capF.map) { it.capF.map = wallText(capLines(it), CAPW, CAPH, CPAD, '#f6f4f0', true, '作品ページへ'); it.capF.color.set('#ffffff'); it.capF.needsUpdate = true; } it.capM.visible = true; if (it.cpM) it.cpM.visible = true;
+    if (!it.capF.map) { it.capF.map = wallText(capLines(it), CAPW, CAPH, CPAD, '#f6f4f0', true, it.d.room ? '配置図へ' : '作品ページへ'); it.capF.color.set('#ffffff'); it.capF.needsUpdate = true; } it.capM.visible = true; if (it.cpM) it.cpM.visible = true;
     (it.xc || []).forEach(c => { if (!c.F.map) { c.F.map = wallText(capLines({ d: c.sl.pd }), CAPW, CAPH, CPAD, '#f6f4f0', true, '作品ページへ'); c.F.color.set('#ffffff'); c.F.needsUpdate = true; } c.m.visible = true; });
     if (!it.ao.material.map) { it.ao.material.map = it.aoMk(); it.ao.material.needsUpdate = true; } it.ao.visible = true;
+    if (it.d.room) { it.pt = 1; it.hi = 1; roomLoad(it); return; } /* 配置図の部屋：板の写真は roomLoad */
     if (it.d.grp) { const tok = {}; it.im = tok; it.hi = 0; it.pt = 0; it.lo = 0; it.tries = 0; it.fail = 0; ldDraw(it, performance.now()); ldOn(); grpLoad(it, tok); return; } /* 組は、パーツの写真をまとめて */
     const tok = {}; it.im = tok; const lo = TH['400_' + it.d.id]; if (lo && /^data:/.test(lo)) { const i0 = new Image(); i0.onload = () => { if (it.im === tok && !it.hi) paintX(it, i0, 400); }; i0.src = lo; }
     it.hi = 0; it.pt = 0; it.tries = 0; it.fail = 0; it.fresh = exvFresh(it.d.id); ldDraw(it, performance.now()); ldOn(); /* 届くまでは白い紙のまん中にローダー */
@@ -13307,7 +13375,8 @@ function exvBuild(root, L, start){
       if (it.dt.tex.value) it.dt.tex.value.dispose(); it.dt.tex.value = mkTex(c); it.dt.rect.value.set(x0, 1 - y1, x1, 1 - y0); it.dt.on.value = 1; it.dt.key = key; detIt = it; redraw(); }
     catch(e){} finally { detBusy = 0; } };
   const detKick = () => { clearTimeout(detT); detT = setTimeout(() => { if (!dead) detUp(); }, 700); };
-  const cool = it => { if (!it.req) return; detOff(it); it.req = 0; if (it.gh) { it.pt = 0; it.hi = 0; return; } it.im = null; it.lo = 0; it.pt = 0; it.hd = 0; it.hdMx = 0; PQ.delete(it.d.id); const c = it.cv, x = c.getContext('2d'); c.width = c.height = 16; x.fillStyle = EXWC; x.fillRect(0, 0, 16, 16); it.tx.forEach(t => { t.needsUpdate = true; });
+  const cool = it => { if (!it.req) return; detOff(it); it.req = 0; if (it.gh) { it.pt = 0; it.hi = 0; return; }
+    if (it.d.room) { it.pt = 0; it.hi = 0; if (it.capF.map) { it.capF.map.dispose(); it.capF.map = null; it.capF.needsUpdate = true; } it.capM.visible = false; return; } /* 配置図の部屋：板の写真はそのまま */ it.im = null; it.lo = 0; it.pt = 0; it.hd = 0; it.hdMx = 0; PQ.delete(it.d.id); const c = it.cv, x = c.getContext('2d'); c.width = c.height = 16; x.fillStyle = EXWC; x.fillRect(0, 0, 16, 16); it.tx.forEach(t => { t.needsUpdate = true; });
     [[it.capM, it.capF], [it.ao, it.ao.material]].forEach(([o, m]) => { if (m.map) { m.map.dispose(); m.map = null; m.needsUpdate = true; } o.visible = false; }); if (it.cpM) it.cpM.visible = false; (it.xc || []).forEach(c => { if (c.F.map) { c.F.map.dispose(); c.F.map = null; c.F.needsUpdate = true; } c.m.visible = false; }); };
   /* 読み込み中の表示（10/6 本人。10/7 に・・・・へ）：紙のまん中に小さな点のローダー。画面の上で同じくらいの大きさになるよう、
      止まったときの「1画面ピクセルあたりのメートル」（it.kpx）から描く大きさを決める。届かなければ「画像を読み込めませんでした」 */
@@ -13456,6 +13525,7 @@ function exvBuild(root, L, start){
       fs.forEach((f, q) => put(f, rel[q] + D, g.m[q] + 1));
       g.ov = { x: gc + D, y: CY - (fs.some(f => f.below) ? (CAPG + PHm) / 2 : 0), z: kov * H / (2 * TN) };
       const fl = fs[fs.length - 1]; vR = Math.max(rel[fs.length - 1] + D + fl.w / 2 + fl.vw, gc + D + vov); eR = gR + D; ii = g.m[g.m.length - 1]; }
+    wallHoles(); /* 配置図の部屋の入口 */
     YMX = Math.max(3.2, ...stops.map(s => s.y + 0.05));
     LS.forEach(l => { l.si = -1; l.intensity = 0; }); tid++; if (mv) tIn(); ci = Math.min(ci, stops.length - 1); Object.assign(st, { x: stops[ci].x, y: stops[ci].y, z: stops[ci].z }); cl(); triSet(ci - 1); draw(); };
 
@@ -13515,11 +13585,12 @@ function exvBuild(root, L, start){
     const k = Math.max(aw * 1.12 / W, ah * 1.16 / H); zoomed = true; zT = 'art'; tw({ x: cx, y: cy, z: Math.max(zmin(), k * H / (2 * TN)) }, 850); }; /* 作品全体が画面のまん中に、まわりに少しすき間を残して入る大きさ（14:12 本人） */
   const tapZoom = e => { const b = el.getBoundingClientRect(), sx = (e.clientX - b.left) / b.width; v2.set(sx * 2 - 1, -(e.clientY - b.top) / b.height * 2 + 1); ray.setFromCamera(v2, cam); const onWall = !!ray.ray.intersectPlane(wp, hit);
     if (onWall && PHm * 0.3 / (2 * st.z * TN / H) >= 12) { const lc = capL().find(c => c.m.visible && Math.abs(hit.x - c.m.position.x) < PWm / 2 && hit.y > c.m.position.y - PHm / 2 && hit.y < c.m.position.y - PHm / 2 + PHm * 0.3), lk = lc && lc.it;
-      if (lk) { const cur = items[ci - 1], lk2 = lk.d.tri && cur && cur.d.tri === lk.d.tri ? cur : lk; exvToWork(lc.no || lk2.d.no, items.indexOf(lk2) + 1); return; } } /* 組は、そのキャプションのパーツの作品へ */ /* 三面は、いま前を向いている面の作品へ */ /* キャプションの下の「作品ページへ」 */
+      if (lk) { const cur = items[ci - 1], lk2 = lk.d.tri && cur && cur.d.tri === lk.d.tri ? cur : lk; if (lk2.d.room) exvToLay(lk2.d.room.id, items.indexOf(lk2) + 1); else exvToWork(lc.no || lk2.d.no, items.indexOf(lk2) + 1); return; } } /* 組は、そのキャプションのパーツの作品へ */ /* 三面は、いま前を向いている面の作品へ */ /* キャプションの下の「作品ページへ」 */
     const mg = Math.max(0.06, 26 * 2 * st.z * TN / H), c = onWall ? capL().find(q => q.m.visible && Math.abs(hit.x - q.m.position.x) < PWm / 2 + mg && Math.abs(hit.y - q.m.position.y) < PHm / 2 + mg) : null;
     if (c) { if (zoomed && zT === 'cap') { go(nearIdx()); return; } zCap(c); return; }
     const near = items.slice(Math.max(0, ci - 3), ci + 3), ph = ray.intersectObjects(near.map(q => q.g), true)[0];
     if (ph) { let o = ph.object, it = null; while (o && !it) { it = near.find(q => q.g === o) || null; o = o.parent; } it = it || items[ci - 1];
+      if (it && it.d.room) { if (zoomed && zT === 'room') { go(nearIdx()); return; } zoomed = true; zT = 'room'; tw({ x: it.g.position.x, y: CY, z: zmin() + 0.04 }, 1200); return; } /* 部屋：入口の前まで進む（もう一度押すともどる） */
       if (it) { if (zoomed && zT === 'art') { go(nearIdx()); return; } zArt(it); return; } }
     if (zoomed) { go(nearIdx()); return; }
     step(sx < 0.5 ? -1 : 1); };
