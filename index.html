@@ -299,6 +299,52 @@ html,body{touch-action:pan-x pan-y}.docview,.docview *{touch-action:pan-x pan-y}
 .st{flex:none;width:76px;height:92px;background:var(--wash);border:0;padding:6px;display:flex;align-items:center;justify-content:center;border-radius:0;color:var(--faint);font-size:12px}
 .st img{max-width:100%;max-height:100%;object-fit:contain;display:block}
 .wl2{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.waddw .wadd{width:100%;margin-top:10px}
+/* 配置図（10/20 開発 v22） */
+.lypage .lytop{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin:12px 0 6px}
+.lyplan{width:min(44vw,230px);height:auto;flex:0 0 auto;overflow:visible}
+.lyplan .lyroom{fill:var(--wash);stroke:var(--sub);stroke-width:8}
+.lyplan text{font-size:62px;fill:var(--sub);text-anchor:middle;dominant-baseline:middle}
+.lyplan .lypt text{fill:var(--ink);cursor:pointer}
+.lyplan .lypm{font-size:56px;fill:var(--faint)}
+.lylg{display:flex;flex-direction:column;gap:7px;font-size:14px;min-width:170px;flex:1}
+.lylg span{display:flex;align-items:center;gap:8px}.lylg b{margin-left:auto;font-weight:600;color:var(--sub)}
+.lylg .lyest{font-size:12.5px;color:var(--sub)}
+.lydot{display:inline-block;width:14px;height:14px;border-radius:4px;flex:0 0 auto;vertical-align:-2px;border:1px solid rgba(0,0,0,.25);box-sizing:border-box}
+.lydot.c-home{background:#4f9a62}.lydot.c-mus{background:#4a78c2}.lydot.c-away{background:#c48a2c}.lydot.c-gone{background:repeating-linear-gradient(45deg,#8f8f8f 0 3px,#c9c9c9 3px 6px)}
+.lydot.c-unk{background:#f3d3cf;border:2px solid #d0675b}.lydot.c-none{background:transparent;border:1.5px dashed var(--sub)}.lydot.est{background:transparent;border:1.5px dotted var(--ink)}
+.lywall{margin:14px 0 18px}.lywh{display:flex;align-items:baseline;gap:10px}.lywh small{color:var(--sub)}
+.lyel{box-sizing:border-box;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:6px 0;border:1px solid var(--line);border-radius:10px;background:var(--wash)}
+.lyel svg{display:block;height:auto}
+.lyel .lywb{fill:var(--wash)}.lyel .lyfl{stroke:var(--sub);stroke-width:2px;vector-effect:non-scaling-stroke}.lyel .lysc{stroke:var(--sub);stroke-width:2px;vector-effect:non-scaling-stroke}
+.lyel .lyend{fill:var(--sub)}
+svg .lyb{stroke:rgba(0,0,0,.45);stroke-width:1.2px;vector-effect:non-scaling-stroke;cursor:pointer}
+svg .lyb.c-home{fill:#4f9a62}svg .lyb.c-mus{fill:#4a78c2}svg .lyb.c-away{fill:#c48a2c}svg .lyb.c-gone{fill:#a3a3a3}svg .lyb.c-unk{fill:#f3d3cf;stroke:#d0675b;stroke-width:2px}
+svg .lyb.c-none{fill:var(--paper);stroke:var(--sub);stroke-dasharray:5 4}svg .lyb.est{stroke-dasharray:6 4}svg .lyb.cur{stroke:var(--acc,#c96442);stroke-width:4px;stroke-dasharray:none}
+.lyel g text{fill:#fff;text-anchor:middle;pointer-events:none}.lyel g text.dk{fill:var(--ink)}.lyel g text.b{font-weight:700}
+.lyel g[data-lys]:hover .lyb{filter:brightness(1.08)}
+.lymini{overflow:hidden}.lysec{margin:6px 0 4px;cursor:pointer}.lysec .act{margin-top:4px}
+.lywarn{color:var(--warn)}
+.lymem{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;margin:6px 0}
+.lymw{position:relative}
+.lymc,.lycand button{display:flex;gap:10px;align-items:center;width:100%;text-align:left;border:1px solid var(--line);border-radius:12px;background:var(--paper);padding:8px;color:inherit;font:inherit;cursor:pointer}
+.lyth{width:64px;height:64px;border-radius:8px;flex:0 0 auto;background:var(--wash);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:10px;line-height:1.3;color:var(--faint);text-align:center}.lyth img{width:100%;height:100%;object-fit:cover;display:block}
+.lymc>span,.lycand button>span{display:flex;flex-direction:column;gap:2px;min-width:0}.lymc small,.lycand small{color:var(--sub);font-size:12.5px}
+.lymc .lyloc{display:flex;align-items:center;gap:6px;color:var(--ink)}.lymc .lyloc .lydot{width:11px;height:11px}.lymc .lypl{color:var(--faint)}.lymc em{font-style:normal;color:var(--acc,#c96442);font-size:13px}
+.lymx{position:absolute;right:6px;top:6px;font-size:12px;padding:2px 9px;border-radius:12px;border:1px solid var(--line);background:var(--paper);color:var(--sub)}
+.lyph{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}.lyph button{flex:0 0 auto;border:0;padding:0;background:none;cursor:pointer}.lyph img{height:120px;width:auto;min-width:80px;border-radius:8px;display:block;background:var(--wash)}
+.lyexb{display:flex;flex-direction:column;gap:6px;margin:6px 0}
+.lyss .lycard{margin:10px 0}.lyst{display:flex;gap:8px;align-items:center;font-size:15px;margin:6px 0}
+.lyed{border-top:1px solid var(--line);margin-top:12px;padding-top:10px;display:flex;flex-direction:column;gap:9px}
+.lycand{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px;max-height:42vh;overflow:auto}
+.lycand button{padding:6px;border-radius:10px}.lycand button.on{border-color:var(--acc,#c96442);box-shadow:0 0 0 2px var(--acc,#c96442) inset}
+.lycand .lyth{width:48px;height:48px;border-radius:6px}
+#lyQ,#lyMQ{width:100%;box-sizing:border-box}
+.lyopt,.lyops{display:flex;flex-wrap:wrap;gap:6px}.lyopt button,.lyops button,.lysm{border:1px solid var(--line);border-radius:18px;padding:7px 12px;background:var(--paper);color:inherit;font:inherit;font-size:14px;cursor:pointer}
+.lyopt button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}.lyops button.danger{color:#c0392b}.lysm{align-self:flex-start;font-size:13px}
+.lysz{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.lysz input[inputmode]{width:5.5em}
+.lyf{display:flex;flex-direction:column;gap:4px;margin:6px 0}.lyf span{font-size:13px;color:var(--sub)}.lyf input{width:100%;box-sizing:border-box}
+.lyf3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0}.lyf3 label{display:flex;flex-direction:column;font-size:12.5px;gap:4px;color:var(--sub)}.lyf3 input{width:100%;box-sizing:border-box}
+.lywr{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin:6px 0}.lywr input[inputmode]{width:5em}
 .wchip{border:1px solid var(--line);background:var(--paper);padding:4px 10px;font-size:15px;border-radius:999px;text-align:left}
 .wchip:hover{border-color:var(--ink)}
 .golink{display:inline-block;border:0;border-bottom:1px solid var(--ink);background:none;padding:0;margin:6px 14px 0 0;font-size:15px;letter-spacing:.04em;border-radius:0;color:var(--ink)}
@@ -2964,7 +3010,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'a3a52fc3f5', APP_URL = location.origin + location.pathname;
+const BUILD = '0e0ab6b194', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3213,7 +3259,7 @@ function abV19(){ const h = $('#abTitle'); if (!h || h.className.indexOf('st-') 
     h.innerHTML = (up ? `<span class="crumb cp abup" ${at} role="button" aria-label="${esc(upn)}にもどる"><i aria-hidden="true">‹</i><span class="abupn">${esc(upn)}</span></span>` : '') + `<span class="crumb cur">${esc(cur ? cur.textContent : (h.dataset.t || ''))}</span>` + (cn ? cn.outerHTML : ''); }
   edBtnSync(); }
 function edBtnSync(){ const b = $('#abEdit'); if (!b) return; const pgOpen = !$('#page').classList.contains('hidden') && S.pcur;
-  const on = !!(pgOpen && !SCR.length && ['w', 'ot', 'ex', 'pb'].includes(S.pcur.t) && canEdit()), ds = dsCtx(), dse = ds && $('#sheetbox').classList.contains('dse');
+  const on = !!(pgOpen && !SCR.length && (['w', 'ot', 'ex', 'pb'].includes(S.pcur.t) || (S.pcur.t === 'ly' && !isEasy())) && canEdit()), ds = dsCtx(), dse = ds && $('#sheetbox').classList.contains('dse');
   b.classList.toggle('hidden', !(on || ds)); b.textContent = (ds ? dse : EDM) ? '完了' : '編集'; b.classList.toggle('on', !!(ds ? dse : EDM));
   const c = $('#abCancel'); if (c) c.classList.toggle('hidden', !(on && EDM)); document.body.classList.toggle('edmhd', !!((on && EDM) || dse)); }
 /* 書類の画面（見る形）がいちばん上にあって、直せる人か。書類の編集は、押したその場で保存されるので「やめる」はない（10/11 開発 v19） */
@@ -3334,7 +3380,7 @@ function seedFix(){ try { if (localStorage.getItem('smr_seedfix') === '1') retur
 function setData(d){ shTake(d); if (S.upd) S.upd.t = 0; try { if (d && d.docs && d.docs.length) docCacheSync(d.docs); } catch(e){}
   const allW = d.works || []; d = Object.assign({}, d, {works: allW.filter(w => !OTRE.test(w['作品番号'])), others: allW.filter(w => OTRE.test(w['作品番号']))});
   S.merged = Array.isArray(d.merged) ? d.merged : (S.merged || []);
-  Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, museums:d.museums||[], exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], finds:d.finds||[], lits:d.lits||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], faces:d.faces||[], faceInfo:d.faceInfo||{}, sign:d.sign||'', memoChecker:d.memoChecker||'直美', marks:d.marks||[], pimg:d.pimg||S.pimg||[], hist:Array.isArray(d.hist) ? d.hist : (S.hist || null), autoc:Array.isArray(d.autoc) ? d.autoc : (S.autoc || []), groups:Array.isArray(d.groups) ? d.groups : (S.groups || []), slays:Array.isArray(d.slays) ? d.slays : (S.slays || []), user:d.user, ai:d.ai, aiNoLim:!!d.aiNoLim, publicView:d.publicView, gcid:d.gcid || ''}); if (S.token && !d.user) setToken(''); index(); try { pimgIndex(); } catch(e){} renderUser(); try { faceInit(); } catch(e){} try { fpInit(); } catch(e){}  try { seedFix(); } catch(e){} if (d.user) setTimeout(prefetchThumbs, 0); }
+  Object.assign(S, {works:d.works, events:d.events, photos:d.photos, places:d.places, museums:d.museums||[], exhibits:d.exhibits||[], pubs:d.pubs||[], others:d.others||[], docs:d.docs||[], finds:d.finds||[], lits:d.lits||[], quiz:d.quiz||[], venues:d.venues||[], memos:d.memos||[], faces:d.faces||[], faceInfo:d.faceInfo||{}, sign:d.sign||'', memoChecker:d.memoChecker||'直美', marks:d.marks||[], pimg:d.pimg||S.pimg||[], hist:Array.isArray(d.hist) ? d.hist : (S.hist || null), autoc:Array.isArray(d.autoc) ? d.autoc : (S.autoc || []), groups:Array.isArray(d.groups) ? d.groups : (S.groups || []), layouts:Array.isArray(d.layouts) ? d.layouts : (S.layouts || []), slays:Array.isArray(d.slays) ? d.slays : (S.slays || []), user:d.user, ai:d.ai, aiNoLim:!!d.aiNoLim, publicView:d.publicView, gcid:d.gcid || ''}); if (S.token && !d.user) setToken(''); index(); try { pimgIndex(); } catch(e){} renderUser(); try { faceInit(); } catch(e){} try { fpInit(); } catch(e){}  try { seedFix(); } catch(e){} if (d.user) setTimeout(prefetchThumbs, 0); }
 const canRole = () => !!(S.user && ['編集','管理','かんたん編集'].includes(S.user.role)); /* かんたん編集＝直せる人（編集と同じ）。画面だけかんたん（10/9 開発 v16） */
 const isGuest = () => !!(S.user && (S.user.role === 'ゲスト' || S.gmode)); /* ゲスト（ゲストの人と、名前のメニューの「モード選択」でゲストモードにした人）：見るだけ。ホームは展示ビュー（閉じると作品アルバム）。届いたもの・確認メモ・使い方・更新記録・書類・インタビュー・Google 連携は出さない。AI に質問はできる（10/7 開発 v11 本人） */
 const canEdit = () => canRole() && !isGuest() && S.vm !== 'view';
@@ -3353,7 +3399,7 @@ function toggleMode(){
   S.edit = !S.edit; try { localStorage.setItem('smr_edit', S.edit ? '1' : ''); } catch(e){}
   renderUser(); toast(S.edit ? '編集モードにしました' : '閲覧モードにしました');
   if (S.view!=='ai') render();
-  if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+  if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true);
 }
 function setToken(t){ S.token = t; try { t ? localStorage.setItem('smr_token', t) : localStorage.removeItem('smr_token'); } catch(e){} }
 try { S.token = localStorage.getItem('smr_token') || ''; } catch(e){ S.token = ''; }
@@ -3381,7 +3427,7 @@ async function saveRecover(fn){
   busy(true, '保存できたか確かめています…');
   try {
     const d = await call('getData'); setData(d); closeSheet(); render();
-    if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+    if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true);
     if (/^newOther/.test(fn)) { d.newId = (S.others||[]).map(x => x['作品番号']).find(n => !before.has(n)); if (d.newId) { busy(false); toast('登録しました'); return d; } }
     busy(false); alert('通信が途中で切れました。最新の状態に読み直したので、保存されているか画面で確かめてください。' + (IDEM.includes(fn) ? '\n（写真は、もう一度保存しても二重には登録されません）' : ''));
   } catch(x){ busy(false); alert('通信が切れました。電波の良い所で、画面を読み直して保存されているか確かめてください。'); }
@@ -3395,7 +3441,7 @@ async function callRetryN(note, fn, ...args){
     catch(e){ if (k < 3 && IDEM.includes(fn) && netErr(e)) { note('通信が切れたので、もう一度送っています…（' + (k + 1) + '回目）'); await new Promise(r => setTimeout(r, 2500 * (k + 1))); continue; } throw e; } } }
 async function save(fn, args, msg){
   busy(true,'保存しています…');
-  try { const d = await callRetry(fn, ...args); setData(d); toast(d && d.dup ? '保存済みでした（同じ写真は二重に登録しません）' : (msg||'保存しました')); closeSheet(); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); return d; }
+  try { const d = await callRetry(fn, ...args); setData(d); toast(d && d.dup ? '保存済みでした（同じ写真は二重に登録しません）' : (msg||'保存しました')); closeSheet(); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true); return d; }
   catch(e){ if (/通信が切れました|時間がかかりすぎ|load failed|failed to fetch/i.test(String(e && e.message || e))) { busy(false); return await saveRecover(fn); } if (isLoginErr(e)) { setToken(''); S.user=null; renderUser(); alert('ログインの有効期限が切れました。もう一度ログインしてください。'); openLogin(); } else alert('保存できませんでした。\n' + (e.message||e)); }
   finally { busy(false); }
 }
@@ -3407,7 +3453,7 @@ async function quickWorkSave(list, msg){ list = (list || []).filter(x => x && x.
   if (list.some(x => isOtNo(x.no) && x.patch['種別'])) return list.length === 1 ? save('updateWork', [list[0].no, list[0].patch], msg) : save('updateWorks', [list], msg); /* その他の作品の種類替え（番号が変わる）は今までどおり */
   const now = new Date(), ts = now.getFullYear() + '/' + String(now.getMonth() + 1).padStart(2, '0') + '/' + String(now.getDate()).padStart(2, '0') + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
   list.forEach(({ no, patch }) => { const w = (S.works || []).concat(S.others || []).find(x => String(x['作品番号']) === String(no)); if (w) Object.assign(w, patch, { '最終更新日時': ts, '最終更新者': (S.user || {}).name || '' }); });
-  index(); closeSheet(); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+  index(); closeSheet(); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true);
   toast(msg || '保存しました'); BGS.n++; bgShow('保存しています…');
   try { try { list.length === 1 ? await call('updateWorkQ', list[0].no, list[0].patch) : await call('updateWorksQ', list); }
     catch(e){ if (!/この操作はできません/.test(e.message || e)) throw e; list.length === 1 ? await call('updateWork', list[0].no, list[0].patch) : await call('updateWorks', list); } } /* まだデプロイ前なら今までの方法で */
@@ -3674,7 +3720,7 @@ function vTrack(){ const s = vsnap(); if (VST.restoring) { VST.cur = s; return; 
 function vBack(){ const s = VH.pop(); vbSync(); if (!s) return false; VST.restoring = true;
   try { Object.assign(S, { view: s.view, wmode: s.wmode, filter: s.filter, mus: s.mus, dmode: s.dmode, dpath: s.dpath, otk: s.otk, q: s.q, limit: Math.max(S.limit || 60, s.limit || 60) }); if ($('#q')) $('#q').value = s.q || ''; render(); }
   finally { VST.restoring = false; } VST.cur = vsnap(); setTimeout(() => window.scrollTo(0, s.y || 0), 30);
-  if (s.page && s.page.pcur) { const p = s.page.pcur, f = ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[p.t]; if (f) { S.stack = s.page.stack || []; f(p.id); } }
+  if (s.page && s.page.pcur) { const p = s.page.pcur, f = ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[p.t]; if (f) { S.stack = s.page.stack || []; f(p.id); } }
   return true; }
 addEventListener('scroll', () => { if (VST.cur && !VST.restoring && $('#page').classList.contains('hidden') && !SCR.length) VST.cur.y = window.scrollY; }, { passive: true });
 function render(){ const r = render0.apply(this, arguments); try { vTrack(); } catch(e){} try { barHeal(); requestAnimationFrame(barHeal); } catch(e){} return r; }
@@ -4421,7 +4467,7 @@ function wBookCut(no, opt){ opt = opt || {}; if (!canEdit() || !workOf(no)) retu
     const g = e.target.closest('[data-pg]'); if (!g) return; const P = pbPages(BK).find(x => x['写真ID'] === g.dataset.pg); if (!P) return; L.querySelectorAll('.bkpg').forEach(x => x.classList.toggle('on', x === g)); show(P); });
   el.querySelector('.sczb').onclick = e => { const b = e.target.closest('[data-scz]'); if (!b) return; const d = +b.dataset.scz; if (!d) return pz.reset(); pz.zoomBy(d > 0 ? 1.6 : 1 / 1.6); };
   gb.onclick = () => { if (!PG) return; const P = PG, main = cb.checked; scrBack(); setTimeout(() => openCrop(P, no, { fresh: true, main, extra: [], back: 'w' }), 320); };
-  rb.onclick = async () => { if (!PG) return; const P = PG; if (!(await pgRefSet(no, P['写真ID'], true))) return; scrBack(); setTimeout(() => { render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); toast(pbLab(P['作品番号']) + '　' + pbPhLab(P) + 'を作品の写真に入れました（画像は増えていません）'); }, 320); };
+  rb.onclick = async () => { if (!PG) return; const P = PG; if (!(await pgRefSet(no, P['写真ID'], true))) return; scrBack(); setTimeout(() => { render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true); toast(pbLab(P['作品番号']) + '　' + pbPhLab(P) + 'を作品の写真に入れました（画像は増えていません）'); }, 320); };
   el.querySelector('.cmpback').onclick = e => { e.stopPropagation(); scrBack(); };
   draw(); }
 /* 組み写真：襖・屏風など何枚かに分けて撮った（切り出した）写真を、左から順に横に並べて1枚にし、メイン画像にする（10/8 本人）。
@@ -4461,7 +4507,7 @@ async function pjoinMake(no, P, main, gp){ gp = Math.max(0, Math.min(20, +gp || 
     const pid = (sr && sr.pid) || (S.photos.filter(x => x['作品番号'] === no && String(x['メモ'] || '').includes(tag)).pop() || {})['写真ID'];
     if (pid) crSeed(pid, seeds);
     if (main && pid && ((photoBy[no] || [])[0] || {})['写真ID'] !== pid) { await crCall('setMainPhoto', [pid], () => !!crPh(pid)['メイン']); S.photos.forEach(x => { if (x['作品番号'] === no) x['メイン'] = x['写真ID'] === pid ? 'メイン' : ''; }); index(); }
-    busy(false); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+    busy(false); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true);
     toast(P.length + '枚を横に並べて1枚にしました' + (main ? '（メイン画像）' : '') + '。いらなければ写真の画面の鉛筆から消せます'); }
   catch(e){ busy(false); alert('組み写真をつくれませんでした。\n' + (e.message || e)); } }
 /* 展示ビューの設定（10/8 本人）：設置の高さ（床から作品の下まで）と、パネル（1枚の大きさ × 枚数・1段に何枚・すき間・写真は左上のパネルから順）。画像は作らない */
@@ -4505,7 +4551,7 @@ function pnForm(no){ if (!canEdit()) return; const w = workOf(no); if (!w) retur
   const save = async (patch, ok) => { busy(true, '保存しています…');
     try { const d = await call('updateWork', no, patch); if (d && d.works) setData(d); busy(false); const w2 = workOf(no) || {};
       if (!('枚数' in w2) || !('展示の形' in w2)) { alert('Google 側の更新（「枚数」「展示の形」の列）がまだのため、展示ビューの設定を保存できませんでした。デプロイのあとで、もう一度保存してください。'); return; }
-      closeSheet(); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); toast(ok); }
+      closeSheet(); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true); toast(ok); }
     catch(x){ busy(false); alert('保存できませんでした。\n' + (x.message || x)); } };
   sh.querySelector('.pngo').onclick = () => { const r = read(); if (check(r)) return; const pan = r.on && r.n >= 2, patch = { '展示の形': exvSetTxt(pan ? r : null, r.yb, r.sg) };
     if (pan) Object.assign(patch, { '高さcm': String(r.h), '幅cm': String(r.wd), '枚数': String(r.n) }); else if (pnN(w)) patch['枚数'] = '';
@@ -4537,17 +4583,17 @@ function phOrder(no){ if (!canEdit()) return; const L0 = (photoBy[no] || []).sli
   go.onclick = async () => { const ids = L.concat(pgManual(no).filter(x => !L.includes(x))), first = ids[0], wasMain = (L0[0] || {})['写真ID']; busy(true, '保存しています…'); /* ひも付けで入れた本のページ（参照）は後ろに残す */
     try { if (first !== wasMain) { await call('setMainPhoto', first); S.photos.forEach(x => { if (x['作品番号'] === no) x['メイン'] = x['写真ID'] === first ? 'メイン' : ''; }); }
       const d = await call('updateWork', no, { '写真の並び': ids.join(',') }); if (d && d.works) setData(d); else index(); busy(false); const w2 = workOf(no) || {};
-      closeSheet(); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+      closeSheet(); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true);
       if (!('写真の並び' in w2)) alert(first !== wasMain ? 'メイン画像は変えました。ほかの写真の並びは、Google 側の更新（「写真の並び」の列）のあとで保存できます。' : 'Google 側の更新（「写真の並び」の列）がまだのため、並びを保存できませんでした。デプロイのあとで、もう一度保存してください。');
       else toast('写真の並びを保存しました'); }
     catch(x){ busy(false); alert('保存できませんでした。\n' + (x.message || x)); } };
   draw(); }
 /* 写真の見出し（種類）を一覧でまとめて直す・いらない記録写真を消す（10/8 本人「パネルの作品は 表→1/12 のように。数が多いので一覧で」「記録写真が不要なら削除。補正した写真は残す」） */
 /* 写真をまとめて削除（アーカイブへ）：先に画面から消して、Google への削除は裏で1枚ずつ。失敗した写真は元にもどす */
-async function pdelRun(ids, why){ ids.forEach(id => PDEL.add(id)); index(); render(); if (S.pcur && $('#sheet').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+async function pdelRun(ids, why){ ids.forEach(id => PDEL.add(id)); index(); render(); if (S.pcur && $('#sheet').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true);
   toast(ids.length + '枚を削除しています（裏で進めます。待たずに続けられます）'); BG++; BGS.n++; let ng = 0, ok = 0, d = null, k = 0; /* 画面の下に「削除しています（3/12）」（写真の保存と同じ帯） */
   for (const id of ids) { bgShow('記録写真を削除しています（' + (++k) + '/' + ids.length + '）'); try { d = await call('archiveItem', 'p', id, why); ok++; } catch(e){ if (/見つかりません/.test(String(e && e.message || e))) ok++; else { ng++; PDEL.delete(id); } } }
-  BG--; BGS.n--; bgShow(); try { if (d && d.photos) setData(d); else await refreshData(); } catch(e){} ids.forEach(id => PDEL.delete(id)); index(); render(); if (S.pcur && $('#sheet').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+  BG--; BGS.n--; bgShow(); try { if (d && d.photos) setData(d); else await refreshData(); } catch(e){} ids.forEach(id => PDEL.delete(id)); index(); render(); if (S.pcur && $('#sheet').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true);
   if (ng) alert(ng + '枚は削除できませんでした（' + ok + '枚は削除済み）。もう一度やり直してください。'); else toast(ok + '枚の記録写真を削除しました'); }
 function phLabels(no){ if (!canEdit()) return; const all = (photoBy[no] || []).filter(p => p['写真ID']), w = workOf(no) || {};
   const L = all.filter(p => p['種類'] !== '記録写真'), R = all.filter(p => p['種類'] === '記録写真'), corrOf = id => (photoBy[no] || []).find(x => (crInfo(x) || {}).orig === id);
@@ -4573,12 +4619,12 @@ function phLabels(no){ if (!canEdit()) return; const all = (photoBy[no] || []).f
     if (ch.some(x => x.v === '記録写真')) return alert('「記録写真」は、切り抜き・補正の元の写真の印なので、見出しには使えません');
     if (dl.length && !confirm('記録写真 ' + dl.length + '枚を削除します（補正した写真は残ります）。\n削除は裏で進むので、待たずに続けられます。')) return;
     const old = ch.map(x => [x.id, (phById(x.id) || {})['種類']]); ch.forEach(x => { const p = phById(x.id); if (p) p['種類'] = x.v; });
-    index(); closeSheet(); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+    index(); closeSheet(); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true);
     phBgSave(ch, old, dl); };
   chg(); }
 async function phBgSave(ch, old, dl){ if (ch.length) { BGS.n++; let k = 0, ng = 0;
     for (const x of ch) { bgShow('見出しを保存しています（' + (++k) + '/' + ch.length + '）'); try { await crCall('replacePhoto', [x.id, '', '', x.v, null, 1], () => (phById(x.id) || {})['種類'] === x.v); } catch(e){ ng++; const o = old.find(a => a[0] === x.id), p = phById(x.id); if (o && p) p['種類'] = o[1]; } }
-    BGS.n--; bgShow(); if (ng) { index(); render(); if (S.pcur && $('#sheet').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); alert('見出しを ' + ng + '枚保存できませんでした。もう一度やり直してください。'); } else if (!dl.length) toast(ch.length + '枚の見出しを保存しました'); }
+    BGS.n--; bgShow(); if (ng) { index(); render(); if (S.pcur && $('#sheet').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true); alert('見出しを ' + ng + '枚保存できませんでした。もう一度やり直してください。'); } else if (!dl.length) toast(ch.length + '枚の見出しを保存しました'); }
   if (dl.length) await pdelRun(dl, '記録写真（切り抜き・補正の元の写真）がいらないため'); }
 /* 作品の画面の「記録を更新する」：やることごとにまとめ、ボタンに一言の説明。設定が入っているものは色と「設定あり」（10/8 本人「ボタンが増えたので分かりやすく・順番を最適化・設定ありが分かるように」） */
 const WI = d => `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
@@ -4611,7 +4657,7 @@ function workActsHTML(no, w, ot){ const ph = photoBy[no] || [], n = ph.length, j
       + (ot ? wBtn(`data-tomain="${e}"`, 'move', '本作（本画の一覧）に移す', '') : wBtn(`data-toot="${e}"`, 'move', 'その他の作品に移す', 'やけもの・版画など'))
       + delBtn('w', no, 'この作品'))
     + `</div>`; }
-function crAfterScan(c0, pid){ const w = workOf(c0.no) || {}; render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+function crAfterScan(c0, pid){ const w = workOf(c0.no) || {}; render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true);
   bkOpen(c0.orig['作品番号'], c0.orig['写真ID']); toast(nol(c0.no) + '「' + (w['作品名'] || '無題') + '」の写真にしました' + (c0.fbMain ? '（メイン画像）' : '')); }
 /* スキャンした PDF からページを入れる（パソコンで。1ページずつ画像にして送る。同じ PDF のページは二重に入れないので、止まっても続きから） */
 function sheetPbPdf(id){ if (!canEdit() || !pbById[id]) return; const n0 = pbScans(id).length;
@@ -4697,7 +4743,7 @@ document.addEventListener('click', e => {
   const vw = e.target.closest('[data-vbkw]'); if (vw) { const no = vw.dataset.vbkw; closeViewer(); setTimeout(() => openWork(no), 300); return; }
   const ag = e.target.closest('[data-vbkag]'); if (ag) { cropAgain(V.list[V.i]); return; }
   const vp = e.target.closest('[data-vbkph]'); if (vp) { const i = V.list.findIndex(x => x['写真ID'] === vp.dataset.vbkph); if (i >= 0) { V.i = i; showV(); } return; }
-  const rm = e.target.closest('[data-vbkrm]'); if (rm) { const p = V.list[V.i], no = S.cur; if (!p || !confirm('このページを作品の写真から外しますか？（本のページはそのまま）')) return; closeViewer(); setTimeout(async () => { if (await pgRefSet(no, p['写真ID'], false)) { render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); toast('ページを外しました'); } }, 300); return; }
+  const rm = e.target.closest('[data-vbkrm]'); if (rm) { const p = V.list[V.i], no = S.cur; if (!p || !confirm('このページを作品の写真から外しますか？（本のページはそのまま）')) return; closeViewer(); setTimeout(async () => { if (await pgRefSet(no, p['写真ID'], false)) { render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true); toast('ページを外しました'); } }, 300); return; }
 });
 function qcLitAct(a, c){ const l = ltById(c.id); if (!l) return;
   if (a === 'back') { QC.step = ''; return qcDraw(); }
@@ -5523,7 +5569,7 @@ function sheetEvMergeN(ids){
         let d = null; for (let n = 0; n < q.drops.length; n++) { busy(true, 'まとめています（' + (n + 1) + '/' + q.drops.length + '）…'); d = await call('archiveItem', 'e', q.drops[n]['出来事ID'], '同じ出来事のため統合（残した記録：' + q.keep['出来事ID'] + '）'); }
         if (d) setData(d); toast(E.length + '件を1つにまとめました'); }
       catch(e){ alert('まとめている途中でエラーになりました。\n' + (e.message || e)); }
-      finally { busy(false); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); } };
+      finally { busy(false); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true); } };
   };
   draw();
 }
@@ -5592,7 +5638,7 @@ async function evMergeRun(pairs, pick){
       setData(d); ok++;
     } catch(e){ busy(false); alert(nol(a['作品番号']) + ' でエラーになりました。\n' + (e.message||e)); break; }
   }
-  busy(false); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+  busy(false); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true);
   toast(ok + '点の作品でまとめました');
   if (skipped.length) alert('次の作品は、ほかにも食い違いがあったので、まだまとめていません。\n作品ページから1つずつまとめてください。\n' + skipped.map(n => nol(n)).join('、'));
 }
@@ -5758,7 +5804,7 @@ function dfCard(d, x, i, inWork){ const did = esc(d['書類ID']), w = x.t === 'w
   const sn = x.t === 'w' ? wkSame(x.id).length : 0;
   return `<button type="button" class="dfx dfsum" data-did="${did}" data-dfopen="${did}|${i}">${th}<span class="dfsumt"><b>${ttl}</b>${src}${sn ? `<small class="dfamb">⚠ 同じ名前の作品が、ほかに ${sn}点（この作品ではないかも）</small>` : ''}<span class="dfvs"><span><small>台帳</small>${esc(x.cur || '（空）')}</span><i>⇄</i><span><small>書類</small>${esc(x.doc)}</span></span></span><em class="dfgo">📑 見比べる ›</em></button>`; }
 /* 食い違いのボタン（書類の画面・作品ページ共通）：押されたボタンから書類と項目を決める */
-function dfDone(did, msg){ return x => { setData(x); busy(false); render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+function dfDone(did, msg){ return x => { setData(x); busy(false); render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true);
   if (!$('#sheet').classList.contains('hidden') && $('#sheetbox').querySelector(`.dfx[data-did="${did}"]`)) sheetDocReview(did); toast(msg); }; }
 const dfFail = e => { busy(false); alert('保存できませんでした：' + (e.message || e)); };
 const roAt = t => !canEdit() || !!(t && t.closest && t.closest('#sheetbox.dview:not(.dse)')); /* 見るだけで開く（10/11 開発 v20） */
@@ -5802,7 +5848,7 @@ function dfReview(list, cur, ro){ ro = !!ro || !canEdit();
     const eb = box.querySelector('.dfedit'); if (eb) eb.onclick = () => { ro = false; el.classList.remove('dfro'); roEdit(); draw(); };
     if (!x.r && !ro) cards.querySelectorAll('.dfcard').forEach(c => c.onclick = () => { pk = c.dataset.pk; cards.querySelectorAll('.dfcard').forEach(o => o.classList.toggle('on', o === c)); c.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
       go.disabled = false; go.textContent = pk === 'doc' ? (x.loc ? '所在を「' + x.doc + '」に変えて保存' : '台帳を「' + x.doc + '」に直して保存') : '台帳「' + (x.cur || '（空）') + '」のまま保存'; });
-    const after = msg => res => { setData(res); busy(false); render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+    const after = msg => res => { setData(res); busy(false); render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true);
       if (!$('#sheet').classList.contains('hidden') && $('#sheetbox').querySelector(`.dfx[data-did="${did}"]`)) sheetDocReview(did); toast(msg);
       const nx = list.findIndex((k, n) => n > pos && (() => { const [a, b] = k.split('|'), dd = docById(a), xx = dd && (docRes(dd)['食い違い'] || [])[+b]; return xx && !xx.r; })());
       if (nx >= 0) { pos = nx; draw(); el.scrollTop = 0; } else scrBack(); };
@@ -5933,7 +5979,7 @@ async function moveDocTo(did, oldNo, newNo, ok){ const ow = workOf(oldNo), NN = 
   busy(true, oldNo === '__none__' ? 'ひも付けています…' : '付け替えています…');
   try { const res = await call('moveDocWork', did, oldNo, newNo || ''); setData(res); busy(false);
     for (let n = 0; n < 4 && SCR.length && (SCR[SCR.length - 1].classList.contains('noteview')); n++) scrBack();
-    render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+    render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true);
     if (!$('#sheet').classList.contains('hidden')) sheetDocReview(did); toast(newNo ? NN.map(nol).join('・') + (oldNo === '__none__' ? ' をひも付けました' : ' に付け替えました') : 'ひも付けを外しました'); return true; }
   catch(e){ busy(false); alert('付け替えられませんでした：' + (e.message || e)); return false; } }
 function cmpAt(d, no){ const did = d['書類ID'], r = docRes(d), mine = x => x && x.t === 'w' && String(x.id) === String(no) && x.at && x.at.box;
@@ -6025,7 +6071,7 @@ function cmpView(did, no, fi, back, ro, cq){ ro = !!ro || !canEdit(); const d = 
     let pk = ''; const go = box.querySelector('.cwgo');
     box.querySelectorAll('.cwopt').forEach(o => o.onclick = () => { pk = o.dataset.pk; box.querySelectorAll('.cwopt').forEach(z => z.classList.toggle('on', z === o)); go.disabled = false;
       go.textContent = pk === 'doc' ? (x.loc ? '所在を「' + x.doc + '」に変えて保存' : '台帳を「' + x.doc + '」に直して保存') : '台帳「' + (x.cur || '（空）') + '」のまま保存'; });
-    const after = msg => res => { setData(res); busy(false); render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+    const after = msg => res => { setData(res); busy(false); render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true);
       if (!$('#sheet').classList.contains('hidden') && $('#sheetbox').querySelector(`.dfx[data-did="${did}"]`)) sheetDocReview(did); toast(msg);
       const nd = docById(did) || d, X = docRes(nd)['食い違い'] || [], nx = X.findIndex(z => !z.r && z.t === 'w' && String(z.id) === String(no));
       if (nx >= 0) { show(no, nx); return; } const on = nos.find(n => cmpLeft(nd, n)); if (on) { setTimeout(() => toast('次は ' + nol(on) + ' の食い違いです'), 1200); show(on, X.findIndex(z => !z.r && z.t === 'w' && String(z.id) === String(on))); return; }
@@ -6571,7 +6617,7 @@ function sheetDoc(no){
     busy(true, '保存しています…');
     try {
       const d = await call('addDoc', pages, no ? [no] : [], ''); setData(d); closeSheet(); render();
-      if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+      if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true);
       busy(false); askReadNow(d.newDoc);
     } catch(e){ busy(false); alert('保存できませんでした。\n' + (e.message||e)); }
   };
@@ -7331,7 +7377,7 @@ function tmpLinkEv(no, kind, id, note){ const isEx = kind==='ex', x = isEx ? exB
 let BG = 0;
 function bgSave(fn, args, events, msg){
   S.events = S.events.concat(events); index(); closeSheet(); render();
-  if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+  if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true);
   toast(msg + '（保存中…）'); BG++;
   call(fn, ...args).then(() => { BG--; toast(msg); if (!BG) refreshData().catch(() => {}); })
     .catch(e => { BG--; alert('ひも付けを保存できませんでした。もう一度やり直してください。\n' + (e.message||e)); refreshData().catch(() => {}); });
@@ -7390,7 +7436,7 @@ function sheetDelete(kind, id, label){
     try { let d = await call('archiveItem', kind, id, why);
       if (kind === 'doc' && $('#delEv') && $('#delEv').checked) { let k = 0; for (const e of ONLY) { busy(true, '来歴を削除しています… ' + (++k) + ' / ' + ONLY.length); try { d = await call('archiveItem', 'e', e['出来事ID'], why + '（書類 ' + id + ' と一緒に削除）'); } catch(x){} } } /* 1件ずつ（アーカイブへ。戻せる） */
       setData(d); closeSheet();
-      if (kind==='p' || kind==='e') { if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); }
+      if (kind==='p' || kind==='e') { if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true); }
       else if (kind!=='doc') closeWork();
       render(); toast('削除しました（アーカイブに移しました）'); }
     catch(e){ alert('削除できませんでした。\n' + (e.message||e)); }
@@ -7667,7 +7713,7 @@ function openWork(no, keepScroll, restoreSc){
         ${dd('状態', w['状態メモ'], 'w9')}${dd('メモ', w['補足'], 'w10')}
         ${isGuest() ? '' : dd('所蔵者・連絡先', w['所蔵者・連絡先'], 'w11') + dd('管理メモ', w['管理メモ'], 'w12')}
       </dl>
-      ${!ot ? grpSecHTML(no) : ''}
+      ${!ot ? grpSecHTML(no) : ''}${lySecHTML(no)}
       ${!ot && canEdit() && String(w['シリーズ'] || '').trim() && !/三面/.test(w['シリーズ']) ? `<div class="gpbt edonly" style="margin:8px 0"><button type="button" class="shfam" data-slay="${esc(String(w['シリーズ']).trim())}" data-slfrom="${esc(no)}">シリーズ「${esc(String(w['シリーズ']).trim())}」の並べ方（展示ビュー）</button>${slayUndoBtn(no)}</div>` : ''}
       ${ot && !epi.length ? '' : `<h3 class="sec${epi.length ? '' : ' edonly'}">エピソード・記憶</h3>`}
       ${ot && !epi.length ? '' : epi.length ? `<div class="epis">${epi.map(e => `<blockquote class="epi">${escU(e['内容'])}<cite>${esc(String(e['根拠・出典']||'').replace(/^聞き取り（(.*)）$/, '$1さんの話') || '')}${e['登録日時'] ? '　' + esc(String(e['登録日時']).slice(0,10)) : ''}${canEdit()?` <button class="pen pen-s" data-evedit="${esc(e['出来事ID'])}" aria-label="このお話を直す"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.6"/></svg></button>`:''}</cite></blockquote>`).join('')}</div>` : '<p class="edonly" style="color:var(--sub)">まだありません</p>'}
@@ -7773,6 +7819,7 @@ function pcName(t, id){
   if (t==='ex') return (exById[id] || {})['名称'] || '展覧会';
   if (t==='pb') return (pbById[id] || {})['タイトル'] || '画集・資料';
   if (t==='doc') { const d = docById(id); return d ? docTitle(d) : '書類'; }
+  if (t==='ly') return (lyRow(id) || {})['名前'] || '配置図';
   if (t==='cmp') return '見比べ';
   return ''; }
 const VIEW_NM = {home:'ホーム', album:'作品アルバム', list:'作品リスト', ot:'その他の作品', ex:'展覧会', pb:'画集・資料', chrono:'年表', doc:'書類', ai:'作品目録AI'};
@@ -7780,11 +7827,12 @@ const dwSync = () => { try { if (isWide() && S.user && dwAuto() !== dwAuto0) pin
 function abSync(){ try { cmpSync(); dwSync(); } catch(e){} const pg = $('#page'), open = !pg.classList.contains('hidden'), b = $('#btnMenu');
   document.body.classList.toggle('pgopen', open);
   if (b && b.dataset.st !== (open ? 'b' : 'm') && b.dataset.scr !== '1') { b.innerHTML = open ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>' : IC_MENU; b.dataset.st = open ? 'b' : 'm'; b.setAttribute('aria-label', open ? 'もどる' : 'メニューを開く'); }
-  if (open) { const no = pg.querySelector('.pagehead .no'), T = {w:'作品', ot:'その他の作品', ex:'展覧会', pb:'画集・資料'}; const tt = S.pcur && S.pcur.t, id = S.pcur && S.pcur.id;
+  if (open) { const no = pg.querySelector('.pagehead .no'), T = {w:'作品', ot:'その他の作品', ex:'展覧会', pb:'画集・資料', ly:'配置図'}; const tt = S.pcur && S.pcur.t, id = S.pcur && S.pcur.id;
     let nm = '';
     if (['w','ot'].includes(tt)) { const w = workOf(id) || {}; nm = w['作品名'] || (isOtNo(id) ? (w['種別'] || 'その他') + '（名前なし）' : '無題'); }
     else if (tt==='ex') nm = (exById[id] || {})['名称'] || '';
     else if (tt==='pb') nm = (pbById[id] || {})['タイトル'] || '';
+    else if (tt==='ly') nm = (lyRow(id) || {})['名前'] || '';
     setTitle(nm || T[tt] || ''); }
   else navOn(); }
 /* 書類の画面から作品へ：右からスライドして開き、「もどる」で書類の画面に戻れるようにする */
@@ -7806,7 +7854,7 @@ function openWorkFromDoc(no, did){ return openPageFromDoc('w', no, did); }
 function openPageFromDoc(t, id, did){
   const pg = $('#page'), wasOpen = !pg.classList.contains('hidden'), prev = wasOpen && S.pcur ? { t: S.pcur.t, id: S.pcur.id, sc: pg.scrollTop } : null, st = (S.stack || []).slice(), dsc = $('#sheet').scrollTop, dsb = $('#sheetbox').scrollTop;
   SNAP.v = null; S.sheetRet = null; closeSheet(true); /* 書類の履歴はそのまま残し、ページを開くときに積む */
-  S.pcur = null; ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[t](id);
+  S.pcur = null; ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[t](id);
   S.stack = (wasOpen ? st.concat(prev ? [prev] : []) : []).concat([{ t: 'doc', id: did, dsc, dsb }]);
   scrAnim(pg, '100', '0'); abSync();
 }
@@ -7817,16 +7865,16 @@ function closeWork(fromHist){
   { const pg0 = $('#page'), st0 = S.stack || [];
     if (!pg0.classList.contains('hidden') && st0.length && st0[st0.length - 1].t === 'cmp') { /* 見比べ画面に戻る（左から） */
       const p = S.stack.pop(), prev = S.stack.length ? S.stack.pop() : null;
-      if (prev) { S.pcur = null; ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[prev.t](prev.id, false, prev.sc); }
+      if (prev) { S.pcur = null; ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[prev.t](prev.id, false, prev.sc); }
       else { pg0.classList.add('hidden'); document.body.style.overflow = ''; S.cur = null; S.pcur = null; S.stack = []; abSync(); }
       if (!fromHist) hback(); if (p.doc) sheetDocReview(p.did); cmpView(p.did, p.no, undefined, true); return; }
     if (!pg0.classList.contains('hidden') && st0.length && st0[st0.length - 1].t === 'doc') { /* 書類の画面に戻る */
       const p = S.stack.pop(), prev = S.stack.length ? S.stack.pop() : null;
-      if (prev) { S.pcur = null; ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[prev.t](prev.id, false, prev.sc); }
+      if (prev) { S.pcur = null; ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[prev.t](prev.id, false, prev.sc); }
       else { pg0.classList.add('hidden'); document.body.style.overflow = ''; S.cur = null; S.pcur = null; S.stack = []; abSync(); }
       if (!fromHist) hback(); HIST.noPush++; try { sheetDocReview(p.id); } finally { HIST.noPush--; } setTimeout(() => { if (p.dsc != null) { $('#sheet').scrollTop = p.dsc; $('#sheetbox').scrollTop = p.dsb || 0; } }, 120); return; } }
   const pg = $('#page'), open = !pg.classList.contains('hidden');
-  if (open && S.stack.length){ const p = S.stack.pop(); S.pcur = null; ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[p.t](p.id, false, p.sc); if (!fromHist) hback(); return; }
+  if (open && S.stack.length){ const p = S.stack.pop(); S.pcur = null; ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[p.t](p.id, false, p.sc); if (!fromHist) hback(); return; }
   pg.classList.add('hidden'); document.body.style.overflow=''; S.cur=null; S.pcur=null; S.stack=[]; if (open && !fromHist) hback(); abSync();
 }
 
@@ -7994,7 +8042,7 @@ function sheetCover(id){
         if (!pb0 || !pb0['表紙写真ファイルID'] || pb0['表紙写真ファイルID'] === before) { setData(d); throw new Error('通信が途中で切れて、表紙は保存されていませんでした。もう一度「写真を保存」を押してください。'); } }
       const pb = (d.pubs || []).find(p => p['資料ID'] === id), ph = pb && (d.photos || []).find(p => p['ファイルID'] === pb['表紙写真ファイルID']);
       if (ph && ph['メモ'] !== memo) d = await call('replacePhoto', ph['写真ID'], '', '', '', memo);
-      busy(false); setData(d); closeSheet(); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); toast(d && d.dup ? '保存済みでした（同じ表紙は二重に登録しません）' : '表紙を登録しました（© ' + mu + '）'); }
+      busy(false); setData(d); closeSheet(); render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true); toast(d && d.dup ? '保存済みでした（同じ表紙は二重に登録しません）' : '表紙を登録しました（© ' + mu + '）'); }
     catch(e){ busy(false); alert('保存できませんでした。\n' + (e.message || e)); }
   };
 }
@@ -8202,7 +8250,7 @@ function openEx(id, keepScroll, restoreSc){
     <div class="tombstone">${esc([fmtDate(x['開始日'], x['終了日']), x['会場'], x['都市']].filter(Boolean).join('　|　'))}</div>
     ${(V => V ? `<dl class="info vonly exinfo">${V}</dl>` : '')([dd2('主催', esc(x['主催'])), x['国'] && x['国'] !== '日本' ? dd2('国', esc(x['国'])) : '', cat ? dd2('図録', `<button class="golink" data-pb="${esc(cat['資料ID'])}">${esc(cat['タイトル']||'図録')} ›</button>`) : '', rel.length ? dd2('関連資料', rel.map(p => `<button class="golink" data-pb="${esc(p['資料ID'])}">${esc(p['タイトル']||p['資料ID'])} ›</button>`).join('')) : '', dd2('メモ', escU(x['メモ'])), srcDD(x)].join(''))}
     ${canEdit() ? `<div class="edonly"><h3 class="sec">展覧会の情報</h3>${recInfo('ex', id, x)}</div>` : ''}
-    ${(venueBy[id] || []).length ? venueSec(id) : `<div class="edonly">${venueSec(id)}</div>`}
+    ${(venueBy[id] || []).length ? venueSec(id) : `<div class="edonly">${venueSec(id)}</div>`}${lyExHTML(id)}
     <h3 class="sec">出品作品 ${grpCnt(nos)}点</h3>${exvSetBtn('ex', id)}${linkedGrid('ex', id)}${docLinks('展覧会ID', id)}${memosFor(id)}
     ${canEdit() && !isEasy() ? `<div class="edonly"><h3 class="sec">記録を更新する</h3><div class="actions bottomacts one"><button class="act main" data-link="ex|${esc(id)}">＋ 出品作品をひも付け</button><button class="act vadd" data-venue="${esc(id)}|">＋ 巡回先（会場）を追加</button><button class="act" data-mmadd="1">📝 お母さんへの確認メモを書く</button>${delBtn('ex', id, 'この展覧会')}</div></div>` : ''}${histBlock(id, x['登録日時'], x['登録者'])}</div>`;
   showPage({t:'ex', id}, html, keepScroll, restoreSc);
@@ -8435,7 +8483,7 @@ async function rotatePhoto(deg){
     const cv0 = pbCv0(no), of = p['ファイルID'];
     const d = await call('replacePhoto', p['写真ID'], b64, mime, p['種類'], p['メモ']);
     setData(d); await pbCvFix(no, cv0, of); render();
-    if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+    if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true);
     S.cur = no; V.list = vList(no); V.i = Math.min(i, V.list.length - 1); showV();
     toast(deg === 180 ? '180°回しました' : deg > 0 ? '右に90°回しました' : '左に90°回しました');
   } catch(e){
@@ -9082,7 +9130,7 @@ function crKey(e){ if (!CR || !$('#crop') || /^(INPUT|TEXTAREA|SELECT)$/.test((e
 function cropClose(fromHist){ const el = $('#crop'); if (!el) return; el.remove(); document.documentElement.classList.remove('cropon'); document.removeEventListener('keydown', crKey); removeEventListener('resize', crLayout);
   if (CR && CR.ro) try { CR.ro.disconnect(); } catch(e){} CR = null; if (!fromHist) hback(); }
 /* 保存したあと：開いているページと写真の画面を新しくし、その写真を出す */
-function crAfter(no, pid){ if (AC.open) { render(); acDraw(); return; } render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+function crAfter(no, pid){ if (AC.open) { render(); acDraw(); return; } render(); if (S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true);
   S.cur = no; V.list = vList(no); const i = V.list.findIndex(x => x['写真ID'] === pid); V.i = i >= 0 ? i : 0; if (V.list.length) showV(); }
 const crPts = a => a.map(([x, y]) => x.toFixed(4) + ',' + y.toFixed(4)).join(' ');
 /* Google 側がときどき 404・「通信が切れました」を返す（中身は実行されていることが多い）。
@@ -9564,7 +9612,7 @@ function fwdRecord(){ let f = null;
     if (top._reopen) f = top._reopen;
     else if (top.id === 'sheet' && S.sheetDoc) { const id = S.sheetDoc; f = () => sheetDocReview(id); }
     else if (top.id === 'viewer') { const i = V.i, m = V.mode, c = S.cur; f = () => { if (m === 'scan') bkOpen(c, (pbScans(c)[i] || {})['写真ID']); else if (m === 'pbtop') { S.cur = c; openViewerL(pbTop(c), i, 'pbtop'); } else openViewer(i); }; } }
-  else if (!$('#page').classList.contains('hidden') && S.pcur) { const p = Object.assign({}, S.pcur), st = (S.stack || []).slice(); f = () => { S.stack = st; ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[p.t](p.id); }; }
+  else if (!$('#page').classList.contains('hidden') && S.pcur) { const p = Object.assign({}, S.pcur), st = (S.stack || []).slice(); f = () => { S.stack = st; ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[p.t](p.id); }; }
   else if (typeof VH !== 'undefined' && VH.length) { const s = vsnap(); f = () => { Object.assign(S, { view: s.view, wmode: s.wmode, filter: s.filter, mus: s.mus, dmode: s.dmode, dpath: s.dpath, otk: s.otk, q: s.q }); render(); setTimeout(() => window.scrollTo(0, s.y || 0), 30); }; }
   FW.push(f); if (FW.length > 60) FW.shift(); }
 function fwdGo(){ const f = FW.pop(); if (!f) return; HIST.noPush = 1; try { f(); } catch(e){} finally { HIST.noPush = 0; } }
@@ -9770,15 +9818,15 @@ function edmForm(){ const pg = $('#page'); if (!EDM || !pg) return; inlineCancel
 }
 /* 押したり打ったりした項目だけを、変更の候補にする（開いただけで書き方がそろって「変更」にならないように） */
 function edmTouch(dd){ const on = e => { if (e.target.closest && e.target.closest('.iematsum, summary')) return; dd.dataset.touched = '1'; }; dd.addEventListener('input', on); dd.addEventListener('change', on); dd.addEventListener('click', e => { if (e.target.closest && e.target.closest('[data-mo], [data-o], .ieswap:not([data-pnform])')) on(e); }); }
-function edmPatch(){ const pg = $('#page'), p = {}; if (!EDM || !pg) return p;
+function edmPatch(){ const pg = $('#page'), p = {}; if (!EDM || !pg || EDM.t === 'ly') return p;
   if (EDM.t === 'w' || EDM.t === 'ot') { const w = workOf(EDM.id); if (!w) return p; pg.querySelectorAll('dd.ief[data-touched]').forEach(dd => Object.assign(p, iePatch(dd, dd.dataset.f, w))); }
   else { const K = RK[EDM.t], x = K.get(EDM.id); if (!x) return p; pg.querySelectorAll('dd.ief[data-touched]').forEach(dd => { const d = K.F[+dd.dataset.ri], el = dd.querySelector('.iein'); if (!d || !el) return; const v = el.value.trim(); if (v !== String(x[d[1]]||'')) p[d[1]] = v; }); }
   return p; }
 const edmDirty = () => !!EDM && Object.keys(edmPatch()).length > 0;
 const edmAsk = () => !edmDirty() || confirm('直した内容は、まだ保存されていません。保存せずに移りますか？');
 function edmEnd(){ EDM = null; document.body.classList.remove('edm'); try { abRender(); } catch(e){ edBtnSync(); } }
-function edmReopen(t, id){ ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[t](id, true); }
-function edmDone(){ if (!EDM) return; const { t, id } = EDM, patch = edmPatch(); const el = document.activeElement; if (el && el.blur) el.blur();
+function edmReopen(t, id){ ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[t](id, true); }
+function edmDone(){ if (!EDM) return; if (EDM.t === 'ly') { const id = EDM.id; edmEnd(); openLay(id, true); return; } /* 配置図：入力欄はなく、板ごとに保存（10/20 開発 v22） */ const { t, id } = EDM, patch = edmPatch(); const el = document.activeElement; if (el && el.blur) el.blur();
   edmEnd();
   if (!Object.keys(patch).length) { edmReopen(t, id); toast('変更はありません'); return; }
   if (t === 'w' || t === 'ot') quickWorkSave([{ no: id, patch }], '保存しました（' + Object.keys(patch).length + '項目）');
@@ -10425,7 +10473,7 @@ async function bgRun(no, job){
   BGS.n++; bgShow(); closeSheet(); toast('裏で保存しています');
   try { const r = await job(m => bgShow(m)); BGS.n--; bgShow();
     const d = r && r.works ? r : await call('getData'); setData(d); render();
-    if (S.pcur && $('#sheet').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true);
+    if (S.pcur && $('#sheet').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true);
     toast(r && r.dup && !r.n ? '完了しました（この写真は保存済みでした）' : '完了しました：写真を保存しました');
     return true; }
   catch(e){ BGS.n--; bgShow();
@@ -11582,7 +11630,7 @@ busy(true, '作品を読み込んでいます…');
 renderUser();
 /* ---------- 画面のいちばん上で下に引っぱると最新の情報に更新（Chromeなどと同じ操作） ---------- */
 async function refreshData(){ // 保存のあとなどに裏で最新にする（画面には何も出さない）
-  try { const d = await call('getData'); setData(d); S.dataAt = Date.now(); render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); }
+  try { const d = await call('getData'); setData(d); S.dataAt = Date.now(); render(); if (S.pcur && !$('#page').classList.contains('hidden')) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true); }
   catch(e){ if (isLoginErr(e)) { setToken(''); S.user = null; render(); } }
 }
 (() => { return; // 引っぱって更新は使わない（2026/10/02 藤本さん）
@@ -11622,7 +11670,7 @@ function restoreNav(){
 }
 function afterNav(n){
   if (!n) return;
-  try { if (n.pcur && ({w:1, ex:1, pb:1, ot:1})[n.pcur.t]) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[n.pcur.t](n.pcur.id); } catch(e){}
+  try { if (n.pcur && ({w:1, ex:1, pb:1, ot:1})[n.pcur.t]) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[n.pcur.t](n.pcur.id); } catch(e){}
   setTimeout(() => { window.scrollTo(0, n.sy || 0); if (n.pcur && n.psy) $('#page').scrollTop = n.psy; }, 60);
 }
 /* 「最新版に更新」（名前のメニュー）：画面の版も、台帳の情報も最新にする。今の状況が分からなくなったときに押す（10/5 本人）。
@@ -11647,7 +11695,7 @@ async function freshDone(f){ let lb = ''; try { lb = await call('appBuild'); } c
   try { const c = !fresh && S.token && window.__smrCached ? await window.__smrCached() : null; if (c) { setData(c); const nv = restoreNav(); applyStart(); render(); afterNav(nv); busy(false); shown = true; } } catch(e){}
   const getDataWait = async () => { for (let k = 0; ; k++) { try { return await call('getData'); } /* デプロイの直後は数分 404 になることがある（10/5） */
       catch(e){ if (isLoginErr(e) || !netErr(e) || k >= 4) throw e; if (!shown) busy(true, 'Googleにつながるのを待っています…（' + (k + 1) + '/4）'); await new Promise(r => setTimeout(r, 4000 + k * 4000)); } } };
-  getDataWait().then(d => { setData(d); S.dataAt = Date.now(); const nv = shown ? null : restoreNav(); applyStart(); render(); if (nv) afterNav(nv); else if (shown && S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt})[S.pcur.t](S.pcur.id, true); if (fresh) freshDone(fresh); })
+  getDataWait().then(d => { setData(d); S.dataAt = Date.now(); const nv = shown ? null : restoreNav(); applyStart(); render(); if (nv) afterNav(nv); else if (shown && S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true); if (fresh) freshDone(fresh); })
     .catch(e => { if (fresh && !isLoginErr(e)) setTimeout(() => alert('Googleにつながらず、最新の情報を読み込めませんでした。\nGoogle側を更新した直後などは、1〜2分つながらないことがあります。少し待って、もう一度「最新版に更新」を押してください。\n（' + (e.message || e) + '）'), 300);
       if (isLoginErr(e)) { setToken(''); S.user = null; renderUser(); showLoginWall(); $('#finder').classList.add('hidden'); }
       else if (!shown) $('#main').innerHTML = '<div class="flagbox">読み込めませんでした。時間をおいてもう一度開いてください。<br>' + esc(e.message||e) + '</div>'; })
@@ -12274,6 +12322,203 @@ const exvFTitle = () => { if (EXVSET) return EXVSET.title; if (!exvFOn()) return
   const hd = cut(P, 2); if (EXVF.kind.length) { const kk = cut(EXVF.kind, 2) + '集'; return hd ? hd + 'の' + kk : kk; } return hd + 'の作品'; };
 /* 作品アルバムのカテゴリ（すべて・自宅・美術館…）に入る作品番号 */
 function exvSet(k, mus, q){ const b = [S.filter, S.mus, S.q]; S.filter = k; S.mus = mus || ''; S.q = q || ''; let a = []; try { a = filtered(); } catch(e){} finally { [S.filter, S.mus, S.q] = b; } return new Set(a.map(w => String(w['作品番号']))); }
+/* ---------- 配置図（展示風景の再現）（10/20 開発 v22 本人「鳥たちの神殿は、美術館の1部屋の3面を使った作品。いくつもの作品番号に分かれ、1パーツだけ寄贈・販売したもの、劣化で破棄したものも多く、全部でいくつかも不明。
+   展示風景の写真はあるが、どれがどのパーツか分かりにくい。作品群をまとめて、当時の展示風景をミニマムに再現し、配置と今の保管場所をつかみたい」）
+   Google 側のシート「配置図」：配置ID・名前・展覧会ID・中身（JSON）・メモ。中身：{ room:{w 間口（奥の壁の長さ）, d 奥行き（左右の壁の長さ）, h 天井（cm）}, place, date, works:[作品群の番号],
+     walls:[{k:'L'左|'C'奥|'R'右|'F'入口, on, top 板の上の端の床からの高さ, slots:[{id, w, h（cm）, est 写真からの推定, j 左の板とくっつく, no 作品番号, st '廃棄'|'譲渡'（台帳にない）, to 相手先, m メモ}]}] }
+   板は、部屋の中から壁に向かって見た左から順。くっついた板は1つのかたまりで、かたまりのあいだは同じ間かく（位置は目安）。資料写真は写真の表に、作品番号の代わりに配置ID で入れる ---------- */
+const LYW = { L: '左の壁', C: '奥の壁', R: '右の壁', F: '入口の壁' }, LYS = { L: '左', C: '奥', R: '右', F: '入口' };
+const LYEND = { L: ['← 入口側', '奥 →'], C: ['← 左の壁', '右の壁 →'], R: ['← 奥', '入口側 →'], F: ['← 右の壁', '左の壁 →'] };
+const LYC = [['home', '自宅'], ['mus', '美術館'], ['away', '個人・画廊など'], ['gone', '廃棄'], ['unk', '場所不明'], ['none', 'どの作品か未定']];
+const LYP = {}; /* 中身の読み取りの控え */
+const lyNid = () => 's' + Math.random().toString(36).slice(2, 8);
+const lyRow = id => (S.layouts || []).find(r => r['配置ID'] === id) || null;
+const lyClone = o => JSON.parse(JSON.stringify(o));
+function lyNorm(o){ o = o && typeof o === 'object' ? o : {}; o.room = Object.assign({ w: 990, d: 1570, h: 460 }, o.room || {}); o.works = [...new Set((o.works || []).map(String).filter(Boolean))];
+  const W = {}; (o.walls || []).forEach(w => { if (w && LYW[w.k]) W[w.k] = w; });
+  o.walls = ['L', 'C', 'R', 'F'].map(k => Object.assign({ k, top: 320, on: k !== 'F', slots: [] }, W[k] || {}));
+  o.walls.forEach(w => { w.slots = (w.slots || []).map(s => Object.assign({ id: lyNid(), w: 125, h: 80 }, s)); if (w.slots.length) w.on = true; }); return o; }
+function lyBody(r){ if (!r) return lyNorm({}); const id = r['配置ID'], k = String(r['更新日時'] || '') + '|' + String(r['中身'] || '').length + '|' + String(r['中身'] || '').slice(-40);
+  if (LYP[id] && LYP[id].k === k) return LYP[id].o; let o = {}; try { o = JSON.parse(r['中身'] || '{}'); } catch(e){} o = lyNorm(o); LYP[id] = { k, o }; return o; }
+const lyLen = (o, k) => +(k === 'C' || k === 'F' ? o.room.w : o.room.d) || 1000;
+const lyWalls = o => o.walls.filter(w => w.on);
+const lyLab = (w, i) => LYS[w.k] + (i + 1);
+const lyM = cm => (Math.round(cm / 10) / 10) + 'm';
+function lyFind(o, sid){ for (const w of o.walls) { const i = w.slots.findIndex(s => s.id === sid); if (i >= 0) return { w, i, s: w.slots[i] }; } return null; }
+/* 板の左右の位置（cm）：くっついた板は1つのかたまり。かたまりのあいだと壁の両はしは同じ間かく */
+function lyPos(o, w){ const L = lyLen(o, w.k), B = []; w.slots.forEach((s, i) => { if (i && s.j) B[B.length - 1].push(s); else B.push([s]); });
+  const tot = w.slots.reduce((a, s) => a + (+s.w || 0), 0), gap = B.length ? Math.max(0, (L - tot) / (B.length + 1)) : 0, P = {}; let x = gap;
+  B.forEach(b => { b.forEach(s => { P[s.id] = x; x += +s.w || 0; }); x += gap; }); return { P, L, over: tot > L + 1 }; }
+/* 板の色：作品が決まっていれば、その作品のいまの場所 */
+function lyCatW(w){ const k = String((w && w['所在区分']) || ''); return k === '自宅' ? 'home' : k === '美術館' ? 'mus' : k === '廃棄' ? 'gone' : !k || k === '不明' || k === '統合済み' ? 'unk' : 'away'; }
+function lyCat(s){ if (s.st === '廃棄') return 'gone'; if (s.st === '譲渡') return 'away'; if (!s.no) return 'none'; const w = workOf(s.no); return w ? lyCatW(w) : 'unk'; }
+function lyLocW(w){ const k = String(w['所在区分'] || ''), p = String(w['所在'] || '').trim(); if (k === '自宅') return canEdit() && p && p !== '自宅' ? p : '自宅'; if (k === '廃棄') return '廃棄'; if (!k || k === '不明') return '場所不明';
+  return p && p !== k ? (k === '美術館' ? p : k + '（' + p + '）') : k; }
+function lyLocTxt(s){ if (s.st === '廃棄') return '廃棄（台帳にない板）'; if (s.st === '譲渡') return '寄贈・販売' + (s.to ? '：' + s.to : '') + '（台帳にない板）'; if (!s.no) return 'どの作品か、まだ決まっていません'; const w = workOf(s.no); return w ? lyLocW(w) : '台帳に見つかりません（No.' + s.no + '）'; }
+const lyThumb = no => { const p = (photoBy[no] || []).find(x => x['ファイルID'] && x['種類'] !== '記録写真'); return `<span class="lyth">${p ? thImg(p['ファイルID'], 400) : ''}</span>`; };
+/* 作品群：作品群に入れた作品＋板に入れた作品（板の名前つき） */
+function lyMembers(o){ const M = new Map(); o.works.forEach(no => M.set(String(no), []));
+  lyWalls(o).forEach(w => w.slots.forEach((s, i) => { if (!s.no) return; const k = String(s.no); if (!M.has(k)) M.set(k, []); M.get(k).push(lyLab(w, i)); }));
+  return [...M.entries()].map(([no, labs]) => ({ no, labs, w: workOf(no) })).sort((a, b) => a.no.localeCompare(b.no, 'ja', { numeric: true })); }
+/* 壁を正面から見た図（cm の座標）。op：{id 配置ID, cur 選んでいる板, no 光らせる作品, mini 小さく, nolink 押せない, Lmax そろえる壁の長さ} */
+function lyElevSVG(o, w, op){ op = op || {}; const { P, L } = lyPos(o, w), top = +w.top || 320, mh = Math.max(40, ...w.slots.map(s => +s.h || 0));
+  const Y = Math.max(top + 45, mh + 60), sty = op.mini ? 'width:100%' : `width:100%;min-width:${Math.round(L * .5)}px`;
+  const fs = s => Math.max(9, Math.min(24, (+s.h || 80) * .27, (+s.w || 100) * .21));
+  const g = w.slots.map((s, i) => { const x = P[s.id], y = Y - top, c = lyCat(s), on = (op.cur && op.cur === s.id) || (op.no && String(s.no) === String(op.no)), f = fs(s), cx = x + (+s.w || 0) / 2, dark = c === 'none' || c === 'unk';
+    const t2 = s.no ? String(s.no) : s.st === '廃棄' ? '廃棄' : s.st === '譲渡' ? '譲渡' : '';
+    return `<g${op.nolink ? '' : ` data-lys="${esc(op.id)}|${esc(s.id)}"`}><rect class="lyb c-${c}${s.est ? ' est' : ''}${on ? ' cur' : ''}" x="${x.toFixed(1)}" y="${y}" width="${+s.w || 0}" height="${+s.h || 0}"/>${op.mini ? '' : `<text class="${dark ? 'dk' : ''}" x="${cx.toFixed(1)}" y="${(y + f * 1.15).toFixed(1)}" font-size="${f.toFixed(1)}">${esc(lyLab(w, i))}</text>${t2 ? `<text class="${dark ? 'dk' : ''} b" x="${cx.toFixed(1)}" y="${(y + f * 2.35).toFixed(1)}" font-size="${f.toFixed(1)}">${esc(t2)}</text>` : ''}`}</g>`; }).join('');
+  const e = LYEND[w.k], ef = op.mini ? 40 : 22;
+  return `<svg viewBox="0 0 ${L} ${Y}" style="${sty}" role="img" aria-label="${esc(LYW[w.k])}"><rect class="lywb" x="0" y="0" width="${L}" height="${Y}"/>
+    <line class="lyfl" x1="0" y1="${Y - 1}" x2="${L}" y2="${Y - 1}"/>${op.mini ? '' : `<line class="lysc" x1="20" y1="${Y - 14}" x2="120" y2="${Y - 14}"/><text class="lyend" x="70" y="${Y - 22}" font-size="18" text-anchor="middle">1m</text>`}
+    <text class="lyend" x="10" y="${ef + 4}" font-size="${ef}" text-anchor="start">${e[0]}</text><text class="lyend" x="${L - 10}" y="${ef + 4}" font-size="${ef}" text-anchor="end">${e[1]}</text>${g}</svg>`; }
+/* 見取り図（上から見た部屋。奥の壁が上、入口側が下） */
+function lyPlanSVG(o, id){ const W = +o.room.w || 990, D = +o.room.d || 1570, t = 42, M = 150; let g = '';
+  lyWalls(o).forEach(w => { const { P } = lyPos(o, w); w.slots.forEach(s => { const p = P[s.id], sw = +s.w || 0; let x, y, rw, rh;
+    if (w.k === 'C') { x = p; y = 0; rw = sw; rh = t; } else if (w.k === 'L') { x = 0; y = D - p - sw; rw = t; rh = sw; } else if (w.k === 'R') { x = W - t; y = p; rw = t; rh = sw; } else { x = W - p - sw; y = D - t; rw = sw; rh = t; }
+    g += `<rect class="lyb c-${lyCat(s)}${s.est ? ' est' : ''}" data-lys="${esc(id)}|${esc(s.id)}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${rw.toFixed(1)}" height="${rh.toFixed(1)}"/>`; }); });
+  const tx = (x, y, s, k, r) => `<text x="${x}" y="${y}"${k ? ` data-lyw="${k}"` : ''}${r ? ` transform="rotate(${r} ${x} ${y})"` : ''}>${s}</text>`;
+  return `<svg class="lyplan" viewBox="${-M} ${-M} ${W + 2 * M} ${D + 2 * M}" role="img" aria-label="展示室の見取り図"><rect class="lyroom" x="0" y="0" width="${W}" height="${D}"/>${g}
+    <g class="lypt">${tx(W / 2, -50, '奥の壁', 'C')}${tx(-55, D / 2, '左の壁', 'L', -90)}${tx(W + 55, D / 2, '右の壁', 'R', 90)}${tx(W / 2, D + 95, '入口側', 'F')}</g><text class="lypm" x="${W / 2}" y="${D / 2}">${lyM(W)} × ${lyM(D)}</text></svg>`; }
+function lyCounts(o){ const n = {}; lyWalls(o).forEach(w => w.slots.forEach(s => { const c = lyCat(s); n[c] = (n[c] || 0) + 1; })); return n; }
+const lyLegend = n => `<div class="lylg">${LYC.map(([k, t]) => `<span><i class="lydot c-${k}"></i>${t}${n && n[k] ? `<b>${n[k]}枚</b>` : ''}</span>`).join('')}<span class="lyest"><i class="lydot est"></i>点線：大きさは写真からの推定</span></div>`;
+let LU = null; /* さっきの変更（3分は「もどす」） */
+const lyUndoBtn = id => LU && LU.id === id && Date.now() - LU.t < 180000 ? `<button type="button" class="act" data-lyundo="${esc(id)}">↩ さっきの配置図の変更をもどす</button>` : '';
+const lyEd = () => canEdit() && !isEasy() && !!EDM && EDM.t === 'ly';
+function openLay(id, keepScroll, restoreSc){ const r = lyRow(id); if (!r) return toast('配置図が見つかりません'); const o = lyBody(r), x = r['展覧会ID'] ? exById[r['展覧会ID']] : null, ce = canEdit() && !isEasy();
+  const ws = lyWalls(o), all = ws.flatMap(w => w.slots), mem = lyMembers(o), ph = (photoBy[id] || []).filter(p => p['ファイルID']), Lmax = Math.max(...ws.map(w => lyLen(o, w.k)), 1);
+  const where = [x ? fmtDate(x['開始日'], x['終了日']) : o.date, x ? x['会場'] : o.place].filter(Boolean).join('　|　'), unpl = mem.filter(m => !m.labs.length).length;
+  const html = `<div class="pagehead"><button class="back" id="back">← もどる</button><span class="no">配置図</span></div>
+    <div class="pagebody one lypage"><div class="eyebrow">配置図（展示風景の再現）</div>
+    <h2 class="title">${esc(r['名前'] || '配置図')}</h2>${where ? `<div class="tombstone">${esc(where)}</div>` : ''}
+    <p class="hint">展示室 間口 ${lyM(o.room.w)} × 奥行き ${lyM(o.room.d)}${o.room.h ? '・天井 ' + lyM(o.room.h) : ''}。いま分かっている板 ${all.length}枚・作品群 ${mem.length}点${unpl ? '（そのうち板の決まっていない作品 ' + unpl + '点）' : ''}。板の位置と大きさは目安です。</p>
+    <div class="lytop">${lyPlanSVG(o, id)}${lyLegend(lyCounts(o))}</div>
+    <h3 class="sec">壁ごとの並び</h3><p class="hint">部屋の中から壁に向かって見た並びです。板を押すと、その板の作品と今の場所が出ます。${ce ? '作品を決める・板を足すときは、右上の「編集」を押してから板を押してください。' : ''}</p>
+    ${ws.map(w => `<div class="lywall" id="lyw-${w.k}"><div class="lywh"><b>${LYW[w.k]}</b><small>${lyM(lyLen(o, w.k))}・板 ${w.slots.length}枚</small></div>
+      ${w.slots.length ? `<div class="lyel" style="width:${(lyLen(o, w.k) / Lmax * 100).toFixed(2)}%">${lyElevSVG(o, w, { id })}</div>` : '<p class="hint">板はまだありません。</p>'}${lyPos(o, w).over ? '<p class="hint lywarn">板の幅の合計が、壁の長さより長くなっています。板の大きさを見直してください。</p>' : ''}
+      ${ce && !w.slots.length ? `<div class="edonly"><button type="button" class="act" data-lyadd="${esc(id)}|${w.k}">＋ この壁に板を足す</button></div>` : ''}</div>`).join('')}
+    <h3 class="sec">作品群 ${mem.length}点</h3><p class="hint">この展示の板（パーツ）だった作品です。押すと作品のページへ。</p>
+    <div class="lymem">${mem.map(m => `<div class="lymw"><button type="button" class="lymc" data-lygo="${esc(m.no)}">${lyThumb(m.no)}<span><b>${esc(nol(m.no))} ${esc(m.w ? m.w['作品名'] || '無題' : '（台帳に見つかりません）')}</b>${m.w ? `<small>${esc([m.w['制作年'], szShort(m.w, ' cm')].filter(Boolean).join('・'))}</small><small class="lyloc"><i class="lydot c-${lyCatW(m.w)}"></i>${esc(lyLocW(m.w))}</small>` : ''}<small class="lypl">${m.labs.length ? '板：' + esc(m.labs.join('・')) : '板はまだ決まっていません'}</small></span></button>${ce && !m.labs.length ? `<button type="button" class="lymx edonly" data-lymdel="${esc(id)}|${esc(m.no)}">外す</button>` : ''}</div>`).join('')}</div>
+    ${ce ? `<div class="edonly"><button type="button" class="act" data-lymadd="${esc(id)}">＋ 作品群に作品を足す</button></div>` : ''}
+    <h3 class="sec${ph.length ? '' : ' edonly'}">資料写真 ${ph.length}枚</h3>${ph.length ? `<div class="lyph">${ph.map((p, i) => `<button type="button" data-lyph="${esc(id)}|${i}">${thImg(p['ファイルID'], 400)}</button>`).join('')}</div>` : ''}
+    ${ce ? `<div class="edonly"><button type="button" class="act" data-lyphadd="${esc(id)}">＋ 資料写真を追加</button></div>` : ''}
+    ${x ? `<h3 class="sec">展覧会</h3><button class="golink" data-ex="${esc(r['展覧会ID'])}">${esc(x['名称'] || r['展覧会ID'])} ›</button>` : ''}
+    ${ce ? `<div class="edonly"><h3 class="sec">記録を更新する</h3><div class="actions bottomacts one"><button type="button" class="act" data-lyroom="${esc(id)}">部屋の大きさ・壁の設定</button>${lyUndoBtn(id)}</div></div>` : ''}
+    ${histBlock(id, r['更新日時'], r['更新者'])}</div>`;
+  showPage({ t: 'ly', id }, html, keepScroll, restoreSc); }
+const lyRefresh = id => { if (S.pcur && S.pcur.t === 'ly' && S.pcur.id === id && !$('#page').classList.contains('hidden')) openLay(id, true); };
+/* 保存：中身をまるごと送る（板1枚ずつ）。note は変更記録の一言 */
+async function lySave(id, o, note, opt){ opt = opt || {}; const r = id ? lyRow(id) : null;
+  busy(true, '配置図を保存しています…');
+  try { const res = await call('saveLayout', { id: id || '', name: opt.name != null ? opt.name : (r ? r['名前'] : ''), ex: opt.ex != null ? opt.ex : (r ? r['展覧会ID'] : ''), body: JSON.stringify(o), memo: r ? r['メモ'] || '' : '', note: note || '' }, 0);
+    if (!res || !Array.isArray(res.layouts)) throw new Error('Google 側の更新（デプロイ）がまだかもしれません');
+    if (r && !opt.undo) LU = { id, body: r['中身'], name: r['名前'], ex: r['展覧会ID'], t: Date.now() }; S.layouts = res.layouts; return res.id || id; }
+  catch(e){ const m = String(e && e.message || e); alert('保存できませんでした（' + (/この操作はできません/.test(m) ? 'Google 側の更新（デプロイ）がまだです' : m) + '）'); return null; }
+  finally { busy(false); } }
+async function lyUndo(id){ const u = LU; if (!u || u.id !== id) return; let o = null; try { o = JSON.parse(u.body); } catch(e){ return; }
+  const ok = await lySave(id, o, 'さっきの変更をもどした', { name: u.name, ex: u.ex, undo: 1 }); if (ok) { LU = null; toast('もとにもどしました'); lyRefresh(id); } }
+/* 板の画面 */
+let LYE = null; /* { id 配置ID, sid 板, d 直している板 } */
+function lySlot(id, sid){ const r = lyRow(id); if (!r) return; const f = lyFind(lyBody(r), sid); if (!f) return; LYE = { id, sid, d: Object.assign({}, f.s) }; openSheet('<div id="lyss" class="lyss"></div>'); lySlotDraw(); }
+function lySlotDraw(){ const el = $('#lyss'); if (!el || !LYE) return; const r = lyRow(LYE.id), o = lyBody(r), f = lyFind(o, LYE.sid); if (!f) { closeSheet(); return; }
+  const { w, i } = f, d = LYE.d, wk = d.no ? workOf(d.no) : null, ed = lyEd(), c = lyCat(d), mem = lyMembers(o), v = x => esc(String(x == null ? '' : x)), dm = wk ? dimMain(wk) : null;
+  const use = no => mem.find(m => m.no === String(no)), cand = mem.filter(m => m.w && m.w['所在区分'] !== '統合済み');
+  el.innerHTML = `<h3>${LYW[w.k]}の${i + 1}枚目（${esc(lyLab(w, i))}）</h3>
+    <div class="lyel lymini">${lyElevSVG(o, w, { id: LYE.id, cur: d.id, mini: 1 })}</div>
+    <div class="lycard">${wk ? `<button type="button" class="lymc" data-lygo="${esc(d.no)}">${lyThumb(d.no)}<span><b>${esc(nol(d.no))} ${esc(wk['作品名'] || '無題')}</b><small>${esc([wk['制作年'], szShort(wk, ' cm')].filter(Boolean).join('・'))}</small><small class="lyloc"><i class="lydot c-${lyCatW(wk)}"></i>${esc(lyLocW(wk))}</small><em>作品ページへ ›</em></span></button>`
+      : `<p class="lyst"><i class="lydot c-${c}"></i>${esc(lyLocTxt(d))}</p>`}</div>
+    <p class="hint">板の大きさ：H ${v(d.h)} × W ${v(d.w)} cm${d.est ? '（写真からの推定）' : ''}${!ed && d.m ? '<br>メモ：' + esc(d.m) : ''}</p>
+    ${ed ? `<div class="lyed"><b>この板の作品</b>
+      ${cand.length ? `<div class="lycand">${cand.map(m => `<button type="button" data-lypick="${esc(m.no)}" class="${String(d.no) === m.no ? 'on' : ''}">${lyThumb(m.no)}<span><b>${esc(nol(m.no))} ${esc(m.w['作品名'] || '無題')}</b><small>${esc([m.w['制作年'], szShort(m.w, ' cm')].filter(Boolean).join('・'))}</small><small>${esc(lyLocW(m.w))}${m.labs.filter(l => l !== lyLab(w, i)).length ? '・板 ' + esc(m.labs.filter(l => l !== lyLab(w, i)).join('・')) : ''}</small></span></button>`).join('')}</div>` : ''}
+      <input id="lyQ" placeholder="作品群にない作品を、番号か名前で探す" autocomplete="off"><div id="lyRes" class="lycand"></div>
+      <div class="lyopt">${[['廃棄', '廃棄した（台帳にない）'], ['譲渡', '寄贈・販売した（台帳にない）'], ['', 'わからない（空にする）']].map(([k, t]) => `<button type="button" data-lyst="${k}" class="${!d.no && (d.st || '') === k ? 'on' : ''}">${t}</button>`).join('')}</div>
+      ${d.st === '譲渡' ? `<label class="lyf"><span>相手先</span><input id="lyTo" value="${v(d.to)}" placeholder="美術館名など（個人の名前は書かない）"></label>` : ''}
+      <label class="lyf"><span>メモ</span><input id="lyM" value="${v(d.m)}" placeholder="写真で見えること・お母さんの話など"></label>
+      <b>板の大きさ・並び</b>
+      <div class="lysz"><span>H</span><input id="lyH" inputmode="decimal" value="${v(d.h)}"><span>×</span><span>W</span><input id="lyW" inputmode="decimal" value="${v(d.w)}"><span>cm</span><label><input type="checkbox" id="lyEst"${d.est ? ' checked' : ''}> 推定</label></div>
+      ${dm && +dm['高さcm'] > 0 && +dm['幅cm'] > 0 && (+dm['高さcm'] !== +d.h || +dm['幅cm'] !== +d.w) ? `<button type="button" class="lysm" data-lyszw="1">台帳のサイズにする（H ${v(dm['高さcm'])} × W ${v(dm['幅cm'])} cm${pnN(wk) ? '・' + pnN(wk) + '枚の全体' : ''}）</button>` : ''}
+      <div class="lyops"><button type="button" data-lyop="addL">◀ 左に板を足す</button><button type="button" data-lyop="addR">右に板を足す ▶</button>${i ? `<button type="button" data-lyop="join">${d.j ? '左の板と離す' : '左の板とくっつける'}</button>` : ''}<button type="button" class="danger" data-lyop="del">この板を消す</button></div>
+      <p class="hint">作品・大きさ・メモを直したら「保存」。板を足す・消す・くっつけるは、押すとすぐ保存します（3分間は、配置図のページの「もどす」で戻せます）。</p></div>`
+      : canEdit() && !isEasy() ? '<p class="hint">作品を決めたり板を直したりするときは、配置図のページの右上の「編集」を押してから、板を押してください。</p>' : ''}
+    <div class="btns">${ed ? '<button type="button" class="primary" data-lysave="1">保存</button>' : ''}<button type="button" data-close>${ed ? 'やめる' : '閉じる'}</button></div>`;
+  hydrate(el); const q = $('#lyQ'); if (q) q.oninput = () => lyFindW(q.value, $('#lyRes'), LYE.id, 'pick'); }
+/* 入力欄の値を LYE.d に */
+function lyRead(){ const d = LYE.d, n = id => { const e = $('#' + id); if (!e) return null; const x = parseFloat(String(e.value || '').normalize('NFKC')); return x > 0 ? Math.round(x * 10) / 10 : null; };
+  const h = n('lyH'), w = n('lyW'); if (h) d.h = h; if (w) d.w = w; const es = $('#lyEst'); if (es) d.est = es.checked || undefined; const m = $('#lyM'); if (m) d.m = m.value.trim() || undefined; const to = $('#lyTo'); if (to) d.to = to.value.trim() || undefined;
+  if (!d.est) delete d.est; if (!d.m) delete d.m; if (!d.to || d.st !== '譲渡') delete d.to; if (!d.st) delete d.st; if (!d.no) delete d.no; if (!d.j) delete d.j; return d; }
+function lyFindW(q, out, id, mode){ if (!out) return; q = String(q || '').normalize('NFKC').trim().toLowerCase(); if (!q) { out.innerHTML = ''; return; } const qn = q.replace(/^no\.?\s*/, ''), have = new Set(lyMembers(lyBody(lyRow(id))).map(m => m.no));
+  const L = (S.works || []).concat(S.others || []).filter(w => { const no = String(w['作品番号']); if (have.has(no) || w['所在区分'] === '統合済み') return false; return no.toLowerCase().includes(qn) || String(w['作品名'] || '').normalize('NFKC').toLowerCase().includes(q); }).slice(0, 20);
+  out.innerHTML = L.length ? L.map(w => { const no = String(w['作品番号']); return `<button type="button" data-${mode === 'pick' ? 'lypick' : 'lymput'}="${esc(no)}">${lyThumb(no)}<span><b>${esc(nol(no))} ${esc(w['作品名'] || '無題')}</b><small>${esc([w['制作年'], szShort(w, ' cm')].filter(Boolean).join('・'))}</small><small>${esc(lyLocW(w))}</small></span></button>`; }).join('') : '<p class="hint">見つかりません（もう作品群にある作品は出ません）</p>'; hydrate(out); }
+async function lySlotSave(){ if (!LYE) return; const d = lyRead(), id = LYE.id, o = lyClone(lyBody(lyRow(id))), f = lyFind(o, LYE.sid); if (!f) return;
+  f.w.slots[f.i] = d; if (d.no && !o.works.includes(String(d.no))) o.works.push(String(d.no)); const lab = lyLab(f.w, f.i);
+  const note = lab + '：' + (d.no ? nol(d.no) : d.st === '廃棄' ? '廃棄（台帳にない）' : d.st === '譲渡' ? '寄贈・販売' + (d.to ? '（' + d.to + '）' : '') : 'わからない') + '・H ' + d.h + ' × W ' + d.w + (d.est ? '（推定）' : '');
+  if (!(await lySave(id, o, note))) return; LYE = null; closeSheet(); toast(lab + ' を保存しました'); lyRefresh(id); }
+async function lyOp(op){ if (!LYE) return; const d = lyRead(), id = LYE.id, o = lyClone(lyBody(lyRow(id))), f = lyFind(o, LYE.sid); if (!f) return; const A = f.w.slots, lab = lyLab(f.w, f.i); A[f.i] = d; let sel = d.id, note = '';
+  if (op === 'addR' || op === 'addL') { const n = { id: lyNid(), w: d.w, h: d.h, est: true, j: true }; if (op === 'addR') { A.splice(f.i + 1, 0, n); note = lab + ' の右に板を足した'; } else { if (d.j) n.j = true; else delete n.j; d.j = true; A.splice(f.i, 0, n); note = lab + ' の左に板を足した'; } sel = n.id; }
+  else if (op === 'join') { if (d.j) delete d.j; else d.j = true; note = lab + (d.j ? ' を左の板とくっつけた' : ' を左の板と離した'); }
+  else if (op === 'del') { if (!confirm(lab + ' の板を消しますか？' + (d.no ? '\n（' + nol(d.no) + ' は作品群に残ります）' : ''))) return; A.splice(f.i, 1); note = lab + ' の板を消した'; sel = null; }
+  if (!(await lySave(id, o, note))) return; lyRefresh(id);
+  if (sel) { LYE = null; lySlot(id, sel); toast(op === 'join' ? '保存しました' : '板を足しました（大きさは推定）'); } else { LYE = null; closeSheet(); toast('板を消しました'); } }
+async function lyAddFirst(id, k){ const o = lyClone(lyBody(lyRow(id))), w = o.walls.find(x => x.k === k); if (!w) return; const n = { id: lyNid(), w: 125, h: 80, est: true }; w.on = true; w.slots.push(n);
+  if (!(await lySave(id, o, LYW[k] + 'に板を足した'))) return; lyRefresh(id); lySlot(id, n.id); }
+/* 作品群 */
+function lyMemAdd(id){ openSheet(`<h3>作品群に作品を足す</h3><p class="hint">この展示の板（パーツ）だったかもしれない作品を足します。どの板かは、あとで板を押して決めます。</p><input id="lyMQ" placeholder="番号か名前で探す（例：神殿）" autocomplete="off"><div id="lyMR" class="lycand"></div><div class="btns"><button type="button" data-close>閉じる</button></div>`);
+  const q = $('#lyMQ'); q.dataset.ly = id; q.oninput = () => lyFindW(q.value, $('#lyMR'), id, 'mem'); setTimeout(() => q.focus(), 50); }
+async function lyMemPut(id, no){ const o = lyClone(lyBody(lyRow(id))); if (o.works.includes(String(no))) return; o.works.push(String(no));
+  if (!(await lySave(id, o, '作品群に ' + nol(no) + ' を足した'))) return; toast(nol(no) + ' を作品群に足しました'); lyRefresh(id); const q = $('#lyMQ'); if (q) lyFindW(q.value, $('#lyMR'), id, 'mem'); }
+async function lyMemDel(id, no){ if (!confirm(nol(no) + ' を作品群から外しますか？（作品は台帳に残ります）')) return; const o = lyClone(lyBody(lyRow(id))); o.works = o.works.filter(x => x !== String(no));
+  if (!(await lySave(id, o, '作品群から ' + nol(no) + ' を外した'))) return; toast('外しました'); lyRefresh(id); }
+/* 資料写真（展示風景・出品目録など） */
+function lyPhAdd(id){ if (!canEdit()) return; openSheet(`<h3>資料写真を追加</h3><p class="hint">展示風景の写真・出品目録など、配置の手がかりになる写真（何枚でも）。</p>${photoInputs(true)}${BTNS('写真を保存')}`);
+  let list = []; bindPhoto((d, cam, l) => { list = (l || []).slice(-10); });
+  $('#ok').onclick = async () => { if (!list.length) return alert('写真を撮るか選んでください'); busy(true, '写真を送っています…');
+    try { const r = await callRetry('addPhotos', id, list, '資料', '配置図の資料写真'); await refreshData().catch(() => {}); busy(false); closeSheet(); lyRefresh(id); toast(r && r.dup && !r.n ? '保存済みでした（同じ写真は二重に登録しません）' : '資料写真を' + ((r && r.n) || list.length) + '枚登録しました'); }
+    catch(e){ busy(false); alert('保存できませんでした。\n' + (e.message || e)); } }; }
+function lyPhView(id, i){ const L = (photoBy[id] || []).filter(p => p['ファイルID']); if (!L.length) return; if (V.prevCur === undefined) V.prevCur = S.cur; S.cur = id; openViewerL(L, Math.max(0, Math.min(L.length - 1, i)), ''); }
+/* 部屋の大きさ・壁の設定 */
+function lyRoom(id){ const r = lyRow(id); if (!r) return; const o = lyBody(r), v = x => esc(String(x == null ? '' : x));
+  openSheet(`<h3>部屋の大きさ・壁の設定</h3><p class="hint">寸法は cm。板の位置は、壁ごとに同じ間かくで並べた目安です。</p>
+    <label class="lyf"><span>配置図の名前</span><input id="lyNm" value="${v(r['名前'])}"></label>
+    <div class="lyf3"><label><span>間口（奥の壁）</span><input id="lyRw" inputmode="decimal" value="${v(o.room.w)}"></label><label><span>奥行き（左右の壁）</span><input id="lyRd" inputmode="decimal" value="${v(o.room.d)}"></label><label><span>天井の高さ</span><input id="lyRh" inputmode="decimal" value="${v(o.room.h)}"></label></div>
+    ${r['展覧会ID'] ? '' : `<label class="lyf"><span>場所</span><input id="lyPl" value="${v(o.place)}"></label><label class="lyf"><span>時期</span><input id="lyDt" value="${v(o.date)}"></label>`}
+    <b>壁（使う壁と、板の上の端の高さ）</b>${o.walls.map(w => `<div class="lywr"><label><input type="checkbox" data-lywon="${w.k}"${w.on ? ' checked' : ''}${w.slots.length ? ' disabled' : ''}> ${LYW[w.k]}</label><span>板の上の端：床から <input data-lywtop="${w.k}" inputmode="decimal" value="${v(w.top)}"> cm</span></div>`).join('')}
+    <div class="btns"><button type="button" data-close>やめる</button><button type="button" class="primary" id="lyRoomOk">保存</button></div>`);
+  $('#lyRoomOk').onclick = async () => { const o2 = lyClone(o), n = s => { const x = parseFloat(String(s || '').normalize('NFKC')); return x > 0 ? Math.round(x * 10) / 10 : 0; }, val = id => (($('#' + id) || {}).value || '');
+    o2.room = { w: n(val('lyRw')) || o.room.w, d: n(val('lyRd')) || o.room.d, h: n(val('lyRh')) || o.room.h }; if ($('#lyPl')) { o2.place = val('lyPl').trim(); o2.date = val('lyDt').trim(); }
+    o2.walls.forEach(w => { const c = document.querySelector(`[data-lywon="${w.k}"]`), t = document.querySelector(`[data-lywtop="${w.k}"]`); w.on = !!(c && c.checked) || w.slots.length > 0; const tv = n(t && t.value); if (tv) w.top = tv; });
+    if (await lySave(id, o2, '部屋の大きさ・壁の設定', { name: val('lyNm').trim() || r['名前'] })) { closeSheet(); toast('保存しました'); lyRefresh(id); } }; }
+/* 作品ページの欄・展覧会のページの欄 */
+function lyOfNo(no){ no = String(no); return (S.layouts || []).filter(r => { const o = lyBody(r); return o.works.includes(no) || o.walls.some(w => w.slots.some(s => String(s.no) === no)); }); }
+function lySecHTML(no){ const L = lyOfNo(no); if (!L.length) return '';
+  return `<h3 class="sec">配置図（展示風景）</h3>` + L.map(r => { const o = lyBody(r), id = r['配置ID'], hits = []; lyWalls(o).forEach(w => w.slots.forEach((s, i) => { if (String(s.no) === String(no)) hits.push([w, i]); }));
+    const x = r['展覧会ID'] ? exById[r['展覧会ID']] : null, wh = [x ? String(x['開始日'] || '').slice(0, 4) : o.date, x ? x['会場'] : o.place].filter(Boolean).join(' ');
+    return `<div class="lysec" data-lyopen="${esc(id)}">${hits.length ? `<div class="lyel lymini">${lyElevSVG(o, hits[0][0], { id, no, mini: 1, nolink: 1 })}</div>` : ''}
+      <p class="hint">「${esc(r['名前'] || '配置図')}」${wh ? '（' + esc(wh) + '）' : ''}：${hits.length ? hits.map(([w, i]) => esc(LYW[w.k] + 'の' + (i + 1) + '枚目（' + lyLab(w, i) + '）')).join('・') : '作品群に入っています。どの板かは、まだ決まっていません'}。</p><button type="button" class="act" data-lyopen="${esc(id)}">配置図を見る ›</button></div>`; }).join(''); }
+function lyExHTML(ex){ const L = (S.layouts || []).filter(r => r['展覧会ID'] === ex);
+  return (L.length ? `<h3 class="sec">配置図（展示風景）</h3><div class="lyexb">${L.map(r => { const o = lyBody(r), n = lyWalls(o).reduce((a, w) => a + w.slots.length, 0); return `<button type="button" class="act" data-lyopen="${esc(r['配置ID'])}">${esc(r['名前'] || '配置図')}（板 ${n}枚・作品群 ${lyMembers(o).length}点） ›</button>`; }).join('')}</div>` : '')
+    + (canEdit() && !isEasy() ? `<div class="edonly"><button type="button" class="act" data-lynew="${esc(ex)}">＋ 配置図（展示風景）をつくる</button></div>` : ''); }
+async function lyNew(ex){ const x = exById[ex] || {}; if (!confirm(`「${x['名称'] || ex}」の配置図（展示室の壁と板の並び）をつくりますか？\nはじめは 10m × 15m の部屋です。あとで「部屋の大きさ・壁の設定」で直せます。`)) return;
+  const o = lyNorm({ room: { w: 1000, d: 1500, h: 300 }, works: (worksByEx[ex] || []).map(String) });
+  const id = await lySave('', o, '配置図をつくった', { name: x['名称'] || '配置図', ex }); if (id) { toast('配置図をつくりました'); openLay(id); } }
+document.addEventListener('click', e => { const t = e.target; if (!t || !t.closest) return;
+  const a = t.closest('[data-lys]'); if (a) { const [id, sid] = a.dataset.lys.split('|'); lySlot(id, sid); return; }
+  const op = t.closest('[data-lyopen]'); if (op) { openLay(op.dataset.lyopen); return; }
+  const go = t.closest('[data-lygo]'); if (go) { const no = go.dataset.lygo; if (t.closest('#sheet')) { LYE = null; closeSheet(); } openWork(no); return; }
+  const wl = t.closest('[data-lyw]'); if (wl) { const el = document.getElementById('lyw-' + wl.dataset.lyw); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+  const ad = t.closest('[data-lyadd]'); if (ad) { const [id, k] = ad.dataset.lyadd.split('|'); lyAddFirst(id, k); return; }
+  const ma = t.closest('[data-lymadd]'); if (ma) { lyMemAdd(ma.dataset.lymadd); return; }
+  const md = t.closest('[data-lymdel]'); if (md) { const [id, no] = md.dataset.lymdel.split('|'); lyMemDel(id, no); return; }
+  const mp = t.closest('[data-lymput]'); if (mp) { const q = $('#lyMQ'); if (q && q.dataset.ly) lyMemPut(q.dataset.ly, mp.dataset.lymput); return; }
+  const pv = t.closest('[data-lyph]'); if (pv) { const [id, i] = pv.dataset.lyph.split('|'); lyPhView(id, +i); return; }
+  const pa = t.closest('[data-lyphadd]'); if (pa) { lyPhAdd(pa.dataset.lyphadd); return; }
+  const rm = t.closest('[data-lyroom]'); if (rm) { lyRoom(rm.dataset.lyroom); return; }
+  const ud = t.closest('[data-lyundo]'); if (ud) { lyUndo(ud.dataset.lyundo); return; }
+  const nw = t.closest('[data-lynew]'); if (nw) { lyNew(nw.dataset.lynew); return; }
+  if (!LYE || !t.closest('#lyss')) return;
+  const pk = t.closest('[data-lypick]'); if (pk) { lyRead(); const d = LYE.d; d.no = pk.dataset.lypick; delete d.st; delete d.to; lySlotDraw(); return; }
+  const st = t.closest('[data-lyst]'); if (st) { lyRead(); const d = LYE.d; delete d.no; if (st.dataset.lyst) d.st = st.dataset.lyst; else { delete d.st; delete d.to; } lySlotDraw(); return; }
+  const sz = t.closest('[data-lyszw]'); if (sz) { lyRead(); const d = LYE.d, wk = workOf(d.no), dm = wk ? dimMain(wk) : null; if (dm) { d.h = +dm['高さcm']; d.w = +dm['幅cm']; delete d.est; } lySlotDraw(); return; }
+  const o2 = t.closest('[data-lyop]'); if (o2) { lyOp(o2.dataset.lyop); return; }
+  if (t.closest('[data-lysave]')) { lySlotSave(); return; } });
 /* ---------- 組（パーツ）（10/7 開発 v10 本人「複数パーツを並べた作品の1パーツが1作品として台帳に入っていることがある（12個くらいまで）。くっつけて1作品に。足りないパーツも補って完成形を。全何パーツか決めて、順番はプレビューで入れかえ。キャプションはパーツの数だけ並べる」）
    Google 側のシート「組」：組ID・作品名（全体）・並び（作品番号を左から「,」区切り。空き＝台帳にないパーツ）・並べ方・メモ。作品の表は変えない。シリーズとは別（シリーズは今のまま別々に並べる） ---------- */
 const grpL = g => String((g && g['並び']) || '').split(',').map(x => x.trim());
