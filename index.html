@@ -346,6 +346,42 @@ svg .lyb.c-none{fill:var(--paper);stroke:var(--sub);stroke-dasharray:5 4}svg .ly
 .lyf{display:flex;flex-direction:column;gap:4px;margin:6px 0}.lyf span{font-size:13px;color:var(--sub)}.lyf input{width:100%;box-sizing:border-box}
 .lyf3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0}.lyf3 label{display:flex;flex-direction:column;font-size:12.5px;gap:4px;color:var(--sub)}.lyf3 input{width:100%;box-sizing:border-box}
 .lywr{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin:6px 0}.lywr input[inputmode]{width:5em}
+.lybts{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 2px}.lybts .act{margin:0}
+/* A4 で印刷（10/21） */
+#lyprint{display:none}
+@media print{
+  @page{size:A4 portrait;margin:9mm}
+  html,body{background:#fff!important;height:auto!important;overflow:visible!important}
+  body.lyprinting>*:not(#lyprint){display:none!important}
+  body.lyprinting #lyprint{display:block;color:#111;font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #lyprint .lpp{break-after:page;page-break-after:always;width:192mm}
+  #lyprint .lpp:last-child{break-after:auto;page-break-after:auto}
+  #lyprint .lph{display:flex;justify-content:space-between;align-items:baseline;gap:8px;border-bottom:.4mm solid #111;padding-bottom:1.5mm;margin-bottom:3mm;font-size:9pt}
+  #lyprint .lph b{font-size:12.5pt}
+  #lyprint .lpi{font-size:11.5pt;line-height:1.6;margin:0 0 3mm}
+  #lyprint .lpt{display:flex;gap:5mm;align-items:center;margin-bottom:2mm}
+  #lyprint .lppl{width:48mm;height:auto;flex:0 0 auto}
+  #lyprint .lppl .lyroom{fill:#f3f1ec;stroke:#333;stroke-width:8}#lyprint .lppl .lydoor{fill:#fff}
+  #lyprint .lppl text{font-size:70px;fill:#333;text-anchor:middle;dominant-baseline:middle}#lyprint .lppl .lypm{display:none}
+  #lyprint .lppl .lyb{fill:#fff;stroke:#333;stroke-width:3px;stroke-dasharray:none}
+  #lyprint .lpn{font-size:10.5pt;line-height:1.7}
+  #lyprint .lpw{margin:2.5mm 0 3.5mm;font-size:11pt;break-inside:avoid}
+  #lyprint .lprw{display:block;width:100%;height:auto;margin-top:1mm;border:.3mm solid #999;background:#faf9f6}
+  #lyprint .lprw rect{fill:#fff;stroke:#111;stroke-width:1.2px;vector-effect:non-scaling-stroke}#lyprint .lprw rect.g{fill:#ddd}
+  #lyprint .lprw text{font-weight:700;fill:#111}#lyprint .lprw text.n{font-weight:400;fill:#555}
+  #lyprint .lprw text.e{font-size:20px;font-weight:400;fill:#666}#lyprint .lprw .fl{stroke:#555;stroke-width:1.5px;vector-effect:non-scaling-stroke}
+  #lyprint .lpph{display:grid;grid-template-columns:1fr 1fr;gap:3mm}#lyprint .lpph img{width:100%;height:80mm;object-fit:contain;background:#f3f1ec}
+  #lyprint .lpg{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:83mm;gap:3.5mm}
+  #lyprint .lpc{border:.35mm solid #444;border-radius:2mm;padding:2.5mm;display:grid;grid-template-columns:44mm 1fr;grid-template-rows:auto auto auto 1fr;column-gap:3mm;row-gap:1.5mm;break-inside:avoid;overflow:hidden}
+  #lyprint .lpim{grid-row:1/2;grid-column:1/2;height:40mm;background:#f3f1ec;display:flex;align-items:center;justify-content:center}
+  #lyprint .lpim img{max-width:100%;max-height:40mm;object-fit:contain;display:block}#lyprint .nop{font-size:9pt;color:#777}
+  #lyprint .lpt2{grid-row:1/2;grid-column:2/3;display:flex;flex-direction:column;gap:.8mm;font-size:9.5pt;line-height:1.35;min-width:0}
+  #lyprint .lpt2 .no{font-size:15pt;color:#111}#lyprint .lpt2 .nm{font-size:11.5pt}
+  #lyprint .lpq{grid-column:1/3;display:flex;align-items:center;gap:3mm;font-size:13pt;font-weight:700;margin-top:1mm}
+  #lyprint .lpq i{flex:1;height:11mm;border:.45mm solid #111;border-radius:1.5mm}
+  #lyprint .lpk{grid-column:1/3;display:flex;gap:6mm;font-size:10.5pt}
+  #lyprint .lpm{grid-column:1/3;font-size:10pt;border-bottom:.3mm solid #888;align-self:end;padding-bottom:5mm}
+}
 .wchip{border:1px solid var(--line);background:var(--paper);padding:4px 10px;font-size:15px;border-radius:999px;text-align:left}
 .wchip:hover{border-color:var(--ink)}
 .golink{display:inline-block;border:0;border-bottom:1px solid var(--ink);background:none;padding:0;margin:6px 14px 0 0;font-size:15px;letter-spacing:.04em;border-radius:0;color:var(--ink)}
@@ -3011,7 +3047,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'fda4b9f75d', APP_URL = location.origin + location.pathname;
+const BUILD = '37349854b7', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -12398,7 +12434,7 @@ function openLay(id, keepScroll, restoreSc){ const r = lyRow(id); if (!r) return
     <div class="pagebody one lypage"><div class="eyebrow">配置図（展示風景の再現）</div>
     <h2 class="title">${esc(r['名前'] || '配置図')}</h2>${where ? `<div class="tombstone">${esc(where)}</div>` : ''}
     <p class="hint">展示室 間口 ${lyM(o.room.w)} × 奥行き ${lyM(o.room.d)}${o.room.h ? '・天井 ' + lyM(o.room.h) : ''}。いま分かっている板 ${all.length}枚・作品群 ${mem.length}点${unpl ? '（そのうち板の決まっていない作品 ' + unpl + '点）' : ''}。板の位置と大きさは目安です。</p>
-    <div class="lytop">${lyPlanSVG(o, id)}${lyLegend(lyCounts(o))}</div>${typeof exvIsAdm === 'function' && exvIsAdm() && all.length ? `<button type="button" class="act lyexv" data-lyexv="${esc(id)}">展示ビューで部屋を見る</button>` : ''}
+    <div class="lytop">${lyPlanSVG(o, id)}${lyLegend(lyCounts(o))}</div><div class="lybts">${typeof exvIsAdm === 'function' && exvIsAdm() && all.length ? `<button type="button" class="act lyexv" data-lyexv="${esc(id)}">展示ビューで部屋を見る</button>` : ''}${all.length || mem.length ? `<button type="button" class="act" data-lyprint="${esc(id)}">A4 で印刷（紙で確認する用）</button>` : ''}</div>
     <h3 class="sec">壁ごとの並び</h3><p class="hint">部屋の中から壁に向かって見た並びです。板を押すと、その板の作品と今の場所が出ます。${ce ? '作品を決める・板を足すときは、右上の「編集」を押してから板を押してください。' : ''}</p>
     ${ws.map(w => `<div class="lywall" id="lyw-${w.k}"><div class="lywh"><b>${LYW[w.k]}</b><small>${lyM(lyLen(o, w.k))}・板 ${w.slots.length}枚</small></div>
       ${w.slots.length ? `<div class="lyel" style="width:${(lyLen(o, w.k) / Lmax * 100).toFixed(2)}%">${lyElevSVG(o, w, { id })}</div>` : '<p class="hint">板はまだありません。</p>'}${lyPos(o, w).over ? '<p class="hint lywarn">板の幅の合計が、壁の長さより長くなっています。板の大きさを見直してください。</p>' : ''}
@@ -12530,6 +12566,30 @@ document.addEventListener('click', e => { const t = e.target; if (!t || !t.close
   const sz = t.closest('[data-lyszw]'); if (sz) { lyRead(); const d = LYE.d, wk = workOf(d.no), dm = wk ? dimMain(wk) : null; if (dm) { d.h = +dm['高さcm']; d.w = +dm['幅cm']; delete d.est; } lySlotDraw(); return; }
   const o2 = t.closest('[data-lyop]'); if (o2) { lyOp(o2.dataset.lyop); return; }
   if (t.closest('[data-lysave]')) { lySlotSave(); return; } });
+/* ---------- A4 で印刷（10/21 本人「母に確認してもらおうとしたら、スマホではなかなか難しそう。配置図と候補作品を A4 でプリントして、アナログで確認できるように」） ----------
+   1枚目：見取り図と3面の壁（板に大きく 左1・奥3…）と書き方。2枚目から：作品群を1ページ6点（大きい写真・番号・名前・サイズ・今の場所）と「どの板？（　）」の欄。
+   ブラウザの印刷（PDF にも）。写真は届くまで待ってから印刷の画面を出す */
+function lyPrWall(o, w){ const { P, L } = lyPos(o, w), tp = Math.max(100, ...w.slots.map(s => lyBot(w, s) + (+s.h || 0))), Y = tp + 40, e = LYEND[w.k];
+  const g = w.slots.map((s, i) => { const x = P[s.id], y = Y - lyBot(w, s) - (+s.h || 0), sw = +s.w || 0, sh = +s.h || 0, f = Math.max(14, Math.min(46, sh * 0.42, sw * 0.32)), cx = x + sw / 2;
+    return `<rect x="${x.toFixed(1)}" y="${y}" width="${sw}" height="${sh}" class="${s.st === '廃棄' ? 'g' : ''}"/><text x="${cx.toFixed(1)}" y="${(y + sh / 2 + f * 0.36).toFixed(1)}" font-size="${f.toFixed(1)}" text-anchor="middle">${esc(lyLab(w, i))}</text>${s.no ? `<text class="n" x="${cx.toFixed(1)}" y="${(y + sh - 6).toFixed(1)}" text-anchor="middle" font-size="${Math.max(11, f * 0.45).toFixed(1)}">No.${esc(s.no)}</text>` : ''}`; }).join('');
+  return `<svg viewBox="0 0 ${L} ${Y}" class="lprw"><line x1="0" y1="${Y - 1}" x2="${L}" y2="${Y - 1}" class="fl"/><text class="e" x="6" y="22" text-anchor="start">${e[0]}</text><text class="e" x="${L - 6}" y="22" text-anchor="end">${e[1]}</text>${g}</svg>`; }
+async function lyPrint(id){ const r = lyRow(id); if (!r) return; const o = lyBody(r), x = r['展覧会ID'] ? exById[r['展覧会ID']] : null, mem = lyMembers(o), ws = lyWalls(o).filter(w => w.slots.length), ph = (photoBy[id] || []).filter(p => p['ファイルID']);
+  const ttl = r['名前'] || '配置図', sub = [x ? (x['名称'] || '') + '（' + String(x['開始日'] || '').slice(0, 4) + '年）' : o.date, x ? x['会場'] : o.place].filter(Boolean).join('　'), day = new Date().toLocaleDateString('ja-JP');
+  const per = 6, np = Math.ceil(mem.length / per), N = 1 + (ph.length ? 1 : 0) + np, hd = k => `<div class="lph"><b>${esc(ttl)}　配置図の確認</b><span>${esc(sub)}</span><span>${esc(day)}　${k} / ${N}</span></div>`;
+  const pic = no => { const p = (photoBy[no] || []).find(q => q['ファイルID'] && q['種類'] !== '記録写真'); return p ? `<img data-tid="${esc(p['ファイルID'])}" data-w="800" alt="">` : '<span class="nop">写真なし</span>'; };
+  let h = `<section class="lpp">${hd(1)}<p class="lpi">板の番号（<b>左1</b>・<b>奥3</b>・<b>右5</b> など）を見て、2枚目からの作品に<b>どの板だったか</b>を書いてください。わからないときは「？」、この展示の作品でないときは □ に ✓。</p>
+    <div class="lpt">${lyPlanSVG(o, id).replace('class="lyplan"', 'class="lyplan lppl"')}<div class="lpn">展示室　間口 ${lyM(o.room.w)} × 奥行き ${lyM(o.room.d)}<br>部屋の中から壁に向かって見た並びです。<br>板の大きさは写真からの目安です。</div></div>
+    ${ws.map(w => `<div class="lpw"><b>${LYW[w.k]}</b>（板 ${w.slots.length}枚）${lyPrWall(o, w)}</div>`).join('')}</section>`;
+  if (ph.length) h += `<section class="lpp">${hd(2)}<p class="lpi">資料写真</p><div class="lpph">${ph.slice(0, 6).map(p => `<img data-tid="${esc(p['ファイルID'])}" data-w="800" alt="">`).join('')}</div></section>`;
+  for (let k = 0; k < np; k++) h += `<section class="lpp">${hd(1 + (ph.length ? 1 : 0) + k + 1)}<div class="lpg">${mem.slice(k * per, (k + 1) * per).map(m => { const w = m.w || {};
+    return `<div class="lpc"><div class="lpim">${pic(m.no)}</div><div class="lpt2"><b class="no">No.${esc(m.no)}</b><b class="nm">${esc(w['作品名'] || '（台帳に見つかりません）')}</b><span>${esc([w['制作年'], m.w ? szShort(w, ' cm') : ''].filter(Boolean).join('・'))}</span><span>いまの場所：${esc(m.w ? lyLocW(w) : '')}</span>${m.labs.length ? `<span>いまの配置図：${esc(m.labs.join('・'))}</span>` : ''}</div>
+      <div class="lpq"><span>どの板？</span><i></i></div><div class="lpk"><span>□ この展示の作品ではない</span><span>□ わからない</span></div><div class="lpm">メモ：</div></div>`; }).join('')}</div></section>`;
+  const old = $('#lyprint'); if (old) old.remove(); const box = document.createElement('div'); box.id = 'lyprint'; box.innerHTML = h; document.body.appendChild(box);
+  const im = [...box.querySelectorAll('img[data-tid]')]; busy(true, '印刷の準備をしています（写真 ' + im.length + '枚）…'); im.forEach(el => queueThumb(el));
+  const t0 = Date.now(); await new Promise(ok => { const ck = () => { const n = im.filter(el => el.getAttribute('src') && el.complete && el.naturalWidth > 0).length; busy(true, '印刷の準備をしています（写真 ' + n + ' / ' + im.length + '）…'); if (n >= im.length || Date.now() - t0 > 45000) ok(); else setTimeout(ck, 400); }; ck(); });
+  busy(false); const end = () => { document.body.classList.remove('lyprinting'); const b = $('#lyprint'); if (b) b.remove(); removeEventListener('afterprint', end); };
+  document.body.classList.add('lyprinting'); addEventListener('afterprint', end); setTimeout(() => { try { window.print(); } catch(e){} setTimeout(() => { if (!matchMedia('print').matches) end(); }, 1500); }, 150); }
+document.addEventListener('click', e => { const t = e.target && e.target.closest && e.target.closest('[data-lyprint]'); if (t) lyPrint(t.dataset.lyprint); });
 /* ---------- 組（パーツ）（10/7 開発 v10 本人「複数パーツを並べた作品の1パーツが1作品として台帳に入っていることがある（12個くらいまで）。くっつけて1作品に。足りないパーツも補って完成形を。全何パーツか決めて、順番はプレビューで入れかえ。キャプションはパーツの数だけ並べる」）
    Google 側のシート「組」：組ID・作品名（全体）・並び（作品番号を左から「,」区切り。空き＝台帳にないパーツ）・並べ方・メモ。作品の表は変えない。シリーズとは別（シリーズは今のまま別々に並べる） ---------- */
 const grpL = g => String((g && g['並び']) || '').split(',').map(x => x.trim());
