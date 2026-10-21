@@ -2744,6 +2744,14 @@ body.qcopen #bigwait{visibility:visible!important}body.bbig #toast.tmsg:not(.hid
 .hg-inbox b{display:block;font-size:19px}.hg-inbox small{display:block;font-size:15px;opacity:.8;line-height:1.45}
 .hg-inbox em{margin-left:auto;font-style:normal;font-weight:700;font-size:16px;white-space:nowrap}
 html[data-theme=dark] .hg-inbox{background:#3a2f12;color:#ffe9a8;border-color:#a87b12}
+#hgPin{display:grid;gap:10px;margin:0 0 18px}#hgPin:empty{display:none}
+.hg-pin{display:flex;align-items:center;gap:14px;width:100%;margin:0;padding:16px 18px;border-radius:18px;border:2px solid #cfd8e1;border-bottom-width:5px;background:#f4f7fa;color:#22313f;text-align:left}
+.hg-pin .ic{flex:none;width:44px;height:44px;border-radius:50%;background:#4d6478;color:#fff;display:flex;align-items:center;justify-content:center}
+.hg-pin .ic svg{width:24px;height:24px}
+.hg-pin b{display:block;font-size:19px}.hg-pin small{display:block;font-size:15px;opacity:.8;line-height:1.45}
+.hg-pin em{margin-left:auto;font-style:normal;font-weight:700;font-size:16px;white-space:nowrap}
+html[data-theme=dark] .hg-pin{background:#1f2a34;color:#dbe6ef;border-color:#3d5163}
+html[data-theme=dark] .hg-pin .ic{background:#6d8aa3}
 .dwbadge{margin-left:auto;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:#e5484d;color:#fff;font:700 13px/22px var(--sans);text-align:center}
 .dwbadge:empty{display:none}
 .sh-list{display:flex;flex-direction:column;gap:10px;margin:8px 0 22px}
@@ -3047,7 +3055,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '256bc5a5b7', APP_URL = location.origin + location.pathname;
+const BUILD = 'c133d025d6', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -5443,7 +5451,7 @@ function renderHome(){
   $('#main').innerHTML = `<div class="homegrid"><div class="home hm2">
     <p class="hg-date">${d.getMonth() + 1}月${d.getDate()}日（${'日月火水木金土'[d.getDay()]}）</p>
     <h1 class="hg-hello">${esc(S.user && S.user.name || '')}さん、こんにちは</h1>
-    <div id="hgInbox">${shHomeHTML()}</div>
+    <div id="hgInbox">${shHomeHTML()}</div><div id="hgPin">${typeof lyPinHTML === 'function' ? lyPinHTML() : ''}</div>
     <section class="hg-card">${ed ? `<div><div class="hg-ttl">今日の10作品</div></div>
       <button type="button" class="hg-go" data-hg10="1">${PLAY}はじめる</button>${S.user && S.user.role === '管理' && !isEasy() && canEdit() ? '<button type="button" class="hg-link hg-test" data-hgtest="1">練習する（答えは保存しません）</button>' : isViewer() ? '<span class="hg-link" style="cursor:default">閲覧モード：答えは保存しません</span>' : ''}` : ''}
       <button type="button" class="${ed ? 'hg-btn2 hg-ivs' : 'hg-go'}" data-ivgo="1">${ed ? '🎙 ' : ''}インタビュー</button></section>
@@ -12434,7 +12442,7 @@ function openLay(id, keepScroll, restoreSc){ const r = lyRow(id); if (!r) return
     <div class="pagebody one lypage"><div class="eyebrow">配置図（展示風景の再現）</div>
     <h2 class="title">${esc(r['名前'] || '配置図')}</h2>${where ? `<div class="tombstone">${esc(where)}</div>` : ''}
     <p class="hint">展示室 間口 ${lyM(o.room.w)} × 奥行き ${lyM(o.room.d)}${o.room.h ? '・天井 ' + lyM(o.room.h) : ''}。いま分かっている板 ${all.length}枚・作品群 ${mem.length}点${unpl ? '（そのうち板の決まっていない作品 ' + unpl + '点）' : ''}。板の位置と大きさは目安です。</p>
-    <div class="lytop">${lyPlanSVG(o, id)}${lyLegend(lyCounts(o))}</div><div class="lybts">${typeof exvIsAdm === 'function' && exvIsAdm() && all.length ? `<button type="button" class="act lyexv" data-lyexv="${esc(id)}">展示ビューで部屋を見る</button>` : ''}${all.length || mem.length ? `<button type="button" class="act" data-lyprint="${esc(id)}">A4 で印刷（紙で確認する用）</button>` : ''}</div>
+    <div class="lytop">${lyPlanSVG(o, id)}${lyLegend(lyCounts(o))}</div><div class="lybts">${ce ? `<button type="button" class="act lypin" data-lypin="${esc(id)}" aria-pressed="${o.pin ? 'true' : 'false'}">${o.pin ? 'ホームから外す' : 'ホームに出す'}</button>` : ''}${typeof exvIsAdm === 'function' && exvIsAdm() && all.length ? `<button type="button" class="act lyexv" data-lyexv="${esc(id)}">展示ビューで部屋を見る</button>` : ''}${all.length || mem.length ? `<button type="button" class="act" data-lyprint="${esc(id)}">A4 で印刷（紙で確認する用）</button>` : ''}</div>
     <h3 class="sec">壁ごとの並び</h3><p class="hint">部屋の中から壁に向かって見た並びです。板を押すと、その板の作品と今の場所が出ます。${ce ? '作品を決める・板を足すときは、右上の「編集」を押してから板を押してください。' : ''}</p>
     ${ws.map(w => `<div class="lywall" id="lyw-${w.k}"><div class="lywh"><b>${LYW[w.k]}</b><small>${lyM(lyLen(o, w.k))}・板 ${w.slots.length}枚</small></div>
       ${w.slots.length ? `<div class="lyel" style="width:${(lyLen(o, w.k) / Lmax * 100).toFixed(2)}%">${lyElevSVG(o, w, { id })}</div>` : '<p class="hint">板はまだありません。</p>'}${lyPos(o, w).over ? '<p class="hint lywarn">板の幅の合計が、壁の長さより長くなっています。板の大きさを見直してください。</p>' : ''}
@@ -12593,6 +12601,18 @@ async function lyPrint(id){ const r = lyRow(id); if (!r) return; const o = lyBod
   box.querySelectorAll('.lrspin').forEach(x => x.remove()); const end = () => { document.body.classList.remove('lyprinting'); const b = $('#lyprint'); if (b) b.remove(); removeEventListener('afterprint', end); };
   document.body.classList.add('lyprinting'); addEventListener('afterprint', end); setTimeout(() => { try { window.print(); } catch(e){} setTimeout(() => { if (!matchMedia('print').matches) end(); }, 1500); }, 150); }
 document.addEventListener('click', e => { const t = e.target && e.target.closest && e.target.closest('[data-lyprint]'); if (t) lyPrint(t.dataset.lyprint); });
+/* ホームにピン（10/21 本人「鳥たちの神殿の編集ページをホームページにピンして」）：配置図の中身に pin を入れて、ホームに出す */
+const LYPINIC = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19H4.5V4.5h15V19H15"/><path d="M8 8h3M13 8h3M7.5 11.5v3M16.5 11.5v3"/></svg>';
+function lyPinHTML(){ if (!S.user) return ''; const L = (S.layouts || []).filter(r => r && r['配置ID'] && lyBody(r).pin); if (!L.length) return '';
+  return L.map(r => { const o = lyBody(r), n = lyWalls(o).reduce((a, w) => a + w.slots.length, 0), m = lyMembers(o).length;
+    return `<button type="button" class="hg-pin" data-hgly="${esc(r['配置ID'])}"><span class="ic">${LYPINIC}</span><span><b>${esc(r['名前'] || '配置図')}</b><small>配置図・板 ${n}枚・作品群 ${m}点</small></span><em>開く ›</em></button>`; }).join(''); }
+function lyPinSync(){ const h = $('#hgPin'); if (h) h.innerHTML = lyPinHTML(); }
+async function lyPinTog(id){ const r = lyRow(id); if (!r) return; const o = JSON.parse(JSON.stringify(lyBody(r))), on = !o.pin; if (on) o.pin = 1; else delete o.pin;
+  const ok = await lySave(id, o, on ? 'ホームに出した' : 'ホームから外した'); if (!ok) return; toast(on ? 'ホームに出しました' : 'ホームから外しました'); lyRefresh(id); lyPinSync(); }
+document.addEventListener('click', e => { if (!e.target || !e.target.closest) return;
+  const a = e.target.closest('[data-hgly]'); if (a) { openLay(a.dataset.hgly); return; }
+  const b = e.target.closest('[data-lypin]'); if (b) lyPinTog(b.dataset.lypin); });
+
 /* ---------- 組（パーツ）（10/7 開発 v10 本人「複数パーツを並べた作品の1パーツが1作品として台帳に入っていることがある（12個くらいまで）。くっつけて1作品に。足りないパーツも補って完成形を。全何パーツか決めて、順番はプレビューで入れかえ。キャプションはパーツの数だけ並べる」）
    Google 側のシート「組」：組ID・作品名（全体）・並び（作品番号を左から「,」区切り。空き＝台帳にないパーツ）・並べ方・メモ。作品の表は変えない。シリーズとは別（シリーズは今のまま別々に並べる） ---------- */
 const grpL = g => String((g && g['並び']) || '').split(',').map(x => x.trim());
