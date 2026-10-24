@@ -18,6 +18,11 @@
   function rh(s){ var a = 0, b = 0x811c9dc5; for (var i = 0; i < s.length; i++){ var c = s.charCodeAt(i); a = (Math.imul(a, 31) + c) | 0; b = Math.imul(b ^ c, 16777619); } return (a >>> 0).toString(36) + '.' + (b >>> 0).toString(36); }
   function isData(d){ return !!d && typeof d === 'object' && Array.isArray(d.works) && Array.isArray(d.events); }
   function remember(d){ var n = { s: {}, h: {}, o: {} }; Object.keys(d).forEach(function(k){ if (Array.isArray(d[k])) { n.s[k] = d[k].map(function(r){ return JSON.stringify(r); }); n.h[k] = n.s[k].map(rh); } else n.o[k] = d[k]; }); C = n; saveC(); }
+  /* 10/24 開発 v22：保存の返事で表をまるごと返すもの（配置図・組・展示ビューの並び）は、端末の控え C も新しくする。
+     しないと、あとの軽い保存（作品を直すなど）で C の古い表が画面にもどり、次の保存がその古い中身で上書きしてしまう（10/23 夜、配置図の板17枚が消えた） */
+  var KEEP = ['layouts', 'groups', 'slays'];
+  function keep(v){ if (!C || !v || typeof v !== 'object' || Array.isArray(v) || isData(v)) return; var ch = 0;
+    KEEP.forEach(function(k){ if (Array.isArray(v[k]) && C.s[k]) { C.s[k] = v[k].map(function(r){ return JSON.stringify(r); }); C.h[k] = C.s[k].map(rh); ch = 1; } }); if (ch) saveC(); }
   // 起動時にすぐ表示するための控え（最新ではないかもしれない）
   window.__smrCached = function(){ return ready.then(function(){ if (!C || !C.o || !C.o.user) return null; var d = {}; Object.keys(C.o).forEach(function(k){ d[k] = C.o[k]; }); Object.keys(C.s).forEach(function(k){ d[k] = C.s[k].map(function(x){ return JSON.parse(x); }); }); return d; }); };
   /* 控えを端末に保存して、次に開いたときも差分だけで済ませる（ログアウト・別の人のログインで消す） */
@@ -45,7 +50,7 @@
     return d;
   }
   function take(v){ // 受け取ったデータを元の形に戻し、覚え直す（画面が中身を書きかえる前に）
-    if (v && v.__pk) v = unpack(v); v = full(v); if (isData(v)) { remember(v); return v; }
+    if (v && v.__pk) v = unpack(v); v = full(v); if (isData(v)) { remember(v); return v; } keep(v);
     if (v && typeof v === 'object' && v.data) { if (v.data.__pk) v.data = unpack(v.data); v.data = full(v.data); if (isData(v.data)) remember(v.data); }
     return v;
   }
@@ -3055,7 +3060,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'c133d025d6', APP_URL = location.origin + location.pathname;
+const BUILD = '4b94a3cdbb', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -12460,10 +12465,10 @@ const lyRefresh = id => { if (S.pcur && S.pcur.t === 'ly' && S.pcur.id === id &&
 /* 保存：中身をまるごと送る（板1枚ずつ）。note は変更記録の一言 */
 async function lySave(id, o, note, opt){ opt = opt || {}; const r = id ? lyRow(id) : null;
   busy(true, '配置図を保存しています…');
-  try { const res = await call('saveLayout', { id: id || '', name: opt.name != null ? opt.name : (r ? r['名前'] : ''), ex: opt.ex != null ? opt.ex : (r ? r['展覧会ID'] : ''), body: JSON.stringify(o), memo: r ? r['メモ'] || '' : '', note: note || '' }, 0);
+  try { const res = await call('saveLayout', { id: id || '', name: opt.name != null ? opt.name : (r ? r['名前'] : ''), ex: opt.ex != null ? opt.ex : (r ? r['展覧会ID'] : ''), body: JSON.stringify(o), memo: r ? r['メモ'] || '' : '', note: note || '', base: r ? String(r['中身'] || '') : '' }, 0); /* base：直しはじめた中身。Google 側でいまの中身とちがえば保存しない（10/24） */
     if (!res || !Array.isArray(res.layouts)) throw new Error('Google 側の更新（デプロイ）がまだかもしれません');
     if (r && !opt.undo) LU = { id, body: r['中身'], name: r['名前'], ex: r['展覧会ID'], t: Date.now() }; S.layouts = res.layouts; return res.id || id; }
-  catch(e){ const m = String(e && e.message || e); alert('保存できませんでした（' + (/この操作はできません/.test(m) ? 'Google 側の更新（デプロイ）がまだです' : m) + '）'); return null; }
+  catch(e){ const m = String(e && e.message || e); if (/STALE/.test(m)) { busy(false); alert('ほかの画面で、先にこの配置図が更新されていました。\n最新の配置図を読み直します。お手数ですが、もう一度入れてください。'); await refreshData().catch(() => {}); return null; } alert('保存できませんでした（' + (/この操作はできません/.test(m) ? 'Google 側の更新（デプロイ）がまだです' : m) + '）'); return null; }
   finally { busy(false); } }
 async function lyUndo(id){ const u = LU; if (!u || u.id !== id) return; let o = null; try { o = JSON.parse(u.body); } catch(e){ return; }
   const ok = await lySave(id, o, 'さっきの変更をもどした', { name: u.name, ex: u.ex, undo: 1 }); if (ok) { LU = null; toast('もとにもどしました'); lyRefresh(id); } }
