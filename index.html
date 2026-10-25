@@ -23,6 +23,12 @@
   var KEEP = ['layouts', 'groups', 'slays'];
   function keep(v){ if (!C || !v || typeof v !== 'object' || Array.isArray(v) || isData(v)) return; var ch = 0;
     KEEP.forEach(function(k){ if (Array.isArray(v[k]) && C.s[k]) { C.s[k] = v[k].map(function(r){ return JSON.stringify(r); }); C.h[k] = C.s[k].map(rh); ch = 1; } }); if (ch) saveC(); }
+  /* 10/25 開発 v23：返事に表を返さない保存（カードの答え quizSave）が送れたら、控え C のその行にも入れる。C.h はそのまま（次の読み込みで Google 側の本当の行が届く）。
+     しないと、あとの軽い保存の返事で C の古い行が画面にもどり、答えた場所が消えて見えた */
+  window.__smrPatch = function(k, idk, id, f){ if (!C || !C.s[k] || !f) return 0; var L = C.s[k], sid = String(id);
+    for (var i = 0; i < L.length; i++) { if (L[i].indexOf(sid) < 0) continue; var r; try { r = JSON.parse(L[i]); } catch(e){ continue; }
+      if (String(r[idk]) === sid) { Object.keys(f).forEach(function(x){ r[x] = f[x]; }); L[i] = JSON.stringify(r); saveC(); return 1; } }
+    return 0; };
   // 起動時にすぐ表示するための控え（最新ではないかもしれない）
   window.__smrCached = function(){ return ready.then(function(){ if (!C || !C.o || !C.o.user) return null; var d = {}; Object.keys(C.o).forEach(function(k){ d[k] = C.o[k]; }); Object.keys(C.s).forEach(function(k){ d[k] = C.s[k].map(function(x){ return JSON.parse(x); }); }); return d; }); };
   /* 控えを端末に保存して、次に開いたときも差分だけで済ませる（ログアウト・別の人のログインで消す） */
@@ -3060,7 +3066,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'fb954e35d1', APP_URL = location.origin + location.pathname;
+const BUILD = '3366aca513', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3915,7 +3921,16 @@ function qcLightbox(btn){ const im = btn && btn.querySelector('img'); if (!im) r
 /* 間違えたときのために、いちばん最後の答えは、すぐには送らずに持っておく。
    次の問題に答えたとき・やめたとき・20秒たったとき・アプリを閉じたときに送る。「もどる」を押すと取り消して前の問題へ */
 function qcHoldSet(run, undo){ qcFlush(); if (!QC) return; QC.hold = { i: QC.i - 1, run, undo, t: setTimeout(qcFlush, 20000) }; /* 20秒たったら送る（アプリを閉じて答えが届かないことがないように短め） */ }
-function qcFlush(){ const h = QC && QC.hold; if (!h) return; clearTimeout(h.t); QC.hold = null; try { if (h.run) h.run(); } catch(e){} }
+function qcFlush(){ const h = QC && QC.hold; if (!h) return null; clearTimeout(h.t); QC.hold = null; try { if (h.run) return h.run(); } catch(e){} return null; }
+const qcFlushWait = () => Promise.resolve(qcFlush()).catch(() => {}); /* 待たせている答えを送り、届くまで待つ（このあと台帳を読み直す・写真を送るとき） */
+/* 10/25 開発 v23：カードの答え（quizSave）は返事に台帳を返さないので、端末の控え（head.html の C）は古いまま。そのあとの軽い保存（表紙・調べの記録・書類の違いなど）の返事で
+   C の古い作品の行が画面にもどり、答えた場所が消えて見えていた（お母さん「入れたはずの場所が入ってない」）。送れたら、画面の作品と控えの両方に答えを入れる */
+function qcAnsFields(patch, loc){ const me = S.user && S.user.name || '', f = Object.assign({}, patch || {});
+  if (loc && loc.kind) Object.assign(f, { '所在区分': loc.kind, '所在': loc.place || loc.kind, '場所確認日': today(), '場所確認者': me });
+  if (loc && loc.confirm) Object.assign(f, { '場所確認日': today(), '場所確認者': me });
+  return f; }
+function qcKeepAns(no, patch, loc){ const f = qcAnsFields(patch, loc); if (!Object.keys(f).length) return; const w = workOf(no); if (w) Object.assign(w, f);
+  try { if (window.__smrPatch) window.__smrPatch('works', '作品番号', no, f); } catch(e){} }
 function qcBack(){ const h = QC && QC.hold; if (!h || QC.i !== h.i + 1) return; QVB.cf = null; qvbShow(''); clearTimeout(h.t); QC.hold = null; try { if (h.undo) h.undo(); } catch(e){}
   stopMic(true); sayStop(); QC.i = h.i; QC.step = ''; QC.heard = ''; QC.pend = null; QC.pn = null; QC.draft = ''; QC.dr = ''; qcDraw(); toast('前の問題にもどりました（答えは取り消しました）'); }
 const qcBackBtn = () => QC && QC.hold && QC.i === QC.hold.i + 1 ? `<button type="button" class="qc-bk" data-qc="back1" aria-label="前の問題にもどる（答えを取り消す）"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7 4 12l5 5M4.5 12H15a5 5 0 0 1 0 10h-2"/></svg><span>もどる</span></button>` : '';
@@ -4733,8 +4748,10 @@ async function pbPdfRun(id, file){ const nm = String(file.name || 'scan.pdf').re
 const pbHasCover = x => !!(x && x['表紙写真ファイルID'] && (S.photos || []).some(p => p['ファイルID'] === x['表紙写真ファイルID']));
 const pbAtHome = x => (parseInt(String((x || {})['家にある冊数'] || '').normalize('NFKC'), 10) || 0) > 0;
 const pbNeedPh = x => pbAtHome(x) && (!pbHasCover(x) || pbInner(x['資料ID']).length < PBPH_N);
-const pbPhLeft = () => (S.pubs || []).filter(pbNeedPh).length;
-function qcPbPhs(max){ return (S.pubs || []).filter(x => pbNeedPh(x) && !PBS.has(x['資料ID'])).sort((a, b) => (pbHasCover(a) ? 1 : 0) - (pbHasCover(b) ? 1 : 0)).slice(0, max).map(x => ({ no: '', k: 'pbph', id: x['資料ID'] })); }
+/* カード・ホームで聞くのは、表紙がないか、中のページが1枚もない本だけ（10/25 開発 v23：前は3枚そろうまで毎回聞いていた。カードの中の「あと何枚」の目安は3枚のまま） */
+const pbAskPh = x => pbAtHome(x) && (!pbHasCover(x) || !pbInner(x['資料ID']).length);
+const pbPhLeft = () => (S.pubs || []).filter(pbAskPh).length;
+function qcPbPhs(max){ return (S.pubs || []).filter(x => pbAskPh(x) && !PBS.has(x['資料ID'])).sort((a, b) => (pbHasCover(a) ? 1 : 0) - (pbHasCover(b) ? 1 : 0)).slice(0, max).map(x => ({ no: '', k: 'pbph', id: x['資料ID'] })); }
 function qcDrawPbPh(el, c){
   const x = pbById[c.id]; if (!x || (!pbNeedPh(x) && !c.shot)) { QC.i++; QC.step = ''; return qcDraw(); }
   const cov = pbHasCover(x), inn = pbInner(c.id).length, enough = cov && inn >= PBPH_N, yr = (/^(\d{4})/.exec(String(x['発行年月'] || '')) || [])[1];
@@ -4757,25 +4774,29 @@ function qcPbAct(a, c){
 }
 async function qcPbShot(kind, files){ const c = QC && QC.L[QC.i]; if (!c || c.k !== 'pbph' || !files.length) return;
   if (QC.test) return toast('練習モードなので、写真は保存しません');
-  const x0 = pbById[c.id] || {}, before = x0['表紙写真ファイルID'] || '';
+  const x0 = pbById[c.id] || {}, before = x0['表紙写真ファイルID'] || ''; let sent = 0;
+  busy(true, '送っています…'); await qcFlushWait(); /* 待たせている答えを先に送る（読み直しで消えて見えないように） */
   try {
     if (kind === 'cv') { busy(true, '表紙を送っています…'); const b64 = await shrink(files[0]);
-      try { setData(await call('addCover', c.id, b64, PMIME, '')); }
+      try { setData(await call('addCover', c.id, b64, PMIME, '')); sent = 1; }
       catch(e){ if (!netErr(e)) throw e; await refreshData().catch(() => {}); const x1 = pbById[c.id] || {}; if (!x1['表紙写真ファイルID'] || x1['表紙写真ファイルID'] === before) throw e; } /* 通信が切れても保存できていれば、それでよい */
-    } else { const n = Math.min(files.length, 10), items = [];
-      for (let i = 0; i < n; i++) { busy(true, '写真を準備しています（' + (i + 1) + '/' + n + '）'); items.push({ b64: await shrink(files[i]), mime: PMIME }); }
-      busy(true, '写真を送っています…'); await callRetry('addPhotos', c.id, items, '中面', ''); await refreshData().catch(() => {}); }
-    c.shot = 1; busy(false); toast(kind === 'cv' ? '表紙を登録しました' : '中のページを登録しました'); if (QC) qcDraw();
-  } catch(e){ busy(false); toast('写真を送れませんでした：' + (e.message || e)); }
+    } else { const fs = [...files], n = fs.length; let items = [];
+      for (let i = 0; i < n; i++) { busy(true, '写真を準備しています（' + (i + 1) + '/' + n + '）'); items.push({ b64: await shrink(fs[i]), mime: PMIME });
+        if (items.length === 10 || i === n - 1) { busy(true, '写真を送っています（' + (sent + items.length) + '/' + n + '）'); await callRetry('addPhotos', c.id, items, '中面', ''); sent += items.length; items = []; } } /* 10枚ずつ送る（前は11枚目から黙って捨てていた） */
+      await refreshData().catch(() => {}); }
+    c.shot = 1; busy(false); toast(kind === 'cv' ? '表紙を登録しました' : '中のページを' + sent + '枚登録しました'); if (QC) qcDraw();
+  } catch(e){ busy(false); if (sent) refreshData().catch(() => {}); toast('写真を送れませんでした' + (sent ? '（' + sent + '枚は登録しました）' : '') + '：' + (e.message || e)); }
 }
 /* 資料のページ：「＋ 中のページの写真を撮る」 */
 function sheetPbPages(id){ const x = pbById[id]; if (!x || !canEdit()) return;
   openSheet(`<h3>中のページの写真</h3><p class="hint">${esc(x['タイトル'] || id)}　作品が載っているページ・目次・奥付などを撮ってください（何枚でも）</p>${photoInputs(true)}${BTNS('写真を保存')}`);
-  let list = []; bindPhoto((d, cam, l) => { list = (l || []).slice(-10); });
+  let list = []; bindPhoto((d, cam, l) => { list = (l || []).slice(); });
   $('#ok').onclick = async () => { if (!list.length) return alert('写真を撮るか選んでください');
-    busy(true, '写真を送っています…');
-    try { const r = await callRetry('addPhotos', id, list, '中面', ''); await refreshData().catch(() => {}); busy(false); closeSheet(); openPb(id, true); toast(r && r.dup && !r.n ? '保存済みでした（同じ写真は二重に登録しません）' : '中のページを' + ((r && r.n) || list.length) + '枚登録しました'); }
-    catch(e){ busy(false); alert('保存できませんでした。\n' + (e.message || e)); } };
+    let n = 0, dup = 0, sent = 0;
+    try { for (let i = 0; i < list.length; i += 10) { const part = list.slice(i, i + 10); busy(true, '写真を送っています（' + Math.min(list.length, i + 10) + '/' + list.length + '）');
+        const r = await callRetry('addPhotos', id, part, '中面', ''); sent += part.length; n += (r && r.n) || 0; if (r && r.dup) dup += (typeof r.dup === 'number' ? r.dup : 1); } /* 10枚ずつ（前は10枚より多いと前の分を黙って捨てていた） */
+      await refreshData().catch(() => {}); busy(false); closeSheet(); openPb(id, true); toast(dup && !n ? '保存済みでした（同じ写真は二重に登録しません）' : '中のページを' + (n || sent) + '枚登録しました'); }
+    catch(e){ busy(false); if (sent) refreshData().catch(() => {}); alert('保存できませんでした' + (sent ? '（' + sent + '枚は登録しました）' : '') + '。\n' + (e.message || e)); } };
 }
 document.addEventListener('click', e => {
   const a = e.target.closest('[data-pbpages]'); if (a) return sheetPbPages(a.dataset.pbpages);
@@ -5391,14 +5412,14 @@ async function qcSave(no, rec, patch, loc){
   if (w && loc && loc.kind) Object.assign(w, { '所在区分': loc.kind, '所在': loc.place || loc.kind, '場所確認日': today(), '場所確認者': me });
   if (w && loc && loc.confirm) Object.assign(w, { '場所確認日': today(), '場所確認者': me });
   stopMic(true); QC.n += dn; QC.i++; QC.step = ''; QC.heard = ''; QC.pend = null; QC.pn = null; QC.draft = ''; QC.dr = '';
-  qcHoldSet(async () => { try { await call('quizSave', no, rec ? [rec] : [], patch || null, loc || null, null); const p = row && QZP.find(x => x.row === row); if (p) { p.ok = true; p.send = null; qzpSave(); } }
+  qcHoldSet(async () => { try { await call('quizSave', no, rec ? [rec] : [], patch || null, loc || null, null); const p = row && QZP.find(x => x.row === row); if (p) { p.ok = true; p.send = null; qzpSave(); } qcKeepAns(no, patch, loc); }
       catch(e){ if (isLoginErr(e)) { alert('ログインの有効期限が切れました。もう一度ログインしてください。'); if (QC) qcEnd(); return; } toast('保存できませんでした：' + (e.message || e)); } },
     () => { if (w) snap.forEach(([k, v]) => { w[k] = v; }); if (S.quiz) S.quiz.length = qLen; if (row) { QZP = QZP.filter(p => p.row !== row); qzpSave(); } if (qk) { if (qOld) QZI[qk] = qOld; else delete QZI[qk]; } QC.n -= dn; });
   qcDraw();
 }
 async function qcPhoto(file){ const c = QC && QC.L[QC.i]; if (!c) return;
   if (QC.test) { toast('練習モードなので、写真は保存しません'); return qcSave(c.no, { item: '写真なし', value: '', answer: 'はい' }); }
-  busy(true, '写真を送っています…');
+  busy(true, '写真を送っています…'); await qcFlushWait(); /* 待たせている答え（ひとつ前の場所など）を先に送ってから、写真を送って台帳を読み直す */
   try { const b64 = await shrink(file); await call('addPhotos', c.no, [{ b64, mime: PMIME }], '表', ''); busy(false); toast('写真を登録しました');
     await refreshData().catch(() => {}); if (QC) qcSave(c.no, { item: '写真なし', value: '', answer: 'はい' }); }
   catch(e){ busy(false); toast('写真を送れませんでした：' + (e.message || e)); } }
@@ -6883,7 +6904,7 @@ const qzLocal = (no, item) => QZP.some(p => String(p.row['対象']) === String(n
 let QZR = 0;
 function qzRetry(){ if (QZR || !S.dataAt || !S.user) return; const me = S.user.name || '';
   const P = QZP.filter(p => !p.ok && p.send && p.u === me && S.dataAt - p.t > 90000 && (p.tr || 0) < 3 && !(QC && QC.hold)); if (!P.length) return;
-  QZR = 1; (async () => { for (const p of P) { p.tr = (p.tr || 0) + 1; try { await call('quizSave', p.send[0], p.send[1], p.send[2], p.send[3], null); p.ok = true; p.send = null; } catch(e){} } qzpSave(); QZR = 0; })(); }
+  QZR = 1; (async () => { for (const p of P) { p.tr = (p.tr || 0) + 1; try { await call('quizSave', p.send[0], p.send[1], p.send[2], p.send[3], null); try { qcKeepAns(p.send[0], p.send[2], p.send[3]); } catch(e){} p.ok = true; p.send = null; } catch(e){} } qzpSave(); QZR = 0; })(); }
 const qzSame = (a, b) => a['種類'] === b['種類'] && String(a['対象']) === String(b['対象']) && a['項目'] === b['項目'] && a['答え'] === b['答え'] && String(a['値'] || '') === String(b['値'] || '');
 function quizIndex(){ const now = Date.now(); S.quiz = S.quiz || [];
   const n0 = QZP.length; QZP = QZP.filter(p => now - p.t < QZP_MS && !S.quiz.some(r => r !== p.row && r['日時'] && qzSame(r, p.row))); if (QZP.length !== n0) qzpSave();
