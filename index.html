@@ -3055,7 +3055,21 @@ details.hgmf .mmlist,details.hgmf .mmempty,details.hgmf .mmdone{margin-left:16px
 const S = { works:[], events:[], photos:[], places:[], exhibits:[], pubs:[], stack:[], pcur:null, cf:'all', cmain:false, me:'', ai:false,
   view:'home', wmode:'album', xnl:false, pnl:false, xt:'すべて', xq:'', xmain:false, pt:'すべて', pq:'', filter:'all', q:'', sort:'rand', sortBy:{ album:'rand', list:'no' }, limit:60, chat:[], cur:null };
 const FILTERS = [['all','すべて'],['自宅','自宅'],['美術館','美術館'],['個人蔵','個人蔵'],['委託中','思文閣'],['flag','要確認'],['nophoto','写真なし'],['noname','作品名なし'],['noloc','保管場所不明'],['unconf','場所未確認'],['tmp','仮の写真'],['lack','情報が足りない'],['廃棄','廃棄']];
-const SUBF = { '美術館': {all:'すべての館', none:'（館名なし）'} }; // 所在区分ごとのサブカテゴリ
+const SUBF = { '美術館': {all:'すべての館', none:'（館名なし）'}, '自宅': {all:'すべてのエリア', none:'エリアなし'}, '個人蔵': {all:'すべての方', none:'（名前なし）'} }; // 所在区分ごとのサブカテゴリ（10/28 開発 v25：自宅はエリア、個人蔵は持ち主の名前）
+/* 個人蔵の持ち主の名前：「所蔵者・連絡先」の名前の部分だけ（電話・住所・メールは出さない。ゲストには出さない） */
+function ownerName(w){ let s = String(w['所蔵者・連絡先'] || '').normalize('NFKC').trim();
+  if (!s) s = String(w['所在'] || '').normalize('NFKC').replace(/^個人蔵\s*\(?\s*/, '').replace(/\)\s*$/, '');
+  s = s.split(/\s*[\/\n]\s*/)[0].replace(/(tel|電話|☎|〒|e-?mail|メール|住所|連絡先).*$/i, '').split(/[(、,;:]/)[0]
+    .replace(/\S+@\S+/g, '').replace(/\d[\d\- ]{5,}.*$/, '').trim().replace(/\s*(様|さま|さん|氏)$/, '').trim();
+  return s.length > 24 ? s.slice(0, 24) + '…' : s; }
+const subOn = f => !!SUBF[f] && !(f === '個人蔵' && isGuest());
+/* 自宅のエリア：「自宅エリア」の列（「エリアA」と書いてあっても A に）。列が空なら「所在」の「エリアC」から */
+const homeArea = w => { const a = String(w['自宅エリア'] || '').normalize('NFKC').trim().replace(/^エリア\s*/, ''); const m = a ? null : String(w['所在'] || '').normalize('NFKC').match(/エリア\s*([A-Za-z0-9]{1,3})(?![A-Za-z0-9])/);
+  const r = a || (m ? m[1] : ''); return /^[a-z]{1,3}$/i.test(r) ? r.toUpperCase() : r; };
+const subKey = (f, w) => { if (f === '自宅') { const a = homeArea(w); return a ? areaLab(a) : SUBF['自宅'].none; }
+  if (f === '個人蔵') return ownerName(w) || SUBF['個人蔵'].none; return w['所在'] || SUBF[f].none; };
+/* 自宅のエリアの書き方をそろえる：「自宅 エリア A」「自宅エリアA」「エリア A」「自宅 A」→「自宅 エリアa」（10/28 開発 v25） */
+const qArea = q => q.replace(/自宅\s*(?=エリア)/g, '自宅 ').replace(/エリア\s+([a-z0-9]{1,3})(?=\s|$)/g, 'エリア$1').replace(/(^|\s)自宅\s+([a-z])(?=\s|$)/g, '$1自宅 エリア$2');
 const LOC_KINDS = ['自宅','美術館','個人蔵','委託中','貸出中','その他','廃棄','不明'];
 const EVENT_TYPES = ['出品','掲載','画集掲載','寄贈','寄託','委託','販売','譲渡','貸出','返却','修復','移動','所在確認','廃棄','その他'];
 const KINDS = ['本画','下絵','習作','デッサン','その他'];
@@ -3066,7 +3080,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '3366aca513', APP_URL = location.origin + location.pathname;
+const BUILD = '0396cbb124', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3295,7 +3309,7 @@ function abRender(){ abRender0(); try { scrCrumb(); } catch(e){} try { abV19(); 
    美術館・フォルダなど一覧の下の階層では、名前の前の「‹」で1つ上へ。右に「編集／完了」（詳細ページ・編集できる人） */
 function abListName(){ if (S.view === 'home') return 'ホーム';
   if (typeof dfOn === 'function' && dfOn() && (S.dpath || []).length) return S.dpath[S.dpath.length - 1];
-  if ((S.view === 'album' || S.view === 'list') && SUBF[S.filter]) return S.mus || S.filter;
+  if ((S.view === 'album' || S.view === 'list') && subOn(S.filter)) return S.mus || S.filter;
   return VIEW_NM[S.view] || 'もどる'; }
 function abBackName(){
   const pgOpen = !$('#page').classList.contains('hidden') && S.pcur;
@@ -3405,7 +3419,7 @@ function abRender0(){ const h = $('#abTitle'); if (!h) return;
   const isW = S.view === 'album' || S.view === 'list';
   // 一覧の段：作品アルバム › 美術館 › 館名
   const base = [S.view === 'home' ? {nm:'ホーム', ic:ROOT.match(/<svg[\s\S]*?<\/svg>/)[0], at:'data-home="1"'} : {nm: VIEW_NM[S.view] || tx, ic: icOf({album:'works', list:'list', ex:'ex', pb:'pb', ot:'ot', chrono:'chrono', doc:'doc'}[S.view]), at:'data-bc="view"'}];
-  if (isW && SUBF[S.filter]) { base.push({nm:S.filter, ic:S.filter==='美術館' ? MUS_IC : icOf('loc'), at:'data-bc="flt"'}); if (S.mus) base.push({nm:S.mus, ic:icOf('loc'), at:'data-bc="mus"'}); }
+  if (isW && subOn(S.filter)) { base.push({nm:S.filter, ic:S.filter==='美術館' ? MUS_IC : icOf('loc'), at:'data-bc="flt"'}); if (S.mus) base.push({nm:S.mus, ic:icOf('loc'), at:'data-bc="mus"'}); }
   const bc = (items, cur, cnt) => { const one = (x, last) => `<span class="crumb cp${last ? ' cplast' : ''}" ${x.at} aria-label="${esc(x.nm)}"><span class="hmtx">${esc(x.nm)}</span>${x.ic ? `<span class="hmic">${x.ic}</span>` : ''}</span>` + SEP;
     h.innerHTML = (items[0] && /data-home/.test(items[0].at) ? '' : ROOT + SEP) /* 奥のページでも、いちばん左に題名（スマホは家の印）＝押すとホーム（10/7 本人） */
       + '<span class="crumb cdots" data-bc="view" aria-label="最初の階層">…</span>' + SEP + items.map((x, i) => one(x, i === items.length - 1)).join('') + `<span class="crumb cur">${esc(cur)}</span>` + (cnt == null ? '' : `<span class="abcn">${cnt}</span>`); };
@@ -3413,11 +3427,11 @@ function abRender0(){ const h = $('#abTitle'); if (!h) return;
     const TK = {w:'works', ot:'ot', ex:'ex', pb:'pb'};
     bc(base.concat((S.stack || []).map((x, i) => ({nm: pcName(x.t, x.id), ic: icOf(TK[x.t] || 'works'), at:`data-ci="${i + 1}"`}))), pcName(S.pcur.t, S.pcur.id));
     return; }
-  const vcn = () => { const n = ({album: (S.works||[]).length, list: (S.works||[]).length, ex: (S.exhibits||[]).length, pb: (S.pubs||[]).length, ot: (S.others||[]).length, doc: dfOn() ? docTree().n : (S.docs||[]).length})[S.view]; return n === undefined ? '' : `<span class="abcn">${n}</span>`; }; // 題名の後ろに件数
+  const vcn = () => { const n = ({album: S.q ? filtered().length : (S.works||[]).length, list: S.q ? filtered().length : (S.works||[]).length, ex: (S.exhibits||[]).length, pb: (S.pubs||[]).length, ot: (S.others||[]).length, doc: dfOn() ? docTree().n : (S.docs||[]).length})[S.view]; return n === undefined ? '' : `<span class="abcn">${n}</span>`; }; // 題名の後ろに件数
   if (dfOn() && (S.dpath || []).length >= (innerWidth >= 900 ? 2 : 1)) { const P = S.dpath, t = docTreeAt(P), lb = n => n === DF_NONE ? '未整理' : n; /* 書類：フォルダの中では「‹ ひとつ上」（作品の「‹ 美術館」と同じ） */
     P.slice(0, -1).forEach((x, i) => base.push({nm: lb(x), ic:'📁', at:`data-bc="df${i + 1}"`})); bc(base, lb(P[P.length - 1]), t ? t.n : 0); return; }
-  if (isW && SUBF[S.filter]) { // 作品アルバム › 美術館 › 館名（委託中 › 委託先 も同じ）
-    const ms = (S.works||[]).filter(w => w['所在区分']===S.filter && (!S.mus || (w['所在']||SUBF[S.filter].none) === S.mus)).length;
+  if (isW && subOn(S.filter)) { // 作品アルバム › 美術館 › 館名（自宅 › エリア、個人蔵 › 持ち主 も同じ）
+    const ms = S.q ? filtered().length : (S.works||[]).filter(w => w['所在区分']===S.filter && (!S.mus || subKey(S.filter, w) === S.mus)).length; /* 検索中は見つかった数 */
     bc(base.slice(0, -1), base[base.length - 1].nm, ms);
     return; }
   h.innerHTML = S.view === 'home' ? '<span class="crumb chome cur">下村良之介作品目録</span>' : ROOT + SEP + `<span class="crumb cur">${esc(tx)}</span>` + vcn(); }
@@ -3576,7 +3590,7 @@ function didYouMean(q0){ const q = String(q0 || '').normalize('NFKC').trim(); if
   return Object.keys(C).sort((a, b) => C[b] - C[a]).slice(0, 4).map(x => [x, C[x]]); }
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-dym]'); if (!b) return; const q = $('#q'); if (q) q.value = b.dataset.dym; S.q = b.dataset.dym; S.limit = 60; render(); });
 function filtered(){
-  const q = S.q.normalize('NFKC').trim().toLowerCase().replace(/^no\.?\s*/,''); /* 全角・半角の数字や英字は同じものとして探す */
+  const q = qArea(S.q.normalize('NFKC').trim().toLowerCase().replace(/^no\.?\s*/,'')); /* 全角・半角の数字や英字は同じものとして探す。自宅のエリアの書き方もそろえる */
   let a = S.works.filter(w => {
     const f = S.filter;
     if (f==='flag' && !w['要確認']) return false;
@@ -3587,12 +3601,14 @@ function filtered(){
     if (f==='tmp' && !(photoBy[w['作品番号']]||[]).some(p => /^【仮】/.test(p['メモ']||''))) return false;
     if (f==='lack' && !lacks(w).length) return false;
     if (['自宅','美術館','個人蔵','委託中','廃棄'].includes(f) && w['所在区分']!==f) return false;
-    if (SUBF[f] && S.mus && (w['所在']||SUBF[f].none)!==S.mus) return false;
+    if (subOn(f) && S.mus && subKey(f, w)!==S.mus) return false;
     if (!q) return true;
-    const hay = [w['作品番号'],(OLDS[w['作品番号']] || []).join(' '),w['作品名'],w['作品名メモ'],w['制作年'],w['画材'],w['種別'],w['シリーズ'],w['所在'],w['所在区分']==='美術館' ? musNames(w['所在']) : '',w['補足'],w['状態メモ']]
+    const hay = [w['作品番号'],(OLDS[w['作品番号']] || []).join(' '),w['作品名'],w['作品名メモ'],w['制作年'],w['画材'],w['種別'],w['シリーズ'],w['所在'],w['所在区分']==='美術館' ? musNames(w['所在']) : '',w['所在区分']==='自宅' && homeArea(w) ? areaLab(homeArea(w)) : '',w['所在区分']==='個人蔵' && !isGuest() ? ownerName(w) : '',w['補足'],w['状態メモ']]
       .concat((eventBy[w['作品番号']]||[]).map(e=>e['相手先・場所']+' '+e['内容']+' '+e['日付'])).join(' ').normalize('NFKC').toLowerCase();
     const mu = w['所在区分']==='美術館' ? musOf(w['所在']) : '', hay2 = hay.replace(/立/g, ''); /* 美術館は旧名・略称でも出す（京都市立美術館＝京都市美術館＝京都市京セラ美術館） */
-    return q.split(/\s+/).every(t => hay.includes(t) || (t.length >= 2 && hay2.includes(t.replace(/立/g, ''))) || (!!mu && musOf(t) === mu));
+    const ar = w['所在区分']==='自宅' ? homeArea(w).toLowerCase() : ''; /* 「エリアa」は、自宅のエリアが a の作品だけ（メモの「エリアA」だけでは選ばない。10/28 開発 v25） */
+    return q.split(/\s+/).every(t => { const am = t.match(/^エリア([a-z0-9]{1,3})$/); if (am) return w['所在区分']==='自宅' && ar === am[1];
+      return hay.includes(t) || (t.length >= 2 && hay2.includes(t.replace(/立/g, ''))) || (!!mu && musOf(t) === mu); });
   });
   if (S.sort==='rand') { // ランダム（開くたびに変わる。同じ画面の中では順番を保つ）。写真のない作品は後ろへ
     const R = filtered.rk || (filtered.rk = {}), k = no => R[no] === undefined ? (R[no] = Math.random()) : R[no];
@@ -3817,9 +3833,9 @@ function render0(){ setTimeout(() => { try { tedBar(); } catch(e){} }, 0);
   document.querySelectorAll('#wseg button').forEach(b => b.classList.toggle('on', b.dataset.wm===S.view));
   const fcnt = k => { const b = [S.filter, S.mus, S.q]; S.filter = k; S.mus = ''; S.q = ''; const n = filtered().length; [S.filter, S.mus, S.q] = b; return n; }; // タブの横に件数（すべて 647・自宅 151…）
   $('#chips').innerHTML = FILTERS.map(([k,l]) => `<button class="chip ${S.filter===k?'on':''}" data-f="${k}">${l}<span class="cn">${fcnt(k)}</span></button>`).join('');
-  if (SUBF[S.filter]) { const SF = SUBF[S.filter];
-    const cnt = {}; S.works.forEach(w => { if (w['所在区分']===S.filter) { const m = w['所在']||SF.none; cnt[m] = (cnt[m]||0) + 1; } });
-    const ms = Object.keys(cnt).sort((a,b) => cnt[b]-cnt[a] || a.localeCompare(b,'ja'));
+  if (subOn(S.filter)) { const SF = SUBF[S.filter];
+    const cnt = {}; S.works.forEach(w => { if (w['所在区分']===S.filter) { const m = subKey(S.filter, w); cnt[m] = (cnt[m]||0) + 1; } });
+    const ms = Object.keys(cnt).sort((a,b) => (a===SF.none) - (b===SF.none) || (S.filter==='自宅' ? a.localeCompare(b,'ja',{numeric:true}) : cnt[b]-cnt[a] || a.localeCompare(b,'ja'))); /* 自宅のエリアは A・B・C の順、「なし」は最後 */
     if (S.mus && !cnt[S.mus]) S.mus = '';
     $('#subchips').innerHTML = `<button class="chip ${!S.mus?'on':''}" data-mus="">${SF.all}</button>` + ms.map(m => `<button class="chip ${S.mus===m?'on':''}" data-mus="${esc(m)}">${esc(m)}<span class="cn">${cnt[m]}</span></button>`).join('');
     $('#subchips').classList.remove('hidden'); $('#chips').classList.add('hidden'); // 「美術館」は上のバーの階層になり、タブは館の一覧に切り替わる
