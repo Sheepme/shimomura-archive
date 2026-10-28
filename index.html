@@ -1813,6 +1813,7 @@ body .chips .chip.on::after{content:'';position:absolute;left:0;right:0;bottom:3
 body .subchips{gap:18px!important}
 body .subchips .chip{font-size:14px!important;padding:6px 0 9px!important}
 body .subchips .chip.on::after{height:2px}
+#chips.two{display:block!important;overflow:visible!important;padding-top:0!important;padding-bottom:0!important}#chips.two>.crow{margin:0!important}#chips.two>.crow.subchips{padding-top:0!important;padding-bottom:4px!important;border-top:1px solid var(--line)} /* カテゴリの下にサブカテゴリの段（10/28 開発 v25） */
 /* PC：AIに質問は右の列（400px）。上のバー・中身・作品のページはその左に */
 :root{--aiw:0px}
 body.aicol{--aiw:400px}
@@ -3080,7 +3081,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '0396cbb124', APP_URL = location.origin + location.pathname;
+const BUILD = 'c5865cbbb8', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3309,7 +3310,7 @@ function abRender(){ abRender0(); try { scrCrumb(); } catch(e){} try { abV19(); 
    美術館・フォルダなど一覧の下の階層では、名前の前の「‹」で1つ上へ。右に「編集／完了」（詳細ページ・編集できる人） */
 function abListName(){ if (S.view === 'home') return 'ホーム';
   if (typeof dfOn === 'function' && dfOn() && (S.dpath || []).length) return S.dpath[S.dpath.length - 1];
-  if ((S.view === 'album' || S.view === 'list') && subOn(S.filter)) return S.mus || S.filter;
+  if ((S.view === 'album' || S.view === 'list') && subOn(S.filter)) return S.filter;
   return VIEW_NM[S.view] || 'もどる'; }
 function abBackName(){
   const pgOpen = !$('#page').classList.contains('hidden') && S.pcur;
@@ -3419,7 +3420,7 @@ function abRender0(){ const h = $('#abTitle'); if (!h) return;
   const isW = S.view === 'album' || S.view === 'list';
   // 一覧の段：作品アルバム › 美術館 › 館名
   const base = [S.view === 'home' ? {nm:'ホーム', ic:ROOT.match(/<svg[\s\S]*?<\/svg>/)[0], at:'data-home="1"'} : {nm: VIEW_NM[S.view] || tx, ic: icOf({album:'works', list:'list', ex:'ex', pb:'pb', ot:'ot', chrono:'chrono', doc:'doc'}[S.view]), at:'data-bc="view"'}];
-  if (isW && subOn(S.filter)) { base.push({nm:S.filter, ic:S.filter==='美術館' ? MUS_IC : icOf('loc'), at:'data-bc="flt"'}); if (S.mus) base.push({nm:S.mus, ic:icOf('loc'), at:'data-bc="mus"'}); }
+  if (isW && subOn(S.filter)) base.push({nm:S.filter, ic:S.filter==='美術館' ? MUS_IC : icOf('loc'), at:'data-bc="flt"'}); /* 上の見出しはカテゴリまで（館名・エリアは2段目のタブで。10/28 開発 v25 本人） */
   const bc = (items, cur, cnt) => { const one = (x, last) => `<span class="crumb cp${last ? ' cplast' : ''}" ${x.at} aria-label="${esc(x.nm)}"><span class="hmtx">${esc(x.nm)}</span>${x.ic ? `<span class="hmic">${x.ic}</span>` : ''}</span>` + SEP;
     h.innerHTML = (items[0] && /data-home/.test(items[0].at) ? '' : ROOT + SEP) /* 奥のページでも、いちばん左に題名（スマホは家の印）＝押すとホーム（10/7 本人） */
       + '<span class="crumb cdots" data-bc="view" aria-label="最初の階層">…</span>' + SEP + items.map((x, i) => one(x, i === items.length - 1)).join('') + `<span class="crumb cur">${esc(cur)}</span>` + (cnt == null ? '' : `<span class="abcn">${cnt}</span>`); };
@@ -3430,8 +3431,8 @@ function abRender0(){ const h = $('#abTitle'); if (!h) return;
   const vcn = () => { const n = ({album: S.q ? filtered().length : (S.works||[]).length, list: S.q ? filtered().length : (S.works||[]).length, ex: (S.exhibits||[]).length, pb: (S.pubs||[]).length, ot: (S.others||[]).length, doc: dfOn() ? docTree().n : (S.docs||[]).length})[S.view]; return n === undefined ? '' : `<span class="abcn">${n}</span>`; }; // 題名の後ろに件数
   if (dfOn() && (S.dpath || []).length >= (innerWidth >= 900 ? 2 : 1)) { const P = S.dpath, t = docTreeAt(P), lb = n => n === DF_NONE ? '未整理' : n; /* 書類：フォルダの中では「‹ ひとつ上」（作品の「‹ 美術館」と同じ） */
     P.slice(0, -1).forEach((x, i) => base.push({nm: lb(x), ic:'📁', at:`data-bc="df${i + 1}"`})); bc(base, lb(P[P.length - 1]), t ? t.n : 0); return; }
-  if (isW && subOn(S.filter)) { // 作品アルバム › 美術館 › 館名（自宅 › エリア、個人蔵 › 持ち主 も同じ）
-    const ms = S.q ? filtered().length : (S.works||[]).filter(w => w['所在区分']===S.filter && (!S.mus || subKey(S.filter, w) === S.mus)).length; /* 検索中は見つかった数 */
+  if (isW && subOn(S.filter)) { // 作品アルバム › 美術館（館名・エリア・持ち主は2段目のタブ）
+    const ms = S.q ? filtered().length : (S.works||[]).filter(w => w['所在区分']===S.filter).length; /* 見出しの数はカテゴリ全体（タブと同じ）。検索中は見つかった数 */
     bc(base.slice(0, -1), base[base.length - 1].nm, ms);
     return; }
   h.innerHTML = S.view === 'home' ? '<span class="crumb chome cur">下村良之介作品目録</span>' : ROOT + SEP + `<span class="crumb cur">${esc(tx)}</span>` + vcn(); }
@@ -3832,14 +3833,17 @@ function render0(){ setTimeout(() => { try { tedBar(); } catch(e){} }, 0);
   if (S.view==='ot') return renderOtList();
   document.querySelectorAll('#wseg button').forEach(b => b.classList.toggle('on', b.dataset.wm===S.view));
   const fcnt = k => { const b = [S.filter, S.mus, S.q]; S.filter = k; S.mus = ''; S.q = ''; const n = filtered().length; [S.filter, S.mus, S.q] = b; return n; }; // タブの横に件数（すべて 647・自宅 151…）
-  $('#chips').innerHTML = FILTERS.map(([k,l]) => `<button class="chip ${S.filter===k?'on':''}" data-f="${k}">${l}<span class="cn">${fcnt(k)}</span></button>`).join('');
+  const CH = $('#chips'), ksl = CH.classList.contains('two') ? [...CH.querySelectorAll('.crow')].map(r => r.scrollLeft) : [CH.scrollLeft], kf = CH.dataset.f; /* 横の位置を覚えておく */
+  const mainRow = FILTERS.map(([k,l]) => `<button class="chip ${S.filter===k?'on':''}" data-f="${k}">${l}<span class="cn">${fcnt(k)}</span></button>`).join('');
   if (subOn(S.filter)) { const SF = SUBF[S.filter];
     const cnt = {}; S.works.forEach(w => { if (w['所在区分']===S.filter) { const m = subKey(S.filter, w); cnt[m] = (cnt[m]||0) + 1; } });
     const ms = Object.keys(cnt).sort((a,b) => (a===SF.none) - (b===SF.none) || (S.filter==='自宅' ? a.localeCompare(b,'ja',{numeric:true}) : cnt[b]-cnt[a] || a.localeCompare(b,'ja'))); /* 自宅のエリアは A・B・C の順、「なし」は最後 */
     if (S.mus && !cnt[S.mus]) S.mus = '';
-    $('#subchips').innerHTML = `<button class="chip ${!S.mus?'on':''}" data-mus="">${SF.all}</button>` + ms.map(m => `<button class="chip ${S.mus===m?'on':''}" data-mus="${esc(m)}">${esc(m)}<span class="cn">${cnt[m]}</span></button>`).join('');
-    $('#subchips').classList.remove('hidden'); $('#chips').classList.add('hidden'); // 「美術館」は上のバーの階層になり、タブは館の一覧に切り替わる
-  } else { S.mus = ''; $('#subchips').classList.add('hidden'); $('#chips').classList.remove('hidden'); }
+    const subRow = `<button class="chip ${!S.mus?'on':''}" data-mus="">${SF.all}</button>` + ms.map(m => `<button class="chip ${S.mus===m?'on':''}" data-mus="${esc(m)}">${esc(m)}<span class="cn">${cnt[m]}</span></button>`).join('');
+    CH.innerHTML = `<div class="chips crow">${mainRow}</div><div class="chips crow subchips">${subRow}</div>`; CH.classList.add('two'); /* 10/28 開発 v25 本人「母が迷子になる」：タブは入れ替えず、下にサブカテゴリの段を1つ足す（2段ごと上に止まる） */
+    const rw = CH.querySelectorAll('.crow'); rw[0].scrollLeft = ksl[0] || 0; rw[1].scrollLeft = kf === S.filter ? (ksl[1] || 0) : 0;
+  } else { S.mus = ''; CH.innerHTML = mainRow; CH.classList.remove('two'); CH.scrollLeft = ksl[0] || 0; }
+  CH.dataset.f = S.filter; $('#subchips').classList.add('hidden'); CH.classList.remove('hidden');
   abRender();
   const list = filtered();
   $('#zoomb').classList.toggle('hidden', S.view!=='album');
@@ -12285,7 +12289,7 @@ function stkFix(el, top){ let ph = el.previousElementSibling; if (!(ph && ph.cla
   else if (!on && ph) { ph.remove(); el.classList.remove('stkfx'); }
   else if (on && ph) ph.style.height = el.offsetHeight + 'px'; }
 function hdStick(){ const hd = document.getElementById('top'), ab = hd && hd.querySelector('.appbar'); if (!hd || !ab) return;
-  const rows = [...hd.querySelectorAll('#finder:not(.hidden) .chips:not(.hidden), #chronobar:not(.hidden) .chips')].filter(x => x.offsetParent || (x.classList.contains('stkfx') && x.getClientRects().length)); /* fixed にした段は offsetParent が空になる */
+  const rows = [...hd.querySelectorAll('#finder:not(.hidden) > .chips:not(.hidden), #chronobar:not(.hidden) .chips')].filter(x => x.offsetParent || (x.classList.contains('stkfx') && x.getClientRects().length)); /* fixed にした段は offsetParent が空になる */
   const last = rows[rows.length - 1];
   hd.querySelectorAll('.chips.stk').forEach(x => { if (x !== last) { x.classList.remove('stk', 'stkfx'); const p = x.previousElementSibling; if (p && p.classList.contains('stkph')) p.remove(); } }); if (last) last.classList.add('stk');
   const tuck = hd.classList.contains('tuck') && !document.body.classList.contains('pgopen'), cs = getComputedStyle(document.documentElement);
