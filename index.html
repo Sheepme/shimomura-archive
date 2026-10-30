@@ -3081,7 +3081,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '41ffb7394b', APP_URL = location.origin + location.pathname;
+const BUILD = '16dd9e8f01', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -11789,7 +11789,7 @@ async function freshDone(f){ let lb = ''; try { lb = await call('appBuild'); } c
   if (fresh) bigWait('最新の情報を読み込んでいます…');
   try { const c = !fresh && S.token && window.__smrCached ? await window.__smrCached() : null; if (c) { setData(c); const nv = restoreNav(); applyStart(); render(); afterNav(nv); busy(false); shown = true; } } catch(e){}
   const getDataWait = async () => { for (let k = 0; ; k++) { try { return await call('getData'); } /* デプロイの直後は数分 404 になることがある（10/5） */
-      catch(e){ if (isLoginErr(e) || !netErr(e) || k >= 4 || navigator.onLine === false) throw e; if (!shown) busy(true, 'Googleにつながるのを待っています…（' + (k + 1) + '/4）'); await new Promise(r => setTimeout(r, 4000 + k * 4000)); } } };
+      catch(e){ if (isLoginErr(e) || !netErr(e) || k >= 4 || navigator.onLine === false) throw e; if (shown) lcOffline(); if (!shown) busy(true, 'Googleにつながるのを待っています…（' + (k + 1) + '/4）'); await new Promise(r => setTimeout(r, 4000 + k * 4000)); } } };
   getDataWait().then(d => { setData(d); S.dataAt = Date.now(); const nv = shown ? null : restoreNav(); applyStart(); render(); if (nv) afterNav(nv); else if (shown && S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true); if (fresh) freshDone(fresh); })
     .catch(async e => { if (!isLoginErr(e) && shown) lcOffline(); if (!isLoginErr(e) && !shown && await lcBoot(e)) return; if (fresh && !isLoginErr(e)) setTimeout(() => alert('Googleにつながらず、最新の情報を読み込めませんでした。\nGoogle側を更新した直後などは、1〜2分つながらないことがあります。少し待って、もう一度「最新版に更新」を押してください。\n（' + (e.message || e) + '）'), 300);
       if (isLoginErr(e)) { setToken(''); S.user = null; renderUser(); showLoginWall(); $('#finder').classList.add('hidden'); }
@@ -12056,7 +12056,9 @@ function prefetchThumbs(){
   PREF = (async () => {
     try { if (navigator.connection && navigator.connection.saveData) return; } catch(e){}
     await new Promise(r => setTimeout(r, 2500)); // 画面の表示が落ち着いてから始める
+    if (typeof lcOn === 'function' && lcOn() && lcStandalone()) return; /* iPad の写しを使っている端末は、写しの保存がそろえる（10/31 開発 v26） */
     const have = await thKeys(); if (!have) return;
+    try { if (LC.meta && LC.meta.has) (await lcKeys()).forEach(k => { if (k.startsWith('400_')) { have.add(k); have.add('200_' + k.slice(4)); } }); } catch(e){} /* iPad の写しにある写真は先読みしない（10/31 開発 v26） */
     const main = [...new Set([].concat(S.works.map(w => w['作品番号']), (S.others||[]).map(x => x['作品番号']))
       .map(no => (photoBy[no]||[])[0]).filter(p => p && p['ファイルID']).map(p => p['ファイルID']))];
     for (const w of [400, 200]) {                     // 一覧（中）→ 小さい写真の順
@@ -13461,7 +13463,8 @@ function exvBuild(root, L, start){
     if (!(it.hd >= 1600)) matte(x, cw, ch); /* 近くで見る細かい写真には粒子をのせない（拡大すると粒がまだらに見える。10/9 開発 v15） */ it.tx.forEach(t => { t.needsUpdate = true; }); redraw(); };
   const setPaint = (it, im0, lv) => { const S0 = it.d.set, tok = it.im, rest = S0.ids.slice(1), got = {}; rest.forEach(id => { const v = TH[lv + '_' + id]; if (v && /^data:/.test(v)) got[id] = v; });
     const need = rest.filter(id => !got[id]);
-    (need.length ? Promise.race([call('getThumbs', need, lv, null, 1), new Promise(r => setTimeout(() => r({}), 30000))]).catch(() => ({})) : Promise.resolve({})).then(m => { need.forEach(id => { const v = m && m[id]; if (v && /^data:/.test(v)) { TH[lv + '_' + id] = v; got[id] = v; } });
+    (need.length ? lcPick(need.map(id => lv + '_' + id)).catch(() => ({})).then(c => { need.forEach(id => { const v = c[lv + '_' + id]; if (v) got[id] = v; }); const n2 = need.filter(id => !got[id]); /* iPad の写し（10/31 開発 v26） */
+      return n2.length ? Promise.race([call('getThumbs', n2, lv, null, 1), new Promise(r => setTimeout(() => r({}), 30000))]) : {}; }).catch(() => ({})) : Promise.resolve({})).then(m => { need.forEach(id => { const v = m && m[id]; if (v && /^data:/.test(v)) { TH[lv + '_' + id] = v; got[id] = v; } });
       if (it.im !== tok || !it.req) return; if (rest.some(id => !got[id])) { it.sTry = (it.sTry || 0) + 1; if (it.sTry <= 5) setTimeout(() => { if (it.im === tok && it.req) setPaint(it, im0, lv); }, 3000 * it.sTry); return; }
       Promise.all(rest.map(id => loadImg(got[id]).catch(() => null))).then(ims => { if (it.im !== tok || !it.req || ims.some(x => !x)) return; const all = [im0].concat(ims), n = S0.n, vt = S0.dir === 'v';
         if (S0.pan) { /* パネル：写真1枚に per 枚分。1枚ずつ切って、段の形（C×R）の1枚の絵にする。いちばん長い辺 4096 まで */
@@ -13484,6 +13487,7 @@ function exvBuild(root, L, start){
   const grpLoad = async (it, tok) => { const G = it.d.grp, ids = [...new Set(G.slots.map(x => x.id).filter(Boolean))], ok = () => !dead && it.im === tok && it.req;
     const pick = () => { const m = {}; ids.forEach(id => { const v = TH['800_' + id] || TH['400_' + id]; if (v && /^data:/.test(v)) m[id] = v; }); return m; };
     try { const sv = await thGet([].concat(...ids.map(id => ['800_' + id, '400_' + id]))); Object.keys(sv || {}).forEach(k => { if (sv[k] && !TH[k]) TH[k] = sv[k]; }); } catch(e){}
+    try { const lv = await lcPick(ids.filter(id => !/^data:/.test(TH['800_' + id] || '')).map(id => '800_' + id), 1); Object.keys(lv).forEach(k => { const id = k.slice(4); if (lv[k].w >= 800) TH[k] = lv[k].v; else if (!TH['400_' + id]) TH['400_' + id] = lv[k].v; }); } catch(e){} /* iPad の写し（10/31 開発 v26） */
     if (!ok()) return; await grpCompose(it, pick()); if (!ok()) return; it.lo = 1;
     for (let tr = 0; tr < 4; tr++) { const need = ids.filter(id => !/^data:/.test(TH['800_' + id] || '')); if (!need.length) break;
       for (let q = 0; q < need.length; q += 6) { const part = need.slice(q, q + 6); let m = {}; try { m = await Promise.race([call('getThumbs', part, 800, null, 1), new Promise(r => setTimeout(() => r({}), 40000))]) || {}; } catch(e){}
@@ -14115,11 +14119,11 @@ function lcGet(keys){ if (!keys.length) return Promise.resolve({}); return lcDB(
 const lcWait = ms => new Promise(r => setTimeout(r, ms));
 const lcNet = () => navigator.onLine !== false && !LC.off;
 /* 写真の画面（flushThumbs・exvThumb）から：写しにある写真を返す。ネットがあるときは、たのんだ大きさ以上のものだけ（小さい写真で画質を落とさない）。ないときは近いもの */
-async function lcPick(keys){ if (!LC.meta || !LC.meta.has) return {}; const ask = {}, all = new Set();
+async function lcPick(keys, sz){ if (!LC.meta || !LC.meta.has) return {}; const ask = {}, all = new Set();
   keys.forEach(k => { const i = k.indexOf('_'), w = +k.slice(0, i), id = k.slice(i + 1); if (!w || !id) return;
     const up = LC_SZ.filter(x => x >= w), dn = lcNet() ? [] : LC_SZ.filter(x => x < w).reverse(); ask[k] = up.concat(dn).map(x => x + '_' + id); ask[k].forEach(x => all.add(x)); });
   if (!all.size) return {}; const got = await lcGet([...all]), out = {};
-  Object.keys(ask).forEach(k => { const a = ask[k].find(x => got[x]); if (a) out[k] = got[a]; }); return out; }
+  Object.keys(ask).forEach(k => { const a = ask[k].find(x => got[x]); if (a) out[k] = sz ? { v: got[a], w: +a.slice(0, a.indexOf('_')) } : got[a]; }); return out; }
 /* 写しにする写真：作品・その他の作品の写真（補正の前の元の写真は除く）は 400px と 1200px、画集・資料の写真と表紙・顔写真は 400px */
 function lcTargets(){ const nos = new Set((S.works || []).concat(S.others || []).map(w => String(w['作品番号']))), seen = new Set(), a = [], b = [];
   const add = (L, id, w) => { const k = w + '_' + id; if (id && !seen.has(k)) { seen.add(k); L.push(k); } };
@@ -14144,14 +14148,17 @@ function lcSync(fast){ if (LC.run) { if (fast) LC.fast = 1; return LC.run; } if 
     let ji = 0, fails = 0;
     const worker = async () => { while (!LC.stop && !LC.err && ji < jobs.length) {
         if (!LC.fast) { while (!LC.stop && !LC.fast && (CALLS.n > 0 || document.hidden)) await lcWait(1500); if (!LC.fast) await lcWait(700); if (LC.stop || ji >= jobs.length) break; }
+        while (!LC.stop && CALLS.n - (LC.inFl || 0) > 0) await lcWait(600); /* 画面の通信（展示ビューの写真など）があれば、そちらを先に（10/31 本人「ローカルに画像があるのに読み込みに時間がかかる」） */
+        if (LC.stop || ji >= jobs.length) break;
         const [w, part] = jobs[ji++];
-        let m = null; try { m = await call('copyThumbs', part, +w); fails = 0; }
+        let m = null; LC.inFl = (LC.inFl || 0) + 1; try { m = await call('copyThumbs', part, +w); fails = 0; }
         catch(e){ const t = String(e && e.message || e);
           if (isLoginErr(e)) { LC.err = 'ログインの有効期限が切れました。もう一度ログインしてください'; break; }
           if (/この操作はできません/.test(t)) { LC.err = 'Google 側の更新（デプロイ）がまだです'; break; }
           if (/お母さんと管理者/.test(t)) { LC.err = t; break; }
           if (!lcNet() || ++fails >= 4) { LC.err = 'ネットが切れたので止めました。つながったら続きから保存します'; break; }
           jobs.push([w, part]); await lcWait(4000); continue; }
+        finally { LC.inFl--; }
         const put = {}; for (const id of part) { const v = m && m[id]; if (v && /^data:image\//.test(v)) put[w + '_' + id] = await lcJpeg(v); }
         if (Object.keys(put).length) { await lcPut(put); if (!LC.meta.has) { LC.meta.has = 1; lcMetaSave(); } }
         LC.n += Object.keys(put).length; LC.skip += part.length - Object.keys(put).length; lcProg(); } };
@@ -14283,7 +14290,15 @@ const LC_RD = /^(get|search|appBuild|tts|transcribe|askAI|aiMore|interviewTurn|p
     return q0(low, fn, args, hi).then(v => { if (v && typeof v === 'object' && Array.isArray(v.works) && Array.isArray(v.events)) { LC.fresh = Date.now(); lcOnline(); } return v; }, e => { if (netErr(e) && navigator.onLine === false) lcOffline(); throw e; }); }; }
 { const s0 = setData; setData = function(d){ s0(d); try { lcOnData(d); } catch(e){} }; }
 addEventListener('offline', () => { lcOffline(); if (document.getElementById('lcbox')) lcProg(); });
-addEventListener('online', () => { setTimeout(async () => { if (!S.token) return; await refreshData(); try { qzRetry(); } catch(e){} if (lcOn()) setTimeout(() => lcSync(false), 8000); if (document.getElementById('lcbox')) lcProg(); }, 1500); });
+/* ネットがもどったら（10/31 本人「オフラインのあと、ネットにつながったら最新版に更新・写しを更新」）：台帳を読み直す → ためた答えを送る → 新しい版があれば切りかえる（入力中でなければ）→ 写しを新しくする */
+let LC_RC = 0;
+async function lcReconnect(){ if (LC_RC || !S.token || navigator.onLine === false) return; LC_RC = 1; const was = LC.off;
+  try { await refreshData(); if (LC.off) return; try { qzRetry(); } catch(e){} if (was) toast('ネットにつながりました。最新の情報にしました' + (lcOn() ? '（iPad の写しも新しくします）' : ''));
+    try { lastBuildChk = 0; checkBuild(); } catch(e){} if (lcOn()) { clearTimeout(LC.bgT); LC.bgT = setTimeout(() => lcSync(false), 8000); } if (document.getElementById('lcbox')) lcProg(); }
+  finally { LC_RC = 0; } }
+addEventListener('online', () => setTimeout(lcReconnect, 1500));
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && LC.off) setTimeout(lcReconnect, 800); });
+setInterval(() => { if (!LC.off || document.hidden || navigator.onLine === false || LC_RC) return; call('appBuild').then(() => lcReconnect(), () => {}); }, 30000); /* 電波は来ているのに Google に届かなかったとき（Wi-Fi だけつながっている など）も、30秒ごとに確かめる */
 (async () => { LC.meta = (await lcKV('meta')) || {}; if (lcOn() && lcStandalone()) try { navigator.storage.persist().catch(() => {}); } catch(e){}
   if (navigator.onLine === false) lcOffline();
   /* 1か月書き出していなければ、すすめる（1日1回） */
