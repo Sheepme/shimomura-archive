@@ -14,7 +14,7 @@
   var API = "https://script.google.com/macros/s/AKfycbz2w0lUll7wmfJdesc1yTkk3i7NQJgXSTAL9Obwy3BodOvLbpFpK3rGVt53b_hJRWO7Uw/exec";
   /* 通信量を減らす：最後に受け取ったデータを行ごとに覚えておき、変わった行だけ受け取る */
   var UNL = false; addEventListener('pagehide', function(){ UNL = true; }); addEventListener('beforeunload', function(){ UNL = true; }); /* 画面を切り替える途中の「通信が切れました」は出さない */
-  var C = null, NOH = ['startLogin','login','logout','appBuild','getThumbs','getDocThumbs','getOriginal','getLog','getArchive','getAIHistory','tts','checkMemo','askAI','interviewTurn','detectRotation','getPdf','getSpine','pdfJobStatus','startPdfJob','stopPdfJob','aiMore','readPdf','pendingPdfs','transcribe','getDocText','searchDocs','startTextJob'];
+  var C = null, NOH = ['startLogin','login','logout','appBuild','getThumbs','copyThumbs','getDocThumbs','getOriginal','getLog','getArchive','getAIHistory','tts','checkMemo','askAI','interviewTurn','detectRotation','getPdf','getSpine','pdfJobStatus','startPdfJob','stopPdfJob','aiMore','readPdf','pendingPdfs','transcribe','getDocText','searchDocs','startTextJob'];
   function rh(s){ var a = 0, b = 0x811c9dc5; for (var i = 0; i < s.length; i++){ var c = s.charCodeAt(i); a = (Math.imul(a, 31) + c) | 0; b = Math.imul(b ^ c, 16777619); } return (a >>> 0).toString(36) + '.' + (b >>> 0).toString(36); }
   function isData(d){ return !!d && typeof d === 'object' && Array.isArray(d.works) && Array.isArray(d.events); }
   function remember(d){ var n = { s: {}, h: {}, o: {} }; Object.keys(d).forEach(function(k){ if (Array.isArray(d[k])) { n.s[k] = d[k].map(function(r){ return JSON.stringify(r); }); n.h[k] = n.s[k].map(rh); } else n.o[k] = d[k]; }); C = n; saveC(); }
@@ -79,7 +79,7 @@
     }
     return once();
   }
-  var SAFE = ['startLogin','appBuild','getData','getThumbs','getDocThumbs','getOriginal','getLog','getArchive','getAIHistory','tts','checkMemo',
+  var SAFE = ['startLogin','appBuild','getData','getThumbs','copyThumbs','getDocThumbs','getOriginal','getLog','getArchive','getAIHistory','tts','checkMemo',
     'updateWork','setFlag','updateEvent','setLocConfirmed','setMainPhoto','setDocTitle','setDocState','updateExhibit','updatePub','updateOther','saveVenue','getPdf','getSpine','pdfJobStatus','pendingPdfs','resolveDiff','setDocCheck','readPdf','getDocText','searchDocs','getOcr'];
   function runner(ok, ng){ return new Proxy({}, { get: function(_, k){
     if (k === 'withSuccessHandler') return function(f){ return runner(f, ng); };
@@ -3081,7 +3081,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'c5865cbbb8', APP_URL = location.origin + location.pathname;
+const BUILD = '41ffb7394b', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3719,11 +3719,13 @@ function lowOff(el){ if (!el.classList.contains('lowres')) return; el.classList.
 async function flushThumbs(){
   const q = thQueue; thQueue = new Map();
   const saved = await thGet([...q.keys()]);
+  try { Object.assign(saved, await lcPick([...q.keys()].filter(k => !saved[k]))); } catch(e){} /* iPad の写し（10/30 開発 v26） */
   const byW = {};
   const miss = [...q.keys()].filter(k => !saved[k]), alt = {}; miss.forEach(k => { const [w, ...r] = k.split('_'), id = r.join('_'); ['800', '400', '200'].forEach(x => { if (+x < +w) alt[k] = (alt[k] || []).concat(x + '_' + id); }); });
   const lows = await thGet([].concat(...Object.values(alt)));
   miss.forEach(k => { const a = (alt[k] || []).find(x => lows[x]); if (a) (q.get(k)||[]).forEach(el => { if (!el.src || el.classList.contains('lowres')) lowOn(el, lows[a]); }); }); // 大きい写真が届くまで、保存してある小さい写真をぼかして出す
   [...q.keys()].forEach(k => { if (saved[k]) return thSet(q, k, saved[k]); const [w, ...r] = k.split('_'); (byW[w] = byW[w] || []).push(r.join('_')); });
+  if (navigator.onLine === false) return Object.keys(byW).forEach(w => byW[w].forEach(id => (q.get(w + '_' + id) || []).forEach(el => { if (!el.src) el.alt = '（ネットがないので写真を出せません）'; })));
   Object.keys(byW).forEach(w => { for (let i = 0; i < byW[w].length; i += 24) {
     const ids = byW[w].slice(i, i + 24);
     (fpOn() ? fpThumbs(!!EXV, [ids, +w], true) : EXV ? callLow('getThumbs', ids, +w) : call('getThumbs', ids, +w)).then(map => { /* 展示ビューを開いているあいだは、後ろの画面の写真を後回しに（10/9 開発 v15） */ const keep = {}; ids.forEach(id => { const k = w+'_'+id, v = map[id];
@@ -5433,7 +5435,7 @@ async function qcSave(no, rec, patch, loc){
   if (w && loc && loc.confirm) Object.assign(w, { '場所確認日': today(), '場所確認者': me });
   stopMic(true); QC.n += dn; QC.i++; QC.step = ''; QC.heard = ''; QC.pend = null; QC.pn = null; QC.draft = ''; QC.dr = '';
   qcHoldSet(async () => { try { await call('quizSave', no, rec ? [rec] : [], patch || null, loc || null, null); const p = row && QZP.find(x => x.row === row); if (p) { p.ok = true; p.send = null; qzpSave(); } qcKeepAns(no, patch, loc); }
-      catch(e){ if (isLoginErr(e)) { alert('ログインの有効期限が切れました。もう一度ログインしてください。'); if (QC) qcEnd(); return; } toast('保存できませんでした：' + (e.message || e)); } },
+      catch(e){ if (isLoginErr(e)) { alert('ログインの有効期限が切れました。もう一度ログインしてください。'); if (QC) qcEnd(); return; } toast(netErr(e) || navigator.onLine === false ? 'ネットにつながったら送ります' : '保存できませんでした：' + (e.message || e)); } },
     () => { if (w) snap.forEach(([k, v]) => { w[k] = v; }); if (S.quiz) S.quiz.length = qLen; if (row) { QZP = QZP.filter(p => p.row !== row); qzpSave(); } if (qk) { if (qOld) QZI[qk] = qOld; else delete QZI[qk]; } QC.n -= dn; });
   qcDraw();
 }
@@ -6918,16 +6920,16 @@ let QZI = {};
    iPhone のホーム画面アプリは開き直すと前の控えのデータから始まり、最後の答えが入っていないことがある。そのあいだに10作品を始めると同じことを聞いていた。
    送れなかった答え（通信の失敗・送る前にアプリを閉じた）は、新しい台帳を読んだあと（答えから90秒以上たって、台帳にまだない）に3回まで送り直す */
 const QZP_KEY = 'smr_qzp', QZP_MS = 7 * 864e5;
-let QZP = (() => { try { const a = JSON.parse(localStorage.getItem(QZP_KEY) || '[]'); return Array.isArray(a) ? a.filter(p => p && p.row && Date.now() - p.t < QZP_MS) : []; } catch(e){ return []; } })();
+let QZP = (() => { try { const a = JSON.parse(localStorage.getItem(QZP_KEY) || '[]'); return Array.isArray(a) ? a.filter(p => p && p.row && Date.now() - p.t < (p.ok ? QZP_MS : 60 * 864e5)) : []; } catch(e){ return []; } })();
 const qzpSave = () => { try { localStorage.setItem(QZP_KEY, JSON.stringify(QZP.map(p => ({ row: p.row, t: p.t, u: p.u || '', ok: !!p.ok, send: p.ok ? null : (p.send || null), tr: p.tr || 0 })))); } catch(e){} };
 const qzLocal = (no, item) => QZP.some(p => String(p.row['対象']) === String(no) && p.row['項目'] === item);
 let QZR = 0;
-function qzRetry(){ if (QZR || !S.dataAt || !S.user) return; const me = S.user.name || '';
+function qzRetry(){ if (QZR || !S.dataAt || !S.user || navigator.onLine === false) return; const me = S.user.name || '';
   const P = QZP.filter(p => !p.ok && p.send && p.u === me && S.dataAt - p.t > 90000 && (p.tr || 0) < 3 && !(QC && QC.hold)); if (!P.length) return;
-  QZR = 1; (async () => { for (const p of P) { p.tr = (p.tr || 0) + 1; try { await call('quizSave', p.send[0], p.send[1], p.send[2], p.send[3], null); try { qcKeepAns(p.send[0], p.send[2], p.send[3]); } catch(e){} p.ok = true; p.send = null; } catch(e){} } qzpSave(); QZR = 0; })(); }
+  QZR = 1; (async () => { for (const p of P) { p.tr = (p.tr || 0) + 1; try { await call('quizSave', p.send[0], p.send[1], p.send[2], p.send[3], null); try { qcKeepAns(p.send[0], p.send[2], p.send[3]); } catch(e){} p.ok = true; p.send = null; } catch(e){ if (netErr(e)) p.tr--; } } qzpSave(); QZR = 0; })(); }
 const qzSame = (a, b) => a['種類'] === b['種類'] && String(a['対象']) === String(b['対象']) && a['項目'] === b['項目'] && a['答え'] === b['答え'] && String(a['値'] || '') === String(b['値'] || '');
 function quizIndex(){ const now = Date.now(); S.quiz = S.quiz || [];
-  const n0 = QZP.length; QZP = QZP.filter(p => now - p.t < QZP_MS && !S.quiz.some(r => r !== p.row && r['日時'] && qzSame(r, p.row))); if (QZP.length !== n0) qzpSave();
+  const n0 = QZP.length; QZP = QZP.filter(p => now - p.t < (p.ok ? QZP_MS : 60 * 864e5) && !S.quiz.some(r => r !== p.row && r['日時'] && qzSame(r, p.row))); if (QZP.length !== n0) qzpSave();
   QZP.forEach(p => { if (!S.quiz.includes(p.row)) S.quiz.push(p.row); });
   QZI = {}; S.quiz.forEach(r => { if (r['種類']==='作品') QZI[r['対象'] + '|' + r['項目']] = r; }); try { qzRetry(); } catch(e){} }
 const qzLast = (no, item) => QZI[no + '|' + item];
@@ -10802,6 +10804,7 @@ function openMe(anc){ /* 名前ボタンの上に出る小さな吹き出しメ�
     <div class="mebody">${grp('', [it('upd', '最新版に更新'), noLog() ? '' : it('log', '更新記録'), S.user.role !== 'ゲスト' && S.user.role !== 'かんたん編集' ? it('mode', 'モード選択', 'いま：' + mdN + 'モード') : ''])}
     ${grp('写真', isEasy() ? [] : [canEdit() ? it('face', '顔写真', '一覧・追加・顔に合わせる') : '', canEdit() && S.ai ? it('rot', '写真の向きをAIでそろえる') : '', isGuest() ? '' : fpAdmin() ? it('fp', '写真を速く読む') : fpGd() ? it('fp', 'Google ドライブとつなぐ', '写真を速く読む') : ''])}
     ${admL.length ? `<details class="megd"${admOpen ? ' open' : ''}><summary>管理者の設定<span>${admL.length}</span></summary>${admL.join('')}</details>` : ''}
+    ${lcShow() ? grp('この iPad', [it('lc', 'このiPadに保存', 'ネットがなくても見られるように')]) : ''}
     ${grp('その他', [canEdit() && !isEasy() ? it('arc', '削除したもの（アーカイブ）') : '', isGuest() ? '' : it('mic', 'マイクのテスト')])}
     <div class="megp meout">${it('out', 'ログアウト', '共用のパソコンでは、使い終わったらログアウトしてください')}</div></div><i class="metail"></i>`;
   document.body.appendChild(el);
@@ -10822,6 +10825,7 @@ function openMe(anc){ /* 名前ボタンの上に出る小さな吹き出しメ�
     if (v === 'drive') return driveOpen();
     if (v === 'users') return usersOpen();
     if (v === 'sign') return signPick();
+    if (v === 'lc') return lcOpen();
     if (v === 'upd') freshReload();
     else if (v === 'face') facesOpen(); else if (v === 'log') showLog(); else if (v === 'rot') openRotTool(); else if (v === 'arc') openArchive(); else if (v === 'fp') fpOpen(); else if (v === 'out') doLogout(); };
 }
@@ -11766,7 +11770,7 @@ function afterNav(n){
 }
 /* 「最新版に更新」（名前のメニュー）：画面の版も、台帳の情報も最新にする。今の状況が分からなくなったときに押す（10/5 本人）。
    端末の控え（前に読んだ台帳）を消し、新しい画面を読み込み直してから、Google から全部読み直す。終わったら「最新版になりました」と出す */
-async function freshReload(n){
+async function freshReload(n){ if (navigator.onLine === false) return toast('ネットにつながっていないので、いまは更新できません');
   bigWait('最新版にしています…'); /* すぐぼかす（画面を切りかえるので、さわらないように） */
   try { localStorage.setItem('smr_fresh', JSON.stringify({ t: Date.now(), n: n || 0 })); } catch(e){}
   try { await new Promise(ok => { setTimeout(ok, 1500); const r = indexedDB.open('smr_cache', 1);
@@ -11785,9 +11789,9 @@ async function freshDone(f){ let lb = ''; try { lb = await call('appBuild'); } c
   if (fresh) bigWait('最新の情報を読み込んでいます…');
   try { const c = !fresh && S.token && window.__smrCached ? await window.__smrCached() : null; if (c) { setData(c); const nv = restoreNav(); applyStart(); render(); afterNav(nv); busy(false); shown = true; } } catch(e){}
   const getDataWait = async () => { for (let k = 0; ; k++) { try { return await call('getData'); } /* デプロイの直後は数分 404 になることがある（10/5） */
-      catch(e){ if (isLoginErr(e) || !netErr(e) || k >= 4) throw e; if (!shown) busy(true, 'Googleにつながるのを待っています…（' + (k + 1) + '/4）'); await new Promise(r => setTimeout(r, 4000 + k * 4000)); } } };
+      catch(e){ if (isLoginErr(e) || !netErr(e) || k >= 4 || navigator.onLine === false) throw e; if (!shown) busy(true, 'Googleにつながるのを待っています…（' + (k + 1) + '/4）'); await new Promise(r => setTimeout(r, 4000 + k * 4000)); } } };
   getDataWait().then(d => { setData(d); S.dataAt = Date.now(); const nv = shown ? null : restoreNav(); applyStart(); render(); if (nv) afterNav(nv); else if (shown && S.pcur) ({w:openWork, ex:openEx, pb:openPb, ot:openOt, ly:openLay})[S.pcur.t](S.pcur.id, true); if (fresh) freshDone(fresh); })
-    .catch(e => { if (fresh && !isLoginErr(e)) setTimeout(() => alert('Googleにつながらず、最新の情報を読み込めませんでした。\nGoogle側を更新した直後などは、1〜2分つながらないことがあります。少し待って、もう一度「最新版に更新」を押してください。\n（' + (e.message || e) + '）'), 300);
+    .catch(async e => { if (!isLoginErr(e) && shown) lcOffline(); if (!isLoginErr(e) && !shown && await lcBoot(e)) return; if (fresh && !isLoginErr(e)) setTimeout(() => alert('Googleにつながらず、最新の情報を読み込めませんでした。\nGoogle側を更新した直後などは、1〜2分つながらないことがあります。少し待って、もう一度「最新版に更新」を押してください。\n（' + (e.message || e) + '）'), 300);
       if (isLoginErr(e)) { setToken(''); S.user = null; renderUser(); showLoginWall(); $('#finder').classList.add('hidden'); }
       else if (!shown) $('#main').innerHTML = '<div class="flagbox">読み込めませんでした。時間をおいてもう一度開いてください。<br>' + esc(e.message||e) + '</div>'; })
     .finally(() => busy(false));
@@ -13020,6 +13024,7 @@ let EXVENT = null;
 const exvImgCv = (im, max) => { const iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height, q = Math.min(1, max / Math.max(iw, ih, 1)), c = document.createElement('canvas'); c.width = Math.max(1, Math.round(iw * q)); c.height = Math.max(1, Math.round(ih * q)); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); return c; };
 async function exvThumb(id, w, ms){ const k = w + '_' + id; if (/^data:/.test(TH[k] || '')) return TH[k];
   try { const sv = await thGet([k]); if (sv && /^data:/.test(sv[k] || '')) return (TH[k] = sv[k]); } catch(e){}
+  try { const lv = await lcPick([k]); if (lv[k]) return (TH[k] = lv[k]); } catch(e){} if (navigator.onLine === false) return '';
   try { const gp = call('getThumbs', [id], w, null, 1).then(m => { const v = m && m[id]; if (v && /^data:/.test(v)) { TH[k] = v; try { thPut({ [k]: v }); } catch(e){} return v; } return ''; }).catch(() => ''); /* 間に合わなくても、届いたら覚えておく（次は待たない） */
     return await Promise.race([gp, new Promise(r => setTimeout(() => r(''), ms || 30000))]) || ''; } catch(e){}
   return ''; }
@@ -14082,6 +14087,215 @@ function exvBuild(root, L, start){
   EXV.capRect = () => { const it = items[ci - 1], b = el.getBoundingClientRect(), v = new T3.Vector3(it.capM.position.x - PWm * 0.3, it.capM.position.y - PHm / 2 + PHm * 0.12, 0.006).project(cam); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }; /* 確かめ用：「作品ページへ」のあたり */ EXV.stop = () => ({ y: +st.y.toFixed(3), cy: stops[ci] && stops[ci].y, x: +st.x.toFixed(3), sx: stops[ci] && +stops[ci].x.toFixed(3), z: +st.z.toFixed(3), sz: stops[ci] && +stops[ci].z.toFixed(3), zoomed, ci, ov: ovI });
   EXV.capAt = () => { const it = items[ci - 1]; if (!it) return null; const v = it.capM.position.clone().project(cam), b = el.getBoundingClientRect(); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }; /* 確かめ用 */
 }
+
+/* ---------- このiPadに保存（お母さんの iPad のローカル版。10/30 開発 v26） ----------
+   台帳（getData の中身）と作品写真（400px・1200px）を、この端末の IndexedDB「smr_lc」に写しておく（ドライブが元、iPad は写し）。
+   ネットがあるとき：今までどおり Google の最新を出す。写しは裏で、変わった分だけ少しずつ新しくする（画面を待たせない）。
+   ネットがないとき：写しを出す（見る・探す・展示ビュー）。上に「ネットにつながっていません…（〇月〇日時点）」。カードの答えはためて、つながったら送る。
+   使えるのは、お母さん（確認メモの人 S.memoChecker）と管理者だけ。ボタンはホーム画面のアプリで開いたときだけ出す（Safari のタブは7日で消されるため）。
+   写真の取り出しは Google 側の copyThumbs（お母さん・管理者のトークンだけ通す）。書き出し（控え）は ZIP（data.json・表の CSV・写真）を「ファイル」アプリへ */
+var LC = { db: null, meta: null, run: null, stop: 0, fresh: 0, off: false, n: 0, need: 0, err: '', zip: null };
+const LC_SZ = [400, 1200], LC_MO = 30 * 864e5;
+const lcStandalone = () => { try { return navigator.standalone === true || matchMedia('(display-mode: standalone)').matches; } catch(e){ return false; } };
+const lcCan = () => !!(S.user && !isGuest() && (S.user.role === '管理' || (S.memoChecker && S.user.name === S.memoChecker)));
+const lcShow = () => lcCan() && lcStandalone();
+const lcOn = () => !!(LC.meta && LC.meta.on);
+function lcDB(){ return LC.db || (LC.db = new Promise(ok => { try { const r = indexedDB.open('smr_lc', 1);
+  r.onupgradeneeded = () => { const d = r.result; ['ph', 'kv'].forEach(n => { if (!d.objectStoreNames.contains(n)) d.createObjectStore(n); }); };
+  r.onsuccess = () => ok(r.result); r.onerror = () => ok(null); } catch(e){ ok(null); } })); }
+function lcTx(st, mode, fn){ return lcDB().then(d => !d ? null : new Promise(ok => { let q = null; try { const t = d.transaction(st, mode); q = fn(t.objectStore(st)); t.oncomplete = () => ok(q && 'result' in q ? q.result : true); t.onerror = t.onabort = () => ok(null); } catch(e){ ok(null); } })); }
+const lcKV = k => lcTx('kv', 'readonly', s => s.get(k));
+const lcSetKV = (k, v) => lcTx('kv', 'readwrite', s => s.put(v, k));
+const lcMetaSave = () => lcSetKV('meta', LC.meta || {});
+const lcKeys = () => lcTx('ph', 'readonly', s => s.getAllKeys()).then(a => a || []);
+const lcPut = map => lcTx('ph', 'readwrite', s => { Object.keys(map).forEach(k => s.put(map[k], k)); });
+const lcDel = keys => lcTx('ph', 'readwrite', s => { keys.forEach(k => s.delete(k)); });
+function lcGet(keys){ if (!keys.length) return Promise.resolve({}); return lcDB().then(d => !d ? {} : new Promise(ok => { const out = {}; try { const s = d.transaction('ph').objectStore('ph'); let n = keys.length;
+  keys.forEach(k => { const q = s.get(k); q.onsuccess = () => { if (q.result) out[k] = q.result; if (!--n) ok(out); }; q.onerror = () => { if (!--n) ok(out); }; }); } catch(e){ ok(out); } })); }
+const lcWait = ms => new Promise(r => setTimeout(r, ms));
+const lcNet = () => navigator.onLine !== false && !LC.off;
+/* 写真の画面（flushThumbs・exvThumb）から：写しにある写真を返す。ネットがあるときは、たのんだ大きさ以上のものだけ（小さい写真で画質を落とさない）。ないときは近いもの */
+async function lcPick(keys){ if (!LC.meta || !LC.meta.has) return {}; const ask = {}, all = new Set();
+  keys.forEach(k => { const i = k.indexOf('_'), w = +k.slice(0, i), id = k.slice(i + 1); if (!w || !id) return;
+    const up = LC_SZ.filter(x => x >= w), dn = lcNet() ? [] : LC_SZ.filter(x => x < w).reverse(); ask[k] = up.concat(dn).map(x => x + '_' + id); ask[k].forEach(x => all.add(x)); });
+  if (!all.size) return {}; const got = await lcGet([...all]), out = {};
+  Object.keys(ask).forEach(k => { const a = ask[k].find(x => got[x]); if (a) out[k] = got[a]; }); return out; }
+/* 写しにする写真：作品・その他の作品の写真（補正の前の元の写真は除く）は 400px と 1200px、画集・資料の写真と表紙・顔写真は 400px */
+function lcTargets(){ const nos = new Set((S.works || []).concat(S.others || []).map(w => String(w['作品番号']))), seen = new Set(), a = [], b = [];
+  const add = (L, id, w) => { const k = w + '_' + id; if (id && !seen.has(k)) { seen.add(k); L.push(k); } };
+  (S.photos || []).forEach(p => { const id = p['ファイルID'], no = String(p['作品番号'] || ''); if (!id || /補正：元の写真/.test(String(p['メモ'] || ''))) return;
+    if (nos.has(no)) { add(a, id, 400); add(b, id, 1200); } else if (/^PB-/.test(no)) add(a, id, 400); });
+  (S.pubs || []).forEach(x => add(a, x['表紙写真ファイルID'], 400)); (S.faces || []).forEach(id => add(a, id, 400));
+  return a.concat(b); }
+/* Google から届く写真は高画質の JPEG（1200px で1枚 1MB ほど）なので、JPEG（画質 0.85）に作り直して 1/5 ほどにする。PNG（すき間が透明の組み写真など）はそのまま */
+async function lcJpeg(v){ if (!/^data:image\/jpe?g/.test(v) || v.length < 120000) return v;
+  try { const im = await loadImg(v), c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight; c.getContext('2d').drawImage(im, 0, 0);
+    const j = c.toDataURL('image/jpeg', 0.85); c.width = c.height = 0; return j.length < v.length ? j : v; } catch(e){ return v; } }
+/* 3D の部品（展示ビュー）を先に読んでおく（sw.js が控える） */
+function lcWarm(){ try { fetch('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js', { mode: 'no-cors' }).catch(() => {}); } catch(e){} }
+/* 写真をそろえる。fast：画面で「保存」を押したとき（続けて取る）。そうでなければ裏で少しずつ（ほかの通信・画面が隠れているあいだは待つ） */
+function lcSync(fast){ if (LC.run) { if (fast) LC.fast = 1; return LC.run; } if (!lcCan() || !lcOn() || !lcNet()) return Promise.resolve();
+  LC.stop = 0; LC.err = ''; LC.fast = fast ? 1 : 0;
+  LC.run = (async () => { lcWarm(); try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch(e){}
+    const want = lcTargets(), wantS = new Set(want), have = new Set(await lcKeys()), miss = want.filter(k => !have.has(k));
+    LC.need = want.length; LC.n = want.length - miss.length; LC.skip = 0; lcProg();
+    const by = {}; miss.forEach(k => { const i = k.indexOf('_'); (by[k.slice(0, i)] = by[k.slice(0, i)] || []).push(k.slice(i + 1)); });
+    const jobs = []; LC_SZ.map(String).forEach(w => { const ids = by[w] || [], B = +w <= 400 ? (fast ? 24 : 8) : (fast ? 8 : 3); for (let i = 0; i < ids.length; i += B) jobs.push([w, ids.slice(i, i + B)]); });
+    let ji = 0, fails = 0;
+    const worker = async () => { while (!LC.stop && !LC.err && ji < jobs.length) {
+        if (!LC.fast) { while (!LC.stop && !LC.fast && (CALLS.n > 0 || document.hidden)) await lcWait(1500); if (!LC.fast) await lcWait(700); if (LC.stop || ji >= jobs.length) break; }
+        const [w, part] = jobs[ji++];
+        let m = null; try { m = await call('copyThumbs', part, +w); fails = 0; }
+        catch(e){ const t = String(e && e.message || e);
+          if (isLoginErr(e)) { LC.err = 'ログインの有効期限が切れました。もう一度ログインしてください'; break; }
+          if (/この操作はできません/.test(t)) { LC.err = 'Google 側の更新（デプロイ）がまだです'; break; }
+          if (/お母さんと管理者/.test(t)) { LC.err = t; break; }
+          if (!lcNet() || ++fails >= 4) { LC.err = 'ネットが切れたので止めました。つながったら続きから保存します'; break; }
+          jobs.push([w, part]); await lcWait(4000); continue; }
+        const put = {}; for (const id of part) { const v = m && m[id]; if (v && /^data:image\//.test(v)) put[w + '_' + id] = await lcJpeg(v); }
+        if (Object.keys(put).length) { await lcPut(put); if (!LC.meta.has) { LC.meta.has = 1; lcMetaSave(); } }
+        LC.n += Object.keys(put).length; LC.skip += part.length - Object.keys(put).length; lcProg(); } };
+    await Promise.all(fast ? [worker(), worker()] : [worker()]); /* 画面で押したときは2本ずつ取りに行く */
+    if (!LC.stop && !LC.err) { const del = [...have].filter(k => !wantS.has(k)); if (del.length) await lcDel(del); /* 台帳から消えた写真は写しからも消す */
+      LC.meta.photoAt = Date.now(); await lcMetaSave(); }
+  })().catch(e => { LC.err = String(e && e.message || e); }).finally(() => { LC.run = null; LC.fast = 0; lcProg(); });
+  return LC.run; }
+/* 台帳の写し：Google から届いた台帳（ほかの端末の控えではないもの）だけを、数秒まとめて保存する */
+function lcOnData(d){ if (!lcOn() || !lcCan() || !d || !Array.isArray(d.works) || !(LC.fresh && Date.now() - LC.fresh < 5000)) return;
+  const at = LC.fresh; LC.fresh = 0; clearTimeout(LC.dt);
+  LC.dt = setTimeout(() => { lcSetKV('data', d).then(ok => { if (!ok) return; LC.meta.at = at; lcMetaSave(); if (document.getElementById('lcbox')) lcProg(); }); }, 3000);
+  clearTimeout(LC.bgT); LC.bgT = setTimeout(() => lcSync(false), 15000); }
+/* ネットの状態と上のお知らせ */
+function lcOffline(){ if (LC.off) return; LC.off = true; lcBanner(); }
+function lcOnline(){ if (!LC.off) return; LC.off = false; S.lcCopy = false; lcBanner(); }
+function lcBanner(){ let b = document.getElementById('lcbar'); if (!LC.off || !S.user) { if (b) b.remove(); return; }
+  if (!b) { b = document.createElement('div'); b.id = 'lcbar'; document.body.appendChild(b); }
+  const at = S.lcCopy ? S.lcCopyAt : (LC.meta && LC.meta.at) || S.dataAt, f = t => { const d = new Date(t); return (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0'); };
+  b.textContent = 'ネットにつながっていません・' + (at ? (lcOn() || S.lcCopy ? 'iPad の写し（' : '前に読み込んだ情報（') + f(at) + ' 時点）' : '前に読み込んだ情報') + 'を表示中'; }
+/* 起動のとき Google から読めなかったら（ネットがない・Google が止まっている）、写しを出す */
+async function lcBoot(e){ if (isLoginErr(e)) return false; const d = await lcKV('data'); if (!d || !Array.isArray(d.works)) return false;
+  const m = (await lcKV('meta')) || {}; setData(d); S.lcCopy = true; S.lcCopyAt = m.at || m.importAt || 0; LC.off = true;
+  try { applyStart(); render(); } catch(x){} lcBanner(); return true; }
+/* ---------- 画面：名前のメニュー「このiPadに保存」 ---------- */
+const lcGB = b => b >= 1e9 ? (b / 1e9).toFixed(1) + ' GB' : Math.max(1, Math.round(b / 1e6)) + ' MB';
+const lcDay = t => { if (!t) return 'まだ'; const d = new Date(t); return d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0'); };
+async function lcOpen(){ if (!lcCan()) return; LC.meta = Object.assign({}, (await lcKV('meta')) || LC.meta || {});
+  if (LC.meta.has && !LC.need) { const want = lcTargets(), have = new Set(await lcKeys()); LC.need = want.length; LC.n = want.filter(k => have.has(k)).length; }
+  openSheet(`<h3>このiPadに保存</h3><div id="lcbox"></div><div class="actions one"><button type="button" class="act" data-close>閉じる</button></div>`); lcProg(); lcEst(); }
+function lcEst(){ try { navigator.storage.estimate().then(e => { LC.est = e; lcProg(); }).catch(() => {}); } catch(e){} }
+function lcProg(){ const box = document.getElementById('lcbox'); if (!box) return; const m = LC.meta || {}, run = !!LC.run, all = LC.need && LC.n >= LC.need - (LC.skip || 0);
+  const pc = LC.need ? Math.min(100, Math.round(LC.n / LC.need * 100)) : 0, e = LC.est || {};
+  const btn = run ? `<button type="button" class="act" data-lc="stop">止める</button>` : !m.on ? `<button type="button" class="act main" data-lc="go">保存を始める</button>` : !lcNet() ? '' : `<button type="button" class="act main" data-lc="go">${all ? '新しい分を保存する' : '続きから保存する'}</button>`;
+  const z = LC.zip, zb = z && z.blob ? `<div class="lczip"><p class="hint">できました（${lcGB(z.blob.size)}）。下のボタンを押して「"ファイル"に保存」→「このiPad内」を選んでください。</p><button type="button" class="act main" data-lc="share">「ファイル」に保存する</button></div>`
+    : z && z.busy ? `<div class="lcpb"><i style="width:${z.pc || 0}%"></i></div><p class="hint">ファイルにまとめています…（${z.pc || 0}%）</p>` : '';
+  box.innerHTML = `<p class="hint">ネットがない場所でも見られるように、台帳と作品の写真をこの iPad に写しておきます。ネットがあるときは、いつもどおり Google の最新を表示して、写しは裏で新しい分だけ保存します。</p>
+    <dl class="lcdl"><dt>台帳</dt><dd>${m.at ? lcDay(m.at) + ' 時点' : 'まだ保存していません'}</dd>
+    <dt>写真</dt><dd>${LC.need ? LC.n + ' / ' + LC.need + ' 枚' + (LC.skip ? `（${LC.skip}枚は取り出せませんでした）` : '') : m.has ? '保存してあります' : 'まだ'}</dd>
+    ${e.usage ? `<dt>使っている容量</dt><dd>${lcGB(e.usage)}${e.quota ? `（あと ${lcGB(Math.max(0, e.quota - e.usage))} 使えます）` : ''}</dd>` : ''}</dl>
+    ${run || (LC.need && !all) ? `<div class="lcpb"><i style="width:${pc}%"></i></div>` : ''}
+    ${run ? `<p class="hint">保存しています…（${pc}%）。アプリを閉じても、次に開いたときに続きから保存します。</p>` : ''}
+    ${LC.err ? `<p class="hint lcerr">${esc(LC.err)}</p>` : ''}${!lcNet() ? '<p class="hint lcerr">いまはネットにつながっていないので、保存はできません。</p>' : ''}
+    <div class="lcbt">${btn}</div>
+    <h4 class="lch">控えのファイル</h4>
+    <p class="hint">写しを1つのファイル（ZIP）にまとめて、「ファイル」アプリに保存します。Google がなくても、中の表（CSV）と写真を開けます。保存先は「このiPad内」を選んでください。</p>
+    <dl class="lcdl"><dt>最後に書き出した日</dt><dd>${lcDay(m.exportAt)}</dd></dl>
+    ${zb || `<div class="lcbt">${z && z.busy ? '' : `<button type="button" class="act" data-lc="zip"${m.has || m.at ? '' : ' disabled'}>ファイルに書き出す</button>`}</div>`}
+    <label class="lcimp">書き出したファイルから写しを作る<input type="file" accept=".zip,application/zip" data-lcimp style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></label>`; }
+document.addEventListener('click', e => { const b = e.target.closest('#lcbox [data-lc]'); if (!b) return; const v = b.dataset.lc;
+  if (v === 'go') { LC.meta = LC.meta || {}; if (!LC.meta.on) { LC.meta.on = 1; LC.meta.onAt = Date.now(); lcMetaSave(); try { navigator.storage.persist().catch(() => {}); } catch(x){} }
+    lcSaveData(); lcSync(true).then(() => { lcEst(); if (!LC.err && !LC.stop && document.getElementById('lcbox')) toast('この iPad に保存しました'); }); lcProg(); }
+  else if (v === 'stop') { LC.stop = 1; toast('止めました。「続きから保存する」で続けられます'); }
+  else if (v === 'zip') lcZip();
+  else if (v === 'share') lcShare(); });
+document.addEventListener('change', e => { const f = e.target.closest && e.target.closest('#lcbox [data-lcimp]'); if (!f) return; const file = f.files && f.files[0]; f.value = ''; if (file) lcImport(file); });
+/* 「保存を始める」のとき：いま画面にある台帳を、すぐ写しに入れる（Google から読んだものに限る） */
+function lcSaveData(){ if (!S.dataAt || S.lcCopy) return; lcSetKV('data', lcCur()).then(ok => { if (ok) { LC.meta.at = S.dataAt; lcMetaSave(); lcProg(); } }); }
+const lcCur = () => ({ works: (S.works || []).concat(S.others || []), events: S.events || [], photos: S.photos || [], places: S.places || [], museums: S.museums || [], exhibits: S.exhibits || [], pubs: S.pubs || [], others: [], venues: S.venues || [], docs: S.docs || [],
+  finds: S.finds || [], lits: S.lits || [], quiz: S.quiz || [], memos: S.memos || [], faces: S.faces || [], faceInfo: S.faceInfo || {}, marks: S.marks || [], pimg: S.pimg || [], groups: S.groups || [], layouts: S.layouts || [], slays: S.slays || [], merged: S.merged || [], memoChecker: S.memoChecker, sign: S.sign || '', user: S.user, publicView: false, ai: S.ai });
+/* ---------- 書き出し（ZIP。圧縮しない形。写真は JPEG なので小さくならないため） ---------- */
+const LC_CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function lcCrc(u){ let c = 0xFFFFFFFF; for (let i = 0; i < u.length; i++) c = LC_CRC[(c ^ u[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function lcZipW(){ const enc = new TextEncoder(), now = new Date(), dt = ((now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1)) & 0xFFFF, dd = (((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate()) & 0xFFFF;
+  let parts = [], blobs = [], cen = [], off = 0, n = 0, pend = 0;
+  return { add(name, data){ if (typeof data === 'string') data = enc.encode(data); const nm = enc.encode(name), crc = lcCrc(data), sz = data.length, h = new DataView(new ArrayBuffer(30)), c = new DataView(new ArrayBuffer(46));
+      [[0, 0x04034b50, 4], [4, 20, 2], [6, 0x0800, 2], [8, 0, 2], [10, dt, 2], [12, dd, 2], [14, crc, 4], [18, sz, 4], [22, sz, 4], [26, nm.length, 2], [28, 0, 2]].forEach(([o, v, l]) => l === 4 ? h.setUint32(o, v, true) : h.setUint16(o, v, true));
+      [[0, 0x02014b50, 4], [4, 20, 2], [6, 20, 2], [8, 0x0800, 2], [10, 0, 2], [12, dt, 2], [14, dd, 2], [16, crc, 4], [20, sz, 4], [24, sz, 4], [28, nm.length, 2], [30, 0, 2], [32, 0, 2], [34, 0, 2], [36, 0, 2], [38, 0, 4], [42, off, 4]].forEach(([o, v, l]) => l === 4 ? c.setUint32(o, v, true) : c.setUint16(o, v, true));
+      parts.push(h.buffer, nm, data); cen.push(c.buffer, nm); off += 30 + nm.length + sz; n++; pend += sz;
+      if (pend > 32e6) { blobs.push(new Blob(parts)); parts = []; pend = 0; } }, /* 32MB ごとに Blob にまとめて、メモリを空ける */
+    blob(){ let cl = 0; cen.forEach(x => cl += x.byteLength); const e = new DataView(new ArrayBuffer(22));
+      e.setUint32(0, 0x06054b50, true); e.setUint16(8, n, true); e.setUint16(10, n, true); e.setUint32(12, cl, true); e.setUint32(16, off, true);
+      return new Blob(blobs.concat([new Blob(parts)], cen, [e.buffer]), { type: 'application/zip' }); } }; }
+const lcCsv = rows => { const L = rows || [], K = []; L.forEach(r => Object.keys(r || {}).forEach(k => { if (!K.includes(k)) K.push(k); }));
+  const q = v => { const s = v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v); return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  return '﻿' + [K.map(q).join(',')].concat(L.map(r => K.map(k => q((r || {})[k])).join(','))).join('\r\n') + '\r\n'; };
+function lcB64(u){ const i = u.indexOf(','), s = atob(u.slice(i + 1)), a = new Uint8Array(s.length); for (let j = 0; j < s.length; j++) a[j] = s.charCodeAt(j); return a; }
+async function lcZip(){ if (LC.zip && LC.zip.busy) return; const d = await lcKV('data') || (S.dataAt && !S.lcCopy ? lcCur() : null); if (!d) return toast('先に「保存を始める」で写しを作ってください');
+  LC.zip = { busy: 1, pc: 0 }; lcProg();
+  try { const m = LC.meta || {}, at = new Date(m.at || Date.now()), ymd = at.getFullYear() + String(at.getMonth() + 1).padStart(2, '0') + String(at.getDate()).padStart(2, '0'), root = '作品目録_控え_' + ymd + '/', z = lcZipW();
+    const nos = new Set((d.works || []).map(w => String(w['作品番号']))), cnt = {}, list = [], P = (d.photos || []).filter(p => p['ファイルID'] && !/補正：元の写真/.test(String(p['メモ'] || '')));
+    for (let i = 0; i < P.length; i += 20) { const part = P.slice(i, i + 20), got = await lcGet([].concat(...part.map(p => ['1200_' + p['ファイルID'], '400_' + p['ファイルID']])));
+      part.forEach(p => { const id = p['ファイルID'], v = got['1200_' + id] || got['400_' + id]; if (!v) return; const no = String(p['作品番号'] || 'その他'), k = (cnt[no] = (cnt[no] || 0) + 1);
+        const ext = /^data:image\/png/.test(v) ? '.png' : '.jpg', dir = nos.has(no) ? '写真/' : '写真_画集・資料/', nm = dir + (nos.has(no) ? 'No' : '') + no.replace(/[\\/:*?"<>|]/g, '_') + '_' + k + ext;
+        try { z.add(root + nm, lcB64(v)); list.push({ 'ファイル': nm, '作品番号': p['作品番号'], '写真ID': p['写真ID'], 'ファイルID': id, '種類': p['種類'], 'メイン': p['メイン'], 'メモ': p['メモ'], '大きさ': got['1200_' + id] ? '1200px' : '400px' }); } catch(x){} });
+      LC.zip.pc = Math.round((i + part.length) / P.length * 95); lcProg(); await lcWait(0); }
+    const T = [['台帳（作品）', d.works], ['来歴（出来事）', d.events], ['展覧会', d.exhibits], ['会場', d.venues], ['画集・資料', d.pubs], ['書類', d.docs], ['写真の一覧', list]];
+    T.forEach(([n, r]) => { if (r && r.length) z.add(root + n + '.csv', lcCsv(r)); });
+    z.add(root + 'data.json', JSON.stringify({ app: '下村良之介 作品目録', ver: 1, at: m.at || Date.now(), exportAt: Date.now(), data: d }));
+    z.add(root + 'はじめにお読みください.txt', '下村良之介 作品目録の控え（' + lcDay(m.at || Date.now()) + ' 時点）\r\n\r\n・「台帳（作品）.csv」などの表は、Numbers や Excel で開けます。\r\n・「写真」フォルダの写真は「No作品番号_何枚目.jpg」の名前です。どの写真がどの作品かは「写真の一覧.csv」にもあります。\r\n・「data.json」は、作品目録のアプリに読み込んで写しとして開くためのものです（名前のメニュー →「このiPadに保存」→「書き出したファイルから写しを作る」）。\r\n・作品の情報と写真が入っています。人に渡さないでください。\r\n');
+    LC.zip = { blob: z.blob(), name: '作品目録_控え_' + ymd + '.zip' }; }
+  catch(e){ LC.zip = null; toast('書き出せませんでした：' + (e && e.message || e)); }
+  lcProg(); }
+async function lcShare(){ const z = LC.zip; if (!z || !z.blob) return; let ok = false;
+  try { const f = new File([z.blob], z.name, { type: 'application/zip' }); if (navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f] }); ok = true; } }
+  catch(e){ if (e && e.name === 'AbortError') return; }
+  if (!ok) { const u = URL.createObjectURL(z.blob), a = document.createElement('a'); a.href = u; a.download = z.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 120000); ok = true; }
+  if (ok) { LC.meta = LC.meta || {}; LC.meta.exportAt = Date.now(); lcMetaSave(); LC.zip = null; lcProg(); toast('書き出しました'); } }
+/* ---------- 書き出したファイルから写しを作る（ZIP を読む。この形（圧縮なし）のほか、圧縮したものも読めるときは読む） ---------- */
+async function lcUnzip(file){ const n = Math.min(file.size, 22 + 65535), tail = new DataView(await file.slice(file.size - n).arrayBuffer()); let e = -1;
+  for (let i = n - 22; i >= 0; i--) if (tail.getUint32(i, true) === 0x06054b50) { e = i; break; } if (e < 0) throw new Error('ZIP のファイルではないようです');
+  const cnt = tail.getUint16(e + 10, true), csz = tail.getUint32(e + 12, true), cof = tail.getUint32(e + 16, true), cd = new DataView(await file.slice(cof, cof + csz).arrayBuffer()), dec = new TextDecoder(), out = [];
+  for (let p = 0, k = 0; k < cnt && p + 46 <= cd.byteLength; k++) { const meth = cd.getUint16(p + 10, true), cs = cd.getUint32(p + 20, true), nl = cd.getUint16(p + 28, true), xl = cd.getUint16(p + 30, true), cl = cd.getUint16(p + 32, true), lo = cd.getUint32(p + 42, true);
+    out.push({ name: dec.decode(new Uint8Array(cd.buffer, cd.byteOffset + p + 46, nl)), meth, cs, lo }); p += 46 + nl + xl + cl; }
+  const data = async x => { const h = new DataView(await file.slice(x.lo, x.lo + 30).arrayBuffer()), s = x.lo + 30 + h.getUint16(26, true) + h.getUint16(28, true), b = file.slice(s, s + x.cs);
+    if (x.meth === 0) return b; if (x.meth === 8 && window.DecompressionStream) return await new Response(b.stream().pipeThrough(new DecompressionStream('deflate-raw'))).blob(); throw new Error('読めない形の ZIP です'); };
+  return { list: out, data }; }
+async function lcImport(file){ busy(true, 'ファイルを読んでいます…');
+  try { const z = await lcUnzip(file), dj = z.list.find(x => /(^|\/)data\.json$/.test(x.name)); if (!dj) throw new Error('作品目録の控えのファイルではないようです（data.json がありません）');
+    const j = JSON.parse(await (await z.data(dj)).text()), d = j && j.data; if (!d || !Array.isArray(d.works)) throw new Error('控えの中身が読めません');
+    const root = dj.name.replace(/data\.json$/, ''), lj = z.list.find(x => x.name === root + '写真の一覧.csv'); let map = {};
+    if (lj) { const t = (await (await z.data(lj)).text()).replace(/^﻿/, ''), rows = lcCsvRead(t), h = rows.shift() || [], fi = h.indexOf('ファイル'), ii = h.indexOf('ファイルID'), si = h.indexOf('大きさ'); rows.forEach(r => { if (r[fi] && r[ii]) map[root + r[fi]] = [r[ii], /1200/.test(r[si] || '') ? 1200 : 400]; }); }
+    const ph = z.list.filter(x => map[x.name]); let done = 0;
+    for (let i = 0; i < ph.length; i += 10) { const put = {};
+      for (const x of ph.slice(i, i + 10)) { const [id, w] = map[x.name], b = await z.data(x), u = await new Promise((ok, ng) => { const r = new FileReader(); r.onload = () => ok(String(r.result).replace(/^data:[^;,]*/, 'data:image/' + (/\.png$/i.test(x.name) ? 'png' : 'jpeg'))); r.onerror = ng; r.readAsDataURL(b); }); put[w + '_' + id] = u; if (w === 1200) put['400_' + id] = put['400_' + id] || u; }
+      await lcPut(put); done += Object.keys(put).length; busy(true, '写真を入れています…（' + Math.min(ph.length, i + 10) + ' / ' + ph.length + '）'); }
+    await lcSetKV('data', d); LC.meta = Object.assign({}, LC.meta || {}, { on: 1, has: done ? 1 : (LC.meta || {}).has, at: j.at || 0, importAt: Date.now() }); await lcMetaSave(); LC.need = 0; busy(false);
+    if (!S.dataAt || S.lcCopy || LC.off) { setData(d); S.lcCopy = true; S.lcCopyAt = j.at || 0; LC.off = true; try { closeSheet(); applyStart(); render(); } catch(x){} lcBanner(); }
+    toast('ファイルから写しを作りました（' + lcDay(j.at) + ' 時点・写真 ' + ph.length + '枚）'); if (document.getElementById('lcbox')) lcProg(); }
+  catch(e){ busy(false); alert('写しを作れませんでした。\n' + (e && e.message || e)); } }
+function lcCsvRead(t){ const R = []; let r = [], f = '', q = false; for (let i = 0; i < t.length; i++) { const c = t[i];
+    if (q) { if (c === '"') { if (t[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += c; }
+    else if (c === '"') q = true; else if (c === ',') { r.push(f); f = ''; } else if (c === '\n' || c === '\r') { if (c === '\r' && t[i + 1] === '\n') i++; r.push(f); R.push(r); r = []; f = ''; } else f += c; }
+  if (f || r.length) { r.push(f); R.push(r); } return R; }
+/* ---------- しかけ：台帳を受け取ったら写しに入れる・ネットがないときは直さない・ネットがもどったら読み直して答えを送る ---------- */
+const LC_RD = /^(get|search|appBuild|tts|transcribe|askAI|aiMore|interviewTurn|pending|pdfJobStatus|checkMemo|copyThumbs|login|startLogin|logout|quizSave|detectRotation|readPdf|startPdfJob|stopPdfJob|startTextJob)/;
+{ const q0 = callQ; callQ = function(low, fn, args, hi){
+    if (navigator.onLine === false && !LC_RD.test(fn)) return Promise.reject(new Error('ネットにつながっていないので、いまは直せません。ネットのあるところで直してください'));
+    return q0(low, fn, args, hi).then(v => { if (v && typeof v === 'object' && Array.isArray(v.works) && Array.isArray(v.events)) { LC.fresh = Date.now(); lcOnline(); } return v; }, e => { if (netErr(e) && navigator.onLine === false) lcOffline(); throw e; }); }; }
+{ const s0 = setData; setData = function(d){ s0(d); try { lcOnData(d); } catch(e){} }; }
+addEventListener('offline', () => { lcOffline(); if (document.getElementById('lcbox')) lcProg(); });
+addEventListener('online', () => { setTimeout(async () => { if (!S.token) return; await refreshData(); try { qzRetry(); } catch(e){} if (lcOn()) setTimeout(() => lcSync(false), 8000); if (document.getElementById('lcbox')) lcProg(); }, 1500); });
+(async () => { LC.meta = (await lcKV('meta')) || {}; if (lcOn() && lcStandalone()) try { navigator.storage.persist().catch(() => {}); } catch(e){}
+  if (navigator.onLine === false) lcOffline();
+  /* 1か月書き出していなければ、すすめる（1日1回） */
+  setTimeout(() => { try { if (!lcShow() || !lcOn() || !LC.meta.has) return; const last = LC.meta.exportAt || LC.meta.onAt || 0, k = 'smr_lcrem', td = new Date().toDateString();
+    if (Date.now() - last > LC_MO && localStorage.getItem(k) !== td) { localStorage.setItem(k, td); toast('控えのファイルの書き出しから1か月たちました。名前のメニュー →「このiPadに保存」から書き出せます'); } } catch(e){} }, 9000); })();
+(function(){ const st = document.createElement('style'); st.textContent = `
+#lcbar{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 58px);z-index:9000;max-width:calc(100vw - 32px);box-sizing:border-box;padding:7px 14px;border-radius:18px;background:rgba(40,36,30,.88);color:#fff;font-size:14px;line-height:1.4;text-align:center;pointer-events:none;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.lcdl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:12px 0;font-size:16px}.lcdl dt{color:var(--sub)}.lcdl dd{margin:0}
+.lcpb{height:10px;border-radius:5px;background:var(--line);overflow:hidden;margin:10px 0 4px}.lcpb i{display:block;height:100%;background:var(--ink);transition:width .3s}
+.lcbt{display:grid;margin:12px 0 4px}.lcbt .act{width:100%}.lcbt .act[disabled]{opacity:.45}
+.lcerr{color:#c0392b}.lch{margin:26px 0 4px;font-size:17px}.lczip .act{width:100%}
+.lcimp{position:relative;display:block;margin:18px 0 4px;padding:12px 0;color:var(--sub);font-size:15px;text-decoration:underline;text-align:center;cursor:pointer}`; document.head.appendChild(st); })();
 </script>
 </body>
 </html>
