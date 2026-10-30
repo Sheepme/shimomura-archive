@@ -3081,7 +3081,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '16dd9e8f01', APP_URL = location.origin + location.pathname;
+const BUILD = 'e0151d42a4', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -14175,10 +14175,8 @@ function lcOnData(d){ if (!lcOn() || !lcCan() || !d || !Array.isArray(d.works) |
 /* ネットの状態と上のお知らせ */
 function lcOffline(){ if (LC.off) return; LC.off = true; lcBanner(); }
 function lcOnline(){ if (!LC.off) return; LC.off = false; S.lcCopy = false; lcBanner(); }
-function lcBanner(){ let b = document.getElementById('lcbar'); if (!LC.off || !S.user) { if (b) b.remove(); return; }
-  if (!b) { b = document.createElement('div'); b.id = 'lcbar'; document.body.appendChild(b); }
-  const at = S.lcCopy ? S.lcCopyAt : (LC.meta && LC.meta.at) || S.dataAt, f = t => { const d = new Date(t); return (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0'); };
-  b.textContent = 'ネットにつながっていません・' + (at ? (lcOn() || S.lcCopy ? 'iPad の写し（' : '前に読み込んだ情報（') + f(at) + ' 時点）' : '前に読み込んだ情報') + 'を表示中'; }
+function lcBanner(){ /* 10/31 本人「アラートが邪魔なので、邪魔にならない位置に小さく」：上の見出しの横に小さく「オフラインモード」（body.lcoff） */
+  const o = document.getElementById('lcbar'); if (o) o.remove(); document.body.classList.toggle('lcoff', !!(LC.off && S.user)); }
 /* 起動のとき Google から読めなかったら（ネットがない・Google が止まっている）、写しを出す */
 async function lcBoot(e){ if (isLoginErr(e)) return false; const d = await lcKV('data'); if (!d || !Array.isArray(d.works)) return false;
   const m = (await lcKV('meta')) || {}; setData(d); S.lcCopy = true; S.lcCopyAt = m.at || m.importAt || 0; LC.off = true;
@@ -14305,7 +14303,7 @@ setInterval(() => { if (!LC.off || document.hidden || navigator.onLine === false
   setTimeout(() => { try { if (!lcShow() || !lcOn() || !LC.meta.has) return; const last = LC.meta.exportAt || LC.meta.onAt || 0, k = 'smr_lcrem', td = new Date().toDateString();
     if (Date.now() - last > LC_MO && localStorage.getItem(k) !== td) { localStorage.setItem(k, td); toast('控えのファイルの書き出しから1か月たちました。名前のメニュー →「このiPadに保存」から書き出せます'); } } catch(e){} }, 9000); })();
 (function(){ const st = document.createElement('style'); st.textContent = `
-#lcbar{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 58px);z-index:9000;max-width:calc(100vw - 32px);box-sizing:border-box;padding:7px 14px;border-radius:18px;background:rgba(40,36,30,.88);color:#fff;font-size:14px;line-height:1.4;text-align:center;pointer-events:none;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+body.lcoff #abTitle::after{content:'オフラインモード';display:inline-flex;align-items:center;flex:0 0 auto;margin-left:10px;padding:1px 8px;border:1px solid var(--line);border-radius:999px;color:var(--sub);font-size:11px;font-weight:600;line-height:1.6;letter-spacing:.04em;vertical-align:middle;white-space:nowrap}
 .lcdl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:12px 0;font-size:16px}.lcdl dt{color:var(--sub)}.lcdl dd{margin:0}
 .lcpb{height:10px;border-radius:5px;background:var(--line);overflow:hidden;margin:10px 0 4px}.lcpb i{display:block;height:100%;background:var(--ink);transition:width .3s}
 .lcbt{display:grid;margin:12px 0 4px}.lcbt .act{width:100%}.lcbt .act[disabled]{opacity:.45}
