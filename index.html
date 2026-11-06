@@ -2787,6 +2787,7 @@ body.exvopen #toast:not(.hidden){z-index:9600!important} /* 展示ビューの�
 .abedit.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .abedit.hidden{display:none!important}
 .abedit.abcancel{background:transparent;margin-left:4px}
+.abedit.abadd{margin-left:auto;background:var(--ink);color:var(--bg);border-color:var(--ink)} /* 一覧の「＋ 追加」（11/6 開発 v27） */
 #abTitle .abedt{font-weight:700}
 body.edmhd header#top,body.edmhd header#top .brand.appbar{background:#ea580c!important}
 body.edmhd header#top{box-shadow:none}
@@ -3007,7 +3008,7 @@ details.hgmf .mmlist,details.hgmf .mmempty,details.hgmf .mmdone{margin-left:16px
     <button type="button" class="abtn abmenu" id="btnMenu" aria-label="メニューを開く"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
     <button type="button" class="abtn" id="btnBack" aria-label="ひとつ前の画面にもどる"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
     <h1 id="abTitle">ホーム</h1>
-    <button type="button" class="abedit abcancel hidden" id="abCancel">やめる</button><button type="button" class="abedit hidden" id="abEdit">編集</button><div class="brandr"><div class="userbox" id="userbox"></div></div>
+    <button type="button" class="abedit abadd hidden" id="abAdd" aria-label="追加する">＋ 追加</button><button type="button" class="abedit abcancel hidden" id="abCancel">やめる</button><button type="button" class="abedit hidden" id="abEdit">編集</button><div class="brandr"><div class="userbox" id="userbox"></div></div>
   </div>
   <div id="finder">
     <div class="search"><input id="q" type="search" placeholder="作品名・番号・年・美術館名で探す" enterkeyhint="search"></div>
@@ -3081,7 +3082,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '2d20b72000', APP_URL = location.origin + location.pathname;
+const BUILD = 'df99d0d2a5', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3332,7 +3333,10 @@ function abV19(){ const h = $('#abTitle'); if (!h || h.className.indexOf('st-') 
 function edBtnSync(){ const b = $('#abEdit'); if (!b) return; const pgOpen = !$('#page').classList.contains('hidden') && S.pcur;
   const on = !!(pgOpen && !SCR.length && (['w', 'ot', 'ex', 'pb'].includes(S.pcur.t) || (S.pcur.t === 'ly' && !isEasy())) && canEdit()), ds = dsCtx(), dse = ds && $('#sheetbox').classList.contains('dse');
   b.classList.toggle('hidden', !(on || ds)); b.textContent = (ds ? dse : EDM) ? '完了' : '編集'; b.classList.toggle('on', !!(ds ? dse : EDM));
-  const c = $('#abCancel'); if (c) c.classList.toggle('hidden', !(on && EDM)); document.body.classList.toggle('edmhd', !!((on && EDM) || dse)); }
+  const c = $('#abCancel'); if (c) c.classList.toggle('hidden', !(on && EDM)); document.body.classList.toggle('edmhd', !!((on && EDM) || dse));
+  /* 一覧の見出しの右に「＋ 追加」（11/6 開発 v27 本人「作品追加ボタンを分かりやすい位置に」。前は一覧のいちばん下だけ） */
+  const a = $('#abAdd'); if (a) { const v = S.view, lv = ['album', 'list', 'ex', 'pb', 'ot'].includes(v); a.classList.toggle('hidden', !(lv && !pgOpen && !SCR.length && S.user && canEdit()));
+    const nm = v === 'ex' ? '展覧会' : v === 'pb' ? '画集・資料' : v === 'ot' ? 'その他の作品' : '作品'; a.setAttribute('aria-label', nm + 'を追加する'); a.title = nm + 'を追加する'; } }
 /* 書類の画面（見る形）がいちばん上にあって、直せる人か。書類の編集は、押したその場で保存されるので「やめる」はない（10/11 開発 v19） */
 function dsCtx(){ const top = SCR[SCR.length - 1]; return !!(top && top.id === 'sheet' && $('#sheetbox').classList.contains('dview') && canEdit()); }
 /* 書類の画面（編集のとき）：PDF のページの向きを直す（10/11 開発 v19 本人「ドライブのPDFを1ページだけ回転させたい」）。
@@ -9943,6 +9947,7 @@ document.addEventListener('keydown', e => { if (!EDM || e.key !== 'Enter' || e.i
   if (nx) { nx.focus(); if (nx.select && nx.tagName === 'INPUT') nx.select(); } else i.blur(); }, true);
 document.addEventListener('click', e => { const t = e.target;
   if (t.closest && t.closest('#abEdit')) { e.preventDefault(); if (dsCtx()) return dseToggle(); edmToggle(); return; }
+  if (t.closest && t.closest('#abAdd')) { e.preventDefault(); addByContext(); return; }
   if (t.closest && (t.closest('.edcancel') || t.closest('#abCancel'))) { e.preventDefault(); edmCancel(); return; } });
 /* ---------- 編集モードの「出典」（10/10 開発 v19 本人「編集前に根拠を確認してから修正できる」） ----------
    各項目の下に灰色の小さな1行。出どころは ①書類の読み取り（食い違い・補完。位置 at があれば赤のマーカー）②作品の変更の記録（srcOf）。
