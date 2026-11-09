@@ -111,8 +111,9 @@
    ふさぐものがないと、iPad が上の端の中身をぼかして見せる（本人「最初はボケないが、遷移するとボケる」「ふつうでもボケる」：メニュー・作品ページなどでは #safeCover を外していたため）。
    帯は1枚で画面の幅いっぱい（メニューより上）。写真の補正（#crop）・展示ビュー（#exv）はこの上に重なる。下から出る画面（シート）を開いているあいだは出さない */
 #edgeTop{display:none}
-html.sa #edgeTop{display:block;position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:600;pointer-events:none}
-html.sa body:has(#sheet:not(.hidden)) #edgeTop{display:none}
+html.sa #edgeTop{display:block;position:fixed;left:0;right:0;top:0;height:calc(env(safe-area-inset-top,0px) + 10px);background:var(--bg);z-index:600;pointer-events:none}
+/* 23:42 本人「数回遷移するとまたボケる」：iPad が色を調べるのは時計の帯のすぐ下らしい。帯だけの高さだと、たたんだあとなどに一覧の中身がそこに来るので、10px 下まで伸ばした */
+html.sa body:has(#sheet:not(.hidden)) #edgeTop,html.sa body.qcopen #edgeTop,html.sa body.hidebar #edgeTop{display:none} /* カード・写真の全画面は、その画面が上をふさぐ */
 /* 画像を保存・コピーしにくくする（右クリック・長押し・ドラッグ・選択）。スクリーンショットは防げない（開発 v10） */
 img,canvas,video,picture{-webkit-user-drag:none;user-drag:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .dvbar{display:flex;gap:8px;margin:8px 0}.dvbar button{padding:7px 14px;border:1px solid var(--line);border-radius:999px;background:var(--paper);color:var(--ink);font-size:14px}.dvg{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin:8px 0 14px}.dvi{position:relative;display:flex;flex-direction:column;gap:3px;cursor:pointer}.dvi input{position:absolute;top:6px;left:6px;width:20px;height:20px;z-index:1}.dvth{display:block;aspect-ratio:1;background:var(--accent-soft);border-radius:8px;overflow:hidden}.dvth img{width:100%;height:100%;object-fit:cover}.dvi small{font-size:11px;color:var(--sub);line-height:1.3}.dvi input:not(:checked)~.dvth{opacity:.4}
@@ -3115,7 +3116,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '6aab6aba18', APP_URL = location.origin + location.pathname;
+const BUILD = 'fbb818e00f', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
