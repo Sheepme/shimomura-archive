@@ -93,6 +93,19 @@
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>/* iPad の文字の大きさ（11/9 開発 v29：お母さんの iPad mini）。画面の幅を倍率で小さくして、文字・ボタン・写真をまとめて大きくする。iPad mini は「大きめ」から。名前のメニュー「文字の大きさ」で変えられる（smr_tz） */
+(function(){ var T = window.TZ = { ipad: false, k: 1, def: 1, mini: false, apply: function(){} }; try {
+  var ua = navigator.userAgent; T.ipad = /iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1); if (!T.ipad) return;
+  var sw = Math.min(screen.width, screen.height), sh = Math.max(screen.width, screen.height), m = document.querySelector('meta[name=viewport]');
+  T.mini = sw < 800; T.def = T.mini ? 1.15 : 1; var v = null; try { v = localStorage.getItem('smr_tz'); } catch(e){}
+  T.k = v ? +v : T.def; if (!(T.k >= 1 && T.k <= 1.5)) T.k = 1;
+  var land = function(){ var o = screen.orientation && screen.orientation.type; return o ? o.indexOf('landscape') === 0 : Math.abs(window.orientation || 0) === 90; };
+  var full = innerWidth >= (land() ? sh : sw) * 0.9; /* 画面を分けて使っているとき（Split View）はしない */
+  T.apply = function(){ if (!m) return; var c = 'width=device-width, initial-scale=1, viewport-fit=cover';
+    if (T.k > 1 && full) c = 'width=' + Math.round((land() ? sh : sw) / T.k) + ', viewport-fit=cover';
+    if (m.getAttribute('content') !== c) m.setAttribute('content', c); };
+  T.apply(); window.addEventListener('orientationchange', function(){ setTimeout(T.apply, 0); }); if (screen.orientation && screen.orientation.addEventListener) screen.orientation.addEventListener('change', T.apply);
+} catch(e){} })();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <script>try{history.scrollRestoration='manual';}catch(e){}try{if(navigator.standalone||matchMedia('(display-mode: standalone)').matches)document.documentElement.classList.add('sa');}catch(e){}</script>
@@ -3082,7 +3095,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'b5773f87e6', APP_URL = location.origin + location.pathname;
+const BUILD = '7e328951b6', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -10837,7 +10850,7 @@ function openMe(anc){ /* 名前ボタンの上に出る小さな吹き出しメ�
     <div class="mebody">${grp('', [it('upd', '最新版に更新'), noLog() ? '' : it('log', '更新記録'), S.user.role !== 'ゲスト' && S.user.role !== 'かんたん編集' ? it('mode', 'モード選択', 'いま：' + mdN + 'モード') : ''])}
     ${grp('写真', isEasy() ? [fpGd() ? it('fp', '読み込みを速くする', 'Google ドライブとつなぐ') : ''] : [canEdit() ? it('face', '顔写真', '一覧・追加・顔に合わせる') : '', canEdit() && S.ai ? it('rot', '写真の向きをAIでそろえる') : '', isGuest() ? '' : fpAdmin() ? it('fp', '写真を速く読む') : fpGd() ? it('fp', 'Google ドライブとつなぐ', '写真を速く読む') : ''])}
     ${admL.length ? `<details class="megd"${admOpen ? ' open' : ''}><summary>管理者の設定<span>${admL.length}</span></summary>${admL.join('')}</details>` : ''}
-    ${lcShow() ? grp('この iPad', [it('lc', 'このiPadに保存', 'ネットがなくても見られるように')]) : ''}
+    ${grp('この iPad', [lcShow() ? it('lc', 'このiPadに保存', 'ネットがなくても見られるように') : '', TZ.ipad ? it('tz', '文字の大きさ', 'いま：' + tzLab(TZ.k)) : ''])}
     ${grp('その他', [canEdit() && !isEasy() ? it('arc', '削除したもの（アーカイブ）') : '', isGuest() ? '' : it('mic', 'マイクのテスト')])}
     <div class="megp meout">${it('out', 'ログアウト', '共用のパソコンでは、使い終わったらログアウトしてください')}</div></div><i class="metail"></i>`;
   document.body.appendChild(el);
@@ -10859,6 +10872,7 @@ function openMe(anc){ /* 名前ボタンの上に出る小さな吹き出しメ�
     if (v === 'users') return usersOpen();
     if (v === 'sign') return signPick();
     if (v === 'lc') return lcOpen();
+    if (v === 'tz') return tzPick();
     if (v === 'upd') freshReload();
     else if (v === 'face') facesOpen(); else if (v === 'log') showLog(); else if (v === 'rot') openRotTool(); else if (v === 'arc') openArchive(); else if (v === 'fp') fpOpen(); else if (v === 'out') doLogout(); };
 }
@@ -11079,6 +11093,16 @@ function modePick(){ if (!S.user || S.user.role === 'ゲスト' || S.user.role =
 document.addEventListener('click', e => { const b = e.target.closest('#sheetbox [data-mdpk]'); if (!b || !S.user) return; const m = b.dataset.mdpk, nm = m === 'full' ? '' : m; if (nm === (S.vm || '')) return closeSheet();
     try { nm ? localStorage.setItem('smr_vmode', String(S.user.name || '') + '|' + nm) : localStorage.removeItem('smr_vmode'); } catch(e){}
     closeSheet(); closeAllPages(); if (EXV) exvClose(); renderUser(); S.view = 'home'; render(); window.scrollTo(0, 0); toast(vmLab(nm) + 'モードにしました'); });
+/* iPad の文字の大きさ（11/9 開発 v29）。押すとすぐ大きさが変わる（見くらべて選べるように、画面は閉じない） */
+const TZS = [[1, 'ふつう', 'いままでと同じ'], [1.15, '大きめ', '文字・ボタン・写真が少し大きくなります'], [1.3, 'とても大きい', 'いちばん大きい。1行に入る文字は少なくなります']];
+function tzLab(k){ const t = TZS.find(x => Math.abs(x[0] - k) < .01); return t ? t[1] : 'ふつう'; }
+function tzPickHTML(){ const op = ([k, t, d]) => { const on = Math.abs(k - TZ.k) < .01; return `<button type="button" class="mdpk${on ? ' on' : ''}" data-tzpk="${k}"><b>${t}${on ? '<span>いまの大きさ</span>' : ''}${k === TZ.def && k !== 1 && !on ? '<span>おすすめ</span>' : ''}</b><small>${d}</small></button>`; };
+  return `<div class="mdpks">${TZS.map(op).join('')}</div>`; }
+function tzPick(){ if (!TZ.ipad) return;
+  openSheet(`<h3>文字の大きさ</h3>${tzPickHTML()}<p class="hint">押すと、すぐにその大きさになります。この iPad だけの設定です。</p><div class="actions one"><button type="button" class="act" data-close>閉じる</button></div>`); }
+document.addEventListener('click', e => { const b = e.target.closest('#sheetbox [data-tzpk]'); if (!b) return; const k = +b.dataset.tzpk; if (Math.abs(k - TZ.k) < .01) return closeSheet();
+  TZ.k = k; try { k === TZ.def ? localStorage.removeItem('smr_tz') : localStorage.setItem('smr_tz', String(k)); } catch(e){}
+  TZ.apply(); const bx = b.closest('.mdpks'); if (bx) bx.outerHTML = tzPickHTML(); toast('文字の大きさ：' + tzLab(k)); });
 async function doLogout(){
     busy(true); try { await call('logout'); } catch(e){}
     setToken(''); try { const d = await call('getData'); setData(d); } catch(e){ S.user = null; S.works = []; S.events = []; S.photos = []; S.exhibits = []; S.pubs = []; S.chat = []; index(); renderUser(); }
