@@ -3082,7 +3082,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'df99d0d2a5', APP_URL = location.origin + location.pathname;
+const BUILD = '03b62c3112', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -3131,18 +3131,19 @@ const CALLS = { n: 0 }; /* 通信中の数（通信中は新しい版への自�
    B：Google にログインして、ドライブから直接（Drive API。drive.readonly のトークンは1時間で切れる）
    どちらも管理者だけ。読めないとき（許可がない・ファイルがない・HEIC など）は、今までどおり Google 側（getThumbs・getOriginal）で読む */
 const FP = { paths: null, pathsP: null, need: new Set(), needP: null, ppNg: 0, dh: {}, q: 0, qq: [], lq: [], n: { a: 0, b: 0, g: 0 }, aOff: false, init: false };
-const GD = { tok: '', exp: 0, on: false, th: '', meta: {}, lib: null, tc: null, asking: false, q: 0, qq: [], lq: [], err: '' };
+const GD = { tok: '', exp: 0, on: false, th: '', meta: {}, lib: null, tc: null, asking: false, q: 0, qq: [], lq: [], err: '', em: '', ang: 0 };
 const GDAPI = 'https://www.googleapis.com/drive/v3/files/', GD_SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
 const fpAdmin = () => !!(S.user && S.user.role === '管理' && !isEasy() && !isGuest());
-const fpGd = () => !!(S.user && ['編集','管理'].includes(S.user.role) && !isGuest()); /* Google ドライブから直接（B）は編集の人も（10/6 本人） */
+const fpGd = () => !!(S.user && ['編集','管理','かんたん編集'].includes(S.user.role) && !isGuest()); /* Google ドライブから直接（B）は編集の人も（10/6 本人）・かんたん編集の人も（11/9 開発 v28 本人「直美アカウントも」） */
 const fpA = () => { try { return !FP.aOff && fpAdmin() && !!AC.dir && !!AC.dirOk; } catch(e){ return false; } };
 const gdOk = () => GD.on && !!GD.tok && Date.now() < GD.exp - 60000 && fpGd() && !!S.gcid;
 const fpOn = () => fpA() || gdOk();
-try { FP.aOff = localStorage.getItem('smr_fpaoff') === '1'; const o = JSON.parse(localStorage.getItem('smr_gd') || 'null'); if (o) Object.assign(GD, { on: !!o.on, tok: o.tok || '', exp: +o.exp || 0, th: o.th || '' }); } catch(e){}
-function gdSave(){ try { localStorage.setItem('smr_gd', JSON.stringify({ on: GD.on, tok: GD.tok, exp: GD.exp, th: GD.th })); } catch(e){} }
+try { FP.aOff = localStorage.getItem('smr_fpaoff') === '1'; const o = JSON.parse(localStorage.getItem('smr_gd') || 'null'); if (o) Object.assign(GD, { on: !!o.on, tok: o.tok || '', exp: +o.exp || 0, th: o.th || '', em: o.em || '', ang: +o.ang || 0 }); } catch(e){}
+function gdSave(){ try { localStorage.setItem('smr_gd', JSON.stringify({ on: GD.on, tok: GD.tok, exp: GD.exp, th: GD.th, em: GD.em, ang: GD.ang })); } catch(e){} }
 /* iPhone のホーム画面のアプリでは、つなぐときに Google のページへ移って戻ってくる。戻ってきたときのトークンを受け取る */
-(function gdFromHash(){ const h = location.hash || ''; if (!/[#&]state=smrgd(&|$)/.test(h)) return; const p = new URLSearchParams(h.slice(1));
-  if (p.get('access_token')) { Object.assign(GD, { on: true, tok: p.get('access_token'), exp: Date.now() + (+p.get('expires_in') || 3600) * 1000, th: '' }); gdSave(); GD.justGot = true; } else GD.err = p.get('error') || 'error';
+(function gdFromHash(){ const h = location.hash || ''; if (!/[#&]state=smrgda?(&|$)/.test(h)) return; const p = new URLSearchParams(h.slice(1)), auto = p.get('state') === 'smrgda';
+  if (p.get('access_token')) { Object.assign(GD, { on: true, tok: p.get('access_token'), exp: Date.now() + (+p.get('expires_in') || 3600) * 1000, th: auto ? GD.th : '', ang: 0 }); gdSave(); GD.justGot = !auto; }
+  else if (auto) { GD.ang = Date.now(); gdSave(); } else GD.err = p.get('error') || 'error';
   try { history.replaceState(null, '', location.pathname + location.search); } catch(e){} })();
 /* 同時に動かす数をしぼる（low：先読み。いつも1本まで・急ぎの方が先） */
 function fpLane(L, max, low, fn){ return new Promise((ok, ng) => { const go = () => { L.q++; Promise.resolve().then(fn).then(ok, ng).finally(() => { L.q--; const n = L.qq.shift() || (L.q < 1 ? L.lq.shift() : null); if (n) n(); }); };
@@ -3220,22 +3221,39 @@ function gdPrep(){ if (!S.gcid || gdStandalone() || GD.tc) return Promise.resolv
 function gdGot(r){ GD.asking = false;
   if (!r || r.error || !r.access_token) { toast('Google につなげませんでした' + (r && r.error ? '（' + r.error + '）' : '')); return fpChip(); }
   if (google.accounts.oauth2.hasGrantedAllScopes && !google.accounts.oauth2.hasGrantedAllScopes(r, GD_SCOPE)) { toast('ドライブを見る許可にチェックが入っていませんでした'); return fpChip(); }
-  Object.assign(GD, { on: true, tok: r.access_token, exp: Date.now() + (+r.expires_in || 3600) * 1000, th: GD.th === 'none' ? '' : GD.th, meta: {} }); gdSave(); fpChip(); fpSheetRedraw();
+  Object.assign(GD, { on: true, tok: r.access_token, exp: Date.now() + (+r.expires_in || 3600) * 1000, th: GD.th === 'none' ? '' : GD.th, meta: {}, ang: 0 }); gdSave(); fpChip(); fpSheetRedraw(); gdEmail();
   toast('Google ドライブにつながりました（写真を直接読みます）'); }
 /* ボタンを押したときに呼ぶ（Google の小さな窓は、押した直後でないと開けない） */
+const gdAuthUrl = auto => 'https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams(Object.assign({ client_id: S.gcid, redirect_uri: location.origin + location.pathname.replace(/index\.html$/, ''), response_type: 'token', scope: GD_SCOPE, include_granted_scopes: 'true', state: auto ? 'smrgda' : 'smrgd' }, auto ? { prompt: 'none' } : {}, GD.em ? { login_hint: GD.em } : {}));
 function gdConnect(){ if (!S.gcid) return alert('まだ Google 側の準備（クライアント ID）ができていません。');
   if (gdStandalone()) { try { sessionStorage.setItem('smr_gdgo', '1'); } catch(e){}
-    location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams({ client_id: S.gcid, redirect_uri: location.origin + location.pathname.replace(/index\.html$/, ''), response_type: 'token', scope: GD_SCOPE, include_granted_scopes: 'true', state: 'smrgd' }); return; }
+    location.href = gdAuthUrl(false); return; }
   const go = () => { GD.asking = true; GD.tc.requestAccessToken({ prompt: '' }); };
   if (GD.tc) go(); else gdPrep().then(go, e => alert(e.message || e)); }
 async function fpAskDir(){ try { if (await acDirReady(true)) { FP.dh = {}; toast('Mac のフォルダから写真を読みます'); fpWarm(); } } catch(e){} fpChip(); fpSheetRedraw(); }
 /* 写真の場所を前もって調べておく（全部の写真。知らない ID だけ） */
 function fpWarm(){ if (!fpA()) return; fpPathsLoad().then(() => fpLookup((S.photos || []).map(p => p['ファイルID']).concat(S.faces || []))); }
+/* つないだアカウントのアドレス（自動でつなぎ直すときに、そのアカウントを選んでもらう login_hint。端末にだけ覚える） */
+function gdEmail(){ if (GD.em || !gdOk()) return; gdFetch('https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)').then(r => r.json()).then(j => { const m = j && j.user && j.user.emailAddress; if (m) { GD.em = m; gdSave(); } }).catch(() => {}); }
+/* かんたん編集の人（お母さん）：つながりが切れていたら、開いたとき（と、10分以上ほかのアプリにいて戻ったとき）に自動でつなぎ直す（11/9 開発 v28 本人）。
+   Google のページを一瞬通って戻る（prompt=none：押すものは出ない）。だめなら12時間は自動でしない。続けて何回も行かない（10分あける） */
+function gdAutoOk(){ try { return isEasy() && fpGd() && GD.on && !!S.gcid && !(GD.tok && Date.now() < GD.exp - 5 * 60000) && navigator.onLine !== false && !(Date.now() - (GD.ang || 0) < 12 * 3600e3)
+  && !(Date.now() - (+localStorage.getItem('smr_gdat') || 0) < 10 * 60000) && !location.search && !location.hash && !GD.going; } catch(e){ return false; } }
+function gdBusy(){ try { return (CALLS.n - ((typeof LC !== 'undefined' && LC.inFl) || 0)) > 0 || !$('#loading').classList.contains('hidden') || !$('#sheet').classList.contains('hidden') || (document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName))
+  || S.aiOpen || !!document.querySelector('.quiz:not(.hidden)') || !!document.getElementById('crop') || !!(typeof EXV !== 'undefined' && EXV) || AC.run; } catch(e){ return true; } }
+async function gdAuto(){ if (!gdAutoOk()) return false;
+  try { const c = new AbortController(), t = setTimeout(() => c.abort(), 3000); await fetch('https://accounts.google.com/generate_204', { mode: 'no-cors', cache: 'no-store', signal: c.signal }); clearTimeout(t); } catch(e){ return false; } /* Google に届くか */
+  if (!gdAutoOk() || document.visibilityState === 'hidden') return false;
+  GD.going = true; try { localStorage.setItem('smr_gdat', String(Date.now())); } catch(e){}
+  location.replace(gdAuthUrl(true)); return true; }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { GD.hidAt = Date.now(); return; }
+  if (FP.init && GD.hidAt && Date.now() - GD.hidAt > 10 * 60000) setTimeout(() => { if (document.visibilityState === 'visible' && !gdBusy()) gdAuto(); }, 1500); });
 /* つなぎ直しが要るときに、画面の下に小さく出す（✕ でこの間は出さない） */
 function fpChip(){ let el = document.getElementById('fpChip'); let msg = '', act = '';
   try { if (fpGd() && sessionStorage.getItem('smr_fpx') !== '1') {
     if (fpAdmin() && !FP.aOff && AC.dir && !AC.dirOk && typeof window.showDirectoryPicker === 'function') { msg = 'Mac のフォルダから写真を読む許可が必要です'; act = 'a'; }
-    else if (GD.on && S.gcid && !gdOk() && !fpA()) { msg = 'Google ドライブとのつながりが切れました（1時間ごと）'; act = 'b'; } } } catch(e){}
+    else if (GD.on && S.gcid && !gdOk() && !fpA() && !isEasy()) { msg = 'Google ドライブとのつながりが切れました（1時間ごと）'; act = 'b'; }
+    else if (GD.on && S.gcid && !gdOk() && isEasy() && Date.now() - (GD.ang || 0) < 12 * 3600e3) { msg = 'Google ドライブに、もう一度つないでください（写真を速く読むため）'; act = 'b'; } } } catch(e){}
   if (!msg) { if (el) el.remove(); return; }
   if (!el) { el = document.createElement('div'); el.id = 'fpChip'; el.className = 'updcard fpcard'; el.setAttribute('role', 'status'); document.body.appendChild(el);
     el.onclick = e => { const b = e.target.closest('button'); if (!b) return; e.stopPropagation(); if (b.classList.contains('updx')) { try { sessionStorage.setItem('smr_fpx', '1'); } catch(x){} el.remove(); return; }
@@ -3245,6 +3263,7 @@ function fpChip(){ let el = document.getElementById('fpChip'); let msg = '', act
 function fpInit(){ if (FP.init || !fpGd()) return; FP.init = true;
   if (GD.err) { toast('Google につなげませんでした（' + GD.err + '）'); GD.err = ''; } else if (GD.justGot) { GD.justGot = false; setTimeout(() => toast('Google ドライブにつながりました（写真を直接読みます）'), 800); }
   if (GD.on && S.gcid) gdPrep().catch(() => {});
+  gdEmail(); if (gdAutoOk()) setTimeout(gdAuto, 300);
   const fin = () => { fpChip(); if (fpA()) fpWarm(); };
   if (fpAdmin() && typeof window.showDirectoryPicker === 'function' && !FP.aOff) acDirReady(false).then(fin, fin); else fin(); }
 /* 名前のメニュー「写真を速く読む」 */
@@ -3264,7 +3283,7 @@ function fpSheetRedraw(first){ if (!FP.sheet || (!first && ($('#sheet').classLis
     ${!S.gcid ? '<p class="hint">まだ Google 側の準備（クライアント ID）ができていません。</p>'
       : `<p>${st(gdOk(), gdOk() ? 'つながっています（あと' + left + '分）' : GD.on ? 'つながりが切れています' : '使っていません')}${GD.th ? `<br><small>小さい写真：${GD.th === 'cors' ? 'ドライブから直接' : GD.th === 'img' ? 'ドライブから直接（表示だけ）' : 'Google 経由（大きい写真だけ直接）'}</small>` : ''}</p>
         <div class="fpbt"><button class="act main" data-fp="gd">${GD.on ? 'つなぎ直す' : 'Google につなぐ'}</button>${GD.on ? '<button class="act" data-fp="gdoff">使わない</button>' : ''}</div>
-        <p class="hint">Google の決まりで、1時間ごとにつなぎ直しが必要です（切れたら画面の下に出ます）。最初だけ「このアプリは Google で確認されていません」と出るので、「続行」を押してください。</p>`}
+        <p class="hint">${isEasy() ? 'Google の決まりで1時間ごとに切れますが、アプリを開いたときに自動でつなぎ直します。' : 'Google の決まりで、1時間ごとにつなぎ直しが必要です（切れたら画面の下に出ます）。'}最初だけ「このアプリは Google で確認されていません」と出るので、「続行」を押してください。</p>`}
     <p class="hint">この画面を開いてから読んだ写真：Mac ${FP.n.a}枚・ドライブ ${FP.n.b}枚・Google 経由 ${FP.n.g}枚</p>
     <div class="btns"><button type="button" data-close>閉じる</button></div></div>`);
   $('#fpS').onclick = async e => { const b = e.target.closest('[data-fp]'); if (!b) return; const v = b.dataset.fp;
@@ -3272,7 +3291,7 @@ function fpSheetRedraw(first){ if (!FP.sheet || (!first && ($('#sheet').classLis
     else if (v === 'ask') await fpAskDir();
     else if (v === 'aoff' || v === 'aon') { FP.aOff = v === 'aoff'; try { if (FP.aOff) localStorage.setItem('smr_fpaoff', '1'); else localStorage.removeItem('smr_fpaoff'); } catch(x){} if (!FP.aOff) await fpAskDir(); }
     else if (v === 'gd') return gdConnect();
-    else if (v === 'gdoff') { const t = GD.tok; Object.assign(GD, { on: false, tok: '', exp: 0 }); gdSave(); try { if (t && window.google && google.accounts && google.accounts.oauth2) google.accounts.oauth2.revoke(t, () => {}); } catch(x){} }
+    else if (v === 'gdoff') { const t = GD.tok; Object.assign(GD, { on: false, tok: '', exp: 0, em: '', ang: 0 }); gdSave(); try { if (t && window.google && google.accounts && google.accounts.oauth2) google.accounts.oauth2.revoke(t, () => {}); } catch(x){} }
     fpChip(); fpSheetRedraw(); }; }
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('#sheetbox #ok, #sheetbox .btns .primary'); if (!b) return;
   if (!$('#loading').classList.contains('hidden')) { e.preventDefault(); e.stopImmediatePropagation(); toast('保存しています。終わるまで、そのままお待ちください'); } }, true);
@@ -10807,7 +10826,7 @@ function openMe(anc){ /* 名前ボタンの上に出る小さな吹き出しメ�
   const el = document.createElement('div'); el.id = 'mepop'; el.setAttribute('role', 'menu');
   el.innerHTML = `<div class="mehd"><span class="avatar sm">${esc(String(S.user.name || '？').trim().charAt(0))}</span><span><b>${esc(S.user.name||'')}</b><small>${esc(S.user.role)}${S.vm ? '・いまは' + mdN + 'モード' : ''}${S.dataAt ? '・' + new Date(S.dataAt).getHours() + ':' + String(new Date(S.dataAt).getMinutes()).padStart(2, '0') + ' に読み込み' : ''}</small></span></div>
     <div class="mebody">${grp('', [it('upd', '最新版に更新'), noLog() ? '' : it('log', '更新記録'), S.user.role !== 'ゲスト' && S.user.role !== 'かんたん編集' ? it('mode', 'モード選択', 'いま：' + mdN + 'モード') : ''])}
-    ${grp('写真', isEasy() ? [] : [canEdit() ? it('face', '顔写真', '一覧・追加・顔に合わせる') : '', canEdit() && S.ai ? it('rot', '写真の向きをAIでそろえる') : '', isGuest() ? '' : fpAdmin() ? it('fp', '写真を速く読む') : fpGd() ? it('fp', 'Google ドライブとつなぐ', '写真を速く読む') : ''])}
+    ${grp('写真', isEasy() ? [fpGd() ? it('fp', '読み込みを速くする', 'Google ドライブとつなぐ') : ''] : [canEdit() ? it('face', '顔写真', '一覧・追加・顔に合わせる') : '', canEdit() && S.ai ? it('rot', '写真の向きをAIでそろえる') : '', isGuest() ? '' : fpAdmin() ? it('fp', '写真を速く読む') : fpGd() ? it('fp', 'Google ドライブとつなぐ', '写真を速く読む') : ''])}
     ${admL.length ? `<details class="megd"${admOpen ? ' open' : ''}><summary>管理者の設定<span>${admL.length}</span></summary>${admL.join('')}</details>` : ''}
     ${lcShow() ? grp('この iPad', [it('lc', 'このiPadに保存', 'ネットがなくても見られるように')]) : ''}
     ${grp('その他', [canEdit() && !isEasy() ? it('arc', '削除したもの（アーカイブ）') : '', isGuest() ? '' : it('mic', 'マイクのテスト')])}
