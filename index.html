@@ -103,7 +103,7 @@
   var full = innerWidth >= (land() ? sh : sw) * 0.9; /* 画面を分けて使っているとき（Split View）はしない */
   T.apply = function(){ if (!m) return; var c = 'width=device-width, initial-scale=1, viewport-fit=cover';
     if (T.k > 1 && full) c = 'width=' + Math.round((land() ? sh : sw) / T.k) + ', viewport-fit=cover';
-    if (m.getAttribute('content') !== c) m.setAttribute('content', c); };
+    if (m.getAttribute('content') !== c) m.setAttribute('content', c); document.documentElement.classList.toggle('tzon', T.k > 1 && full); };
   T.apply(); window.addEventListener('orientationchange', function(){ setTimeout(T.apply, 0); }); if (screen.orientation && screen.orientation.addEventListener) screen.orientation.addEventListener('change', T.apply);
 } catch(e){} })();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -112,6 +112,9 @@
 <script>try{var t=localStorage.getItem('smr_theme');if(t!=='dark'&&t!=='light')t=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}</script>
 <meta name="tdm-reservation" content="1">
 <style>
+/* iPad の文字の大きさ（11/9 開発 v29）：拡大しているあいだは、上のタブの段などを 3D の層（translateZ）にしない。iPad では、その層だけ拡大前の細かさのまま引き伸ばされて、文字がぼやけたため（本人 23:10「画面上がボケる」） */
+html.tzon:not(#_) .chips.stk,html.tzon:not(#_) #wthd{-webkit-transform:none!important;transform:none!important;will-change:auto!important}
+@media (max-width:899px){html.tzon:not(#_) body:not(#_) .chips.stk{-webkit-transform:none!important;transform:none!important}}
 /* 画像を保存・コピーしにくくする（右クリック・長押し・ドラッグ・選択）。スクリーンショットは防げない（開発 v10） */
 img,canvas,video,picture{-webkit-user-drag:none;user-drag:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .dvbar{display:flex;gap:8px;margin:8px 0}.dvbar button{padding:7px 14px;border:1px solid var(--line);border-radius:999px;background:var(--paper);color:var(--ink);font-size:14px}.dvg{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin:8px 0 14px}.dvi{position:relative;display:flex;flex-direction:column;gap:3px;cursor:pointer}.dvi input{position:absolute;top:6px;left:6px;width:20px;height:20px;z-index:1}.dvth{display:block;aspect-ratio:1;background:var(--accent-soft);border-radius:8px;overflow:hidden}.dvth img{width:100%;height:100%;object-fit:cover}.dvi small{font-size:11px;color:var(--sub);line-height:1.3}.dvi input:not(:checked)~.dvth{opacity:.4}
@@ -3095,7 +3098,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '7e328951b6', APP_URL = location.origin + location.pathname;
+const BUILD = '350d3b5b4b', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
