@@ -93,18 +93,13 @@
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<script>/* iPad の文字の大きさ（11/9 開発 v29：お母さんの iPad mini）。画面の幅を倍率で小さくして、文字・ボタン・写真をまとめて大きくする。iPad mini は「大きめ」から。名前のメニュー「文字の大きさ」で変えられる（smr_tz） */
+<script>/* iPad の文字の大きさ（11/9 開発 v29：お母さんの iPad mini）。iPad mini は「大きめ」から。名前のメニュー「文字の大きさ」で変えられる（smr_tz）。
+   文字だけを大きくする（</head> の前の script で、CSS の font-size・line-height の写しを html.tzon の下に作る）。
+   はじめは viewport で画面全体を拡大したが、iPadOS 26 で上の見出しがぼやけたのでやめた（本人 23:18「ふつうならボケない」） */
 (function(){ var T = window.TZ = { ipad: false, k: 1, def: 1, mini: false, apply: function(){} }; try {
   var ua = navigator.userAgent; T.ipad = /iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1); if (!T.ipad) return;
-  var sw = Math.min(screen.width, screen.height), sh = Math.max(screen.width, screen.height), m = document.querySelector('meta[name=viewport]');
-  T.mini = sw < 800; T.def = T.mini ? 1.15 : 1; var v = null; try { v = localStorage.getItem('smr_tz'); } catch(e){}
+  T.mini = Math.min(screen.width, screen.height) < 800; T.def = T.mini ? 1.15 : 1; var v = null; try { v = localStorage.getItem('smr_tz'); } catch(e){}
   T.k = v ? +v : T.def; if (!(T.k >= 1 && T.k <= 1.5)) T.k = 1;
-  var land = function(){ var o = screen.orientation && screen.orientation.type; return o ? o.indexOf('landscape') === 0 : Math.abs(window.orientation || 0) === 90; };
-  var full = innerWidth >= (land() ? sh : sw) * 0.9; /* 画面を分けて使っているとき（Split View）はしない */
-  T.apply = function(){ if (!m) return; var c = 'width=device-width, initial-scale=1, viewport-fit=cover';
-    if (T.k > 1 && full) c = 'width=' + Math.round((land() ? sh : sw) / T.k) + ', viewport-fit=cover';
-    if (m.getAttribute('content') !== c) m.setAttribute('content', c); document.documentElement.classList.toggle('tzon', T.k > 1 && full); };
-  T.apply(); window.addEventListener('orientationchange', function(){ setTimeout(T.apply, 0); }); if (screen.orientation && screen.orientation.addEventListener) screen.orientation.addEventListener('change', T.apply);
 } catch(e){} })();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
@@ -112,9 +107,6 @@
 <script>try{var t=localStorage.getItem('smr_theme');if(t!=='dark'&&t!=='light')t=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}</script>
 <meta name="tdm-reservation" content="1">
 <style>
-/* iPad の文字の大きさ（11/9 開発 v29）：拡大しているあいだは、上のタブの段などを 3D の層（translateZ）にしない。iPad では、その層だけ拡大前の細かさのまま引き伸ばされて、文字がぼやけたため（本人 23:10「画面上がボケる」） */
-html.tzon:not(#_) .chips.stk,html.tzon:not(#_) #wthd{-webkit-transform:none!important;transform:none!important;will-change:auto!important}
-@media (max-width:899px){html.tzon:not(#_) body:not(#_) .chips.stk{-webkit-transform:none!important;transform:none!important}}
 /* 画像を保存・コピーしにくくする（右クリック・長押し・ドラッグ・選択）。スクリーンショットは防げない（開発 v10） */
 img,canvas,video,picture{-webkit-user-drag:none;user-drag:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .dvbar{display:flex;gap:8px;margin:8px 0}.dvbar button{padding:7px 14px;border:1px solid var(--line);border-radius:999px;background:var(--paper);color:var(--ink);font-size:14px}.dvg{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin:8px 0 14px}.dvi{position:relative;display:flex;flex-direction:column;gap:3px;cursor:pointer}.dvi input{position:absolute;top:6px;left:6px;width:20px;height:20px;z-index:1}.dvth{display:block;aspect-ratio:1;background:var(--accent-soft);border-radius:8px;overflow:hidden}.dvth img{width:100%;height:100%;object-fit:cover}.dvi small{font-size:11px;color:var(--sub);line-height:1.3}.dvi input:not(:checked)~.dvth{opacity:.4}
@@ -3015,6 +3007,25 @@ details.hgmf .mmhd{padding:0 16px}details.hgmf .mmhd h2{display:none}details.hgm
 details.hgmf .mmlist,details.hgmf .mmempty,details.hgmf .mmdone{margin-left:16px;margin-right:16px}
 .evv .evpn{font-size:13px;color:var(--sub);white-space:nowrap}
 </style>
+<script>/* iPad の文字の大きさ（TZ。11/9 開発 v29）：ページの CSS から font-size・line-height のある規則を拾い、html.tzon を前に付けた写しを作る。
+   px は倍率をかけ、em・%・var などはそのまま写す（写し同士の強さの順が元と同じになるように）。font の一括指定（font:400 19px/1.75 …）からも拾う */
+(function(){ var T = window.TZ; if (!T || !T.ipad) return;
+  var split = function(sel){ var r = [], d = 0, c = ''; for (var i = 0; i < sel.length; i++){ var ch = sel[i]; if (ch === '(' || ch === '[') d++; else if (ch === ')' || ch === ']') d--; if (ch === ',' && !d) { r.push(c); c = ''; } else c += ch; } r.push(c); return r; };
+  var pre = function(sel){ return split(sel).map(function(s){ s = s.trim(); if (/^html(?![\w-])/.test(s)) return 'html.tzon' + s.slice(4); if (/^:root(?![\w-])/.test(s)) return 'html.tzon' + s.slice(5); return 'html.tzon ' + s; }).join(','); };
+  var walk = function(rules, acc, k){ var px = function(v){ return /^[\d.]+px$/.test(v) ? Math.round(parseFloat(v) * k * 100) / 100 + 'px' : v; };
+    for (var i = 0; i < rules.length; i++){ var r = rules[i];
+      if (r.type === 1) { var st = r.style, d = [], fs = st.getPropertyValue('font-size'), fi = st.getPropertyPriority('font-size'), lh = st.getPropertyValue('line-height'), li = st.getPropertyPriority('line-height');
+        if (!fs) { var m = /(?:^|;)\s*font\s*:([^;]*)/.exec(st.cssText); if (m) { var mm = /(?:^|\s)([\d.]+px)(?:\s*\/\s*([^\s!]+))?(?=[\s!]|$)/.exec(m[1]); if (mm) { fs = mm[1]; fi = /!\s*important/.test(m[1]) ? 'important' : ''; if (!lh && mm[2]) { lh = mm[2]; li = fi; } } } }
+        if (fs) d.push('font-size:' + px(fs) + (fi ? '!important' : '')); if (lh) d.push('line-height:' + px(lh) + (li ? '!important' : ''));
+        if (d.length && r.selectorText) acc.push(pre(r.selectorText) + '{' + d.join(';') + '}'); }
+      else if ((r.type === 4 || r.type === 12) && r.cssRules) { var a = []; walk(r.cssRules, a, k); if (a.length) acc.push('@' + (r.type === 4 ? 'media ' : 'supports ') + r.conditionText + '{' + a.join('') + '}'); } } };
+  T.apply = function(force){ var el = document.getElementById('tzcss'), on = T.k > 1; document.documentElement.classList.toggle('tzon', on);
+    if (!on) { if (el) { el.textContent = ''; el.removeAttribute('data-k'); } return; }
+    if (el && el.getAttribute('data-k') === String(T.k) && !force) return;
+    var acc = []; for (var i = 0; i < document.styleSheets.length; i++){ var ss = document.styleSheets[i], rs; if (ss.ownerNode && ss.ownerNode.id === 'tzcss') continue; try { rs = ss.cssRules; } catch(e){ continue; } if (rs) walk(rs, acc, T.k); }
+    if (!el) { el = document.createElement('style'); el.id = 'tzcss'; document.head.appendChild(el); } el.textContent = acc.join('\n'); el.setAttribute('data-k', String(T.k)); };
+  try { T.apply(); } catch(e){} addEventListener('load', function(){ try { T.apply(true); } catch(e){} });
+})();</script>
 </head>
 <body>
 
@@ -3098,7 +3109,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = '350d3b5b4b', APP_URL = location.origin + location.pathname;
+const BUILD = '089224ca2b', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -11097,7 +11108,7 @@ document.addEventListener('click', e => { const b = e.target.closest('#sheetbox 
     try { nm ? localStorage.setItem('smr_vmode', String(S.user.name || '') + '|' + nm) : localStorage.removeItem('smr_vmode'); } catch(e){}
     closeSheet(); closeAllPages(); if (EXV) exvClose(); renderUser(); S.view = 'home'; render(); window.scrollTo(0, 0); toast(vmLab(nm) + 'モードにしました'); });
 /* iPad の文字の大きさ（11/9 開発 v29）。押すとすぐ大きさが変わる（見くらべて選べるように、画面は閉じない） */
-const TZS = [[1, 'ふつう', 'いままでと同じ'], [1.15, '大きめ', '文字・ボタン・写真が少し大きくなります'], [1.3, 'とても大きい', 'いちばん大きい。1行に入る文字は少なくなります']];
+const TZS = [[1, 'ふつう', 'いままでと同じ'], [1.15, '大きめ', '文字が少し大きくなります'], [1.3, 'とても大きい', '文字がいちばん大きくなります。1行に入る文字は少なくなります']];
 function tzLab(k){ const t = TZS.find(x => Math.abs(x[0] - k) < .01); return t ? t[1] : 'ふつう'; }
 function tzPickHTML(){ const op = ([k, t, d]) => { const on = Math.abs(k - TZ.k) < .01; return `<button type="button" class="mdpk${on ? ' on' : ''}" data-tzpk="${k}"><b>${t}${on ? '<span>いまの大きさ</span>' : ''}${k === TZ.def && k !== 1 && !on ? '<span>おすすめ</span>' : ''}</b><small>${d}</small></button>`; };
   return `<div class="mdpks">${TZS.map(op).join('')}</div>`; }
