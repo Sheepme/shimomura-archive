@@ -3116,7 +3116,7 @@ const today = () => { const d=new Date(); return d.getFullYear()+'年'+(d.getMon
 
 /* ---------- サーバー呼び出し ---------- */
 const NO_TOKEN = ['startLogin','login','appBuild'];
-const BUILD = 'fbb818e00f', APP_URL = location.origin + location.pathname;
+const BUILD = 'ce9b70397a', APP_URL = location.origin + location.pathname;
 let lastBuildChk = 0;
 function checkBuild(){
   if (!BUILD || BUILD.indexOf('<') === 0 || $('#updBar')) return; const n = Date.now(); if (n - lastBuildChk < 60000) return; lastBuildChk = n;
@@ -10856,6 +10856,7 @@ function openLogin(why){
   $('#lgBack').onmousedown = e => e.preventDefault();
   $('#lgBack').onclick = toName;
 }
+function edgeTopH(){ const e = document.getElementById('edgeTop'); return e && getComputedStyle(e).display !== 'none' ? e.offsetHeight : 0; } /* 上の端の帯の高さ（出ていないときは 0。11/9 開発 v29） */
 function openMe(anc){ /* 名前ボタンの上に出る小さな吹き出しメニュー（いちばん上のレイヤー） */
   const old = document.getElementById('mepop'); if (old) { old.remove(); return; }
   anc = anc || document.getElementById('btnMe2');
@@ -10876,9 +10877,11 @@ function openMe(anc){ /* 名前ボタンの上に出る小さな吹き出しメ�
     <div class="megp meout">${it('out', 'ログアウト', '共用のパソコンでは、使い終わったらログアウトしてください')}</div></div><i class="metail"></i>`;
   document.body.appendChild(el);
   const r = anc ? anc.getBoundingClientRect() : { left: 12, right: 252, top: innerHeight - 12, bottom: innerHeight - 12, width: 240 };
-  const place = () => { el.classList.remove('up', 'down'); const bd = el.querySelector('.mebody'); bd.style.maxHeight = ''; const sp = Math.max(r.top, innerHeight - r.bottom) - 24, hd = el.querySelector('.mehd').offsetHeight + 14; bd.style.maxHeight = Math.max(160, sp - hd) + 'px';
-    const w = el.offsetWidth, h = el.offsetHeight, left = Math.max(8, Math.min(innerWidth - w - 8, r.left)), up = r.top - h - 12 > 8 || r.top > innerHeight - r.bottom; el.classList.add(up ? 'up' : 'down');
-    el.style.left = left + 'px'; el.style.top = Math.max(8, up ? r.top - h - 10 : r.bottom + 10) + 'px';
+  /* 上の端の帯（#edgeTop）にかぶさらないように、その下から（11/9 開発 v29 本人「名前メニューを表示させたらボケた」：メニューが時計の帯まで伸びると、iPad が上の端をぼかす） */
+  const T0 = edgeTopH() + 8;
+  const place = () => { el.classList.remove('up', 'down'); const bd = el.querySelector('.mebody'); bd.style.maxHeight = ''; const sp = Math.max(r.top - (T0 - 8), innerHeight - r.bottom) - 24, hd = el.querySelector('.mehd').offsetHeight + 14; bd.style.maxHeight = Math.max(160, sp - hd) + 'px';
+    const w = el.offsetWidth, h = el.offsetHeight, left = Math.max(8, Math.min(innerWidth - w - 8, r.left)), up = r.top - h - 12 > T0 || r.top > innerHeight - r.bottom; el.classList.add(up ? 'up' : 'down');
+    el.style.left = left + 'px'; el.style.top = Math.max(T0, up ? r.top - h - 10 : r.bottom + 10) + 'px';
     el.querySelector('.metail').style.left = Math.max(14, Math.min(w - 26, r.left + Math.min(28, r.width / 2) - left - 6)) + 'px'; };
   place(); { const d = el.querySelector('.megd'); if (d) d.addEventListener('toggle', () => { try { localStorage.setItem('smr_meadm', d.open ? '1' : '0'); } catch(e){} place(); if (d.open) try { d.scrollIntoView({ block: 'nearest' }); } catch(e){} }); }
   const close = () => { el.remove(); document.removeEventListener('pointerdown', out, true); document.removeEventListener('keydown', esc1, true); window.removeEventListener('resize', close); };
